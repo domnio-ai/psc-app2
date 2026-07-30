@@ -5,6 +5,26 @@ type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
 type User = { name: string; email: string; role: Role; initials: string; rights: string[] }
 type TeamMember = User & { id: string; division: string; active: number; completed: number; status: 'Available' | 'Busy' | 'Away' }
+type StoredSession = { token: string; user: User }
+const SESSION_KEY = 'psc-app2-session'
+
+const readStoredSession = (): StoredSession | null => {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY)
+    return raw ? JSON.parse(raw) as StoredSession : null
+  } catch {
+    return null
+  }
+}
+
+const tokenExpiresAt = (token: string) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return Number(payload.exp) * 1000
+  } catch {
+    return 0
+  }
+}
 
 const demoUsers: User[] = [
   { name: 'Dominic Kibet', email: 'dominic.kibet@publicservice.go.ke', role: 'Research Officer', initials: 'DK', rights: ['View assignments', 'Update assigned work', 'Add knowledge', 'Collaborate'] },
@@ -94,6 +114,16 @@ export default function App() {
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
   const [token, setToken] = useState('')
+  const [authLoading, setAuthLoading] = useState(true)
+  const [rememberMe, setRememberMe] = useState(true)
+  const [sessionMessage, setSessionMessage] = useState('')
+  const [passwordMode, setPasswordMode] = useState<'change' | 'forgot' | null>(null)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [resetToken, setResetToken] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
   const [comment, setComment] = useState('')
@@ -115,6 +145,52 @@ export default function App() {
     return () => window.clearInterval(timer)
   }, [])
 
+  const clearSession = (message = '') => {
+    localStorage.removeItem(SESSION_KEY)
+    sessionStorage.removeItem(SESSION_KEY)
+    setUser(null)
+    setToken('')
+    setPassword('')
+    setActive('Dashboard')
+    setSessionMessage(message)
+  }
+
+  useEffect(() => {
+    api.onUnauthorized(() => clearSession('Your session expired. Please sign in again.'))
+    const stored = readStoredSession()
+    if (!stored || tokenExpiresAt(stored.token) <= Date.now()) {
+      clearSession(stored ? 'Your session expired. Please sign in again.' : '')
+      setAuthLoading(false)
+      return () => api.onUnauthorized(null)
+    }
+    setToken(stored.token)
+    setUser(stored.user)
+    api.me(stored.token)
+      .then(member => {
+        const profile = mapUser(member)
+        setUser(profile)
+        return loadLiveData(stored.token, profile)
+      })
+      .catch(() => clearSession('Your saved session is no longer valid. Please sign in again.'))
+      .finally(() => setAuthLoading(false))
+    return () => api.onUnauthorized(null)
+  }, [])
+
+  useEffect(() => {
+    if (!token) return
+    const remaining = tokenExpiresAt(token) - Date.now()
+    if (remaining <= 0) {
+      clearSession('Your session expired. Please sign in again.')
+      return
+    }
+    const timer = window.setTimeout(() => clearSession('Your session expired. Please sign in again.'), remaining)
+    return () => window.clearTimeout(timer)
+  }, [token])
+
+  useEffect(() => {
+    if (user && active !== 'Profile' && !roleNavigation[user.role].includes(active)) setActive('Dashboard')
+  }, [active, user])
+
   const rightsFor = (role: Role) => role === 'Administrator' ? ['Manage users','Manage roles','Audit activity','Full system access'] : role === 'Research Manager' ? ['Create assignments','Assign members','Approve work','Manage research'] : role === 'Reviewer' ? ['Review submissions','Comment','Request changes','Approve knowledge'] : ['View assignments','Update assigned work','Add knowledge','Collaborate']
   const initialsFor = (name: string) => name.split(' ').map(part => part[0]).join('').slice(0,2).toUpperCase()
   const mapUser = (member: ApiUser): User => ({ name:member.name,email:member.email,role:member.role as Role,initials:initialsFor(member.name),rights:rightsFor(member.role as Role) })
@@ -130,9 +206,54 @@ export default function App() {
   const signIn = async (event: React.FormEvent) => {
     event.preventDefault()
     setLoggingIn(true);setLoginError('')
-    try{const result=await api.login(email,password);const profile=mapUser(result.user);setToken(result.token);setUser(profile);await loadLiveData(result.token,profile)}
+    try{const result=await api.login(email,password);const profile=mapUser(result.user);const session={token:result.token,user:profile};localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);(rememberMe?localStorage:sessionStorage).setItem(SESSION_KEY,JSON.stringify(session));setToken(result.token);setUser(profile);setSessionMessage('');await loadLiveData(result.token,profile)}
     catch(error){setLoginError(error instanceof Error?error.message:'The PSC service could not complete your login.')}
     finally{setLoggingIn(false)}
+  }
+
+  const signOut = async () => {
+    const accessToken = token
+    clearSession()
+    if (accessToken) try { await api.logout(accessToken) } catch { /* Local sign-out still succeeds. */ }
+  }
+
+  const changePassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (newPassword !== confirmPassword) return setPasswordMessage('New passwords do not match.')
+    setSavingPassword(true);setPasswordMessage('')
+    try {
+      const result = await api.changePassword(token, currentPassword, newPassword)
+      const profile = mapUser(result.user)
+      const session = { token: result.token, user: profile }
+      const storage = localStorage.getItem(SESSION_KEY) ? localStorage : sessionStorage
+      storage.setItem(SESSION_KEY, JSON.stringify(session))
+      setToken(result.token);setUser(profile);setPasswordMessage('Password changed successfully.')
+      setCurrentPassword('');setNewPassword('');setConfirmPassword('')
+    } catch (error) { setPasswordMessage(error instanceof Error ? error.message : 'Password could not be changed.') }
+    finally { setSavingPassword(false) }
+  }
+
+  const requestReset = async () => {
+    if (!email) return setPasswordMessage('Enter your official PSC email address first.')
+    setSavingPassword(true);setPasswordMessage('')
+    try {
+      const result = await api.forgotPassword(email)
+      if (result.resetToken) setResetToken(result.resetToken)
+      setPasswordMessage(result.resetToken ? 'Reset request created. Enter a new password below.' : result.message)
+    } catch (error) { setPasswordMessage(error instanceof Error ? error.message : 'Reset request could not be created.') }
+    finally { setSavingPassword(false) }
+  }
+
+  const resetPassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (newPassword !== confirmPassword) return setPasswordMessage('New passwords do not match.')
+    if (!resetToken) return requestReset()
+    setSavingPassword(true);setPasswordMessage('')
+    try {
+      const result = await api.resetPassword(resetToken, newPassword)
+      setPasswordMessage(result.message);setResetToken('');setNewPassword('');setConfirmPassword('')
+    } catch (error) { setPasswordMessage(error instanceof Error ? error.message : 'Password could not be reset.') }
+    finally { setSavingPassword(false) }
   }
 
   const addComment = async () => {
@@ -168,6 +289,8 @@ export default function App() {
     }
   }
 
+  if (authLoading) return <div className="auth-loading"><div className="login-spinner" /><strong>Restoring your secure session…</strong></div>
+
   if (!user) {
     return <div className="login-page">
       <div className="login-glow one" /><div className="login-glow two" />
@@ -185,12 +308,31 @@ export default function App() {
         <form onSubmit={signIn}>
           <label>Email address<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@publicservice.go.ke" required /></label>
           <label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required /></label>
-          <div className="form-options"><label><input type="checkbox" /> Remember me</label><button type="button" onClick={() => alert('Password recovery instructions will be sent to your official PSC email address.')}>Forgot password?</button></div>
+          <div className="form-options"><label><input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} /> Remember me</label><button type="button" onClick={() => {setPasswordMode('forgot');setPasswordMessage('');setResetToken('')}}>Forgot password?</button></div>
+          {sessionMessage && <div className="session-message" role="status">{sessionMessage}</div>}
           {loginError && <div className="login-error" role="alert"><strong>Login unsuccessful</strong>{loginError}</div>}
           <button className="sign-in" type="submit" disabled={loggingIn}>{loggingIn?'Connecting securely…':'Sign in securely'} {!loggingIn&&<Icon name="arrow" />}</button>
         </form>
         <div className="demo-accounts"><strong>Test profiles</strong>{demoUsers.map(member => <button key={member.email} onClick={() => { setEmail(member.email); setPassword('PSC@2026') }}><span>{member.initials}</span><div>{member.name}<small>{member.role}</small></div></button>)}<p>Password for testing: <b>PSC@2026</b></p></div>
       </section>
+      {passwordMode === 'forgot' && <div className="modal-backdrop" onClick={() => setPasswordMode(null)}>
+        <section className="profile-modal password-modal" onClick={event => event.stopPropagation()}>
+          <button className="close" onClick={() => setPasswordMode(null)}>×</button>
+          <h2>Reset password</h2>
+          <p>Request a secure, single-use reset for your official PSC account.</p>
+          <form onSubmit={resetPassword}>
+            <label>Email address<input type="email" value={email} onChange={event => setEmail(event.target.value)} required /></label>
+            {resetToken && <>
+              <label>New password<input type="password" value={newPassword} onChange={event => setNewPassword(event.target.value)} minLength={10} required /></label>
+              <label>Confirm new password<input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} minLength={10} required /></label>
+            </>}
+            {passwordMessage && <div className="session-message" role="status">{passwordMessage}</div>}
+            {!resetToken
+              ? <button className="sign-in" type="button" disabled={savingPassword} onClick={requestReset}>{savingPassword ? 'Preparing reset…' : 'Request password reset'}</button>
+              : <button className="sign-in" type="submit" disabled={savingPassword}>{savingPassword ? 'Updating…' : 'Set new password'}</button>}
+          </form>
+        </section>
+      </div>}
     </div>
   }
 
@@ -210,7 +352,7 @@ export default function App() {
         </nav>
         <section className="quick-access">
           <h3>Quick Access</h3>
-          {([['plus', 'Create Assignment'], ['upload', 'Upload Document'], ['knowledge', 'Add Knowledge'], ['documents', 'New Research']] as [IconName, string][]).map(([icon, label]) =>
+          {([['plus', 'Create Assignment'], ['upload', 'Upload Document'], ['knowledge', 'Add Knowledge'], ['documents', 'New Research']] as [IconName, string][]).filter(([,label]) => label !== 'Create Assignment' || isManager).map(([icon, label]) =>
             <button key={label} onClick={() => label === 'Create Assignment' && openAssignment('Create a new assignment')}><Icon name={icon} />{label}</button>
           )}
         </section>
@@ -311,7 +453,7 @@ export default function App() {
             </article>
             <article className="panel quick-links">
               <div className="panel-title"><h2>Quick Links</h2></div>
-              <div>{([['knowledge', 'Knowledge Repository'], ['research', 'Research Repository'], ['documents', 'Documents'], ['reports', 'Reports'], ['team', 'Team & Users'], ['audit', 'Audit Logs'], ['notifications', 'Notifications'], ['settings', 'Settings']] as [IconName, string][]).map(([icon, label]) => <button key={label}><Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>8</b>}</button>)}</div>
+              <div>{([['knowledge', 'Knowledge Repository'], ['research', 'Research Repository'], ['documents', 'Documents'], ['reports', 'Reports & Analytics'], ['team', 'Team & Users'], ['audit', 'Audit Logs'], ['notifications', 'Notifications'], ['settings', 'Settings']] as [IconName, string][]).filter(([,label]) => roleNavigation[user.role].includes(label)).map(([icon, label]) => <button key={label} onClick={() => setActive(label)}><Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>8</b>}</button>)}</div>
             </article>
             <article className="panel activity-panel">
               <div className="panel-title"><h2>Activity Feed</h2><button>View all <Icon name="arrow" /></button></div>
@@ -321,7 +463,20 @@ export default function App() {
           <footer><span>© 2026 Public Service Commission, Kenya. All rights reserved.</span><div><a href="#">Privacy Policy</a><i /><a href="#">Terms of Use</a></div></footer>
         </div>
       </main>
-      {active === 'Profile' && <div className="modal-backdrop" onClick={() => setActive('Dashboard')}><section className="profile-modal" onClick={e => e.stopPropagation()}><button className="close" onClick={() => setActive('Dashboard')}>×</button><div className="profile-avatar">{user.initials}</div><h2>{user.name}</h2><p>{user.email}</p><em>{user.role}</em><h3>Access rights</h3><ul>{user.rights.map(right => <li key={right}><Icon name="check" />{right}</li>)}</ul><button className="sign-out" onClick={() => { setUser(null);setToken('');setPassword('');setActive('Dashboard') }}>Sign out</button></section></div>}
+      {active === 'Profile' && <div className="modal-backdrop" onClick={() => setActive('Dashboard')}><section className="profile-modal" onClick={e => e.stopPropagation()}><button className="close" onClick={() => setActive('Dashboard')}>×</button><div className="profile-avatar">{user.initials}</div><h2>{user.name}</h2><p>{user.email}</p><em>{user.role}</em><h3>Access rights</h3><ul>{user.rights.map(right => <li key={right}><Icon name="check" />{right}</li>)}</ul><button className="change-password-button" onClick={() => {setPasswordMode('change');setPasswordMessage('');setActive('Dashboard')}}>Change password</button><button className="sign-out" onClick={signOut}>Sign out everywhere</button></section></div>}
+      {passwordMode === 'change' && <div className="modal-backdrop" onClick={() => setPasswordMode(null)}>
+        <section className="profile-modal password-modal" onClick={event => event.stopPropagation()}>
+          <button className="close" onClick={() => setPasswordMode(null)}>×</button>
+          <h2>Change password</h2><p>Your old sessions will be revoked immediately.</p>
+          <form onSubmit={changePassword}>
+            <label>Current password<input type="password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} required /></label>
+            <label>New password<input type="password" value={newPassword} onChange={event => setNewPassword(event.target.value)} minLength={10} required /></label>
+            <label>Confirm new password<input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} minLength={10} required /></label>
+            {passwordMessage && <div className="session-message" role="status">{passwordMessage}</div>}
+            <button className="sign-in" type="submit" disabled={savingPassword}>{savingPassword ? 'Updating…' : 'Change password'}</button>
+          </form>
+        </section>
+      </div>}
       {selectedAssignment && <div className="collab-drawer">
         <div className="drawer-head"><div><p>COLLABORATION WORKSPACE</p><h2>{selectedAssignment}</h2></div><button onClick={() => {setSelectedAssignment(null);setSelectedAssignmentId(null)}}>×</button></div>
         <div className="collab-members"><span className="avatar-chip">DK</span><span className="avatar-chip orange">MW</span><span className="avatar-chip green">GM</span><button>+ Add member</button></div>

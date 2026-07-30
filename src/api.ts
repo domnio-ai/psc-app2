@@ -25,6 +25,11 @@ export type AnalyticsReport={
 }
 export type AuditLog={id:number;user_id:string|null;user_name:string;user_email?:string;action:string;entity_type:string;entity_id:string|null;details:Record<string,unknown>;created_at:string}
 export type AuditResponse={items:AuditLog[];total:number;actions:string[];entityTypes:string[]}
+export type SettingsResponse={
+  system:{organization_name:string;department_name:string;support_email:string;session_minutes:number;max_upload_mb:number;default_retention_days:number;document_categories:string[];maintenance_mode:boolean;email_notifications:boolean;updated_at:string}
+  preferences:{email_notifications:boolean;in_app_notifications:boolean;compact_layout:boolean;updated_at?:string}
+  health:{api:string;database:string;environment:string;database_time:string;configured_upload_limit_mb:number;configured_session:string}
+}
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -101,6 +106,9 @@ export const api = {
   readNotification:(token:string,id:string)=>request<ApiNotification>(`/notifications/${id}/read`,{method:'PATCH'},token),
   analytics:(token:string,filters:{from:string;to:string;division:string;status:string})=>request<AnalyticsReport>(`/analytics/reports?${new URLSearchParams(filters)}`,{},token),
   auditLogs:(token:string,filters:{search:string;userId:string;action:string;entityType:string;from:string;to:string})=>request<AuditResponse>(`/audit-logs?${new URLSearchParams(filters)}`,{},token),
+  settings:(token:string)=>request<SettingsResponse>('/settings',{},token),
+  updateSystemSettings:(token:string,input:{organizationName:string;departmentName:string;supportEmail:string;sessionMinutes:number;maxUploadMb:number;defaultRetentionDays:number;documentCategories:string[];maintenanceMode:boolean;emailNotifications:boolean})=>request('/settings/system',{method:'PATCH',body:JSON.stringify(input)},token),
+  updatePreferences:(token:string,input:{emailNotifications:boolean;inAppNotifications:boolean;compactLayout:boolean})=>request('/settings/preferences',{method:'PATCH',body:JSON.stringify(input)},token),
   alerts: (token: string) => request<{ id: string; title: string; body: string; created_at: string }[]>('/alerts', {}, token),
   publishAlert: (token: string, body: string) => request('/alerts', { method: 'POST', body: JSON.stringify({ title: 'Management update', body, severity: 'Important', audienceRole: null }) }, token),
 }

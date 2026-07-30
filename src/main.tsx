@@ -8,6 +8,7 @@ import './documents.css'
 import './reports.css'
 import './users.css'
 import './audit.css'
+import './settings.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

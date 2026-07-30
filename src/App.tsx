@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, type ApiAssignment, type ApiUser } from './api'
+import { api, type ApiAssignment, type ApiAttachment, type ApiHistory, type ApiUser, type AssignmentInput } from './api'
 
 type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
@@ -139,6 +139,16 @@ export default function App() {
     { id:'2', title: 'Public Service Digital Transformation', assignee: 'John Kamau', status: 'In Progress', division:'Digital Government', dueDate:'2026-08-10' },
     { id:'3', title: 'Establishment Register Analysis', assignee: 'Grace Muturi', status: 'Ready for Review', division:'Establishment Management', dueDate:'2026-08-15' },
   ])
+  const [assignmentRows, setAssignmentRows] = useState<ApiAssignment[]>([])
+  const [assignmentSearch, setAssignmentSearch] = useState('')
+  const [assignmentStatus, setAssignmentStatus] = useState('All')
+  const [assignmentPriority, setAssignmentPriority] = useState('All')
+  const [assignmentEditor, setAssignmentEditor] = useState<ApiAssignment | 'new' | null>(null)
+  const [assignmentForm, setAssignmentForm] = useState<AssignmentInput>({title:'',description:'',division:'',dueDate:null,priority:'Normal',memberIds:[]})
+  const [assignmentFiles, setAssignmentFiles] = useState<ApiAttachment[]>([])
+  const [assignmentHistory, setAssignmentHistory] = useState<ApiHistory[]>([])
+  const [assignmentNotice, setAssignmentNotice] = useState('')
+  const [savingAssignment, setSavingAssignment] = useState(false)
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000)
@@ -198,6 +208,7 @@ export default function App() {
 
   const loadLiveData = async (accessToken: string, profile: User) => {
     const [assignmentRows, alertRows] = await Promise.all([api.assignments(accessToken), api.alerts(accessToken)])
+    setAssignmentRows(assignmentRows)
     setWorkAllocation(assignmentRows.map((item: ApiAssignment) => ({id:item.id,title:item.title,assignee:item.members[0]?.name||'Unassigned',status:item.status,division:item.division,dueDate:item.due_date||''})))
     setSystemAlerts(alertRows.map(item=>item.body))
     if (profile.role === 'Administrator' || profile.role === 'Research Manager') setTeam((await api.users(accessToken)).map(mapTeamMember))
@@ -289,6 +300,59 @@ export default function App() {
     }
   }
 
+  const refreshAssignments = async () => {
+    if (!token) return
+    const rows = await api.assignments(token)
+    setAssignmentRows(rows)
+    setWorkAllocation(rows.map(item => ({id:item.id,title:item.title,assignee:item.members[0]?.name||'Unassigned',status:item.status,division:item.division,dueDate:item.due_date||''})))
+  }
+
+  const startAssignment = (assignment?: ApiAssignment) => {
+    setAssignmentNotice('')
+    setAssignmentEditor(assignment || 'new')
+    setAssignmentForm(assignment ? {title:assignment.title,description:assignment.description,division:assignment.division,dueDate:assignment.due_date,priority:assignment.priority,memberIds:assignment.members.map(member=>member.id)} : {title:'',description:'',division:'',dueDate:null,priority:'Normal',memberIds:[]})
+  }
+
+  const saveAssignment = async (event: React.FormEvent) => {
+    event.preventDefault();if(!token)return
+    setSavingAssignment(true);setAssignmentNotice('')
+    try {
+      if (assignmentEditor === 'new') await api.createAssignment(token, assignmentForm)
+      else if (assignmentEditor) {
+        await api.updateAssignment(token, assignmentEditor.id, assignmentForm)
+        for (const memberId of assignmentForm.memberIds) await api.addMember(token, assignmentEditor.id, memberId)
+      }
+      await refreshAssignments();setAssignmentEditor(null);setAssignmentNotice('Assignment saved successfully.')
+    } catch(error) { setAssignmentNotice(error instanceof Error?error.message:'Assignment could not be saved.') }
+    finally { setSavingAssignment(false) }
+  }
+
+  const removeAssignment = async (assignment: ApiAssignment) => {
+    if(!token||!window.confirm(`Delete “${assignment.title}”? This cannot be undone.`))return
+    try { await api.deleteAssignment(token,assignment.id);await refreshAssignments();setAssignmentNotice('Assignment deleted.') }
+    catch(error){setAssignmentNotice(error instanceof Error?error.message:'Assignment could not be deleted.')}
+  }
+
+  const openAssignmentDetails = async (assignment: ApiAssignment) => {
+    setSelectedAssignment(assignment.title);setSelectedAssignmentId(assignment.id)
+    try {
+      const [commentRows,files,history]=await Promise.all([api.comments(token,assignment.id),api.attachments(token,assignment.id),api.history(token,assignment.id)])
+      setComments(commentRows.map(item=>({author:item.author_name,text:item.body,time:new Date(item.created_at).toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'})})))
+      setAssignmentFiles(files);setAssignmentHistory(history)
+    } catch(error){setAssignmentNotice(error instanceof Error?error.message:'Assignment details could not be loaded.')}
+  }
+
+  const uploadAssignmentFile = async (file?: File) => {
+    if(!file||!selectedAssignmentId||!token)return
+    try { await api.uploadAttachment(token,selectedAssignmentId,file);setAssignmentFiles(await api.attachments(token,selectedAssignmentId));setAssignmentHistory(await api.history(token,selectedAssignmentId)) }
+    catch(error){alert(error instanceof Error?error.message:'Attachment could not be uploaded.')}
+  }
+
+  const filteredAssignments = assignmentRows.filter(item => {
+    const text=`${item.title} ${item.description} ${item.division}`.toLowerCase()
+    return text.includes(assignmentSearch.toLowerCase())&&(assignmentStatus==='All'||item.status===assignmentStatus)&&(assignmentPriority==='All'||item.priority===assignmentPriority)
+  })
+
   if (authLoading) return <div className="auth-loading"><div className="login-spinner" /><strong>Restoring your secure session…</strong></div>
 
   if (!user) {
@@ -353,7 +417,7 @@ export default function App() {
         <section className="quick-access">
           <h3>Quick Access</h3>
           {([['plus', 'Create Assignment'], ['upload', 'Upload Document'], ['knowledge', 'Add Knowledge'], ['documents', 'New Research']] as [IconName, string][]).filter(([,label]) => label !== 'Create Assignment' || isManager).map(([icon, label]) =>
-            <button key={label} onClick={() => label === 'Create Assignment' && openAssignment('Create a new assignment')}><Icon name={icon} />{label}</button>
+            <button key={label} onClick={() => {if(label==='Create Assignment'){setActive('Assignments');startAssignment()}}}><Icon name={icon} />{label}</button>
           )}
         </section>
       </aside>
@@ -373,7 +437,23 @@ export default function App() {
           </div>
         </header>
 
-        <div className="dashboard-content">
+        <div className={`dashboard-content ${active === 'Assignments' ? 'assignments-active' : ''}`}>
+          <section className="assignment-management-view">
+            <div className="assignment-page-head"><div><p>ASSIGNMENT MANAGEMENT</p><h2>Research work pipeline</h2><span>Create, allocate, track, review and preserve every assignment record.</span></div>{isManager&&<button onClick={()=>startAssignment()}>+ New assignment</button>}</div>
+            <div className="assignment-toolbar"><label><Icon name="search"/><input value={assignmentSearch} onChange={event=>setAssignmentSearch(event.target.value)} placeholder="Search title, division or description"/></label><select value={assignmentStatus} onChange={event=>setAssignmentStatus(event.target.value)}>{['All','Not Started','In Progress','Ready for Review','Completed','Overdue'].map(value=><option key={value}>{value}</option>)}</select><select value={assignmentPriority} onChange={event=>setAssignmentPriority(event.target.value)}>{['All','Low','Normal','High','Critical'].map(value=><option key={value}>{value}</option>)}</select><span>{filteredAssignments.length} assignments</span></div>
+            {assignmentNotice&&<div className="session-message">{assignmentNotice}</div>}
+            <div className="assignment-board">
+              {filteredAssignments.map(item=><article className="assignment-card" key={item.id}>
+                <div className="assignment-card-top"><span className={`priority ${item.priority.toLowerCase()}`}>{item.priority}</span><em>{item.status}</em></div>
+                <h3>{item.title}</h3><p>{item.description||'No description provided.'}</p>
+                <dl><div><dt>Division</dt><dd>{item.division}</dd></div><div><dt>Due date</dt><dd>{item.due_date?new Date(item.due_date).toLocaleDateString('en-KE'):'Not set'}</dd></div></dl>
+                <div className="assignment-members">{item.members.map(member=><span key={member.id} title={`${member.name} · ${member.role}`}>{initialsFor(member.name)}</span>)}{!item.members.length&&<small>Unassigned</small>}</div>
+                <div className="assignment-card-actions"><button onClick={()=>openAssignmentDetails(item)}>Open workspace</button>{isManager&&<><button onClick={()=>startAssignment(item)}>Edit</button><button className="danger" onClick={()=>removeAssignment(item)}>Delete</button></>}</div>
+                <select value={item.status} onChange={async event=>{try{await api.updateStatus(token,item.id,event.target.value);await refreshAssignments()}catch(error){setAssignmentNotice(error instanceof Error?error.message:'Status could not be updated.')}}}><option>Not Started</option><option>In Progress</option><option>Ready for Review</option><option>Completed</option><option>Overdue</option></select>
+              </article>)}
+              {!filteredAssignments.length&&<div className="assignment-empty"><Icon name="assignments"/><h3>No assignments match these filters</h3><p>Clear the filters or create a new assignment.</p></div>}
+            </div>
+          </section>
           <section className="stats-grid">
             {stats.map(([icon, label, value, tone]) => (
               <article className={`stat-card ${tone}`} key={label}><Icon name={icon} /><div><span>{label}</span><strong>{value}</strong><button>View all <Icon name="arrow" /></button></div></article>
@@ -405,7 +485,7 @@ export default function App() {
 
             <div className="management-grid lower">
               <article className="panel allocations-panel">
-                <div className="panel-title"><h2>Assignment Allocation</h2><button onClick={() => openAssignment('Create a new assignment')}>+ Create assignment</button></div>
+                <div className="panel-title"><h2>Assignment Allocation</h2><button onClick={() => {setActive('Assignments');startAssignment()}}>+ Create assignment</button></div>
                 {workAllocation.map((item, index) => <div className="allocation-row" key={item.title}><strong>{item.title}</strong><select value={item.assignee} onChange={e => updateAllocation(index, 'assignee', e.target.value)}>{team.filter(member => member.role !== 'Administrator').map(member => <option key={member.email}>{member.name}</option>)}</select><select value={item.status} onChange={e => updateAllocation(index, 'status', e.target.value)}><option>Not Started</option><option>In Progress</option><option>Ready for Review</option><option>Completed</option><option>Overdue</option></select></div>)}
               </article>
               <article className="panel analytics-panel">
@@ -423,7 +503,7 @@ export default function App() {
 
           <section className="primary-grid">
             <article className="panel assignments-panel">
-              <div className="panel-title"><h2>My Assignments</h2><button>View all assignments <Icon name="arrow" /></button></div>
+              <div className="panel-title"><h2>My Assignments</h2><button onClick={()=>setActive('Assignments')}>View all assignments <Icon name="arrow" /></button></div>
               <div className="tabs">{['All', 'In Progress', 'Due Soon', 'Overdue', 'Completed'].map((tab, i) => <button className={i === 0 ? 'active' : ''} key={tab}>{tab}</button>)}</div>
               {workAllocation.map(item => (
                 <button className="assignment-row" key={item.id} onClick={() => openAssignment(item.title,item.id)}>
@@ -477,12 +557,15 @@ export default function App() {
           </form>
         </section>
       </div>}
+      {assignmentEditor&&<div className="modal-backdrop" onClick={()=>setAssignmentEditor(null)}><section className="assignment-editor" onClick={event=>event.stopPropagation()}><button className="close" onClick={()=>setAssignmentEditor(null)}>×</button><h2>{assignmentEditor==='new'?'Create assignment':'Edit assignment'}</h2><form onSubmit={saveAssignment}><label>Title<input value={assignmentForm.title} onChange={event=>setAssignmentForm({...assignmentForm,title:event.target.value})} required minLength={4}/></label><label>Description<textarea value={assignmentForm.description} onChange={event=>setAssignmentForm({...assignmentForm,description:event.target.value})}/></label><div className="form-pair"><label>Division<input value={assignmentForm.division} onChange={event=>setAssignmentForm({...assignmentForm,division:event.target.value})} required/></label><label>Due date<input type="date" value={assignmentForm.dueDate||''} onChange={event=>setAssignmentForm({...assignmentForm,dueDate:event.target.value||null})}/></label></div><label>Priority<select value={assignmentForm.priority} onChange={event=>setAssignmentForm({...assignmentForm,priority:event.target.value})}><option>Low</option><option>Normal</option><option>High</option><option>Critical</option></select></label><fieldset><legend>Assign members</legend>{team.filter(member=>member.role!=='Administrator').map(member=><label key={member.id}><input type="checkbox" checked={assignmentForm.memberIds.includes(member.id)} onChange={event=>setAssignmentForm({...assignmentForm,memberIds:event.target.checked?[...assignmentForm.memberIds,member.id]:assignmentForm.memberIds.filter(id=>id!==member.id)})}/>{member.name}<small>{member.role}</small></label>)}</fieldset><button className="sign-in" disabled={savingAssignment}>{savingAssignment?'Saving…':'Save assignment'}</button></form></section></div>}
       {selectedAssignment && <div className="collab-drawer">
         <div className="drawer-head"><div><p>COLLABORATION WORKSPACE</p><h2>{selectedAssignment}</h2></div><button onClick={() => {setSelectedAssignment(null);setSelectedAssignmentId(null)}}>×</button></div>
         <div className="collab-members"><span className="avatar-chip">DK</span><span className="avatar-chip orange">MW</span><span className="avatar-chip green">GM</span><button>+ Add member</button></div>
-        <div className="assignment-actions"><label>Status<select defaultValue="In Progress"><option>Not Started</option><option>In Progress</option><option>Ready for Review</option><option>Completed</option></select></label><button><Icon name="upload" /> Attach document</button></div>
+        <div className="assignment-actions"><label>Attach document · max 100 MB<input type="file" onChange={event=>uploadAssignmentFile(event.target.files?.[0])}/></label><button onClick={()=>setActive('Assignments')}><Icon name="assignments" /> Assignment list</button></div>
+        <div className="attachment-list">{assignmentFiles.map(file=><button key={file.id} onClick={()=>api.downloadAttachment(token,file.id,file.original_name)}><Icon name="documents"/><span>{file.original_name}<small>{Math.ceil(file.size_bytes/1024)} KB · {file.uploader_name}</small></span></button>)}{!assignmentFiles.length&&<small>No files attached yet.</small>}</div>
         <h3>Team conversation</h3><div className="comments">{comments.map((item, index) => <div className="comment" key={`${item.author}-${index}`}><span>{item.author.split(' ').map(n => n[0]).join('')}</span><div><strong>{item.author}<time>{item.time}</time></strong><p>{item.text}</p></div></div>)}</div>
         <div className="comment-box"><textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Write an update or mention a team member with @..." /><button onClick={addComment}>Send update <Icon name="arrow" /></button></div>
+        <h3>Activity history</h3><div className="history-list">{assignmentHistory.map(item=><div key={item.id}><strong>{item.action.replaceAll('_',' ')}</strong><span>{item.user_name||'System'} · {new Date(item.created_at).toLocaleString('en-KE')}</span></div>)}</div>
       </div>}
     </div>
   )

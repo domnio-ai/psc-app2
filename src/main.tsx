@@ -17,6 +17,7 @@ import './notification-detail.css'
 import './notice-workspace.css'
 import './notification-filters.css'
 import './ai-chat.css'
+import './felix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

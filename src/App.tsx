@@ -5,6 +5,7 @@ import NoticeComposer from './NoticeComposer'
 import NotificationCenter from './NotificationCenter'
 import NoticeBoardWorkspace from './NoticeBoardWorkspace'
 import AIResearchChat from './AIResearchChat'
+import FelixAssistant from './FelixAssistant'
 
 type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
@@ -764,6 +765,7 @@ export default function App() {
           <footer><span>© 2026 Public Service Commission, Kenya. All rights reserved.</span><div><a href="#">Privacy Policy</a><i /><a href="#">Terms of Use</a></div></footer>
         </div>
       </main>
+      {roleNavigation[user.role].includes('AI Researcher') && <FelixAssistant online={Boolean(aiResearchEngine?.ollamaConnected)} onOpen={() => { setActive('AI Researcher'); window.scrollTo({ top: 0, behavior: 'smooth' }) }} />}
       {active === 'Profile' && <div className="modal-backdrop" onClick={() => setActive('Dashboard')}><section className="profile-modal" onClick={e => e.stopPropagation()}><button className="close" onClick={() => setActive('Dashboard')}>×</button><div className="profile-avatar">{user.initials}</div><h2>{user.name}</h2><p>{user.email}</p><em>{user.role}</em><h3>Access rights</h3><ul>{user.rights.map(right => <li key={right}><Icon name="check" />{right}</li>)}</ul><button className="change-password-button" onClick={() => {setPasswordMode('change');setPasswordMessage('');setActive('Dashboard')}}>Change password</button><button className="sign-out" onClick={() => setShowLogout(true)}>Sign out everywhere</button></section></div>}
       {passwordMode === 'change' && <div className="modal-backdrop" onClick={() => setPasswordMode(null)}>
         <section className="profile-modal password-modal" onClick={event => event.stopPropagation()}>

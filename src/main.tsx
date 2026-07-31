@@ -19,6 +19,7 @@ import './notification-filters.css'
 import './ai-chat.css'
 import './felix.css'
 import './inbox-ordering.css'
+import './felix-actions.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

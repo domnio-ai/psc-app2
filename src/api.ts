@@ -11,6 +11,8 @@ export type KnowledgeItem = { id:string;title:string;description:string;category
 export type KnowledgeVersion = { id:string;version_number:number;original_name:string;mime_type:string;size_bytes:number;created_at:string;created_by_name:string }
 export type ResearchProject={id:string;title:string;summary:string;research_question:string;objectives:string;methodology:string;status:string;start_date:string|null;end_date:string|null;lead_name:string;collaborators:{id:string;name:string;role:string}[];milestones:{id:string;title:string;due_date:string|null;status:string}[]}
 export type AiResearchEngine={mode:string;provider:string;ollamaConnected:boolean;gptResearcherConnected:boolean;researchMateConnected:boolean;paidProvidersEnabled:boolean}
+export type FelixAction={type:'navigate'|'draft_notice'|'draft_assignment'|'update_assignment_status';label:string;target:string;payload:Record<string,string>}
+export type FelixResponse={answer:string;model:string;references?:string[];action?:FelixAction}
 export type AiResearchJob={id:string;title:string;question:string;scope:string;source_mode:string;depth:string;provider:string;status:string;progress:number;plan:{step:number;title:string;description:string}[];draft_report:string;error_message?:string;created_by_name:string;created_at:string;updated_at:string;sources:{id:string;title:string;url?:string;excerpt:string;citation_number:number}[];events:{id:number;event:string;details:Record<string,unknown>;created_at:string}[]}
 export type DocumentItem=KnowledgeItem&{locked_by_name?:string;locked_at?:string;expires_at?:string;retention_until?:string}
 export type ReviewEvent={id:number;action:string;comments:string;created_at:string;actor_name:string;reviewer_name?:string}
@@ -115,7 +117,7 @@ export const api = {
   updateResearchStatus:(token:string,id:string,status:string)=>request<ResearchProject>(`/research/${id}/status`,{method:'PATCH',body:JSON.stringify({status})},token),
   addResearchMilestone:(token:string,id:string,title:string,dueDate:string|null)=>request(`/research/${id}/milestones`,{method:'POST',body:JSON.stringify({title,dueDate})},token),
   aiResearchEngine:(token:string)=>aiRequest<AiResearchEngine>('/engine',{},token),
-  askFelix:(token:string,message:string)=>aiRequest<{answer:string;model:string}>('/chat',{method:'POST',body:JSON.stringify({message})},token),
+  askFelix:(token:string,message:string,history:{role:'user'|'assistant';content:string}[]=[])=>aiRequest<FelixResponse>('/chat',{method:'POST',body:JSON.stringify({message,history})},token),
   aiResearchJobs:(token:string)=>aiRequest<AiResearchJob[]>('/jobs',{},token),
   createAiResearchJob:(token:string,input:{title:string;question:string;scope:string;sourceMode:string;depth:string})=>aiRequest<AiResearchJob>('/jobs',{method:'POST',body:JSON.stringify(input)},token),
   startAiResearchJob:(token:string,id:string)=>aiRequest<AiResearchJob>(`/jobs/${id}/start`,{method:'POST'},token),

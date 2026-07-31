@@ -33,6 +33,7 @@ export type SettingsResponse={
   preferences:{email_notifications:boolean;in_app_notifications:boolean;compact_layout:boolean;theme_mode:'Dark'|'Light'|'System';accent_color:'Gold'|'Blue'|'Green';updated_at?:string}
   health:{api:string;database:string;environment:string;database_time:string;configured_upload_limit_mb:number;configured_session:string}
 }
+export type UpdateStatus={application:string;applicationVersion:string;apiVersion:string;runtime:string;database:string;databaseVersion:string;status:string;updateChannel:string;automaticUpdates:boolean;checkedAt:string}
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -128,6 +129,7 @@ export const api = {
   analytics:(token:string,filters:{from:string;to:string;division:string;status:string})=>request<AnalyticsReport>(`/analytics/reports?${new URLSearchParams(filters)}`,{},token),
   auditLogs:(token:string,filters:{search:string;userId:string;action:string;entityType:string;from:string;to:string})=>request<AuditResponse>(`/audit-logs?${new URLSearchParams(filters)}`,{},token),
   settings:(token:string)=>request<SettingsResponse>('/settings',{},token),
+  settingsUpdateStatus:(token:string)=>request<UpdateStatus>('/settings/updates',{},token),
   updateSystemSettings:(token:string,input:{organizationName:string;departmentName:string;supportEmail:string;sessionMinutes:number;maxUploadMb:number;defaultRetentionDays:number;documentCategories:string[];maintenanceMode:boolean;emailNotifications:boolean})=>request('/settings/system',{method:'PATCH',body:JSON.stringify(input)},token),
   updatePreferences:(token:string,input:{emailNotifications:boolean;inAppNotifications:boolean;compactLayout:boolean;themeMode:'Dark'|'Light'|'System';accentColor:'Gold'|'Blue'|'Green'})=>request('/settings/preferences',{method:'PATCH',body:JSON.stringify(input)},token),
   alerts: (token: string) => request<{ id: string; title: string; body: string; created_at: string }[]>('/alerts', {}, token),

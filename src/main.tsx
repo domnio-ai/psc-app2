@@ -11,6 +11,7 @@ import './audit.css'
 import './settings.css'
 import './notice-board.css'
 import './calendar.css'
+import './notice-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

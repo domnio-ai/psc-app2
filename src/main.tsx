@@ -9,6 +9,7 @@ import './reports.css'
 import './users.css'
 import './audit.css'
 import './settings.css'
+import './notice-board.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

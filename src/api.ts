@@ -16,6 +16,8 @@ export type DocumentItem=KnowledgeItem&{locked_by_name?:string;locked_at?:string
 export type ReviewEvent={id:number;action:string;comments:string;created_at:string;actor_name:string;reviewer_name?:string}
 export type ReviewItem=DocumentItem&{reviewer_id?:string;reviewer_name?:string;review_history:ReviewEvent[]}
 export type ApiNotification={id:string;title:string;body:string;entity_type?:string;entity_id?:string;read_at:string|null;created_at:string}
+export type NoticeItem={id:string;title:string;body:string;severity:'Information'|'Important'|'Urgent';audience_role:string|null;status:'Pending Approval'|'Published'|'Rejected';event_start:string|null;event_end:string|null;rejection_reason:string|null;created_at:string;created_by:string;created_by_name:string;reviewed_by_name?:string}
+export type CalendarItem={id:string;title:string;start_at:string;end_at?:string|null;type:'assignment'|'notice';status:string}
 export type AnalyticsReport={
   summary:{total:number;completed:number;overdue:number;completion_rate:number;pending_reviews:number;published_documents:number;active_research:number}
   assignmentStatuses:{status:string;total:number}[]
@@ -135,6 +137,8 @@ export const api = {
   sendTestEmail:(token:string,email:string)=>request<{message:string;messageId:string;accepted:string[]}>('/settings/test-email',{method:'POST',body:JSON.stringify({email})},token),
   updateSystemSettings:(token:string,input:{organizationName:string;departmentName:string;supportEmail:string;sessionMinutes:number;maxUploadMb:number;defaultRetentionDays:number;documentCategories:string[];maintenanceMode:boolean;emailNotifications:boolean})=>request('/settings/system',{method:'PATCH',body:JSON.stringify(input)},token),
   updatePreferences:(token:string,input:{emailNotifications:boolean;inAppNotifications:boolean;compactLayout:boolean;themeMode:'Dark'|'Light'|'System';accentColor:'Gold'|'Blue'|'Green'})=>request('/settings/preferences',{method:'PATCH',body:JSON.stringify(input)},token),
-  alerts: (token: string) => request<{ id: string; title: string; body: string; created_at: string }[]>('/alerts', {}, token),
-  publishAlert: (token: string, body: string) => request('/alerts', { method: 'POST', body: JSON.stringify({ title: 'Management update', body, severity: 'Important', audienceRole: null }) }, token),
+  alerts: (token: string) => request<NoticeItem[]>('/alerts', {}, token),
+  submitNotice:(token:string,input:{title:string;body:string;severity:string;audienceRole:string|null;eventStart:string|null;eventEnd:string|null})=>request<NoticeItem>('/alerts',{method:'POST',body:JSON.stringify(input)},token),
+  reviewNotice:(token:string,id:string,approved:boolean,reason:string)=>request<NoticeItem>(`/alerts/${id}/review`,{method:'PATCH',body:JSON.stringify({approved,reason})},token),
+  calendar:(token:string)=>request<CalendarItem[]>('/calendar',{},token),
 }

@@ -13,6 +13,7 @@ import './notice-board.css'
 import './calendar.css'
 import './notice-fix.css'
 import './notifications.css'
+import './notification-detail.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

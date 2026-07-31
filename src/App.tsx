@@ -4,6 +4,7 @@ import CalendarView from './CalendarView'
 import NoticeComposer from './NoticeComposer'
 import NotificationCenter from './NotificationCenter'
 import NoticeBoardWorkspace from './NoticeBoardWorkspace'
+import AIResearchChat from './AIResearchChat'
 
 type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
@@ -425,6 +426,7 @@ export default function App() {
   }
 
   const startAssignment = (assignment?: ApiAssignment) => {
+    if(!isManager){setAssignmentNotice('Only Administrators and Research Managers can create or edit assignments.');setAssignmentEditor(null);return}
     setAssignmentNotice('')
     setAssignmentEditor(assignment || 'new')
     setAssignmentForm(assignment ? {title:assignment.title,description:assignment.description,division:assignment.division,dueDate:assignment.due_date,priority:assignment.priority,memberIds:assignment.members.map(member=>member.id)} : {title:'',description:'',division:'',dueDate:null,priority:'Normal',memberIds:[]})
@@ -475,6 +477,7 @@ export default function App() {
   const filteredKnowledge=knowledgeRows.filter(item=>(`${item.title} ${item.description} ${item.tags.join(' ')}`.toLowerCase().includes(knowledgeSearch.toLowerCase()))&&(knowledgeCategory==='All'||item.category===knowledgeCategory))
   const saveResearch=async(event:React.FormEvent)=>{event.preventDefault();if(researchForm.startDate&&researchForm.endDate&&researchForm.endDate<researchForm.startDate){alert('Research end date must be on or after its start date.');return}await api.createResearch(token,{...researchForm,startDate:researchForm.startDate||null,endDate:researchForm.endDate||null,assignmentId:researchForm.assignmentId||null});setResearchRows(await api.research(token));setResearchOpen(false)}
   const saveAiResearch=async(event:React.FormEvent)=>{event.preventDefault();try{await api.createAiResearchJob(token,aiResearchForm);setAiResearchJobs(await api.aiResearchJobs(token));setAiResearchOpen(false);setAiResearchForm({title:'',question:'',scope:'',sourceMode:'All',depth:'Standard'});setAiResearchNotice('Research plan created with zero API cost.')}catch(error){setAiResearchNotice(error instanceof Error?error.message:'The research plan could not be created.')}}
+  const askAiResearch=async(question:string)=>{const title=question.replace(/[?.!]+$/,'').slice(0,90);const job=await api.createAiResearchJob(token,{title,question,scope:'PSC research use only. Produce an evidence-led plan for human review.',sourceMode:'All',depth:'Standard'});setAiResearchJobs(await api.aiResearchJobs(token));const steps=job.plan.slice(0,4).map(item=>`${item.step}. ${item.title}`).join(' ');return `I created a research plan for “${job.title}”. ${steps} Use Run locally from the research history when the local engine is available.`}
   const startAiResearch=async(job:AiResearchJob)=>{try{setAiResearchNotice('Checking the free local research engine...');await api.startAiResearchJob(token,job.id)}catch(error){setAiResearchNotice(error instanceof Error?error.message:'The local research engine could not be started.')}}
   const refreshDocuments=async()=>setDocumentRows(await api.documents(token))
   const toggleDocumentLock=async(item:DocumentItem)=>{try{if(item.locked_by_name)await api.checkinDocument(token,item.id);else await api.checkoutDocument(token,item.id);await refreshDocuments();setDocumentNotice(item.locked_by_name?'Document checked in.':'Document checked out for two hours.')}catch(error){setDocumentNotice(error instanceof Error?error.message:'Document lock could not be changed.')}}
@@ -645,6 +648,7 @@ export default function App() {
           <section className="research-management-view"><div className="assignment-page-head"><div><p>RESEARCH REPOSITORY</p><h2>Research project portfolio</h2><span>Questions, objectives, methods, collaborators, evidence and milestones.</span></div>{isManager&&<button onClick={()=>setResearchOpen(true)}>+ New research project</button>}</div><div className="research-grid">{researchRows.map(project=><article key={project.id}><span>{project.status}</span><h3>{project.title}</h3><p>{project.summary}</p><dl><div><dt>Lead</dt><dd>{project.lead_name}</dd></div><div><dt>Timeline</dt><dd>{project.start_date||'Not set'} — {project.end_date||'Open'}</dd></div></dl><h4>Research question</h4><p>{project.research_question||'Not defined'}</p><div>{project.collaborators.map(person=><b key={person.id}>{person.name}</b>)}</div><select value={project.status} onChange={async event=>{await api.updateResearchStatus(token,project.id,event.target.value);setResearchRows(await api.research(token))}}>{['Planning','Active','Under Review','Completed','Archived'].map(value=><option key={value}>{value}</option>)}</select></article>)}</div></section>
           <section className="ai-research-management-view">
             <div className="assignment-page-head"><div><p>AI RESEARCHER</p><h2>Evidence-led research workspace</h2><span>Combine deep web research with approved App2 documents while keeping every result under human review.</span></div><button onClick={()=>setAiResearchOpen(true)}>+ Plan research</button></div>
+            <AIResearchChat engine={aiResearchEngine} jobs={aiResearchJobs} onAsk={askAiResearch}/>
             <div className="ai-engine-card"><div><strong>Free Local mode</strong><span>No paid provider can run automatically.</span></div><b className={aiResearchEngine?.ollamaConnected?'connected':'offline'}>{aiResearchEngine?.ollamaConnected?'Ollama connected':'Local engine offline'}</b><div className="engine-parts"><span className={aiResearchEngine?.gptResearcherConnected?'ready':''}>GPT Researcher adapter</span><span className={aiResearchEngine?.researchMateConnected?'ready':''}>ResearchMate adapter</span><span className="ready">PostgreSQL job store</span></div></div>
             {aiResearchNotice&&<div className="session-message">{aiResearchNotice}</div>}
             <div className="ai-research-grid">{aiResearchJobs.map(job=><article key={job.id}><header><span>{job.status}</span><b>{job.depth}</b></header><h3>{job.title}</h3><p>{job.question}</p><dl><div><dt>Sources</dt><dd>{job.source_mode}</dd></div><div><dt>Created by</dt><dd>{job.created_by_name}</dd></div><div><dt>Provider</dt><dd>{job.provider}</dd></div><div><dt>Cost policy</dt><dd>Zero API cost</dd></div></dl><div className="ai-plan">{job.plan.map(item=><div key={item.step}><b>{item.step}</b><span><strong>{item.title}</strong><small>{item.description}</small></span></div>)}</div><footer><button onClick={()=>startAiResearch(job)}>Run locally</button><span>{job.progress}% complete</span></footer></article>)}{!aiResearchJobs.length&&<div className="assignment-empty"><Icon name="research"/><h3>No AI research plans yet</h3><p>Create a question and choose whether the researcher should use the web, App2 documents, or both.</p></div>}</div>
@@ -702,7 +706,7 @@ export default function App() {
 
             <div className="management-grid lower">
               <article className="panel allocations-panel">
-                <div className="panel-title"><h2>Assignment Allocation</h2><button onClick={() => {setActive('Assignments');startAssignment()}}>+ Create assignment</button></div>
+                <div className="panel-title"><h2>Assignment Allocation</h2>{isManager&&<button onClick={() => {setActive('Assignments');startAssignment()}}>+ Create assignment</button>}</div>
                 {workAllocation.map((item, index) => <div className="allocation-row" key={item.title}><strong>{item.title}</strong><select value={item.assignee} onChange={e => updateAllocation(index, 'assignee', e.target.value)}>{team.filter(member => member.role !== 'Administrator').map(member => <option key={member.email}>{member.name}</option>)}</select><select value={item.status} onChange={e => updateAllocation(index, 'status', e.target.value)}><option>Not Started</option><option>In Progress</option><option>Ready for Review</option><option>Completed</option><option>Overdue</option></select></div>)}
               </article>
               <article className="panel analytics-panel">

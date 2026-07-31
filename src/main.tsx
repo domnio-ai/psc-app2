@@ -12,6 +12,7 @@ import './settings.css'
 import './notice-board.css'
 import './calendar.css'
 import './notice-fix.css'
+import './notifications.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

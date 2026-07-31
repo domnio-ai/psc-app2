@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, type AiResearchEngine, type AiResearchJob, type AnalyticsReport, type ApiAssignment, type ApiAttachment, type ApiHistory, type ApiNotification, type ApiUser, type AssignmentInput, type AuditLog, type CalendarItem, type DocumentItem, type EmailDeliveryStatus, type KnowledgeItem, type KnowledgeVersion, type NoticeItem, type ResearchProject, type ReviewItem, type SettingsResponse, type UpdateStatus } from './api'
 import CalendarView from './CalendarView'
 import NoticeComposer from './NoticeComposer'
+import NotificationCenter from './NotificationCenter'
 
 type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
@@ -202,6 +203,7 @@ export default function App() {
   const [reviewRows,setReviewRows]=useState<ReviewItem[]>([])
   const [reviewers,setReviewers]=useState<ApiUser[]>([])
   const [notifications,setNotifications]=useState<ApiNotification[]>([])
+  const [notificationsLoading,setNotificationsLoading]=useState(false)
   const [noticeRows,setNoticeRows]=useState<NoticeItem[]>([])
   const [calendarRows,setCalendarRows]=useState<CalendarItem[]>([])
   const [noticeForm,setNoticeForm]=useState({title:'',body:'',severity:'Information',audienceRole:'',eventStart:'',eventEnd:''})
@@ -296,7 +298,7 @@ export default function App() {
   useEffect(()=>{if(active==='Research Repository'&&token)api.research(token).then(setResearchRows)},[active,token])
   useEffect(()=>{if(active==='AI Researcher'&&token)Promise.all([api.aiResearchJobs(token),api.aiResearchEngine(token)]).then(([jobs,engine])=>{setAiResearchJobs(jobs);setAiResearchEngine(engine)}).catch(error=>setAiResearchNotice(error.message))},[active,token])
   useEffect(()=>{if(active==='Documents'&&token)Promise.all([api.documents(token),...(canReview?[api.documentReviews(token)]:[])]).then(([documents,reviews])=>{setDocumentRows(documents as DocumentItem[]);if(reviews)setReviewRows(reviews as ReviewItem[])}).catch(error=>setDocumentNotice(error instanceof Error?error.message:'Documents could not be loaded.'))},[active,token])
-  useEffect(()=>{if(token)api.notifications(token).then(setNotifications).catch(()=>{})},[token,active])
+  useEffect(()=>{if(!token)return;const load=()=>api.notifications(token).then(setNotifications).catch(()=>{});load();const timer=window.setInterval(load,10000);return()=>window.clearInterval(timer)},[token])
   useEffect(()=>{if(token&&active==='Notice Board')api.alerts(token).then(setNoticeRows).catch(error=>setNoticeNotice(error instanceof Error?error.message:'Notice Board could not be loaded.'))},[token,active])
   useEffect(()=>{if(!token||active!=='Calendar')return;const load=()=>api.calendar(token).then(setCalendarRows).catch(()=>setCalendarRows([]));load();const timer=window.setInterval(load,15000);return()=>window.clearInterval(timer)},[token,active,assignmentRows,noticeRows])
   useEffect(()=>{if(token&&isManager&&active==='Documents')api.users(token).then(rows=>setReviewers(rows.filter(member=>['Reviewer','Research Manager','Administrator'].includes(member.role)))).catch(()=>{})},[token,active])
@@ -389,6 +391,10 @@ export default function App() {
     try{await api.submitNotice(token,{title:'Management update',body:alertText.trim(),severity:'Important',audienceRole:null,eventStart:null,eventEnd:null});setNoticeNotice('Notice submitted for approval.')}catch(error){alert(error instanceof Error?error.message:'Notice could not be submitted.');return}
     setAlertText('')
   }
+  const refreshNotifications=async()=>{setNotificationsLoading(true);try{setNotifications(await api.notifications(token))}finally{setNotificationsLoading(false)}}
+  const openNotification=async(item:ApiNotification)=>{if(!item.read_at){await api.readNotification(token,item.id);await refreshNotifications()}if(item.entity_type==='knowledge')setActive('Documents');else if(item.entity_type==='assignment')setActive('Assignments');else if(item.entity_type==='notice')setActive('Notice Board')}
+  const markAllNotificationsRead=async()=>{setNotificationsLoading(true);try{await api.readAllNotifications(token);setNotifications(await api.notifications(token))}finally{setNotificationsLoading(false)}}
+  const clearReadNotifications=async()=>{setNotificationsLoading(true);try{await api.clearReadNotifications(token);setNotifications(await api.notifications(token))}finally{setNotificationsLoading(false)}}
   const submitNotice=async(event:React.FormEvent)=>{event.preventDefault();setNoticeNotice('');try{if(noticeForm.eventEnd&&!noticeForm.eventStart)throw new Error('Choose an event start before choosing an end.');if(noticeForm.eventStart&&noticeForm.eventEnd&&noticeForm.eventEnd<noticeForm.eventStart)throw new Error('Event end must be after the event start.');await api.submitNotice(token,{title:noticeForm.title,body:noticeForm.body,severity:noticeForm.severity,audienceRole:noticeForm.audienceRole||null,eventStart:noticeForm.eventStart?localDateTimeToIso(noticeForm.eventStart):null,eventEnd:noticeForm.eventEnd?localDateTimeToIso(noticeForm.eventEnd):null});setNoticeForm({title:'',body:'',severity:'Information',audienceRole:'',eventStart:'',eventEnd:''});setNoticeRows(await api.alerts(token));setNoticeNotice('Notice submitted successfully and is awaiting approval.')}catch(error){setNoticeNotice(error instanceof Error?error.message:'Notice could not be submitted.')}}
   const reviewNotice=async(approved:boolean)=>{if(!reviewingNotice)return;try{await api.reviewNotice(token,reviewingNotice.id,approved,noticeReason);setReviewingNotice(null);setNoticeReason('');const [alerts,notifications,calendar]=await Promise.all([api.alerts(token),api.notifications(token),api.calendar(token)]);setNoticeRows(alerts);setNotifications(notifications);setCalendarRows(calendar);setNoticeNotice(approved?'Notice approved, published and synchronized with Calendar.':'Notice returned to its author.')}catch(error){setNoticeNotice(error instanceof Error?error.message:'Notice review could not be saved.')}}
   const openAssignment = async (title: string, id?: string) => {
@@ -545,7 +551,7 @@ export default function App() {
         <nav aria-label="Main navigation">
           {navItems.filter(([, label]) => roleNavigation[user.role].includes(label)).map(([icon, label]) => (
             <button key={label} title={navigationDescriptions[label]} data-tooltip={navigationDescriptions[label]} className={active === label ? 'active' : ''} onClick={() => navigateTo(label)}>
-              <Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>8</b>}
+              <Icon name={icon} /><span>{label}</span>{label === 'Notifications' && notifications.filter(item=>!item.read_at).length>0&&<b>{notifications.filter(item=>!item.read_at).length}</b>}
             </button>
           ))}
         </nav>
@@ -621,6 +627,7 @@ export default function App() {
           </section>
           <section className="notification-management-view">
             <div className="assignment-page-head"><div><p>NOTIFICATIONS</p><h2>My activity inbox</h2><span>Review assignments, approval decisions and required corrections appear here.</span></div><b>{notifications.filter(item=>!item.read_at).length} unread</b></div>
+            <NotificationCenter items={notifications} loading={notificationsLoading} onOpen={openNotification} onMarkAll={markAllNotificationsRead} onClearRead={clearReadNotifications} onRefresh={refreshNotifications}/>
             <div className="notification-list">{notifications.map(item=><button className={item.read_at?'read':'unread'} key={item.id} onClick={async()=>{if(!item.read_at){await api.readNotification(token,item.id);setNotifications(await api.notifications(token))}if(item.entity_type==='knowledge')setActive('Documents');else if(item.entity_type==='assignment')setActive('Assignments');else if(item.entity_type==='notice')setActive('Notice Board')}}><Icon name="notifications"/><span><strong>{item.title}</strong><small>{item.body}</small><time>{new Date(item.created_at).toLocaleString('en-KE')}</time></span></button>)}{!notifications.length&&<div className="assignment-empty"><Icon name="notifications"/><h3>No notifications yet</h3><p>Assignments, review decisions and Notice Board activity will appear here.</p></div>}</div>
           </section>
           <section className="document-management-view">

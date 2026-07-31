@@ -100,6 +100,20 @@ const roleNavigation: Record<Role, string[]> = {
   Reviewer: ['Dashboard', 'Assignments', 'Knowledge Repository', 'Documents', 'Notifications', 'Calendar', 'Settings'],
 }
 
+const navigationDescriptions:Record<string,string>={
+  Dashboard:'Open the department overview, workload summaries, announcements and recent activity.',Assignments:'Create, assign, track and complete departmental work.',
+  'Knowledge Repository':'Search and manage approved institutional knowledge and document versions.','Research Repository':'Plan and monitor research projects, methods, collaborators and milestones.',
+  'AI Researcher':'Open the separate AI-assisted research planning workspace.',Documents:'Upload, review, approve, retain and archive controlled documents.',
+  'Team & Users':'Manage staff accounts, roles, divisions, availability and workload.','Reports & Analytics':'View live performance measures and export management reports.',
+  Notifications:'Open your assignment, review, approval and security notification inbox.',Calendar:'Return to the dashboard calendar and scheduled departmental events.',
+  'Audit Logs':'Inspect the read-only record of security and system activity.',Settings:'Configure organization defaults, themes, email, maintenance and updates.',
+  General:'Configure organization information, personal notifications and account security.',Themes:'Choose display theme, accent colour and layout density.',
+  'Email Notifications':'Configure system email delivery and your personal notification channels.',Maintenance:'Review service health and control approved maintenance settings.',
+  Updates:'Check installed App2 component versions without downloading or installing software.'
+}
+
+const statDestinations:Record<string,string>={'Active Assignments':'Assignments','Completed Assignments':'Assignments','Knowledge Items':'Knowledge Repository',Documents:'Documents','Team Members':'Team & Users'}
+
 function Icon({ name }: { name: IconName }) {
   return <span className="icon" aria-hidden="true">{icons[name]}</span>
 }
@@ -141,6 +155,7 @@ export default function App() {
     { id:'2', title: 'Public Service Digital Transformation', assignee: 'John Kamau', status: 'In Progress', division:'Digital Government', dueDate:'2026-08-10' },
     { id:'3', title: 'Establishment Register Analysis', assignee: 'Grace Muturi', status: 'Ready for Review', division:'Establishment Management', dueDate:'2026-08-15' },
   ])
+  const [dashboardAssignmentFilter,setDashboardAssignmentFilter]=useState('All')
   const [assignmentRows, setAssignmentRows] = useState<ApiAssignment[]>([])
   const [assignmentSearch, setAssignmentSearch] = useState('')
   const [assignmentStatus, setAssignmentStatus] = useState('All')
@@ -275,11 +290,13 @@ export default function App() {
   useEffect(()=>{if(token&&active==='Settings')api.settings(token).then(result=>{setSettingsData(result);setSystemForm({organizationName:result.system.organization_name,departmentName:result.system.department_name,supportEmail:result.system.support_email,sessionMinutes:result.system.session_minutes,maxUploadMb:result.system.max_upload_mb,defaultRetentionDays:result.system.default_retention_days,documentCategories:result.system.document_categories.join(', '),maintenanceMode:result.system.maintenance_mode,emailNotifications:result.system.email_notifications});setPreferenceForm({emailNotifications:result.preferences.email_notifications,inAppNotifications:result.preferences.in_app_notifications,compactLayout:result.preferences.compact_layout,themeMode:result.preferences.theme_mode||'Dark',accentColor:result.preferences.accent_color||'Gold'})}).catch(error=>setSettingsNotice(error instanceof Error?error.message:'Settings could not be loaded.'))},[token,active])
   useEffect(()=>{if(token&&active==='Settings'&&user?.role==='Administrator')api.emailDeliveryStatus(token).then(setEmailDelivery).catch(()=>setEmailDelivery(null))},[token,active,user?.role])
   useEffect(()=>{const resolved=preferenceForm.themeMode==='System'?(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):preferenceForm.themeMode.toLowerCase();document.documentElement.dataset.theme=resolved;document.documentElement.dataset.accent=preferenceForm.accentColor.toLowerCase()},[preferenceForm.themeMode,preferenceForm.accentColor])
+  useEffect(()=>{const describe=()=>{document.querySelectorAll<HTMLElement>('button,[role="tab"],select').forEach(element=>{if(element.title)return;const label=(element.getAttribute('aria-label')||element.textContent||'').trim().replace(/\s+/g,' ');const exact=navigationDescriptions[label];if(exact)element.title=exact;else if(element.tagName==='SELECT')element.title=`Choose ${label||'an option'} from this dropdown menu.`;else if(label)element.title=`Use ${label} to continue to the described action.`})};describe();const observer=new MutationObserver(describe);observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect()},[])
 
   const rightsFor = (role: Role) => role === 'Administrator' ? ['Manage users','Manage roles','Audit activity','Full system access'] : role === 'Research Manager' ? ['Create assignments','Assign members','Approve work','Manage research'] : role === 'Reviewer' ? ['Review submissions','Comment','Request changes','Approve knowledge'] : ['View assignments','Update assigned work','Add knowledge','Collaborate']
   const initialsFor = (name: string) => name.split(' ').map(part => part[0]).join('').slice(0,2).toUpperCase()
   const mapUser = (member: ApiUser): User => ({ name:member.name,email:member.email,role:member.role as Role,initials:initialsFor(member.name),rights:rightsFor(member.role as Role),mustChangePassword:member.must_change_password })
   const mapTeamMember = (member: ApiUser): TeamMember => ({...mapUser(member),id:member.id,division:member.division,active:member.active_assignments||0,completed:member.completed_assignments||0,status:member.status as TeamMember['status']})
+  const navigateTo=(destination:string)=>{if(destination==='Calendar'){setActive('Dashboard');window.setTimeout(()=>document.querySelector('.calendar-panel')?.scrollIntoView({behavior:'smooth',block:'center'}),50)}else setActive(destination);setMenuOpen(false)}
 
   const loadLiveData = async (accessToken: string, profile: User) => {
     const [assignmentRows, alertRows] = await Promise.all([api.assignments(accessToken), api.alerts(accessToken)])
@@ -510,7 +527,7 @@ export default function App() {
         </div>
         <nav aria-label="Main navigation">
           {navItems.filter(([, label]) => roleNavigation[user.role].includes(label)).map(([icon, label]) => (
-            <button key={label} className={active === label ? 'active' : ''} onClick={() => { setActive(label); setMenuOpen(false) }}>
+            <button key={label} title={navigationDescriptions[label]} data-tooltip={navigationDescriptions[label]} className={active === label ? 'active' : ''} onClick={() => navigateTo(label)}>
               <Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>8</b>}
             </button>
           ))}
@@ -518,7 +535,7 @@ export default function App() {
         <section className="quick-access">
           <h3>Quick Access</h3>
           {([['plus', 'Create Assignment'], ['upload', 'Upload Document'], ['knowledge', 'Add Knowledge'], ['documents', 'New Research']] as [IconName, string][]).filter(([,label]) => label !== 'Create Assignment' || isManager).map(([icon, label]) =>
-            <button key={label} onClick={() => {if(label==='Create Assignment'){setActive('Assignments');startAssignment()}}}><Icon name={icon} />{label}</button>
+            <button key={label} title={label==='Create Assignment'?'Open the assignment form and allocate work to staff.':label==='Upload Document'?'Open Documents and select a file for controlled review.':label==='Add Knowledge'?'Open the knowledge upload form for a new institutional record.':'Open the form for a new research project.'} onClick={() => {if(label==='Create Assignment'){setActive('Assignments');startAssignment()}else if(label==='Upload Document'){setActive('Documents');setKnowledgeUploadOpen(true)}else if(label==='Add Knowledge'){setActive('Knowledge Repository');setKnowledgeUploadOpen(true)}else if(label==='New Research'){setActive('Research Repository');setResearchOpen(true)}setMenuOpen(false)}}><Icon name={icon} />{label}</button>
           )}
         </section>
       </aside>
@@ -534,7 +551,7 @@ export default function App() {
             <div className="live-time"><span>{now.toLocaleDateString('en-KE', { day: '2-digit', month: 'short', year: 'numeric' })}</span><strong>{now.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</strong></div>
             <label className="header-search"><Icon name="search" /><input aria-label="Search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search" /></label>
             <button className="notification-button" aria-label="Notifications" data-tooltip="Open notifications about document assignments, approvals, rejections and other system activity." onClick={()=>setActive('Notifications')}><Icon name="bell" />{notifications.filter(item=>!item.read_at).length>0&&<b>{notifications.filter(item=>!item.read_at).length}</b>}</button>
-            <button className="user" onClick={() => setActive('Profile')}><span className="user-icon">{user.initials}</span><div><strong>{user.name}</strong><small>{user.role}</small></div><span>⌄</span></button>
+            <button className="user" title="Open your profile menu to review access rights, change your password or sign out." onClick={() => setActive('Profile')}><span className="user-icon">{user.initials}</span><div><strong>{user.name}</strong><small>{user.role}</small></div><span>⌄</span></button>
           </div>
         </header>
 
@@ -542,7 +559,7 @@ export default function App() {
           <section className="settings-management-view">
             <div className="assignment-page-head"><div><p>SETTINGS</p><h2>System configuration and preferences</h2><span>Administrator controls are separated from your personal notification and display preferences.</span></div></div>
             {settingsNotice&&<div className="session-message">{settingsNotice}</div>}
-            <div className="settings-tabs" role="tablist">{(['General','Themes','Email Notifications','Maintenance','Updates'] as const).filter(tab=>!['Maintenance','Updates'].includes(tab)||user?.role==='Administrator').map(tab=><button role="tab" aria-selected={settingsTab===tab} className={settingsTab===tab?'active':''} key={tab} onClick={()=>setSettingsTab(tab)}>{tab}</button>)}</div>
+            <div className="settings-tabs" role="tablist">{(['General','Themes','Email Notifications','Maintenance','Updates'] as const).filter(tab=>!['Maintenance','Updates'].includes(tab)||user?.role==='Administrator').map(tab=><button role="tab" title={navigationDescriptions[tab]} data-tooltip={navigationDescriptions[tab]} aria-selected={settingsTab===tab} className={settingsTab===tab?'active':''} key={tab} onClick={()=>setSettingsTab(tab)}>{tab}</button>)}</div>
             {settingsData&&<>
               {settingsTab==='Email Notifications'&&user?.role==='Administrator'&&<div className={`email-delivery-banner ${emailDelivery?.ready?'ready':'pending'}`}><div><strong>{emailDelivery?.ready?'SMTP delivery ready':'SMTP delivery not yet active'}</strong><span>{emailDelivery?.ready?`${emailDelivery.host}:${emailDelivery.port} · ${emailDelivery.from}`:'Add approved SMTP credentials to backend/.env, install nodemailer, and restart the backend.'}</span></div><button type="button" disabled={!emailDelivery?.ready||testingEmail} onClick={sendTestEmail}>{testingEmail?'Sending...':'Send test email to me'}</button></div>}
               {settingsTab==='Email Notifications'&&<div className="settings-grid email-notification-settings">{user?.role==='Administrator'&&<form className="settings-panel" onSubmit={saveSystemSettings}><header><div><p>ADMINISTRATOR</p><h3>Email delivery policy</h3></div><span data-tooltip="This master switch controls workflow email. Delivery also requires an approved mail service.">System-wide</span></header><div className={`maintenance-status ${systemForm.emailNotifications?'normal':'enabled'}`}><strong>{systemForm.emailNotifications?'Email notifications allowed':'Email notifications disabled'}</strong><span>{systemForm.emailNotifications?'Workflow emails may be delivered after the mail service is configured.':'App2 will continue creating in-app notifications only.'}</span></div><label className="setting-toggle"><input type="checkbox" checked={systemForm.emailNotifications} onChange={event=>setSystemForm({...systemForm,emailNotifications:event.target.checked})}/><span><strong>Enable system email notifications</strong><small>Allow assignment, review, approval, rejection and security workflows to generate email notices.</small></span></label><label>Reply and support address<input type="email" value={systemForm.supportEmail} onChange={event=>setSystemForm({...systemForm,supportEmail:event.target.value})} required/></label><button className="settings-save" disabled={savingSettings}>{savingSettings?'Saving...':'Save email policy'}</button></form>}<form className="settings-panel" onSubmit={savePreferences}><header><div><p>PERSONAL</p><h3>My notification channels</h3></div><span data-tooltip="Your personal choice cannot override a system-wide email shutdown.">Your account</span></header><label className="setting-toggle"><input type="checkbox" checked={preferenceForm.emailNotifications} onChange={event=>setPreferenceForm({...preferenceForm,emailNotifications:event.target.checked})}/><span><strong>Email notifications</strong><small>Send important workflow updates to {user.email} when system email delivery is available.</small></span></label><label className="setting-toggle"><input type="checkbox" checked={preferenceForm.inAppNotifications} onChange={event=>setPreferenceForm({...preferenceForm,inAppNotifications:event.target.checked})}/><span><strong>In-app notifications</strong><small>Keep a notification copy inside App2 for assignments, reviews and decisions.</small></span></label><div className="email-event-list"><strong>Email events</strong><ul><li>New assignment or reassignment</li><li>Upcoming due date and overdue work</li><li>Document review request</li><li>Approval, rejection or correction request</li><li>Password and account security notice</li></ul></div><button className="settings-save" disabled={savingSettings}>{savingSettings?'Saving...':'Save notification preferences'}</button></form></div>}
@@ -617,7 +634,7 @@ export default function App() {
           </section>
           <section className="stats-grid">
             {stats.map(([icon, label, value, tone]) => (
-              <article className={`stat-card ${tone}`} key={label}><Icon name={icon} /><div><span>{label}</span><strong>{value}</strong><button>View all <Icon name="arrow" /></button></div></article>
+              <article className={`stat-card ${tone}`} key={label}><Icon name={icon} /><div><span>{label}</span><strong>{value}</strong><button title={`Open ${statDestinations[label]} and view the records behind this total.`} onClick={()=>navigateTo(statDestinations[label])}>View all <Icon name="arrow" /></button></div></article>
             ))}
           </section>
 
@@ -650,7 +667,7 @@ export default function App() {
                 {workAllocation.map((item, index) => <div className="allocation-row" key={item.title}><strong>{item.title}</strong><select value={item.assignee} onChange={e => updateAllocation(index, 'assignee', e.target.value)}>{team.filter(member => member.role !== 'Administrator').map(member => <option key={member.email}>{member.name}</option>)}</select><select value={item.status} onChange={e => updateAllocation(index, 'status', e.target.value)}><option>Not Started</option><option>In Progress</option><option>Ready for Review</option><option>Completed</option><option>Overdue</option></select></div>)}
               </article>
               <article className="panel analytics-panel">
-                <div className="panel-title"><h2>Workload by Member</h2><button>Export report</button></div>
+                <div className="panel-title"><h2>Workload by Member</h2><button title="Open Reports & Analytics where the workload report can be filtered and exported." onClick={()=>navigateTo('Reports & Analytics')}>Export report</button></div>
                 <div className="bar-chart">{team.filter(member => member.role !== 'Administrator').map(member => <div className="bar-column" key={member.email}><div className="bar-value">{member.active}</div><div className="bar-track"><i style={{ height: `${Math.max(18, member.active * 20)}%` }} /></div><span>{member.initials}</span></div>)}</div>
                 <div className="chart-legend"><span><i className="yellow-dot" />Active assignments</span><strong>14 total</strong></div>
               </article>
@@ -665,8 +682,8 @@ export default function App() {
           <section className="primary-grid">
             <article className="panel assignments-panel">
               <div className="panel-title"><h2>My Assignments</h2><button onClick={()=>setActive('Assignments')}>View all assignments <Icon name="arrow" /></button></div>
-              <div className="tabs">{['All', 'In Progress', 'Due Soon', 'Overdue', 'Completed'].map((tab, i) => <button className={i === 0 ? 'active' : ''} key={tab}>{tab}</button>)}</div>
-              {workAllocation.map(item => (
+              <div className="tabs" role="tablist">{['All', 'In Progress', 'Due Soon', 'Overdue', 'Completed'].map(tab => <button role="tab" title={`Show ${tab.toLowerCase()} assignments in this dashboard list.`} aria-selected={dashboardAssignmentFilter===tab} onClick={()=>setDashboardAssignmentFilter(tab)} className={dashboardAssignmentFilter===tab?'active':''} key={tab}>{tab}</button>)}</div>
+              {workAllocation.filter(item=>dashboardAssignmentFilter==='All'||item.status===dashboardAssignmentFilter||(dashboardAssignmentFilter==='Due Soon'&&item.status!=='Completed'&&new Date(item.dueDate).getTime()<=Date.now()+7*86400000&&new Date(item.dueDate).getTime()>=Date.now())).map(item => (
                 <button className="assignment-row" key={item.id} onClick={() => openAssignment(item.title,item.id)}>
                   <span className={`status-icon ${item.status==='Completed'?'green':item.status==='Overdue'?'orange':'yellow'}`}><Icon name={item.status==='Completed'?'check':item.status==='Overdue'?'warning':'clock'} /></span>
                   <div className="grow"><strong>{item.title}</strong><small>{item.division} · {item.assignee}</small></div>
@@ -677,11 +694,11 @@ export default function App() {
 
             <div className="right-stack">
               <article className="panel">
-                <div className="panel-title"><h2>Announcements</h2><button>View all <Icon name="arrow" /></button></div>
+                <div className="panel-title"><h2>Announcements</h2><button title="Open Notifications to review published department alerts." onClick={()=>navigateTo('Notifications')}>View all <Icon name="arrow" /></button></div>
                 {announcements.map(([icon, title, text, date]) => <div className="announcement" key={title}><span className="square-icon orange"><Icon name={icon as IconName} /></span><div className="grow"><strong>{title}</strong><small>{text}</small></div><time>{date}</time></div>)}
               </article>
               <article className="panel calendar-panel">
-                <div className="panel-title"><h2>Calendar</h2><button>View calendar <Icon name="arrow" /></button></div>
+                <div className="panel-title"><h2>Calendar</h2><button title="Keep the dashboard calendar in view and review scheduled events." onClick={()=>navigateTo('Calendar')}>View calendar <Icon name="arrow" /></button></div>
                 <div className="calendar-body"><div className="date-card"><span>AUG</span><strong>06</strong><small>WED</small></div><div className="events"><p><b>Quarterly Research Review Meeting</b><span>10:00 AM – 12:00 PM</span></p><p><b>Due: Policy Review on PM</b><span>All day</span></p></div></div>
               </article>
             </div>
@@ -689,15 +706,15 @@ export default function App() {
 
           <section className="bottom-grid">
             <article className="panel knowledge-panel">
-              <div className="panel-title"><h2>Recent Knowledge Added</h2><button>View all <Icon name="arrow" /></button></div>
+              <div className="panel-title"><h2>Recent Knowledge Added</h2><button title="Open the full Knowledge Repository." onClick={()=>navigateTo('Knowledge Repository')}>View all <Icon name="arrow" /></button></div>
               {knowledge.map(([title, meta, date]) => <div className="knowledge-row" key={title}><span className="square-icon"><Icon name="documents" /></span><div className="grow"><strong>{title}</strong><small>{meta}</small></div><time>{date}</time></div>)}
             </article>
             <article className="panel quick-links">
               <div className="panel-title"><h2>Quick Links</h2></div>
-              <div>{([['knowledge', 'Knowledge Repository'], ['research', 'Research Repository'], ['documents', 'Documents'], ['reports', 'Reports & Analytics'], ['team', 'Team & Users'], ['audit', 'Audit Logs'], ['notifications', 'Notifications'], ['settings', 'Settings']] as [IconName, string][]).filter(([,label]) => roleNavigation[user.role].includes(label)).map(([icon, label]) => <button key={label} onClick={() => setActive(label)}><Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>8</b>}</button>)}</div>
+              <div>{([['knowledge', 'Knowledge Repository'], ['research', 'Research Repository'], ['documents', 'Documents'], ['reports', 'Reports & Analytics'], ['team', 'Team & Users'], ['audit', 'Audit Logs'], ['notifications', 'Notifications'], ['settings', 'Settings']] as [IconName, string][]).filter(([,label]) => roleNavigation[user.role].includes(label)).map(([icon, label]) => <button key={label} title={navigationDescriptions[label]} data-tooltip={navigationDescriptions[label]} onClick={() => navigateTo(label)}><Icon name={icon} /><span>{label}</span>{label === 'Notifications' && <b>{notifications.filter(item=>!item.read_at).length}</b>}</button>)}</div>
             </article>
             <article className="panel activity-panel">
-              <div className="panel-title"><h2>Activity Feed</h2><button>View all <Icon name="arrow" /></button></div>
+              <div className="panel-title"><h2>Activity Feed</h2><button title="Open Audit Logs to inspect the complete recorded activity history." onClick={()=>navigateTo(user.role==='Administrator'?'Audit Logs':'Notifications')}>View all <Icon name="arrow" /></button></div>
               {activity.map(([icon, title, text, time, tone]) => <div className="activity-row" key={title}><span className={`round-icon ${tone}`}><Icon name={icon as IconName} /></span><div className="grow"><strong>{title}</strong><small>{text}</small></div><time>{time}</time></div>)}
             </article>
           </section>

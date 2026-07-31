@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
+const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'http://127.0.0.1:8100/api'
 let unauthorizedHandler: (() => void) | null = null
 
 export type ApiUser = { id: string; name: string; email: string; role: string; division: string; status: string; active:boolean;must_change_password?:boolean;active_assignments?: number; completed_assignments?: number }
@@ -9,6 +10,8 @@ export type ApiHistory = { id: string; action: string; details: Record<string, u
 export type KnowledgeItem = { id:string;title:string;description:string;category:string;tags:string[];status:string;assignment_id:string|null;created_at:string;created_by_name:string;latest_version:number;original_name:string;size_bytes:number }
 export type KnowledgeVersion = { id:string;version_number:number;original_name:string;mime_type:string;size_bytes:number;created_at:string;created_by_name:string }
 export type ResearchProject={id:string;title:string;summary:string;research_question:string;objectives:string;methodology:string;status:string;start_date:string|null;end_date:string|null;lead_name:string;collaborators:{id:string;name:string;role:string}[];milestones:{id:string;title:string;due_date:string|null;status:string}[]}
+export type AiResearchEngine={mode:string;provider:string;ollamaConnected:boolean;gptResearcherConnected:boolean;researchMateConnected:boolean;paidProvidersEnabled:boolean}
+export type AiResearchJob={id:string;title:string;question:string;scope:string;source_mode:string;depth:string;provider:string;status:string;progress:number;plan:{step:number;title:string;description:string}[];draft_report:string;error_message?:string;created_by_name:string;created_at:string;updated_at:string;sources:{id:string;title:string;url?:string;excerpt:string;citation_number:number}[];events:{id:number;event:string;details:Record<string,unknown>;created_at:string}[]}
 export type DocumentItem=KnowledgeItem&{locked_by_name?:string;locked_at?:string;expires_at?:string;retention_until?:string}
 export type ReviewEvent={id:number;action:string;comments:string;created_at:string;actor_name:string;reviewer_name?:string}
 export type ReviewItem=DocumentItem&{reviewer_id?:string;reviewer_name?:string;review_history:ReviewEvent[]}
@@ -44,6 +47,19 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     throw new Error(specific||data?.error||'The PSC service could not complete your request.')
   }
   return data as T
+}
+
+async function aiRequest<T>(path:string,options:RequestInit={},token?:string):Promise<T>{
+  try{
+    const response=await fetch(`${AI_API_URL}${path}`,{...options,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`} : {}),...options.headers}})
+    const data=response.status===204?null:await response.json()
+    if(response.status===401&&token)unauthorizedHandler?.()
+    if(!response.ok)throw new Error(data?.detail||data?.error||'The AI Researcher could not complete your request.')
+    return data as T
+  }catch(error){
+    if(error instanceof TypeError)throw new Error('The separate AI Researcher service is offline. App2 is still available.')
+    throw error
+  }
 }
 
 export const api = {
@@ -94,6 +110,11 @@ export const api = {
   createResearch:(token:string,input:Record<string,unknown>)=>request<ResearchProject>('/research',{method:'POST',body:JSON.stringify(input)},token),
   updateResearchStatus:(token:string,id:string,status:string)=>request<ResearchProject>(`/research/${id}/status`,{method:'PATCH',body:JSON.stringify({status})},token),
   addResearchMilestone:(token:string,id:string,title:string,dueDate:string|null)=>request(`/research/${id}/milestones`,{method:'POST',body:JSON.stringify({title,dueDate})},token),
+  aiResearchEngine:(token:string)=>aiRequest<AiResearchEngine>('/engine',{},token),
+  aiResearchJobs:(token:string)=>aiRequest<AiResearchJob[]>('/jobs',{},token),
+  createAiResearchJob:(token:string,input:{title:string;question:string;scope:string;sourceMode:string;depth:string})=>aiRequest<AiResearchJob>('/jobs',{method:'POST',body:JSON.stringify(input)},token),
+  startAiResearchJob:(token:string,id:string)=>aiRequest<AiResearchJob>(`/jobs/${id}/start`,{method:'POST'},token),
+  updateAiResearchStatus:(token:string,id:string,status:string,comments='')=>aiRequest<AiResearchJob>(`/jobs/${id}/status`,{method:'PATCH',body:JSON.stringify({status,comments})},token),
   documents:(token:string)=>request<DocumentItem[]>('/documents',{},token),
   checkoutDocument:(token:string,id:string)=>request(`/documents/${id}/checkout`,{method:'POST'},token),
   checkinDocument:(token:string,id:string)=>request<void>(`/documents/${id}/checkin`,{method:'POST'},token),

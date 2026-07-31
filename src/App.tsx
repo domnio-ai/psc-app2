@@ -8,6 +8,12 @@ type TeamMember = User & { id: string; division: string; active: number; complet
 type StoredSession = { token: string; user: User }
 const SESSION_KEY = 'psc-app2-session'
 
+const localDateTimeToIso = (value: string) => {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) throw new Error('Choose a valid event date and time.')
+  return parsed.toISOString()
+}
+
 const readStoredSession = (): StoredSession | null => {
   try {
     const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY)
@@ -381,7 +387,7 @@ export default function App() {
     try{await api.submitNotice(token,{title:'Management update',body:alertText.trim(),severity:'Important',audienceRole:null,eventStart:null,eventEnd:null});setNoticeNotice('Notice submitted for approval.')}catch(error){alert(error instanceof Error?error.message:'Notice could not be submitted.');return}
     setAlertText('')
   }
-  const submitNotice=async(event:React.FormEvent)=>{event.preventDefault();setNoticeNotice('');try{await api.submitNotice(token,{title:noticeForm.title,body:noticeForm.body,severity:noticeForm.severity,audienceRole:noticeForm.audienceRole||null,eventStart:noticeForm.eventStart?new Date(noticeForm.eventStart).toISOString():null,eventEnd:noticeForm.eventEnd?new Date(noticeForm.eventEnd).toISOString():null});setNoticeForm({title:'',body:'',severity:'Information',audienceRole:'',eventStart:'',eventEnd:''});setNoticeRows(await api.alerts(token));setNoticeNotice('Notice submitted successfully and is awaiting approval.')}catch(error){setNoticeNotice(error instanceof Error?error.message:'Notice could not be submitted.')}}
+  const submitNotice=async(event:React.FormEvent)=>{event.preventDefault();setNoticeNotice('');try{if(noticeForm.eventEnd&&!noticeForm.eventStart)throw new Error('Choose an event start before choosing an end.');if(noticeForm.eventStart&&noticeForm.eventEnd&&noticeForm.eventEnd<noticeForm.eventStart)throw new Error('Event end must be after the event start.');await api.submitNotice(token,{title:noticeForm.title,body:noticeForm.body,severity:noticeForm.severity,audienceRole:noticeForm.audienceRole||null,eventStart:noticeForm.eventStart?localDateTimeToIso(noticeForm.eventStart):null,eventEnd:noticeForm.eventEnd?localDateTimeToIso(noticeForm.eventEnd):null});setNoticeForm({title:'',body:'',severity:'Information',audienceRole:'',eventStart:'',eventEnd:''});setNoticeRows(await api.alerts(token));setNoticeNotice('Notice submitted successfully and is awaiting approval.')}catch(error){setNoticeNotice(error instanceof Error?error.message:'Notice could not be submitted.')}}
   const reviewNotice=async(approved:boolean)=>{if(!reviewingNotice)return;try{await api.reviewNotice(token,reviewingNotice.id,approved,noticeReason);setReviewingNotice(null);setNoticeReason('');setNoticeRows(await api.alerts(token));setNotifications(await api.notifications(token));setNoticeNotice(approved?'Notice approved and published.':'Notice returned to its author.')}catch(error){setNoticeNotice(error instanceof Error?error.message:'Notice review could not be saved.')}}
   const openAssignment = async (title: string, id?: string) => {
     setSelectedAssignment(title)
@@ -456,7 +462,7 @@ export default function App() {
   const uploadKnowledge=async(event:React.FormEvent)=>{event.preventDefault();if(!knowledgeFile||!token)return setKnowledgeNotice('Choose a document first.');try{const created=await api.uploadKnowledge(token,knowledgeFile,knowledgeForm);await api.submitKnowledge(token,created.id);setKnowledgeRows(await api.knowledge(token));if(canReview)await refreshReviews();setKnowledgeUploadOpen(false);setKnowledgeFile(null);setKnowledgeNotice('Document submitted for review.')}catch(error){setKnowledgeNotice(error instanceof Error?error.message:'Document could not be uploaded.')}}
   const openKnowledge=async(item:KnowledgeItem)=>{setSelectedKnowledge(item);try{setKnowledgeVersions(await api.knowledgeVersions(token,item.id))}catch(error){setKnowledgeNotice(error instanceof Error?error.message:'Versions could not be loaded.')}}
   const filteredKnowledge=knowledgeRows.filter(item=>(`${item.title} ${item.description} ${item.tags.join(' ')}`.toLowerCase().includes(knowledgeSearch.toLowerCase()))&&(knowledgeCategory==='All'||item.category===knowledgeCategory))
-  const saveResearch=async(event:React.FormEvent)=>{event.preventDefault();await api.createResearch(token,{...researchForm,startDate:researchForm.startDate||null,endDate:researchForm.endDate||null,assignmentId:researchForm.assignmentId||null});setResearchRows(await api.research(token));setResearchOpen(false)}
+  const saveResearch=async(event:React.FormEvent)=>{event.preventDefault();if(researchForm.startDate&&researchForm.endDate&&researchForm.endDate<researchForm.startDate){alert('Research end date must be on or after its start date.');return}await api.createResearch(token,{...researchForm,startDate:researchForm.startDate||null,endDate:researchForm.endDate||null,assignmentId:researchForm.assignmentId||null});setResearchRows(await api.research(token));setResearchOpen(false)}
   const saveAiResearch=async(event:React.FormEvent)=>{event.preventDefault();try{await api.createAiResearchJob(token,aiResearchForm);setAiResearchJobs(await api.aiResearchJobs(token));setAiResearchOpen(false);setAiResearchForm({title:'',question:'',scope:'',sourceMode:'All',depth:'Standard'});setAiResearchNotice('Research plan created with zero API cost.')}catch(error){setAiResearchNotice(error instanceof Error?error.message:'The research plan could not be created.')}}
   const startAiResearch=async(job:AiResearchJob)=>{try{setAiResearchNotice('Checking the free local research engine...');await api.startAiResearchJob(token,job.id)}catch(error){setAiResearchNotice(error instanceof Error?error.message:'The local research engine could not be started.')}}
   const refreshDocuments=async()=>setDocumentRows(await api.documents(token))

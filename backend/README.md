@@ -12,6 +12,15 @@ PostgreSQL API for member authentication, roles, assignments, collaborators, com
 
 The API runs at `http://localhost:8000`. Check `/api/health` to verify the database connection. The seeded local password is `PSC@2026`; it must be changed before deployment.
 
+## Email delivery
+
+1. Install the mail transport with `npm install nodemailer`.
+2. Add the approved SMTP host, port, account, password and sender values from `.env.example` to `.env`.
+3. Keep `SMTP_ENABLED=false` until the credentials have been approved and tested.
+4. Restart the backend, enable SMTP, then use **Settings → Email Notifications → Send test email to me**.
+
+SMTP credentials belong only in `backend/.env`; never commit them to Git. Microsoft 365 tenants may require an application-specific SMTP account or OAuth policy approval from ICT.
+
 ## Permissions
 
 - Administrator: roles, all assignments, alerts, analytics and audit logs.

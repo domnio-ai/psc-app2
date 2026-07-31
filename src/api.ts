@@ -34,6 +34,7 @@ export type SettingsResponse={
   health:{api:string;database:string;environment:string;database_time:string;configured_upload_limit_mb:number;configured_session:string}
 }
 export type UpdateStatus={application:string;applicationVersion:string;apiVersion:string;runtime:string;database:string;databaseVersion:string;status:string;updateChannel:string;automaticUpdates:boolean;checkedAt:string}
+export type EmailDeliveryStatus={enabled:boolean;configured:boolean;host:string|null;port:number;secure:boolean;from:string;ready:boolean}
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -130,6 +131,8 @@ export const api = {
   auditLogs:(token:string,filters:{search:string;userId:string;action:string;entityType:string;from:string;to:string})=>request<AuditResponse>(`/audit-logs?${new URLSearchParams(filters)}`,{},token),
   settings:(token:string)=>request<SettingsResponse>('/settings',{},token),
   settingsUpdateStatus:(token:string)=>request<UpdateStatus>('/settings/updates',{},token),
+  emailDeliveryStatus:(token:string)=>request<EmailDeliveryStatus>('/settings/email-status',{},token),
+  sendTestEmail:(token:string,email:string)=>request<{message:string;messageId:string;accepted:string[]}>('/settings/test-email',{method:'POST',body:JSON.stringify({email})},token),
   updateSystemSettings:(token:string,input:{organizationName:string;departmentName:string;supportEmail:string;sessionMinutes:number;maxUploadMb:number;defaultRetentionDays:number;documentCategories:string[];maintenanceMode:boolean;emailNotifications:boolean})=>request('/settings/system',{method:'PATCH',body:JSON.stringify(input)},token),
   updatePreferences:(token:string,input:{emailNotifications:boolean;inAppNotifications:boolean;compactLayout:boolean;themeMode:'Dark'|'Light'|'System';accentColor:'Gold'|'Blue'|'Green'})=>request('/settings/preferences',{method:'PATCH',body:JSON.stringify(input)},token),
   alerts: (token: string) => request<{ id: string; title: string; body: string; created_at: string }[]>('/alerts', {}, token),

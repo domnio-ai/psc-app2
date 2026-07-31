@@ -6,7 +6,7 @@ export default function NotificationCenter({items,loading,onOpen,onNavigate,onMa
   const [selected,setSelected]=useState<ApiNotification|null>(null)
   const [filter,setFilter]=useState<'All'|'Unread'|'Read'>('All')
   const unread=items.filter(item=>!item.read_at).length
-  const visible=items.filter(item=>filter==='All'||(filter==='Unread'?!item.read_at:Boolean(item.read_at)))
+  const visible=items.filter(item=>filter==='All'||(filter==='Unread'?!item.read_at:Boolean(item.read_at))).sort((a,b)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime())
   const inspect=async(item:ApiNotification)=>{setSelected(item);await onOpen(item)}
   return <section className="notification-centre">
     <div className="notification-toolbar"><div><strong>{unread} unread</strong><small>{items.length} notifications retained for reference</small></div><div><button type="button" onClick={onRefresh} disabled={loading}>{loading?'Refreshing…':'Refresh'}</button><button type="button" onClick={onMarkAll} disabled={!unread||loading}>Mark all read</button></div></div>

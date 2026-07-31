@@ -115,6 +115,7 @@ export const api = {
   updateResearchStatus:(token:string,id:string,status:string)=>request<ResearchProject>(`/research/${id}/status`,{method:'PATCH',body:JSON.stringify({status})},token),
   addResearchMilestone:(token:string,id:string,title:string,dueDate:string|null)=>request(`/research/${id}/milestones`,{method:'POST',body:JSON.stringify({title,dueDate})},token),
   aiResearchEngine:(token:string)=>aiRequest<AiResearchEngine>('/engine',{},token),
+  askFelix:(token:string,message:string)=>aiRequest<{answer:string;model:string}>('/chat',{method:'POST',body:JSON.stringify({message})},token),
   aiResearchJobs:(token:string)=>aiRequest<AiResearchJob[]>('/jobs',{},token),
   createAiResearchJob:(token:string,input:{title:string;question:string;scope:string;sourceMode:string;depth:string})=>aiRequest<AiResearchJob>('/jobs',{method:'POST',body:JSON.stringify(input)},token),
   startAiResearchJob:(token:string,id:string)=>aiRequest<AiResearchJob>(`/jobs/${id}/start`,{method:'POST'},token),

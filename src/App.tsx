@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type AiResearchEngine, type AiResearchJob, type AnalyticsReport, type ApiAssignment, type ApiAttachment, type ApiHistory, type ApiNotification, type ApiUser, type AssignmentInput, type AuditLog, type CalendarItem, type DocumentItem, type EmailDeliveryStatus, type KnowledgeItem, type KnowledgeVersion, type NoticeItem, type ResearchProject, type ReviewItem, type SettingsResponse, type UpdateStatus } from './api'
+import CalendarView from './CalendarView'
 
 type IconName = keyof typeof icons
 type Role = 'Administrator' | 'Research Manager' | 'Research Officer' | 'Reviewer'
@@ -614,7 +615,7 @@ export default function App() {
           </section>
           <section className="calendar-management-view">
             <div className="assignment-page-head"><div><p>CALENDAR</p><h2>Deadlines and approved events</h2><span>Live assignment due dates and dated Notice Board posts visible to your role.</span></div></div>
-            <div className="calendar-list">{calendarRows.map(item=><article key={`${item.type}-${item.id}`}><time><strong>{new Date(item.start_at).toLocaleDateString('en-KE',{day:'2-digit'})}</strong><span>{new Date(item.start_at).toLocaleDateString('en-KE',{month:'short',year:'numeric'})}</span></time><div><b>{item.type==='assignment'?'Assignment deadline':'Notice Board event'}</b><h3>{item.title}</h3><small>{new Date(item.start_at).toLocaleString('en-KE')}{item.end_at?` - ${new Date(item.end_at).toLocaleString('en-KE')}`:''}</small></div><em>{item.status}</em></article>)}{!calendarRows.length&&<div className="assignment-empty"><Icon name="calendar"/><h3>No scheduled items</h3><p>Assignment due dates and approved notices with event dates will appear here.</p></div>}</div>
+            <CalendarView items={calendarRows}/>
           </section>
           <section className="notification-management-view">
             <div className="assignment-page-head"><div><p>NOTIFICATIONS</p><h2>My activity inbox</h2><span>Review assignments, approval decisions and required corrections appear here.</span></div><b>{notifications.filter(item=>!item.read_at).length} unread</b></div>

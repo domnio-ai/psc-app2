@@ -10,6 +10,7 @@ import './users.css'
 import './audit.css'
 import './settings.css'
 import './notice-board.css'
+import './calendar.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

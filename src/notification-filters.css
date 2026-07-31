@@ -1,0 +1,1 @@
+.notification-filters{display:flex;gap:6px;margin-top:10px;padding-bottom:8px;border-bottom:1px solid #303234}.notification-filters button{padding:8px 11px;border:1px solid #36383a;border-radius:7px;background:#111213;color:#999}.notification-filters button.active{border-color:var(--yellow);color:var(--yellow);background:rgba(255,196,0,.06)}

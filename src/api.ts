@@ -142,5 +142,6 @@ export const api = {
   alerts: (token: string) => request<NoticeItem[]>('/alerts', {}, token),
   submitNotice:(token:string,input:{title:string;body:string;severity:string;audienceRole:string|null;eventStart:string|null;eventEnd:string|null})=>request<NoticeItem>('/alerts',{method:'POST',body:JSON.stringify(input)},token),
   reviewNotice:(token:string,id:string,approved:boolean,reason:string)=>request<NoticeItem>(`/alerts/${id}/review`,{method:'PATCH',body:JSON.stringify({approved,reason})},token),
+  deleteNotice:(token:string,id:string)=>request<void>(`/alerts/${id}`,{method:'DELETE'},token),
   calendar:(token:string)=>request<CalendarItem[]>('/calendar',{},token),
 }

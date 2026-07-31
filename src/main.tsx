@@ -14,6 +14,8 @@ import './calendar.css'
 import './notice-fix.css'
 import './notifications.css'
 import './notification-detail.css'
+import './notice-workspace.css'
+import './notification-filters.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

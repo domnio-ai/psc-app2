@@ -17,7 +17,7 @@ export type ReviewEvent={id:number;action:string;comments:string;created_at:stri
 export type ReviewItem=DocumentItem&{reviewer_id?:string;reviewer_name?:string;review_history:ReviewEvent[]}
 export type ApiNotification={id:string;title:string;body:string;entity_type?:string;entity_id?:string;read_at:string|null;created_at:string}
 export type NoticeItem={id:string;title:string;body:string;severity:'Information'|'Important'|'Urgent';audience_role:string|null;status:'Pending Approval'|'Published'|'Rejected';event_start:string|null;event_end:string|null;rejection_reason:string|null;created_at:string;created_by:string;created_by_name:string;reviewed_by_name?:string}
-export type CalendarItem={id:string;title:string;start_at:string;end_at?:string|null;type:'assignment'|'notice';status:string}
+export type CalendarItem={id:string;title:string;start_at:string;end_at?:string|null;type:'assignment'|'notice';status:string;is_dated_event?:boolean}
 export type AnalyticsReport={
   summary:{total:number;completed:number;overdue:number;completion_rate:number;pending_reviews:number;published_documents:number;active_research:number}
   assignmentStatuses:{status:string;total:number}[]

@@ -1,0 +1,11 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS report_schedules(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,report_key VARCHAR(100) NOT NULL,name VARCHAR(120) NOT NULL,format VARCHAR(10) NOT NULL CHECK(format IN('pdf','docx','xlsx')),frequency VARCHAR(20) NOT NULL CHECK(frequency IN('Daily','Weekly','Monthly')),recipient_emails TEXT[] NOT NULL DEFAULT '{}',filters JSONB NOT NULL DEFAULT '{}'::jsonb,enabled BOOLEAN NOT NULL DEFAULT TRUE,next_run_at TIMESTAMPTZ NOT NULL,last_run_at TIMESTAMPTZ,last_status VARCHAR(20),last_error TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE INDEX IF NOT EXISTS report_schedules_due_idx ON report_schedules(enabled,next_run_at);
+CREATE TABLE IF NOT EXISTS report_signoffs(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),report_key VARCHAR(100) NOT NULL,filters JSONB NOT NULL DEFAULT '{}'::jsonb,report_snapshot JSONB NOT NULL,report_hash VARCHAR(64) NOT NULL,status VARCHAR(20) NOT NULL DEFAULT 'Signed Off' CHECK(status IN('Signed Off','Revoked')),signed_by UUID NOT NULL REFERENCES users(id),signed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),revoked_by UUID REFERENCES users(id),revoked_at TIMESTAMPTZ,comments TEXT NOT NULL DEFAULT '');
+CREATE INDEX IF NOT EXISTS report_signoffs_lookup_idx ON report_signoffs(report_key,signed_at DESC);
+CREATE TABLE IF NOT EXISTS report_runtime_metrics(id BIGSERIAL PRIMARY KEY,report_key VARCHAR(100) NOT NULL,user_id UUID REFERENCES users(id) ON DELETE SET NULL,duration_ms INTEGER NOT NULL,row_count INTEGER NOT NULL DEFAULT 0,succeeded BOOLEAN NOT NULL,error_message TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE INDEX IF NOT EXISTS report_runtime_metrics_recent_idx ON report_runtime_metrics(created_at DESC,report_key);
+CREATE TABLE IF NOT EXISTS report_definition_overrides(report_key VARCHAR(100) PRIMARY KEY,enabled BOOLEAN NOT NULL DEFAULT TRUE,access_note TEXT NOT NULL DEFAULT '',updated_by UUID NOT NULL REFERENCES users(id),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+ALTER TABLE report_decisions ADD COLUMN IF NOT EXISTS filters JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE report_decisions ADD COLUMN IF NOT EXISTS due_date DATE;
+COMMIT;

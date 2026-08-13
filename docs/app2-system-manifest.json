@@ -1,0 +1,1644 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_on": "2026-08-03",
+  "generator": "scripts/build_app2_manifest.py",
+  "security": {
+    "secret_values_included": false,
+    "excluded_paths": [
+      ".git",
+      ".mypy_cache",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".venv",
+      "__pycache__",
+      "build",
+      "coverage",
+      "dist",
+      "node_modules",
+      "uploads",
+      "venv"
+    ],
+    "excluded_file_types": [
+      ".env",
+      ".key",
+      ".p12",
+      ".pem",
+      ".pfx"
+    ]
+  },
+  "repositories": [
+    {
+      "name": "app2",
+      "root": ".",
+      "branch": "agent/app2-release-hardening",
+      "commit": "4140143487aebba76b2e1a68b8b843d7c9a18837"
+    },
+    {
+      "name": "ai-research-service",
+      "root": "../ai-research-service",
+      "branch": null,
+      "commit": null
+    }
+  ],
+  "technology": {
+    "frontend": [
+      "React 19",
+      "TypeScript",
+      "Vite"
+    ],
+    "backend": [
+      "Node.js",
+      "Express 5",
+      "Zod"
+    ],
+    "ai_service": [
+      "Python",
+      "FastAPI",
+      "Pydantic",
+      "httpx"
+    ],
+    "database": "PostgreSQL",
+    "database_access": [
+      "pg",
+      "psycopg 3"
+    ],
+    "orm": null,
+    "local_model_provider": "Ollama",
+    "default_model": "qwen2.5:3b",
+    "vector_database": null
+  },
+  "modules": [
+    {
+      "name": "Dashboard",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Assignments",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Knowledge Repository",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Research Repository",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "AI Researcher",
+      "page_owner": "src/AIResearchChat.tsx"
+    },
+    {
+      "name": "Documents",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Team & Users",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Reports & Analytics",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Audit Logs",
+      "page_owner": "src/App.tsx"
+    },
+    {
+      "name": "Notifications",
+      "page_owner": "src/NotificationCenter.tsx"
+    },
+    {
+      "name": "Notice Board",
+      "page_owner": "src/NoticeBoardWorkspace.tsx"
+    },
+    {
+      "name": "Calendar",
+      "page_owner": "src/CalendarView.tsx"
+    },
+    {
+      "name": "Settings",
+      "page_owner": "src/App.tsx"
+    }
+  ],
+  "pages": [
+    "Dashboard",
+    "Assignments",
+    "Knowledge Repository",
+    "Research Repository",
+    "AI Researcher",
+    "Documents",
+    "Team & Users",
+    "Reports & Analytics",
+    "Audit Logs",
+    "Notifications",
+    "Notice Board",
+    "Calendar",
+    "Settings",
+    "Profile"
+  ],
+  "react_components": [
+    {
+      "name": "AIResearchChat",
+      "file": "src/AIResearchChat.tsx",
+      "line": 7
+    },
+    {
+      "name": "App",
+      "file": "src/App.tsx",
+      "line": 43
+    },
+    {
+      "name": "Icon",
+      "file": "src/App.tsx",
+      "line": 10
+    },
+    {
+      "name": "CalendarView",
+      "file": "src/CalendarView.tsx",
+      "line": 10
+    },
+    {
+      "name": "FelixAssistant",
+      "file": "src/FelixAssistant.tsx",
+      "line": 4
+    },
+    {
+      "name": "NoticeBoardWorkspace",
+      "file": "src/NoticeBoardWorkspace.tsx",
+      "line": 9
+    },
+    {
+      "name": "NoticeComposer",
+      "file": "src/NoticeComposer.tsx",
+      "line": 9
+    },
+    {
+      "name": "NotificationCenter",
+      "file": "src/NotificationCenter.tsx",
+      "line": 5
+    }
+  ],
+  "fastapi_routers": [
+    {
+      "name": "main app",
+      "prefix": "/api",
+      "file": "../ai-research-service/app/main.py",
+      "note": "No APIRouter modules currently exist."
+    }
+  ],
+  "api_endpoints": {
+    "express": [
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "file": "backend/src/app.js",
+        "line": 36,
+        "authentication": false,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "file": "backend/src/app.js",
+        "line": 37,
+        "authentication": false,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me",
+        "file": "backend/src/app.js",
+        "line": 38,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "file": "backend/src/app.js",
+        "line": 39,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/change-password",
+        "file": "backend/src/app.js",
+        "line": 40,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/forgot-password",
+        "file": "backend/src/app.js",
+        "line": 41,
+        "authentication": false,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/reset-password",
+        "file": "backend/src/app.js",
+        "line": 42,
+        "authentication": false,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/users",
+        "file": "backend/src/app.js",
+        "line": 44,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/users",
+        "file": "backend/src/app.js",
+        "line": 45,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/users/:id",
+        "file": "backend/src/app.js",
+        "line": 46,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/users/:id/role",
+        "file": "backend/src/app.js",
+        "line": 47,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/users/:id/reset-password",
+        "file": "backend/src/app.js",
+        "line": 48,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/assignments",
+        "file": "backend/src/app.js",
+        "line": 50,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/assignments",
+        "file": "backend/src/app.js",
+        "line": 51,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/assignments/:id",
+        "file": "backend/src/app.js",
+        "line": 52,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/assignments/:id",
+        "file": "backend/src/app.js",
+        "line": 53,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/assignments/:id/status",
+        "file": "backend/src/app.js",
+        "line": 54,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/api/assignments/:id/members",
+        "file": "backend/src/app.js",
+        "line": 55,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/assignments/:id/comments",
+        "file": "backend/src/app.js",
+        "line": 56,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/assignments/:id/comments",
+        "file": "backend/src/app.js",
+        "line": 57,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/assignments/:id/history",
+        "file": "backend/src/app.js",
+        "line": 58,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/assignments/:id/attachments",
+        "file": "backend/src/app.js",
+        "line": 59,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/api/assignments/:id/attachments",
+        "file": "backend/src/app.js",
+        "line": 60,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/attachments/:id/download",
+        "file": "backend/src/app.js",
+        "line": 61,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/knowledge",
+        "file": "backend/src/app.js",
+        "line": 63,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canReviewKnowledge"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/api/knowledge",
+        "file": "backend/src/app.js",
+        "line": 64,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment",
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/knowledge/:id",
+        "file": "backend/src/app.js",
+        "line": 65,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/api/knowledge/:id/versions",
+        "file": "backend/src/app.js",
+        "line": 66,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/knowledge/:id/versions",
+        "file": "backend/src/app.js",
+        "line": 67,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canReadKnowledge"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/knowledge/versions/:versionId/download",
+        "file": "backend/src/app.js",
+        "line": 68,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canReadKnowledge"
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/knowledge/:id/status",
+        "file": "backend/src/app.js",
+        "line": 69,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canManageKnowledge",
+          "canReviewKnowledge"
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/knowledge/:id/approve",
+        "file": "backend/src/app.js",
+        "line": 70,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager",
+          "Reviewer"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/knowledge/:id/assignments",
+        "file": "backend/src/app.js",
+        "line": 71,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment",
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/knowledge/:id/assignments/:assignmentId",
+        "file": "backend/src/app.js",
+        "line": 72,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canAccessAssignment",
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/knowledge/:id/downloads",
+        "file": "backend/src/app.js",
+        "line": 73,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/alerts",
+        "file": "backend/src/app.js",
+        "line": 76,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/alerts",
+        "file": "backend/src/app.js",
+        "line": 77,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/alerts/:id/review",
+        "file": "backend/src/app.js",
+        "line": 78,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/alerts/:id",
+        "file": "backend/src/app.js",
+        "line": 79,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/calendar",
+        "file": "backend/src/app.js",
+        "line": 80,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/analytics/reports",
+        "file": "backend/src/app.js",
+        "line": 81,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/analytics/overview",
+        "file": "backend/src/app.js",
+        "line": 101,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/research",
+        "file": "backend/src/app.js",
+        "line": 103,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/research",
+        "file": "backend/src/app.js",
+        "line": 104,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/research/:id/status",
+        "file": "backend/src/app.js",
+        "line": 105,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/research/:id/milestones",
+        "file": "backend/src/app.js",
+        "line": 117,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/audit-logs",
+        "file": "backend/src/app.js",
+        "line": 118,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/document-reviews/:id/submit",
+        "file": "backend/src/app.js",
+        "line": 132,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canManageKnowledge"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/document-reviews",
+        "file": "backend/src/app.js",
+        "line": 133,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager",
+          "Reviewer"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/document-reviews/:id/assign",
+        "file": "backend/src/app.js",
+        "line": 134,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/document-reviews/:id/decision",
+        "file": "backend/src/app.js",
+        "line": 135,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager",
+          "Reviewer"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/document-reviews/:id/history",
+        "file": "backend/src/app.js",
+        "line": 156,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": [
+          "canReadKnowledge"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/notifications",
+        "file": "backend/src/app.js",
+        "line": 157,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/notifications/:id/read",
+        "file": "backend/src/app.js",
+        "line": 170,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/notifications/read-all",
+        "file": "backend/src/app.js",
+        "line": 171,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/notifications/read",
+        "file": "backend/src/app.js",
+        "line": 172,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/documents",
+        "file": "backend/src/app.js",
+        "line": 173,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/documents/:id/checkout",
+        "file": "backend/src/app.js",
+        "line": 174,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/documents/:id/checkin",
+        "file": "backend/src/app.js",
+        "line": 175,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/documents/:id/retention",
+        "file": "backend/src/app.js",
+        "line": 176,
+        "authentication": true,
+        "roles": [
+          "Administrator",
+          "Research Manager"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/settings/email-status",
+        "file": "backend/src/app.js",
+        "line": 177,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "POST",
+        "path": "/api/settings/test-email",
+        "file": "backend/src/app.js",
+        "line": 178,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/settings",
+        "file": "backend/src/app.js",
+        "line": 181,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "GET",
+        "path": "/api/settings/updates",
+        "file": "backend/src/app.js",
+        "line": 182,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/settings/system",
+        "file": "backend/src/app.js",
+        "line": 183,
+        "authentication": true,
+        "roles": [
+          "Administrator"
+        ],
+        "resource_guards_on_declaration_line": []
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/settings/preferences",
+        "file": "backend/src/app.js",
+        "line": 184,
+        "authentication": true,
+        "roles": [],
+        "resource_guards_on_declaration_line": []
+      }
+    ],
+    "fastapi": [
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "handler": "health",
+        "file": "../ai-research-service/app/main.py",
+        "line": 568,
+        "authentication": false
+      },
+      {
+        "method": "GET",
+        "path": "/api/engine",
+        "handler": "engine",
+        "file": "../ai-research-service/app/main.py",
+        "line": 575,
+        "authentication": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/chat",
+        "handler": "chat",
+        "file": "../ai-research-service/app/main.py",
+        "line": 580,
+        "authentication": true
+      },
+      {
+        "method": "GET",
+        "path": "/api/jobs",
+        "handler": "jobs",
+        "file": "../ai-research-service/app/main.py",
+        "line": 641,
+        "authentication": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/jobs",
+        "handler": "create_job",
+        "file": "../ai-research-service/app/main.py",
+        "line": 655,
+        "authentication": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/jobs/{job_id}/start",
+        "handler": "start_job",
+        "file": "../ai-research-service/app/main.py",
+        "line": 672,
+        "authentication": true
+      },
+      {
+        "method": "GET",
+        "path": "/api/change-proposals",
+        "handler": "change_proposals",
+        "file": "../ai-research-service/app/main.py",
+        "line": 692,
+        "authentication": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/code-review/findings/{finding_id}/proposal",
+        "handler": "create_change_proposal",
+        "file": "../ai-research-service/app/main.py",
+        "line": 705,
+        "authentication": true
+      },
+      {
+        "method": "POST",
+        "path": "/api/change-proposals/{proposal_id}/decision",
+        "handler": "decide_change_proposal",
+        "file": "../ai-research-service/app/main.py",
+        "line": 737,
+        "authentication": true
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/jobs/{job_id}/status",
+        "handler": "update_status",
+        "file": "../ai-research-service/app/main.py",
+        "line": 763,
+        "authentication": true
+      }
+    ]
+  },
+  "services": [
+    {
+      "name": "App2 API",
+      "file": "backend/src/app.js"
+    },
+    {
+      "name": "JWT authentication",
+      "file": "backend/src/auth.js"
+    },
+    {
+      "name": "PostgreSQL access",
+      "file": "backend/src/db.js"
+    },
+    {
+      "name": "Audit logging",
+      "file": "backend/src/audit.js"
+    },
+    {
+      "name": "SMTP mail",
+      "file": "backend/src/mailer.js"
+    },
+    {
+      "name": "Felix AI service",
+      "file": "../ai-research-service/app/main.py"
+    },
+    {
+      "name": "Frontend API client",
+      "file": "src/api.ts"
+    }
+  ],
+  "database_models": {
+    "implementation": "SQL tables; no ORM model classes",
+    "schemas": [
+      {
+        "database": "App2 PostgreSQL",
+        "schema_file": "backend/src/schema.sql",
+        "tables": [
+          {
+            "name": "users",
+            "file": "backend/src/schema.sql",
+            "line": 2
+          },
+          {
+            "name": "password_reset_tokens",
+            "file": "backend/src/schema.sql",
+            "line": 5
+          },
+          {
+            "name": "assignments",
+            "file": "backend/src/schema.sql",
+            "line": 6
+          },
+          {
+            "name": "assignment_members",
+            "file": "backend/src/schema.sql",
+            "line": 7
+          },
+          {
+            "name": "assignment_comments",
+            "file": "backend/src/schema.sql",
+            "line": 8
+          },
+          {
+            "name": "assignment_history",
+            "file": "backend/src/schema.sql",
+            "line": 9
+          },
+          {
+            "name": "assignment_attachments",
+            "file": "backend/src/schema.sql",
+            "line": 10
+          },
+          {
+            "name": "alerts",
+            "file": "backend/src/schema.sql",
+            "line": 13
+          },
+          {
+            "name": "audit_logs",
+            "file": "backend/src/schema.sql",
+            "line": 20
+          },
+          {
+            "name": "knowledge_items",
+            "file": "backend/src/schema.sql",
+            "line": 21
+          },
+          {
+            "name": "knowledge_versions",
+            "file": "backend/src/schema.sql",
+            "line": 22
+          },
+          {
+            "name": "knowledge_assignment_links",
+            "file": "backend/src/schema.sql",
+            "line": 23
+          },
+          {
+            "name": "knowledge_downloads",
+            "file": "backend/src/schema.sql",
+            "line": 24
+          },
+          {
+            "name": "research_projects",
+            "file": "backend/src/schema.sql",
+            "line": 38
+          },
+          {
+            "name": "research_collaborators",
+            "file": "backend/src/schema.sql",
+            "line": 39
+          },
+          {
+            "name": "research_milestones",
+            "file": "backend/src/schema.sql",
+            "line": 40
+          },
+          {
+            "name": "research_knowledge_links",
+            "file": "backend/src/schema.sql",
+            "line": 41
+          },
+          {
+            "name": "document_locks",
+            "file": "backend/src/schema.sql",
+            "line": 43
+          },
+          {
+            "name": "document_reviews",
+            "file": "backend/src/schema.sql",
+            "line": 46
+          },
+          {
+            "name": "notifications",
+            "file": "backend/src/schema.sql",
+            "line": 47
+          },
+          {
+            "name": "system_settings",
+            "file": "backend/src/schema.sql",
+            "line": 51
+          },
+          {
+            "name": "user_preferences",
+            "file": "backend/src/schema.sql",
+            "line": 53
+          }
+        ],
+        "relationships": [
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 5
+          },
+          {
+            "column": "created_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 6
+          },
+          {
+            "column": "CREATE",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 7
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 7
+          },
+          {
+            "column": "assignment_id",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 8
+          },
+          {
+            "column": "author_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 8
+          },
+          {
+            "column": "assignment_id",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 9
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 9
+          },
+          {
+            "column": "assignment_id",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 10
+          },
+          {
+            "column": "uploader_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 10
+          },
+          {
+            "column": "created_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 13
+          },
+          {
+            "column": "ALTER",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 17
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 20
+          },
+          {
+            "column": "created_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 21
+          },
+          {
+            "column": "approved_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 21
+          },
+          {
+            "column": "knowledge_id",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 22
+          },
+          {
+            "column": "uploader_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 22
+          },
+          {
+            "column": "CREATE",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 23
+          },
+          {
+            "column": "assignment_id",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 23
+          },
+          {
+            "column": "linked_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 23
+          },
+          {
+            "column": "knowledge_id",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 24
+          },
+          {
+            "column": "version_id",
+            "references_table": "knowledge_versions",
+            "references_column": "id",
+            "line": 24
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 24
+          },
+          {
+            "column": "lead_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 38
+          },
+          {
+            "column": "assignment_id",
+            "references_table": "assignments",
+            "references_column": "id",
+            "line": 38
+          },
+          {
+            "column": "CREATE",
+            "references_table": "research_projects",
+            "references_column": "id",
+            "line": 39
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 39
+          },
+          {
+            "column": "project_id",
+            "references_table": "research_projects",
+            "references_column": "id",
+            "line": 40
+          },
+          {
+            "column": "CREATE",
+            "references_table": "research_projects",
+            "references_column": "id",
+            "line": 41
+          },
+          {
+            "column": "knowledge_item_id",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 41
+          },
+          {
+            "column": "CREATE",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 43
+          },
+          {
+            "column": "locked_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 43
+          },
+          {
+            "column": "ALTER",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 45
+          },
+          {
+            "column": "knowledge_id",
+            "references_table": "knowledge_items",
+            "references_column": "id",
+            "line": 46
+          },
+          {
+            "column": "reviewer_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 46
+          },
+          {
+            "column": "actor_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 46
+          },
+          {
+            "column": "user_id",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 47
+          },
+          {
+            "column": "updated_by",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 51
+          },
+          {
+            "column": "CREATE",
+            "references_table": "users",
+            "references_column": "id",
+            "line": 53
+          }
+        ],
+        "extensions": [
+          "pgcrypto"
+        ],
+        "orm": null
+      },
+      {
+        "database": "Felix PostgreSQL",
+        "schema_file": "../ai-research-service/app/schema.sql",
+        "tables": [
+          {
+            "name": "research_jobs",
+            "file": "../ai-research-service/app/schema.sql",
+            "line": 2
+          },
+          {
+            "name": "research_sources",
+            "file": "../ai-research-service/app/schema.sql",
+            "line": 25
+          },
+          {
+            "name": "research_events",
+            "file": "../ai-research-service/app/schema.sql",
+            "line": 37
+          }
+        ],
+        "relationships": [
+          {
+            "column": "job_id",
+            "references_table": "research_jobs",
+            "references_column": "id",
+            "line": 27
+          },
+          {
+            "column": "job_id",
+            "references_table": "research_jobs",
+            "references_column": "id",
+            "line": 39
+          }
+        ],
+        "extensions": [
+          "pgcrypto"
+        ],
+        "orm": null
+      }
+    ]
+  },
+  "user_roles": [
+    "Administrator",
+    "Research Manager",
+    "Research Officer",
+    "Reviewer"
+  ],
+  "permissions": {
+    "source_of_truth": "Backend middleware and resource guards",
+    "role_navigation": {
+      "Administrator": "All modules",
+      "Research Manager": "All modules except Audit Logs",
+      "Research Officer": [
+        "Dashboard",
+        "Assignments",
+        "Knowledge Repository",
+        "Research Repository",
+        "AI Researcher",
+        "Documents",
+        "Team & Users",
+        "Notifications",
+        "Notice Board",
+        "Calendar",
+        "Settings"
+      ],
+      "Reviewer": [
+        "Dashboard",
+        "Assignments",
+        "Knowledge Repository",
+        "Documents",
+        "Notifications",
+        "Notice Board",
+        "Calendar",
+        "Settings"
+      ]
+    },
+    "backend_helpers": [
+      "authenticate",
+      "authorize",
+      "canAccessAssignment",
+      "canManageKnowledge",
+      "canReviewKnowledge",
+      "canReadKnowledge"
+    ]
+  },
+  "workflows": {
+    "assignments": [
+      "Manager creates and allocates",
+      "Member works and updates status",
+      "Reviewer or manager may mark Completed",
+      "History and notifications record selected events"
+    ],
+    "documents": [
+      "Upload knowledge item/version",
+      "Submit for review",
+      "Assign reviewer",
+      "Approve and publish or reject",
+      "Version, download, lock, retain or archive"
+    ],
+    "knowledge_repository": [
+      "Upload metadata and file",
+      "Link to assignment",
+      "Search metadata",
+      "Review/publish",
+      "Download audited version"
+    ],
+    "research_repository": [
+      "Manager creates project",
+      "Lead/collaborators view and update",
+      "Milestones track work",
+      "Reviewer or manager approves completion"
+    ],
+    "felix": [
+      "Validate App2 token and live session",
+      "Retrieve visible App2 records",
+      "Optionally extract one DOCX/text document",
+      "Handle intent or call Ollama",
+      "Return references and optional proposed action"
+    ]
+  },
+  "notifications": {
+    "table": "notifications",
+    "delivery": [
+      "in-app",
+      "optional SMTP test/configuration"
+    ],
+    "generated_for": [
+      "assignment allocation/status/due/completion",
+      "document review",
+      "published notices"
+    ]
+  },
+  "audit_logs": {
+    "app2_table": "audit_logs",
+    "ai_event_table": "research_events",
+    "ordinary_user_mutation_endpoint": false,
+    "known_gap": "Felix chats, retrieval, model calls and proposed patches are not comprehensively audited."
+  },
+  "configuration_variables": [
+    {
+      "name": "APP2_API_URL",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "APP2_MANIFEST_PATH",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "APP2_REPOSITORY_PATH",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "APP_PORT",
+      "declared_or_documented_in": ".env.production.example"
+    },
+    {
+      "name": "DATABASE_SSL",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "DATABASE_URL",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "FELIX_CHUNK_OVERLAP",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "FELIX_CHUNK_SIZE",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "FELIX_RETRIEVAL_LIMIT",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "FRONTEND_ORIGIN",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "JWT_EXPIRES_IN",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "JWT_SECRET",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "MAX_UPLOAD_MB",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "NODE_ENV",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "OLLAMA_EMBED_MODEL",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "OLLAMA_MODEL",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "OLLAMA_URL",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "PAID_PROVIDERS_ENABLED",
+      "declared_or_documented_in": "../ai-research-service/.env.example"
+    },
+    {
+      "name": "PORT",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "POSTGRES_DB",
+      "declared_or_documented_in": ".env.production.example"
+    },
+    {
+      "name": "POSTGRES_PASSWORD",
+      "declared_or_documented_in": ".env.production.example"
+    },
+    {
+      "name": "POSTGRES_USER",
+      "declared_or_documented_in": ".env.production.example"
+    },
+    {
+      "name": "SMTP_ENABLED",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_FROM",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_HOST",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_PASSWORD",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_PORT",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_SECURE",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "SMTP_USER",
+      "declared_or_documented_in": "backend/.env.example"
+    },
+    {
+      "name": "UPLOAD_DIR",
+      "declared_or_documented_in": "backend/.env.example"
+    }
+  ],
+  "test_locations": [
+    "../ai-research-service/tests/test_change_control.py",
+    "../ai-research-service/tests/test_code_review.py",
+    "../ai-research-service/tests/test_document_retrieval.py",
+    "../ai-research-service/tests/test_repository_index.py",
+    "../ai-research-service/tests/test_system_expert.py"
+  ],
+  "deployment_files": [
+    "Dockerfile",
+    "backend/Dockerfile",
+    "docker-compose.yml",
+    "nginx.conf",
+    "../ai-research-service/Dockerfile"
+  ],
+  "known_gaps": [
+    "No pgvector or embeddings",
+    "No passage index or citation validator",
+    "No repository index",
+    "No automated tests found",
+    "No versioned migration framework",
+    "No scheduled Felix reviews",
+    "No Felix administration dashboard"
+  ]
+}

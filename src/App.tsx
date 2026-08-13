@@ -787,6 +787,16 @@ export default function App() {
     | "Activity"
     | "Review"
   >("Overview");
+  const [assignmentAddOpen, setAssignmentAddOpen] = useState(false);
+  const [assignmentDocumentFilter, setAssignmentDocumentFilter] = useState<
+    "All" | "Documents" | "Research Notes"
+  >("All");
+  const [assignmentDocumentSearch, setAssignmentDocumentSearch] = useState("");
+  const [assignmentRepositoryLinkId, setAssignmentRepositoryLinkId] = useState("");
+  const [assignmentFelixOpen, setAssignmentFelixOpen] = useState(false);
+  const [assignmentFelixQuestion, setAssignmentFelixQuestion] = useState("");
+  const [assignmentFelixAnswer, setAssignmentFelixAnswer] = useState("");
+  const [assignmentFelixBusy, setAssignmentFelixBusy] = useState(false);
   const [assignmentSectionEditor, setAssignmentSectionEditor] = useState<
     ApiAssignmentSection | "new" | null
   >(null);
@@ -2788,18 +2798,6 @@ export default function App() {
                   original_name: displayFileName(file.original_name),
                 })),
               );
-              const currentReport =
-                documents.find((item) => item.status === "Changes Requested") ||
-                documents.find((item) => item.status === "Draft") ||
-                documents.find((item) => item.status === "Revised") ||
-                documents[0];
-              if (currentReport) {
-                const fullReport = await api.generatedDocument(
-                  token,
-                  currentReport.id,
-                );
-                if (!cancelled) setBuilderDocument(fullReport);
-              }
             }
             break;
           }
@@ -15397,9 +15395,8 @@ export default function App() {
                   [
                     { tab: "Overview", label: "Overview" },
                     { tab: "Tasks", label: "Tasks" },
-                    { tab: "Contributions", label: "Task Reports" },
-                    { tab: "Documents", label: "Report" },
-                    { tab: "Review", label: "Review" },
+                    { tab: "Documents", label: "Research & Documents" },
+                    { tab: "Activity", label: "Activity" },
                   ] as const
                 ).map(({ tab, label }) => (
                   <button
@@ -15420,16 +15417,26 @@ export default function App() {
                       <b>{assignmentTasks.length}</b>
                     )}
 
-                    {tab === "Contributions" && assignmentTasks.length > 0 && (
-                      <b>{assignmentGeneratedReports.length}</b>
-                    )}
                   </button>
                 ))}
+                <div className="assignment-quick-add">
+                  <button type="button" className="primary" onClick={() => setAssignmentAddOpen((open) => !open)}>+ Add</button>
+                  {assignmentAddOpen && <div role="menu">
+                    <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Tasks"); void openAssignmentTaskDialog(); }}>Task</button>
+                    <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Documents"); setComment("Research note: "); }}>Note</button>
+                    <label>Document<input type="file" hidden onChange={(event) => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Documents"); void uploadAssignmentFile(event.target.files?.[0]); }} /></label>
+                    <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Activity"); window.setTimeout(() => document.querySelector<HTMLTextAreaElement>(".assignment-activity-comment textarea")?.focus(), 0); }}>Comment</button>
+                  </div>}
+                </div>
               </nav>
 
               {assignmentNotice && (
                 <div className="session-message">{assignmentNotice}</div>
               )}
+              <aside className="assignment-felix-context">
+                <button type="button" onClick={() => setAssignmentFelixOpen((open) => !open)}>Ask Felix about this assignment</button>
+                {assignmentFelixOpen && <div><div className="assignment-felix-prompts">{["Summarize this assignment", "What is overdue?", "What should I do next?", "Give me a progress update"].map((question) => <button type="button" key={question} onClick={() => setAssignmentFelixQuestion(question)}>{question}</button>)}</div><label>Question<input value={assignmentFelixQuestion} onChange={(event) => setAssignmentFelixQuestion(event.target.value)} placeholder="Find documents about…" /></label><button type="button" disabled={!assignmentFelixQuestion.trim() || assignmentFelixBusy} onClick={async () => { if (!selectedAssignmentId) return; setAssignmentFelixBusy(true); setAssignmentFelixAnswer(""); try { const response = await api.askFelix(token, `Assignment context: ID ${selectedAssignmentId}; title: ${selectedAssignmentRecord?.title || selectedAssignment || "Assignment"}. ${assignmentFelixQuestion}`, [], "Auto"); setAssignmentFelixAnswer(response.answer); } catch (error) { setAssignmentFelixAnswer(error instanceof Error ? error.message : "Felix could not answer."); } finally { setAssignmentFelixBusy(false); } }}>{assignmentFelixBusy ? "Thinking…" : "Ask Felix"}</button>{assignmentFelixAnswer && <p>{assignmentFelixAnswer}</p>}</div>}
+              </aside>
 
               {assignmentWorkspaceTab === "Overview" && (
                 <section className="assignment-overview-minimal">
@@ -16318,6 +16325,15 @@ export default function App() {
 
               {assignmentWorkspaceTab === "Tasks" && (
                 <section className="phase4-tasks task-workspace-polished">
+                  <section className="assignment-my-work" aria-label="My Work">
+                    <header><div><span className="workspace-eyebrow">MY WORK</span><h3>Your work in this assignment</h3></div></header>
+                    <div>{[
+                      ["Due Today", assignmentTasks.filter((task) => task.owner_name === user?.name && task.status !== "Completed" && taskDateValue(task.due_date) === new Date().toISOString().slice(0,10))],
+                      ["Upcoming", assignmentTasks.filter((task) => task.owner_name === user?.name && task.status !== "Completed" && Boolean(task.due_date) && new Date(String(task.due_date)).getTime() >= Date.now())],
+                      ["Overdue", assignmentTasks.filter((task) => task.owner_name === user?.name && task.status !== "Completed" && Boolean(task.due_date) && new Date(String(task.due_date)).getTime() < Date.now())],
+                      ["Recently Completed", assignmentTasks.filter((task) => task.owner_name === user?.name && task.status === "Completed").slice(0,5)],
+                    ].map(([label, rows]) => <button type="button" key={label as string} onClick={() => setAssignmentTaskFilter(label === "Overdue" ? "Overdue" : label === "Recently Completed" ? "Completed" : "My Tasks")}><span>{label as string}</span><b>{(rows as ApiAssignmentTask[]).length}</b></button>)}</div>
+                  </section>
                   <header className="tasks-minimal-toolbar">
                     <p>
                       <strong>{assignmentTasks.length}</strong> task
@@ -19099,15 +19115,36 @@ export default function App() {
                 </section>
               )}
 
-              {assignmentWorkspaceTab === "Documents" &&
-                !workspaceDocuments.length && (
+              {assignmentWorkspaceTab === "Documents" && (
+                <section className="assignment-resources-simple">
+                  <header className="workspace-section-heading">
+                    <div><span className="workspace-eyebrow">RESEARCH &amp; DOCUMENTS</span><h3>Assignment resources</h3><p>Notes, uploads, repository documents and the assignment report in one place.</p></div>
+                  </header>
+                  <div className="assignment-resource-tools">
+                    <input value={assignmentDocumentSearch} onChange={(event) => setAssignmentDocumentSearch(event.target.value)} placeholder="Search this assignment" aria-label="Search assignment documents and notes" />
+                    {(["All", "Documents", "Research Notes"] as const).map((filter) => <button type="button" className={assignmentDocumentFilter === filter ? "active" : ""} key={filter} onClick={() => setAssignmentDocumentFilter(filter)}>{filter}</button>)}
+                  </div>
+                  <div className="assignment-repository-link">
+                    <select value={assignmentRepositoryLinkId} onChange={(event) => setAssignmentRepositoryLinkId(event.target.value)} aria-label="Existing repository document"><option value="">Attach existing repository document</option>{knowledgeRows.filter((item) => !assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+                    <button type="button" disabled={!assignmentRepositoryLinkId || !selectedAssignmentId} onClick={async () => { if (!selectedAssignmentId || !assignmentRepositoryLinkId) return; await api.linkKnowledgeToAssignment(token, assignmentRepositoryLinkId, selectedAssignmentId); setAssignmentRepositoryLinkId(""); setKnowledgeRows(await api.knowledge(token)); setAssignmentHistory(await api.history(token, selectedAssignmentId)); setAssignmentNotice("Repository document attached."); }}>Attach</button>
+                  </div>
+                  {(assignmentDocumentFilter === "All" || assignmentDocumentFilter === "Documents") && <div className="assignment-resource-list">
+                    {assignmentFiles.filter((item) => !assignmentDocumentSearch || item.original_name.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((file) => <article key={file.id}><span><strong>{file.original_name}</strong><small>Uploaded document · {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><button type="button" onClick={() => api.downloadAttachment(token, file.id, file.original_name)}>Download</button></article>)}
+                    {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) && (!assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase()))).map((item) => <article key={item.id}><span><strong>{item.title}</strong><small>Repository document · {item.status}</small></span><button type="button" onClick={() => void openKnowledge(item)}>Preview</button></article>)}
+                    {workspaceDocuments.filter((item) => !assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((item) => <article key={item.id}><span><strong>{item.title}</strong><small>Assignment report · {item.status}</small></span><button type="button" onClick={() => void openGeneratedDocument(item.id)}>Open</button></article>)}
+                  </div>}
+                  {(assignmentDocumentFilter === "All" || assignmentDocumentFilter === "Research Notes") && <div className="assignment-note-composer"><textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Write a short research note" /><button type="button" disabled={!comment.trim() || !selectedAssignmentId} onClick={async () => { if (!selectedAssignmentId) return; const note = comment.trim().toLowerCase().startsWith("research note:") ? comment.trim() : `Research note: ${comment.trim()}`; await api.addComment(token, selectedAssignmentId, note); setComment(""); setComments((items) => [...items, { author: user?.name || "User", text: note, time: new Date().toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" }) }]); setAssignmentHistory(await api.history(token, selectedAssignmentId)); }}>Add note</button></div>}
+                </section>
+              )}
+
+              {assignmentWorkspaceTab === "Documents" && false && (
                 <section className="phase4-documents">
                   <header className="workspace-section-heading">
                     <div>
                       <span className="workspace-eyebrow">
                         ASSIGNMENT REPORT
                       </span>
-                      <h3>Assignment report</h3>
+                      <h3>Assignment Report</h3>
                       <p>
                         Build one controlled report from approved work, then
                         edit, review and finalise it.
@@ -19320,10 +19357,10 @@ export default function App() {
                     </div>
                   </header>
 
-                  <div className="history-list">
+                  <div className="history-list assignment-human-activity">
                     {assignmentHistory.map((item) => (
                       <div key={item.id}>
-                        <strong>{item.action.replaceAll("_", " ")}</strong>
+                        <strong>{({ ASSIGNMENT_TASK_CREATED: "Task created", ASSIGNMENT_TASK_UPDATED: "Task updated", ASSIGNMENT_ATTACHMENT_UPLOADED: "Document uploaded", ASSIGNMENT_COMMENT_ADDED: "Comment added", ASSIGNMENT_UPDATED: "Assignment updated", KNOWLEDGE_ASSIGNMENT_LINKED: "Repository document attached", ASSIGNMENT_REVIEW_RECORDED: "Approval recorded" } as Record<string,string>)[item.action] || item.action.replaceAll("_", " ").toLowerCase().replace(/^./, (letter) => letter.toUpperCase())}</strong>
                         <span>
                           {item.user_name || "System"} |{" "}
                           {new Date(item.created_at).toLocaleString("en-KE")}
@@ -19337,6 +19374,7 @@ export default function App() {
                       </p>
                     )}
                   </div>
+                  <div className="comment-box assignment-activity-comment"><textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Add a short comment" /><button type="button" disabled={!comment.trim()} onClick={addComment}>Add comment</button></div>
                 </section>
               )}
 

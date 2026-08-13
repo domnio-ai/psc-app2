@@ -83,7 +83,7 @@ export default function AssignmentReportsPanel({
       <header>
         <div>
           <p>REPORT WORKSPACE</p>
-          <h2>Reports</h2>
+          <h2>Assignment Report</h2>
           <span>
             Open the current draft or create a report when no draft exists.
           </span>

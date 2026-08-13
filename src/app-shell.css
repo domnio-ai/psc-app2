@@ -75,3 +75,23 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .workspace-actions{width:100%}
   .modal-backdrop{padding:10px!important}
 }
+
+/* Performance pass: skip layout/paint work for dashboard sections below the fold. */
+.dashboard-content>.stats-grid,
+.dashboard-content>.primary-grid,
+.dashboard-content>.bottom-grid,
+.dashboard-content>.management-area,
+.dashboard-content>.research-grid,
+.dashboard-content>.report-grid{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 420px;
+}
+
+/* Compact displays usually have less GPU headroom; keep surfaces crisp and cheap. */
+@media(max-width:1100px),(prefers-reduced-motion:reduce){
+  .topbar,.modal-backdrop,.section-workspace-backdrop{backdrop-filter:none!important}
+  .panel,.stat-card,.workspace-header,.management-area{box-shadow:none!important}
+  .sidebar{box-shadow:8px 0 22px rgba(0,0,0,.2)!important}
+}
+
+.ribbon-tabs button{height:30px;padding:0 11px;border:0;border-bottom:2px solid transparent;background:transparent;color:#cbd1d3;font-size:10px;font-weight:700}.ribbon-tabs button:hover,.ribbon-tabs button.active{border-bottom-color:#d9ad2c;color:#fff;background:#303639}

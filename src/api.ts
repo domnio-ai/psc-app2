@@ -204,6 +204,7 @@ export type KnowledgeItem = {
     title: string | null;
   }[];
   worked_by?: string[];
+  assignments?: { id: string; title: string }[];
 };
 export type KnowledgeVersion = {
   id: string;
@@ -1530,6 +1531,12 @@ export const api = {
     anchor.click();
     URL.revokeObjectURL(url);
   },
+  linkKnowledgeToAssignment: (token: string, id: string, assignmentId: string) =>
+    request<void>(
+      `/knowledge/${id}/assignments`,
+      { method: "POST", body: JSON.stringify({ assignmentId }) },
+      token,
+    ),
   documentCategories: (token: string) =>
     request<{ id: string; name: string; description: string }[]>(
       "/document-categories",

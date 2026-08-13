@@ -126,12 +126,13 @@ export default function AssignmentReportBuilder({
       reportTitle={report.title}
       contextTitle={assignmentTitle ? `${assignmentTitle} — Assignment Report` : report.title}
       linkedWorkItems={linkedTasks}
-      onInsertLinkedWorkItem={async (taskId) => {
+      onInsertLinkedWorkItem={async (taskId, destinationSectionId) => {
         if (dirty && !(await save())) return;
-        await api.addTaskToAssignmentReportSection(token, report.id, section.id, taskId);
+        const targetSectionId = destinationSectionId || section.id;
+        await api.addTaskToAssignmentReportSection(token, report.id, targetSectionId, taskId);
         const fresh = await api.generatedDocument(token, report.id);
         setReport(fresh);
-        const current = fresh.sections.find((item) => item.id === section.id);
+        const current = fresh.sections.find((item) => item.id === targetSectionId);
         if (current) {
           setSection(current);
           setContent(current.content || "");

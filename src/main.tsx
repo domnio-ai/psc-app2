@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import AppErrorBoundary from './AppErrorBoundary'
 import './styles.css'
 import './access.css'
 import './research.css'
@@ -20,9 +21,20 @@ import './ai-chat.css'
 import './felix.css'
 import './inbox-ordering.css'
 import './felix-actions.css'
+import './felix-expert.css'
+import './felix-admin.css'
+import './gold-grey-theme.css'
+import './app-shell.css'
+import './dashboard-phase2.css'
+import './assignments-phase3.css'
+import './assignments-phase4.css'
+import './assignment-structure-plan.css'
+import './research-phase5.css'
+import './document-builders-phase6-8.css'
+import './assignment-report-builder.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <AppErrorBoundary><App /></AppErrorBoundary>
   </StrictMode>,
 )

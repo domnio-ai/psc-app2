@@ -1,0 +1,12 @@
+BEGIN;
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS task_purpose TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS specific_instructions TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS expected_findings TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS expected_output VARCHAR(200) NOT NULL DEFAULT 'Task Report';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS evidence_required TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS evidence_reviewed TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS contribution_challenges TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS contribution_next_actions TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS assignment_tasks_reviewer_idx ON assignment_tasks(reviewer_id,contribution_status) WHERE archived_at IS NULL;
+COMMIT;

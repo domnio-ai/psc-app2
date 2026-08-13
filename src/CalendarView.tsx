@@ -6,6 +6,7 @@ const dateKey = (value: Date | string) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 const monthValue = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`
+const eventLabel=(item:CalendarItem)=>({assignment:'Assignment deadline',task:'Task deadline',research_milestone:'Research milestone',document_review:'Document review deadline',notice:item.is_dated_event?'Notice Board event':'Notice Board publication'}[item.type])
 
 export default function CalendarView({ items }: { items: CalendarItem[] }) {
   const today = new Date()
@@ -36,6 +37,6 @@ export default function CalendarView({ items }: { items: CalendarItem[] }) {
       <div className="calendar-weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => <span key={day}>{day}</span>)}</div>
       <div className="calendar-grid">{days.map(day => { const key = dateKey(day); const dayItems = itemsByDate[key] || []; return <button type="button" key={key} className={`${day.getMonth() !== month.getMonth() ? 'outside ' : ''}${key === selected ? 'selected ' : ''}${key === dateKey(today) ? 'today' : ''}`} onClick={() => setSelected(key)}><span>{day.getDate()}</span>{dayItems.slice(0, 2).map(item => <small className={item.type} key={`${item.type}-${item.id}`}>{item.title}</small>)}{dayItems.length > 2 && <em>+{dayItems.length - 2} more</em>}</button> })}</div>
     </section>
-    <aside className="calendar-agenda"><header><small>SELECTED DATE</small><h3>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-KE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3></header>{selectedItems.map(item => <article key={`${item.type}-${item.id}`}><b>{item.type === 'assignment' ? 'Assignment deadline' : item.is_dated_event ? 'Notice Board event' : 'Notice Board publication'}</b><h4>{item.title}</h4><time>{new Date(item.start_at).toLocaleString('en-KE')}{item.end_at ? ` – ${new Date(item.end_at).toLocaleString('en-KE')}` : ''}</time><em>{item.status}</em></article>)}{!selectedItems.length && <div className="calendar-empty"><strong>No events on this date</strong><p>Select a highlighted date, or add due dates to assignments and event dates to approved notices.</p></div>}</aside>
+    <aside className="calendar-agenda"><header><small>SELECTED DATE</small><h3>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-KE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3></header>{selectedItems.map(item => <article key={`${item.type}-${item.id}`}><b>{eventLabel(item)}</b><h4>{item.title}</h4><time>{new Date(item.start_at).toLocaleString('en-KE')}{item.end_at ? ` – ${new Date(item.end_at).toLocaleString('en-KE')}` : ''}</time><em>{item.status}</em></article>)}{!selectedItems.length && <div className="calendar-empty"><strong>No events on this date</strong><p>Select a highlighted date, or add a permitted assignment, task, milestone, review or notice date.</p></div>}</aside>
   </div>
 }

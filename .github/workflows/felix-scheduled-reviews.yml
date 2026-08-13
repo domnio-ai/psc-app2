@@ -1,0 +1,76 @@
+name: Felix scheduled reviews
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 23 * * *"
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: felix-review-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commit-and-pr:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Formatting and whitespace
+        run: git diff --check
+      - name: Type checking and frontend/backend consistency
+        run: npm run build
+      - name: Backend syntax and unit checks
+        working-directory: backend
+        run: npm ci && npm run check
+      - name: Secret and basic security scan
+        run: git grep -nEI '(api[_-]?key|secret|password)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']{8,}' -- ':!*.example' ':!*.md' && exit 1 || exit 0
+
+  nightly:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 23 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - working-directory: backend
+        run: npm ci && npm run check && npm audit --audit-level=high
+
+  weekly:
+    if: github.event_name == 'schedule' && github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Technical debt and documentation drift
+        run: |
+          git grep -nEI '\b(TODO|FIXME|HACK)\b' -- ':!node_modules' || true
+          git diff --exit-code HEAD~1 -- README.md docs/ || true
+      - name: Untested modules and performance risks
+        run: |
+          find src backend/src -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' \) | sort
+          git grep -nE 'SELECT \*|Promise\.all\(|setInterval\(' -- src backend/src || true

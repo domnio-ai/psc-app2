@@ -1,0 +1,227 @@
+/* PSC institutional theme: derived from the App2 test-plan visual language. */
+:root,
+html[data-theme="gold-grey"],
+html[data-theme="light"]{
+  --yellow:#e8a900;
+  --orange:#d88900;
+  --green:#3d9b5f;
+  --blue:#174a7e;
+  --bg:#edf2f7;
+  --bg-2:#f7f9fc;
+  --panel:#ffffff;
+  --panel-2:#f4f7fa;
+  --line:#cbd5df;
+  --muted:#607080;
+  --text:#12233b;
+  --psc-navy:#002b5c;
+  --psc-navy-2:#064278;
+  --psc-gold:#e8a900;
+  --psc-ink:#12233b;
+  --psc-surface:#ffffff;
+  --psc-soft:#f2f6fa;
+  --psc-border:#c8d2dc;
+}
+
+html,body,#root{background:#edf2f7;color:var(--psc-ink)}
+body{background:linear-gradient(135deg,#e8eef5 0%,#f7f9fc 52%,#eaf0f6 100%)}
+.dashboard-shell{background:#edf2f7!important}
+.dashboard-shell>main{background:#edf2f7}
+.dashboard-content{color:var(--psc-ink)}
+
+/* Navigation and app identity */
+.sidebar{
+  border-right:1px solid #001d3e!important;
+  background:linear-gradient(180deg,#002b5c 0%,#063e70 55%,#00264f 100%)!important;
+  box-shadow:10px 0 30px rgba(0,31,67,.16)!important;
+}
+.brand{border-bottom-color:rgba(255,255,255,.18)!important}
+.brand strong,.brand span{color:#fff!important}
+.brand small{color:#b9cee1!important}
+.sidebar nav button,.quick-access button{color:#d8e6f2!important}
+.sidebar nav button .icon,.quick-access button .icon{color:#b9cee1!important}
+.sidebar nav button:hover,.quick-access button:hover{border-color:rgba(255,255,255,.22)!important;background:rgba(255,255,255,.1)!important;color:#fff!important}
+.sidebar nav button.active{border-color:#f2bd25!important;background:#fff!important;color:#002b5c!important;box-shadow:inset 4px 0 #e8a900!important}
+.sidebar nav button.active .icon{color:#002b5c!important}
+.sidebar nav button b{background:#e8a900!important;color:#08223f!important}
+.sidebar-footer,.quick-access{border-color:rgba(255,255,255,.15)!important}
+
+.topbar{
+  border-bottom:1px solid #b8c6d3!important;
+  background:#fff!important;
+  color:#09284a!important;
+  box-shadow:0 3px 14px rgba(0,43,92,.08)!important;
+}
+.topbar .title h1{color:#002b5c!important}
+.topbar .title p,.live-time span,.live-time small{color:#617184!important}
+.header-search,.topbar .user{border-color:#cad4de!important;background:#f5f8fb!important;color:#18324f!important}
+.topbar .user strong{color:#0b294a!important}
+.topbar .user small{color:#66788a!important}
+.user-icon{background:#002b5c!important;color:#fff!important}
+
+/* Page headings mirror the navy numbered title bands in the reference. */
+.assignment-page-head,.research-page-head,.documents-page-head,.reports-page-head,
+.users-page-head,.settings-page-head,.audit-page-head,.calendar-page-head{
+  border-bottom:3px solid #e8a900!important;
+}
+.assignment-page-head p,.research-page-head p,.documents-page-head p,
+.reports-page-head p,.users-page-head p,.settings-page-head p,.audit-page-head p{
+  color:#0b4a80!important;
+}
+.assignment-page-head h2,.research-page-head h2,.documents-page-head h2,
+.reports-page-head h2,.users-page-head h2,.settings-page-head h2,.audit-page-head h2{
+  color:#002b5c!important;
+}
+
+/* Shared white information panels */
+.panel,.stat-card,.command-card,.assignment-card,.research-card,.knowledge-library>article,
+.settings-panel,.settings-health article,.felix-admin-panel,.ai-engine-card,
+.ai-research-grid>article,.ai-chat,.ai-chat-history,.management-area,
+.assignment-overview-minimal,.research-overview-panel,.research-plan-panel,
+.research-team-panel,.research-discussion-panel,.research-report-panel,
+.research-sources-panel,.research-builder-documents-panel,.research-activity-panel,
+.phase4-tasks,.assignment-resources-simple,.assignment-structure-plan,
+.assignment-contributions-board,.task-section-workspace{
+  border-color:var(--psc-border)!important;
+  background:#fff!important;
+  color:var(--psc-ink)!important;
+  box-shadow:0 5px 18px rgba(0,43,92,.07)!important;
+}
+
+/* Compact section title bands */
+.panel>header,.command-card>header,.research-documents-head,.workspace-section-heading,
+.research-team-panel>header,.assignment-structure-head,.assignment-contributions-board>header,
+.task-section-workspace>header{
+  border-color:#b9c8d6!important;
+}
+.workspace-eyebrow,.panel>header>div>small,.command-card header span,
+.research-documents-head small,.assignment-structure-head small{
+  color:#07508a!important;
+}
+.panel h2,.panel h3,.command-card h3,.research-overview-panel h3,
+.research-team-panel h3,.research-documents-head h3,.workspace-section-heading h3,
+.assignment-structure-head h3,.assignment-contributions-board h3{
+  color:#002b5c!important;
+}
+p,small{--local-muted:#607080}
+.panel p,.command-card p,.research-workspace p,.assignment-phase4 p,
+.workspace-section-heading p,.assignment-structure-head p{color:#607080!important}
+
+/* Tabs and toolbars */
+.research-workspace-tabs,.assignment-workspace-tabs{
+  border:1px solid #002b5c!important;
+  background:#002b5c!important;
+}
+.research-workspace-tabs button,.assignment-workspace-tabs button{color:#dceaf5!important;background:transparent!important}
+.research-workspace-tabs button.active,.assignment-workspace-tabs button.active{
+  border-color:#e8a900!important;background:#fff!important;color:#002b5c!important;box-shadow:inset 0 -3px #e8a900!important
+}
+.assignment-toolbar,.document-toolbar,.research-toolbar,.tasks-minimal-toolbar,
+.assignment-resource-tools,.assignment-repository-link{
+  border-color:#c7d2dc!important;background:#f3f6f9!important;color:#173451!important
+}
+.assignment-document-workspace-create{
+  border:1px solid #b9c8d6!important;
+  border-left:4px solid #e8a900!important;
+  background:#f3f6f9!important;
+  color:#173451!important;
+  box-shadow:0 3px 10px rgba(0,43,92,.06)!important;
+}
+.assignment-document-workspace-create strong{color:#002b5c!important}
+.assignment-document-workspace-create small{color:#5e7184!important}
+.assignment-document-workspace-create select,
+.assignment-document-workspace-create input{
+  border-color:#aebdca!important;background:#fff!important;color:#102f50!important
+}
+.assignment-document-workspace-create button{
+  border:1px solid #002b5c!important;background:#002b5c!important;color:#fff!important
+}
+.assignment-document-workspace-create button:hover:not(:disabled){background:#064b82!important}
+.assignment-document-workspace-create button:disabled{
+  border-color:#b8c2cc!important;background:#dfe5eb!important;color:#758493!important;opacity:1!important
+}
+.assignment-resource-tools button,.assignment-repository-link button{
+  border-color:#9fb0bf!important;background:#fff!important;color:#002b5c!important
+}
+.assignment-resource-tools button.active{
+  border-color:#d39a00!important;background:#fff6d9!important;color:#674b00!important
+}
+.assignment-repository-link button:not(:disabled),.assignment-resource-list button{
+  border-color:#002b5c!important;background:#002b5c!important;color:#fff!important
+}
+.assignment-repository-link button:disabled{
+  border-color:#c4cdd5!important;background:#e4e9ee!important;color:#7c8995!important;opacity:1!important
+}
+
+/* Tables, lists, metrics and cards */
+.research-overview-metrics>span,.research-document-kpis>span,.assignment-structure-kpis span,
+.task-screen-meta>div,.assignment-overview-minimal dl,.workspace-document-overview,
+.assignment-resource-list>article,.tasks-minimal-list article,.assignment-section-list>article,
+.assignment-contribution-sections>article,.member-record,.allocation-row{
+  border-color:#cbd5df!important;background:#f6f8fb!important;color:#17314e!important
+}
+.research-overview-metrics strong,.research-document-kpis strong,.assignment-structure-kpis strong,
+.task-screen-meta strong,.assignment-overview-minimal dd,.tasks-minimal-list strong,
+.assignment-section-list h4,.assignment-contribution-sections strong{color:#082b52!important}
+.research-overview-metrics small,.research-document-kpis small,.task-screen-meta small,
+.assignment-overview-minimal dt{color:#607488!important}
+.assignment-overview-minimal>footer,.research-document-next,.research-lifecycle{
+  border-color:#d6c27f!important;background:#fff8df!important;color:#19324d!important
+}
+.assignment-overview-minimal>footer div strong,.research-document-next strong,.research-lifecycle strong{color:#092c52!important}
+
+/* Forms and calls to action */
+input:not([type="checkbox"]):not([type="radio"]),textarea,select{
+  border-color:#bfcbd7!important;background:#fff!important;color:#132b45!important
+}
+input::placeholder,textarea::placeholder{color:#8796a5!important}
+input:focus,textarea:focus,select:focus{outline:2px solid rgba(13,75,128,.18)!important;border-color:#174f80!important}
+button.primary,.sign-in,.assignment-page-head>button,.workspace-section-heading button,
+.research-documents-head>button,.assignment-structure-head button:not(.secondary),
+.task-modal-primary,.assignment-quick-add>button.primary{
+  border-color:#002b5c!important;background:#002b5c!important;color:#fff!important
+}
+button.primary:hover,.sign-in:hover,.assignment-page-head>button:hover{background:#06487f!important}
+button.approve{border-color:#287a4a!important;background:#3d9b5f!important;color:#fff!important}
+
+/* Unified documents list added to workspace overviews */
+.workspace-document-overview{background:#f7f9fb!important;color:#122f50!important}
+.workspace-document-overview>header{padding-bottom:10px;border-bottom:2px solid #002b5c}
+.workspace-document-overview>header small{color:#07508a!important}
+.workspace-document-overview>header h4{color:#002b5c!important}
+.workspace-document-overview>header>strong{background:#002b5c!important;color:#fff!important}
+.workspace-document-actions>strong{background:#002b5c!important;color:#fff!important}.workspace-attach-report{border-color:#002b5c!important;background:#002b5c!important;color:#fff!important}
+.workspace-document-overview-list>button,.workspace-document-overview-list>article{
+  border-color:#d2dae2!important;background:#fff!important;color:#17314e!important
+}
+.workspace-document-overview-list>button:hover{border-color:#174f80!important;background:#edf4fa!important}
+.workspace-document-overview-list>button.is-linked{border-color:#d9a400!important;background:#fff8dd!important}
+.workspace-document-overview-list b{color:#092d54!important}
+.workspace-document-overview-list small{color:#66798b!important}
+.workspace-document-overview-list em,.workspace-document-overview-list a{color:#07508a!important}
+
+/* Task workspace keeps a strong navy command header with a light work area. */
+.task-workspace-backdrop{background:rgba(0,28,59,.62)!important}
+.task-workspace-modal{border-color:#002b5c!important;background:#eef3f7!important;color:#14304d!important}
+.task-screen-header{border-color:#001f43!important;background:#002b5c!important;color:#fff!important}
+.task-screen-header h2,.task-screen-header p,.task-screen-header button{color:#fff!important}
+.task-screen-meta{border-color:#c6d1dc!important;background:#fff!important}
+.task-screen-body,.task-workspace-readonly{background:#eef3f7!important}
+.task-screen-body>*,.task-workspace-readonly>*{border-color:#c7d2dc!important;background:#fff!important;color:#17314e!important}
+.task-screen-footer{border-color:#becbd7!important;background:#fff!important}
+
+/* Modals */
+.modal-backdrop,.task-assignment-backdrop{background:rgba(0,31,67,.58)!important}
+.profile-modal,.assignment-editor,.task-assignment-modal,.assignment-section-modal>section{
+  border-color:#174f80!important;background:#fff!important;color:#17314e!important;box-shadow:0 24px 70px rgba(0,31,67,.3)!important
+}
+.profile-modal h2,.assignment-editor h2,.task-assignment-modal h3,.assignment-section-modal h3{color:#002b5c!important}
+
+/* Status colours remain semantic, with the reference's restrained palette. */
+.status-completed,.presence.available{color:#226d43!important;background:#e5f4ea!important}
+.status-in-progress,.priority.normal{color:#725600!important;background:#fff3c7!important}
+.status-blocked,.priority.critical{color:#a22f35!important;background:#fdebed!important}
+
+@media(max-width:800px){
+  .dashboard-content{background:#edf2f7!important}
+  .topbar{background:#fff!important}
+}

@@ -371,6 +371,8 @@ export type AiResearchEngine = {
   gptResearcherConnected: boolean;
   researchMateConnected: boolean;
   paidProvidersEnabled: boolean;
+  offline: boolean;
+  scope: string;
 };
 export type FelixAction = {
   type:
@@ -436,7 +438,25 @@ export type ChangeProposal = {
 export type FelixResponse = {
   answer: string;
   model: string;
-  mode?: FelixMode;
+  mode?: FelixMode | "APP2_OPERATION" | "KNOWLEDGE_SEARCH" | "REASONING";
+  intent?: string;
+  sources?: Record<string, unknown>[];
+  metadata?: {
+    used_llm: boolean;
+    response_ms?: number;
+    timings_ms?: Record<string, number>;
+    selected_tool?: string | null;
+  };
+  retrieval?: {
+    mode: "document" | "repository";
+    requested_document_id: string | null;
+    document_name: string | null;
+    approval_status: string | null;
+    chunks_retrieved: number;
+    pages_used: number[];
+    source_document_ids: string[];
+    scope_valid: boolean;
+  };
   references?: string[];
   action?: FelixAction;
   report?: boolean;
@@ -814,6 +834,9 @@ export type NoticeItem = {
   status: "Pending Approval" | "Published" | "Rejected";
   event_start: string | null;
   event_end: string | null;
+  expires_at: string | null;
+  is_pinned: boolean;
+  pinned_at?: string | null;
   rejection_reason: string | null;
   created_at: string;
   created_by: string;
@@ -821,6 +844,7 @@ export type NoticeItem = {
   reviewed_by_name?: string;
   can_manage?: boolean;
 };
+export type NoticeComment = { id:string; alert_id:string; body:string; created_at:string; user_id:string; user_name:string; user_role:string };
 export type CalendarItem = {
   id: string;
   title: string;
@@ -831,10 +855,16 @@ export type CalendarItem = {
     | "task"
     | "research_milestone"
     | "document_review"
-    | "notice";
+    | "notice"
+    | "notice_expiry"
+    | "custom_event";
   status: string;
   entity_id?: string;
   is_dated_event?: boolean;
+  description?: string;
+  created_by?: string;
+  created_by_name?: string;
+  can_manage?: boolean;
 };
 export type AnalyticsReport = {
   summary: {
@@ -1448,13 +1478,23 @@ export const api = {
       felixEnabled: boolean;
     },
   ) => {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const inferredMimeType = extension === "pdf"
+      ? "application/pdf"
+      : extension === "docx"
+        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        : extension === "md"
+          ? "text/markdown"
+          : extension === "txt"
+            ? "text/plain"
+            : "application/octet-stream";
     const response = await fetch(`${API_URL}/knowledge`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/octet-stream",
         "X-File-Name": encodeURIComponent(file.name),
-        "X-File-Type": file.type || "application/octet-stream",
+        "X-File-Type": file.type || inferredMimeType,
         "X-Title": encodeURIComponent(metadata.title),
         "X-Description": encodeURIComponent(metadata.description),
         "X-Category": encodeURIComponent(metadata.category),
@@ -1472,9 +1512,11 @@ export const api = {
       },
       body: file,
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
     if (!response.ok)
-      throw new Error(data?.error || "Knowledge item could not be uploaded.");
+      throw new Error(data?.error || (response.status === 413
+        ? "The document exceeds the configured upload limit."
+        : `Document upload failed (HTTP ${response.status}).`));
     return data as KnowledgeItem;
   },
   approveKnowledge: (
@@ -1567,9 +1609,16 @@ export const api = {
       answer: string;
       sources: unknown[];
       document: { title: string; version: number };
+      retrieval?: FelixResponse["retrieval"];
     }>(
       `/documents/${id}/ask-felix`,
       { method: "POST", body: JSON.stringify({ message }) },
+      token,
+    ),
+  assessDocumentFelix: (token: string, id: string, mode = "audit") =>
+    request<Record<string, any>>(
+      `/documents/${id}/felix-assessment`,
+      { method: "POST", body: JSON.stringify({ mode }) },
       token,
     ),
   research: (token: string) =>
@@ -1670,6 +1719,12 @@ export const api = {
     request<void>(
       `/research/${id}/sources/${sourceId}`,
       { method: "DELETE" },
+      token,
+    ),
+  deleteResearch: (token: string, id: string, reason: string) =>
+    request<void>(
+      `/research/${id}`,
+      { method: "DELETE", body: JSON.stringify({ reason }) },
       token,
     ),
   researchActivity: (token: string, id: string) =>
@@ -2011,10 +2066,11 @@ export const api = {
     message: string,
     history: { role: "user" | "assistant"; content: string }[] = [],
     mode: FelixMode = "Auto",
+    documentId?: string,
   ) =>
     aiRequest<FelixResponse>(
       "/chat",
-      { method: "POST", body: JSON.stringify({ message, history, mode }) },
+      { method: "POST", body: JSON.stringify({ message, history, mode, ...(documentId ? { document_id: documentId, retrieval_mode: "document" } : {}) }) },
       token,
     ),
   changeProposals: (token: string) =>
@@ -2379,6 +2435,7 @@ export const api = {
       audienceRole: string | null;
       eventStart: string | null;
       eventEnd: string | null;
+      expiresAt: string;
     },
   ) =>
     request<NoticeItem>(
@@ -2399,5 +2456,11 @@ export const api = {
     ),
   deleteNotice: (token: string, id: string) =>
     request<void>(`/alerts/${id}`, { method: "DELETE" }, token),
+  pinNotice: (token:string,id:string,pinned:boolean) => request<NoticeItem>(`/alerts/${id}/pin`,{method:"PATCH",body:JSON.stringify({pinned})},token),
+  noticeComments: (token:string,id:string) => request<NoticeComment[]>(`/alerts/${id}/comments`,{},token),
+  commentOnNotice: (token:string,id:string,body:string) => request<NoticeComment>(`/alerts/${id}/comments`,{method:"POST",body:JSON.stringify({body})},token),
   calendar: (token: string) => request<CalendarItem[]>("/calendar", {}, token),
+  createCalendarEvent: (token:string,input:{title:string;description:string;startAt:string;endAt:string|null;eventType:string}) => request<CalendarItem>("/calendar/events",{method:"POST",body:JSON.stringify(input)},token),
+  updateCalendarEvent: (token:string,id:string,input:{title:string;description:string;startAt:string;endAt:string|null;eventType:string}) => request<CalendarItem>(`/calendar/events/${id}`,{method:"PATCH",body:JSON.stringify(input)},token),
+  deleteCalendarEvent: (token:string,id:string) => request<void>(`/calendar/events/${id}`,{method:"DELETE"},token),
 };

@@ -4,6 +4,7 @@ import test from 'node:test'
 
 const frontend=readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf8')
 const api=readFileSync(new URL('../../src/api.ts',import.meta.url),'utf8')
+const backend=readFileSync(new URL('../src/app.js',import.meta.url),'utf8')
 
 test('assignment workspace exposes only the four primary navigation tabs',()=>{
   const start=frontend.indexOf('aria-label="Assignment workspace sections"')
@@ -17,4 +18,15 @@ test('assignment workspace reuses existing APIs for quick add and resources',()=
   assert.match(frontend,/linkKnowledgeToAssignment/)
   assert.match(api,/\/knowledge\/\$\{id\}\/assignments/)
   assert.match(frontend,/Assignment context: ID/)
+})
+
+test('assignment deadlines normalize API timestamps before calculating remaining days',()=>{
+  assert.match(frontend,/const normalizedDueDate = taskDateValue\(item\.due_date\)/)
+  assert.match(frontend,/new Date\(`\$\{normalizedDueDate\}T23:59:59`\)/)
+})
+
+test('assignment status and progress follow active task work',()=>{
+  assert.match(backend,/const syncAssignmentStatusFromTasks=/)
+  assert.match(backend,/summary\.total>0&&summary\.active>0\?'In Progress':'Not Started'/)
+  assert.match(frontend,/const taskProgressPercent = assignmentTasks\.length/)
 })

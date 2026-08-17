@@ -8,6 +8,10 @@ import type {
   FelixMode,
   FelixResponse,
 } from './api'
+import FelixCharacter from './components/felix/FelixCharacter'
+import FelixStatus from './components/felix/FelixStatus'
+import { useFelixVisualState } from './components/felix/animations/FelixAnimationController'
+import { inferFelixOperation } from './components/felix/animations/felixStates'
 
 type Message = {
   role: 'assistant' | 'user'
@@ -16,9 +20,10 @@ type Message = {
   action?: FelixAction
   actionDone?: boolean
   report?: boolean
-  mode?: FelixMode
+  mode?: string
   confidence?: string
   findings?: FelixFinding[]
+  retrieval?: FelixResponse['retrieval']
 }
 
 type ReviewRequest = {
@@ -39,7 +44,8 @@ type Props = {
       role: 'user' | 'assistant'
       content: string
     }[],
-    mode: FelixMode
+    mode: FelixMode,
+    documentId?: string
   ) => Promise<FelixResponse>
 
   onAction: (
@@ -75,6 +81,11 @@ function cleanFelixText(value: string) {
     .replace(/â€¦/g, '...')
     .replace(/Â·/g, '-')
     .replace(/âœ“/g, '')
+    .replace(/^\s*#{1,6}\s+/gm, '')
+    .replace(/^\s*[•▪◦‣]\s*/gm, '- ')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/^\s*>\s?/gm, '')
 }
 
 /* =========================================================
@@ -85,6 +96,23 @@ function cleanFelixText(value: string) {
 function renderFelixText(value: string) {
   const cleaned = cleanFelixText(value)
 
+  const renderBulletText = (content: string) => {
+    const citation = content.match(
+      /^(.*?)(\s+\[\d+\](?:\s+\(p\.\s*\d+\))?)$/i
+    )
+
+    if (!citation) return content
+
+    return (
+      <>
+        {citation[1]}
+        <cite className="felix-answer-citation">
+          {citation[2].trim()}
+        </cite>
+      </>
+    )
+  }
+
   const sectionNames = [
     'purpose',
     'what it stores',
@@ -92,6 +120,10 @@ function renderFelixText(value: string) {
     'status flow',
     'summary',
     'key points',
+    'key points and detailed findings',
+    'executive overview',
+    'central argument',
+    'detailed findings',
     'requirements',
     'process',
     'steps',
@@ -112,6 +144,14 @@ function renderFelixText(value: string) {
     'confidence',
     'sources',
     'evidence',
+    'direct answer',
+    'key risks',
+    'risks and gaps',
+    'follow-up actions',
+    'supporting findings',
+    'evidence note',
+    'evidence and limitations',
+    'common findings',
   ]
 
   return cleaned
@@ -134,7 +174,8 @@ function renderFelixText(value: string) {
        * HOW TO UPLOAD A DOCUMENT
        */
       if (
-        /^[A-Z][A-Z0-9 &/()'-]{3,}$/.test(line)
+        /^[A-Z][A-Z0-9 &/()'—:-]{3,}$/.test(line) ||
+        /^document (?:review|summary)\b/i.test(line)
       ) {
         return (
           <h4
@@ -184,9 +225,11 @@ function renderFelixText(value: string) {
             <span>-</span>
 
             <p>
-              {line.replace(
-                /^[-*]\s+/,
-                ''
+              {renderBulletText(
+                line.replace(
+                  /^[-*]\s+/,
+                  ''
+                )
               )}
             </p>
           </div>
@@ -225,7 +268,7 @@ function renderFelixText(value: string) {
           className="felix-answer-body"
           key={index}
         >
-          {line}
+          {renderBulletText(line)}
         </p>
       )
     })
@@ -247,6 +290,13 @@ export default function AIResearchChat({
   onDecideProposal,
 }: Props) {
 
+  const {
+    state: felixVisualState,
+    beginOperation: beginFelixOperation,
+    completeOperation: completeFelixOperation,
+    failOperation: failFelixOperation,
+  } = useFelixVisualState()
+
   const [
     question,
     setQuestion,
@@ -261,6 +311,8 @@ export default function AIResearchChat({
     sending,
     setSending,
   ] = useState(false)
+
+  const [documentScope, setDocumentScope] = useState<ReviewRequest | null>(null)
 
   const [
     proposals,
@@ -346,6 +398,7 @@ export default function AIResearchChat({
     if (!reviewRequest) return
 
     setMode('Research')
+    setDocumentScope(reviewRequest)
 
     setQuestion(
       `Review the approved document "${reviewRequest.title}". ` +
@@ -403,6 +456,8 @@ export default function AIResearchChat({
     )
 
     setSending(true)
+    const felixOperation = inferFelixOperation(text, documentScope?.documentId)
+    beginFelixOperation(felixOperation)
 
     try {
 
@@ -414,7 +469,8 @@ export default function AIResearchChat({
         await onAsk(
           text,
           history,
-          mode
+          mode,
+          documentScope?.documentId
         )
 
       const safeMessage: Message = {
@@ -460,7 +516,13 @@ export default function AIResearchChat({
           ),
 
         mode:
-          response.mode,
+          response.mode === 'APP2_OPERATION'
+            ? 'App2 Data'
+            : response.mode === 'KNOWLEDGE_SEARCH'
+              ? 'Knowledge Repository'
+              : response.mode === 'REASONING'
+                ? 'Felix Analysis'
+                : response.mode,
 
         confidence:
           typeof response.confidence ===
@@ -474,6 +536,8 @@ export default function AIResearchChat({
           )
             ? response.findings
             : [],
+
+        retrieval: response.retrieval,
       }
 
       setMessages(
@@ -483,6 +547,23 @@ export default function AIResearchChat({
         ]
       )
 
+      const hasEvidence = Boolean(response.retrieval?.chunks_retrieved) || Boolean(response.references?.length)
+      const hasIssue = Array.isArray(response.findings) && response.findings.some((item) => {
+        const severity = String((item as { severity?: string }).severity || '').toLowerCase()
+        return severity === 'high' || severity === 'medium'
+      })
+      if (!hasEvidence && /insufficient|not enough evidence|cannot assess/i.test(String(response.answer || ''))) {
+        completeFelixOperation('insufficient_evidence')
+      } else if (hasIssue) {
+        completeFelixOperation('found_issue')
+      } else if (felixOperation === 'document_summary' || felixOperation === 'research_synthesis') {
+        completeFelixOperation('presenting')
+      } else if (response.action) {
+        completeFelixOperation('suggesting')
+      } else {
+        completeFelixOperation('success')
+      }
+
       if (
         response.mode ===
         'Code Review'
@@ -491,6 +572,8 @@ export default function AIResearchChat({
       }
 
     } catch (error) {
+
+      failFelixOperation()
 
       setMessages(
         (current) => [
@@ -510,6 +593,9 @@ export default function AIResearchChat({
 
     } finally {
       setSending(false)
+      window.requestAnimationFrame(() => {
+        questionInputRef.current?.focus({ preventScroll: true })
+      })
     }
   }
 
@@ -723,15 +809,19 @@ export default function AIResearchChat({
 
         <header>
 
+          <FelixCharacter state={felixVisualState} size="sm" />
+
           <div>
 
             <strong>
-              Chat with Felix
+              Felix
             </strong>
 
             <small>
-              App2-aware AI assistant
+              Research Intelligence · local evidence only
             </small>
+
+            <FelixStatus state={felixVisualState} />
 
           </div>
 
@@ -801,13 +891,20 @@ export default function AIResearchChat({
 
                   : mode ===
                     'Research'
-                    ? 'Grounded document retrieval and citations'
+                    ? 'Offline retrieval from approved App2 documents with citations'
 
-                    : 'Felix automatically selects the appropriate App2 workflow'
+                    : 'Felix selects a local App2 workflow without internet access'
             }
           </small>
 
         </div>
+
+        {documentScope ? (
+          <div className="felix-document-lock" role="status">
+            <span>Using: <strong>{documentScope.title}</strong></span>
+            <button type="button" onClick={() => setDocumentScope(null)}>Search all approved documents</button>
+          </div>
+        ) : null}
 
         {/* CONVERSATION */}
 
@@ -843,7 +940,7 @@ export default function AIResearchChat({
                   <div className="ai-message-content">
 
                     {
-                      message.mode
+                      message.role === 'assistant' && message.mode
                         ? (
                           <small className="felix-mode-label">
                             {
@@ -894,6 +991,20 @@ export default function AIResearchChat({
                         )
                         : null
                     }
+
+                    {message.retrieval ? (
+                      <details className="felix-evidence-scope">
+                        <summary>Evidence scope</summary>
+                        <dl>
+                          <div><dt>Mode</dt><dd>{message.retrieval.mode === 'document' ? 'Document' : 'Repository'}</dd></div>
+                          {message.retrieval.document_name ? <div><dt>Document</dt><dd>{message.retrieval.document_name}</dd></div> : null}
+                          {message.retrieval.approval_status ? <div><dt>Status</dt><dd>{message.retrieval.approval_status}</dd></div> : null}
+                          <div><dt>Chunks used</dt><dd>{message.retrieval.chunks_retrieved}</dd></div>
+                          <div><dt>Pages</dt><dd>{message.retrieval.pages_used.length ? message.retrieval.pages_used.join(', ') : 'Not available'}</dd></div>
+                          <div><dt>Scope validation</dt><dd>{message.retrieval.scope_valid ? 'Passed' : 'No evidence used'}</dd></div>
+                        </dl>
+                      </details>
+                    ) : null}
 
                     {/* CODE REVIEW FINDINGS */}
 

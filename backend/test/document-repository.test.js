@@ -31,6 +31,11 @@ test('Felix eligibility is enforced by database state and document permission ch
   assert.match(app,/Felix can only answer from the current approved, Felix-enabled version/)
 })
 
+test('Felix workspace chat cannot bypass the scoped pipeline',()=>{
+  assert.match(app,/req\.url === '\/chat'/)
+  assert.match(app,/\/api\/felix\/chat/)
+})
+
 test('repository exposes review, archive, preview and scoped Felix routes',()=>{
   for(const route of ['/api/documents/:id/submit','/api/documents/:id/approve','/api/documents/:id/reject','/api/documents/:id/archive','/api/documents/:id/restore','/api/documents/:id/preview','/api/documents/:id/ask-felix'])assert.ok(app.includes(route))
 })

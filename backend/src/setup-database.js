@@ -18,6 +18,6 @@ await transaction(async client=>{
     const member=(await client.query('SELECT id FROM users WHERE email=$1',[email])).rows[0]
     await client.query('INSERT INTO assignment_members(assignment_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[assignment.id,member.id])
   }
-  if(!(await client.query('SELECT 1 FROM alerts LIMIT 1')).rowCount)await client.query("INSERT INTO alerts(title,body,severity,created_by) VALUES('Quarterly research review','Quarterly research review meeting is scheduled for 6 August 2026.','Important',$1)",[manager.id])
+  if(!(await client.query('SELECT 1 FROM alerts LIMIT 1')).rowCount)await client.query("INSERT INTO alerts(title,body,severity,created_by,expires_at) VALUES('Quarterly research review','Quarterly research review meeting is scheduled for 6 August 2026.','Important',$1,NOW()+INTERVAL '30 days')",[manager.id])
 })
 console.log('PSC App2 database is ready.');await db.end()

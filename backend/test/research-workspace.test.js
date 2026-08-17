@@ -27,10 +27,10 @@ test('research sources capture governance classifications and reject duplicates'
 })
 
 test('research workspace exposes compact directive tabs and accessible semantics',()=>{
-  for(const tab of ['Overview','Research Plan','Team','Discussion','Report','Activity'])assert.ok(frontend.includes(`'${tab}'`))
+  for(const tab of ['Overview','Research Plan','Team','Discussion','Report','Activity'])assert.match(frontend,new RegExp(`["']${tab}["']`))
   assert.match(frontend,/aria-label="Research workspace sections"/)
   assert.match(frontend,/role="tab"/)
-  assert.match(frontend,/aria-selected=\{researchTab===tab\}/)
+  assert.match(frontend,/aria-selected=\{researchTab\s*===\s*tab\}/)
 })
 
 test('repository documents support reusable entity links',()=>{

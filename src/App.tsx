@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   api,
   type AiResearchEngine,
@@ -58,6 +58,7 @@ import TaskSectionWorkspace from "./TaskSectionWorkspace";
 import "./assignment-tasks-assignment-modal.css";
 import "./assignment-tasks-task-requests.css";
 import "./assignment-task-workspace.css";
+import "./workspace-document-overview.css";
 
 type IconName = keyof typeof icons;
 type Role =
@@ -136,6 +137,18 @@ function displayDocumentTitle(value: string | null | undefined) {
           ? "PSC"
           : word.toUpperCase(),
   );
+}
+
+function formatResearchDate(value: string | null | undefined) {
+  if (!value) return "Open";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 2000)
+    return "Not set";
+  return parsed.toLocaleDateString("en-KE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function normalizeDocument<T extends DocumentItem>(item: T): T {
@@ -491,7 +504,7 @@ const roleNavigation: Record<Role, string[]> = {
   Administrator: navItems.map(([, label]) => label),
   "Research Manager": navItems
     .map(([, label]) => label)
-    .filter((label) => label !== "Audit Logs"),
+    .filter((label) => label !== "Audit Logs" && label !== "Felix Administration"),
   "Research Officer": [
     "Dashboard",
     "Assignments",
@@ -659,9 +672,11 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [query, setQuery] = useState("");
+  const [contextMenu, setContextMenu] = useState<{x:number;y:number}|null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
   const [token, setToken] = useState("");
@@ -672,6 +687,7 @@ export default function App() {
     null,
   );
   const [showLogout, setShowLogout] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -743,8 +759,15 @@ export default function App() {
   const [assignmentStatus, setAssignmentStatus] = useState("All");
   const [assignmentPriority, setAssignmentPriority] = useState("All");
   const [assignmentView, setAssignmentView] = useState<
-    "List" | "Board" | "Calendar" | "Workload"
-  >("List");
+    "List" | "Cards" | "Board" | "Calendar" | "Workload"
+  >(() => {
+    const saved = sessionStorage.getItem("app2-assignment-view");
+    return ["List", "Cards", "Board", "Calendar", "Workload"].includes(
+      saved || "",
+    )
+      ? (saved as "List" | "Cards" | "Board" | "Calendar" | "Workload")
+      : "List";
+  });
   const [assignmentDivision, setAssignmentDivision] = useState("All");
   const [assignmentMember, setAssignmentMember] = useState("All");
   const [assignmentDue, setAssignmentDue] = useState<
@@ -984,7 +1007,7 @@ export default function App() {
     documentType: "Document",
     subject: "",
     classification: "INTERNAL",
-    felixEnabled: false,
+    felixEnabled: true,
   });
   const [repositoryOrigins, setRepositoryOrigins] = useState<
     RepositoryOrigin[]
@@ -1009,6 +1032,13 @@ export default function App() {
     KnowledgeVersion[]
   >([]);
   const [researchRows, setResearchRows] = useState<ResearchProject[]>([]);
+  const [researchPortfolioView, setResearchPortfolioView] = useState<
+    "List" | "Cards"
+  >(() =>
+    sessionStorage.getItem("app2-research-view") === "List"
+      ? "List"
+      : "Cards",
+  );
   const [aiResearchJobs, setAiResearchJobs] = useState<AiResearchJob[]>([]);
   const [aiResearchEngine, setAiResearchEngine] =
     useState<AiResearchEngine | null>(null);
@@ -1018,7 +1048,7 @@ export default function App() {
     title: "",
     question: "",
     scope: "",
-    sourceMode: "All",
+    sourceMode: "App2 Documents",
     depth: "Standard",
   });
   const [researchOpen, setResearchOpen] = useState(false);
@@ -1223,6 +1253,7 @@ export default function App() {
     audienceRole: "",
     eventStart: "",
     eventEnd: "",
+    expiresAt: "",
   });
   const [noticeNotice, setNoticeNotice] = useState("");
   const [reviewingNotice, setReviewingNotice] = useState<NoticeItem | null>(
@@ -1309,6 +1340,27 @@ export default function App() {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(()=>{
+    if(!user)return;
+    const open=(event:MouseEvent)=>{
+      const target=event.target as HTMLElement;
+      if(!target.closest('.app-shell'))return;
+      const editableTarget=target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
+      const selectedText=window.getSelection()?.toString().trim();
+      // Keep the browser's native Cut/Copy/Paste menu anywhere the user is
+      // editing or has highlighted text. App2's action menu is only for the
+      // remaining non-text workspace surface.
+      if(editableTarget||selectedText)return;
+      event.preventDefault();
+      setContextMenu({x:Math.min(event.clientX,window.innerWidth-210),y:Math.min(event.clientY,window.innerHeight-270)});
+    };
+    const close=()=>setContextMenu(null);
+    document.addEventListener('contextmenu',open);
+    document.addEventListener('click',close);
+    window.addEventListener('blur',close);
+    return()=>{document.removeEventListener('contextmenu',open);document.removeEventListener('click',close);window.removeEventListener('blur',close)};
+  },[user]);
 
   const clearSession = (message = "") => {
     localStorage.removeItem(SESSION_KEY);
@@ -2035,6 +2087,7 @@ export default function App() {
         audienceRole: null,
         eventStart: null,
         eventEnd: null,
+        expiresAt: new Date(Date.now()+7*86400000).toISOString(),
       });
       setNoticeNotice("Notice submitted for approval.");
     } catch (error) {
@@ -2223,6 +2276,7 @@ export default function App() {
     event.preventDefault();
     setNoticeNotice("");
     try {
+      if (!noticeForm.expiresAt) throw new Error("Choose when this notice should expire.");
       if (noticeForm.eventEnd && !noticeForm.eventStart)
         throw new Error("Choose an event start before choosing an end.");
       if (
@@ -2242,6 +2296,7 @@ export default function App() {
         eventEnd: noticeForm.eventEnd
           ? localDateTimeToIso(noticeForm.eventEnd)
           : null,
+        expiresAt: localDateTimeToIso(noticeForm.expiresAt),
       });
       setNoticeForm({
         title: "",
@@ -2250,6 +2305,7 @@ export default function App() {
         audienceRole: "",
         eventStart: "",
         eventEnd: "",
+        expiresAt: "",
       });
       setNoticeRows(await api.alerts(token));
       setNoticeNotice(
@@ -2420,9 +2476,47 @@ export default function App() {
     }
   };
 
+  const archiveSelectedResearch = async () => {
+    if (!token || !selectedResearch || !isManager) return;
+    if (!window.confirm(`Archive "${selectedResearch.title}"? It will leave active research views but retain its institutional record.`)) return;
+    try {
+      await api.updateResearchStatus(token, selectedResearch.id, "Archived");
+      const refreshed = await api.research(token);
+      setResearchRows(refreshed);
+      setSelectedResearch(refreshed.find((item) => item.id === selectedResearch.id) || null);
+      setResearchWorkspaceNotice("Research project archived. It can now be permanently deleted from the danger zone if required.");
+    } catch (error) {
+      setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research project could not be archived.");
+    }
+  };
+
+  const deleteSelectedResearch = async () => {
+    if (!token || !selectedResearch || !isManager) return;
+    if (selectedResearch.status !== "Archived") {
+      setResearchWorkspaceNotice("Archive this research project before permanently deleting it.");
+      return;
+    }
+    const reason = window.prompt(`Give the reason for permanently deleting "${selectedResearch.title}". This action cannot be undone.`)?.trim();
+    if (!reason || reason.length < 5) {
+      setResearchWorkspaceNotice("A deletion reason of at least 5 characters is required.");
+      return;
+    }
+    if (!window.confirm(`Permanently delete "${selectedResearch.title}" and its related research records? This cannot be undone.`)) return;
+    try {
+      await api.deleteResearch(token, selectedResearch.id, reason);
+      setSelectedResearch(null);
+      setResearchRows(await api.research(token));
+      setResearchWorkspaceNotice("Research project permanently deleted.");
+      setActive("Research Repository");
+    } catch (error) {
+      setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research project could not be deleted.");
+    }
+  };
+
   const openAssignmentDetails = async (assignment: ApiAssignment) => {
     setSelectedAssignment(assignment.title);
     setSelectedAssignmentId(assignment.id);
+    setBuilderCreate((current) => ({ ...current, title: assignment.title }));
     setAssignmentWorkspaceTab("Overview");
     setAssignmentNotice("");
     try {
@@ -2627,10 +2721,20 @@ export default function App() {
           : assignmentTasks.length
             ? 1
             : 0;
+  const taskProgressPercent = assignmentTasks.length
+    ? Math.round(
+        assignmentTasks.reduce(
+          (total, task) => total + Number(task.progress || 0),
+          0,
+        ) / assignmentTasks.length,
+      )
+    : 0;
   const assignmentProgressPercent =
     assignmentWorkflowIndex === 4
       ? 100
-      : Math.round((assignmentWorkflowIndex / 5) * 100);
+      : assignmentTasks.length
+        ? taskProgressPercent
+        : Math.round((assignmentWorkflowIndex / 5) * 100);
   const filteredAssignmentTasks = assignmentTasks.filter(
     (task) =>
       (assignmentTaskFilter === "All" ||
@@ -2774,9 +2878,24 @@ export default function App() {
           }
 
           case "Documents": {
-            const [templates, documents, files, repository, tasks] =
-              await Promise.all([
-                api.documentTemplates(token, "Assignment"),
+            const templates = await api.documentTemplates(token, "Assignment");
+            if (!cancelled) {
+              setBuilderTemplates(templates);
+              const eligibleTemplates = templates.filter(
+                (template) =>
+                  template.context === "Assignment" &&
+                  template.active &&
+                  ["Standard", "Approved"].includes(template.governance_status),
+              );
+              setBuilderCreate((current) => ({
+                ...current,
+                templateId: eligibleTemplates.some((template) => template.id === current.templateId)
+                  ? current.templateId
+                  : eligibleTemplates[0]?.id || "",
+                title: assignmentRows.find((assignment) => assignment.id === selectedAssignmentId)?.title || current.title,
+              }));
+            }
+            const [documents, files, repository, tasks] = await Promise.all([
                 api.generatedDocuments(
                   token,
                   "Assignment",
@@ -2788,7 +2907,6 @@ export default function App() {
               ]);
 
             if (!cancelled) {
-              setBuilderTemplates(templates);
               setWorkspaceDocuments(documents);
               setKnowledgeRows(repository);
               setAssignmentTasks(tasks);
@@ -4271,14 +4389,18 @@ export default function App() {
     context: "Assignment" | "Research",
     contextId: string,
   ) => {
-    if (!builderCreate.templateId || !builderCreate.title.trim()) return;
+    const workspaceTitle =
+      context === "Assignment"
+        ? selectedAssignmentRecord?.title || selectedAssignment || "Assignment Report"
+        : builderCreate.title.trim();
+    if (!builderCreate.templateId || !workspaceTitle) return;
     try {
       setBuilderCreating(true);
       const created = await api.createGeneratedDocument(token, {
         templateId: builderCreate.templateId,
         context,
         contextId,
-        title: builderCreate.title.trim(),
+        title: workspaceTitle,
         classification: builderCreate.classification,
       });
       setWorkspaceDocuments(
@@ -4484,6 +4606,42 @@ export default function App() {
           ? error.message
           : "Attachment could not be uploaded.",
       );
+    }
+  };
+
+  const attachWorkspaceReport = async (
+    file: File | undefined,
+    sourceType: "Assignment" | "Research" | "Task",
+    originEntityId: string | null | undefined,
+  ) => {
+    if (!file || !originEntityId || !token || knowledgeUploading) return;
+    const title = displayFileName(file.name).replace(/\.[^.]+$/, "");
+    try {
+      setKnowledgeUploading(true);
+      await api.uploadKnowledge(token, file, {
+        title: title || "Workspace report",
+        description: `${sourceType} workspace report attachment.`,
+        category: "Reports",
+        tags: `${sourceType.toLowerCase()},report,workspace`,
+        sourceType,
+        sourceUrl: "",
+        originEntityId,
+        directorate: selectedAssignmentRecord?.division || "Research & Policy",
+        documentType: "Report",
+        subject: sourceType === "Research" ? selectedResearch?.title || "Research report" : selectedAssignmentRecord?.title || "Assignment report",
+        classification: "INTERNAL",
+        felixEnabled: true,
+      });
+      setKnowledgeRows(await api.knowledge(token));
+      const message = `Report “${file.name}” attached successfully.`;
+      if (sourceType === "Research") setResearchWorkspaceNotice(message);
+      else setAssignmentNotice(message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Report could not be attached.";
+      if (sourceType === "Research") setResearchWorkspaceNotice(message);
+      else setAssignmentNotice(message);
+    } finally {
+      setKnowledgeUploading(false);
     }
   };
 
@@ -4814,7 +4972,7 @@ export default function App() {
         documentType: "Document",
         subject: "",
         classification: "INTERNAL",
-        felixEnabled: false,
+        felixEnabled: true,
       });
       setKnowledgeNotice(
         "Upload complete. Felix remains separate unless enabled for the approved document.",
@@ -4934,7 +5092,7 @@ export default function App() {
         title: "",
         question: "",
         scope: "",
-        sourceMode: "All",
+        sourceMode: "App2 Documents",
         depth: "Standard",
       });
       setAiResearchNotice("Research plan created with zero API cost.");
@@ -4950,7 +5108,8 @@ export default function App() {
     question: string,
     history: { role: "user" | "assistant"; content: string }[],
     mode: import("./api").FelixMode,
-  ) => api.askFelix(token, question, history, mode);
+    documentId?: string,
+  ) => api.askFelix(token, question, history, mode, documentId);
   const listChangeProposals = () => api.changeProposals(token);
   const createChangeProposal = (findingId: string) =>
     api.createChangeProposal(token, findingId);
@@ -4972,6 +5131,7 @@ export default function App() {
         audienceRole: "",
         eventStart: "",
         eventEnd: "",
+        expiresAt: "",
       });
       setActive("Notice Board");
       return "Notice draft prepared. Review its wording and submit it for management approval.";
@@ -5562,16 +5722,10 @@ export default function App() {
           <p className="login-kicker">PUBLIC SERVICE COMMISSION | KENYA</p>
           <h1>Research Department</h1>
           <h2>Assignment & Knowledge Management System</h2>
-          <p>
-            Collaborate on assignments, preserve institutional knowledge and
-            turn research into better public service.
-          </p>
-          <div className="login-values">
-            <span>HONOUR</span>
-            <i />
-            <span>COMMITMENT</span>
-            <i />
-            <span>TRUST</span>
+          <div className="login-purpose">
+            <article><span>OUR VISION</span><strong>A values-driven, citizen-centric public service.</strong></article>
+            <article><span>OUR MISSION</span><p>To ensure an efficient, effective, ethical and inclusive public service for delivery of quality services to the citizenry.</p></article>
+            <div><span>CORE VALUES</span><p>{["Integrity","Transparency & Accountability","Innovation & Agility","Diversity, Equity & Inclusivity","Responsiveness","Teamwork"].map(value=><b key={value}>{value}</b>)}</p></div>
           </div>
         </section>
         <section className="login-card">
@@ -5598,15 +5752,9 @@ export default function App() {
                 required
               />
             </label>
-            <label>
+            <label className="login-password-field">
               Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
+              <span><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required/><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={()=>setShowPassword(value=>!value)}>{showPassword ? "Hide" : "Show"}</button></span>
             </label>
             <div className="form-options">
               <label>
@@ -5772,7 +5920,7 @@ export default function App() {
               aria-expanded={!sidebarCollapsed}
               onClick={() => setSidebarCollapsed((value) => !value)}
             >
-              {sidebarCollapsed ? "â€º" : "â€¹"}
+              {sidebarCollapsed ? ">" : "<"}
             </button>
             <div>
               <strong>PUBLIC SERVICE COMMISSION</strong>
@@ -5899,10 +6047,20 @@ export default function App() {
               <Icon name="menu" />
             </button>
             <div className="title">
-              <h1>RESEARCH DEPARTMENT</h1>
-              <p>ASSIGNMENT & KNOWLEDGE MANAGEMENT SYSTEM</p>
+              {active === "Dashboard" ? <>
+                <h1>Good {now.getHours() < 12 ? "morning" : now.getHours() < 17 ? "afternoon" : "evening"}, {user.name.split(" ")[0]}</h1>
+                <p>{now.toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · {user.role}</p>
+              </> : <>
+                <h1>RESEARCH DEPARTMENT</h1>
+                <p>ASSIGNMENT & KNOWLEDGE MANAGEMENT SYSTEM</p>
+              </>}
             </div>
             <div className="header-actions">
+              {active === "Dashboard" && <div className="header-dashboard-live">
+                <span className={dashboardRefreshState === "failed" ? "failed" : "live"}><i/>{dashboardRefreshState === "failed" ? "Refresh failed" : "Live"}</span>
+                <small>{dashboardData ? `Updated ${new Date(dashboardData.generatedAt).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}` : "Loading..."}</small>
+                <button onClick={refreshDashboard} disabled={dashboardRefreshState === "refreshing"}>{dashboardRefreshState === "refreshing" ? "Refreshing..." : "Refresh"}</button>
+              </div>}
               <div className="live-time">
                 <span>
                   {now.toLocaleDateString("en-KE", {
@@ -5942,14 +6100,15 @@ export default function App() {
               <button
                 className="user"
                 title="Open your profile menu to review access rights, change your password or sign out."
-                onClick={() => setActive("Profile")}
+                aria-expanded={profileMenuOpen}
+                onClick={() => setProfileMenuOpen((open) => !open)}
               >
                 <span className="user-icon">{user.initials}</span>
                 <div>
                   <strong>{user.name}</strong>
                   <small>{user.role}</small>
                 </div>
-                <span>âŒ„</span>
+                <span>⌄</span>
               </button>
             </div>
           </header>
@@ -5957,7 +6116,7 @@ export default function App() {
           <div
             className={`dashboard-content ${active === "Assignments" ? "assignments-active" : active === "Document Repository" || active === "Documents" ? "documents-active" : active === "Research Repository" ? "research-active" : active === "AI Researcher" ? "ai-research-active" : active === "Felix Administration" ? "felix-admin-active" : active === "Notifications" ? "notifications-active" : active === "Notice Board" ? "notice-board-active" : active === "Calendar" ? "calendar-active" : active === "Reports & Analytics" ? "reports-active" : active === "Team & Users" ? "users-active" : active === "Audit Logs" ? "audit-active" : active === "Settings" ? "settings-active" : ""}`}
           >
-            {active !== "Profile" && (
+            {active !== "Profile" && active !== "Dashboard" && (
               <WorkspaceHeader
                 eyebrow={active === "Dashboard" ? "APP2" : "WORKSPACE"}
                 title={currentWorkspace.title}
@@ -6912,7 +7071,7 @@ export default function App() {
                     secure access.
                   </span>
                 </div>
-                {user?.role === "Administrator" && (
+                {isManager && (
                   <button onClick={() => openUserEditor()}>
                     + Create account
                   </button>
@@ -7022,7 +7181,7 @@ export default function App() {
                           {member.active ? "Active" : "Disabled"}
                         </b>
                         <div className="user-actions">
-                          {user?.role === "Administrator" ? (
+                          {user?.role === "Administrator" || member.role !== "Administrator" ? (
                             <>
                               <button
                                 data-tooltip="Edit the member's identity, role, division, availability and account status."
@@ -7063,12 +7222,12 @@ export default function App() {
                         <b>Research Officer</b>
                       </div>
                       {[
-                        ["Manage accounts", "âœ“", "View", "-", "-"],
-                        ["Create assignments", "âœ“", "âœ“", "-", "-"],
-                        ["Approve documents", "âœ“", "âœ“", "âœ“", "-"],
-                        ["Manage research", "âœ“", "âœ“", "Review", "Assigned"],
-                        ["Reports & analytics", "âœ“", "âœ“", "-", "-"],
-                        ["Audit logs", "âœ“", "-", "-", "-"],
+                        ["Manage accounts", "✓", "✓", "-", "-"],
+                        ["Create assignments", "✓", "✓", "-", "-"],
+                        ["Approve documents", "✓", "✓", "✓", "-"],
+                        ["Manage research", "✓", "✓", "Review", "Assigned"],
+                        ["Reports & analytics", "✓", "✓", "-", "-"],
+                        ["Audit logs", "✓", "-", "-", "-"],
                       ].map((row) => (
                         <div key={row[0]}>
                           {row.map((cell, index) => (
@@ -7442,6 +7601,8 @@ export default function App() {
                 setForm={setNoticeForm}
                 notice={noticeNotice}
                 isManager={isManager}
+                token={token}
+                onRowsChange={setNoticeRows}
                 onSubmit={submitNotice}
                 onReview={(item) => {
                   setReviewingNotice(item);
@@ -7638,7 +7799,24 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              <CalendarView items={calendarRows} />
+                <CalendarView
+                  items={[
+                    ...calendarRows,
+                    ...noticeRows
+                      .filter((item) => item.status === "Published" && item.expires_at)
+                      .map((item) => ({
+                        id: `expiry-${item.id}`,
+                        title: `${item.title} expires`,
+                        start_at: String(item.expires_at),
+                        type: "notice_expiry" as const,
+                        status: "Expiry",
+                        entity_id: item.id,
+                        description: "This notice will be removed from published views at this time.",
+                      })),
+                  ]}
+                  token={token}
+                  onChange={setCalendarRows}
+                />
             </section>
             <section className="notification-management-view">
               <div className="assignment-page-head">
@@ -8037,12 +8215,12 @@ export default function App() {
                 ))}
               </div>
               {!!filteredDocuments.length && (
-                <details className="repository-deletion-controls">
-                  <summary>Request document deletion</summary>
+                <details className="repository-deletion-controls" open>
+                  <summary>Document archive and deletion</summary>
                   <p>
-                    Any authorized user may submit a reason. The document
-                    remains available until a Research Manager or Administrator
-                    approves the request.
+                    Archive a document from its card when it should remain in
+                    the institutional record. Permanent deletion requires a
+                    reason and approval by a Research Manager or Administrator.
                   </p>
                   <div>
                     {filteredDocuments.map((item) => (
@@ -8103,10 +8281,42 @@ export default function App() {
                 )}
               </div>
 
-              <div className="research-grid">
+              <div className="research-portfolio-toolbar">
+                <div
+                  className="assignment-view-switch"
+                  role="tablist"
+                  aria-label="Research portfolio views"
+                >
+                  {(["List", "Cards"] as const).map((view) => (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={researchPortfolioView === view}
+                      className={researchPortfolioView === view ? "active" : ""}
+                      key={view}
+                      onClick={() => {
+                        setResearchPortfolioView(view);
+                        sessionStorage.setItem("app2-research-view", view);
+                      }}
+                    >
+                      {view}
+                    </button>
+                  ))}
+                </div>
+                <strong>{researchRows.length} research projects</strong>
+              </div>
+
+              <div
+                className={`research-grid ${researchPortfolioView === "List" ? "list-view" : "card-view"}`}
+                aria-label="Research project portfolio"
+              >
                 {researchRows.map((project) => (
                   <article key={project.id}>
-                    <span>{project.status}</span>
+                    <span
+                      className={`research-status status-${project.status.toLowerCase().replaceAll(" ", "-")}`}
+                    >
+                      {project.status}
+                    </span>
 
                     <h3>{project.title}</h3>
 
@@ -8121,8 +8331,10 @@ export default function App() {
                       <div>
                         <dt>Timeline</dt>
                         <dd>
-                          {project.start_date || "Not set"} -{" "}
-                          {project.end_date || "Open"}
+                          {project.start_date
+                            ? formatResearchDate(project.start_date)
+                            : "Not set"}{" "}
+                          – {formatResearchDate(project.end_date)}
                         </dd>
                       </div>
                     </dl>
@@ -8131,38 +8343,47 @@ export default function App() {
 
                     <p>{project.research_question || "Not defined"}</p>
 
-                    <div>
+                    <div className="research-collaborators">
                       {project.collaborators.map((person) => (
                         <b key={person.id}>{person.name}</b>
                       ))}
+                      {!project.collaborators.length && (
+                        <small>No collaborators assigned</small>
+                      )}
                     </div>
 
-                    <select
-                      value={project.status}
-                      onChange={async (event) => {
-                        await api.updateResearchStatus(
-                          token,
-                          project.id,
-                          event.target.value,
-                        );
+                    <div className="research-card-actions">
+                      <label>
+                        <span>Status</span>
+                        <select
+                          aria-label={`Status for ${project.title}`}
+                          value={project.status}
+                          onChange={async (event) => {
+                            await api.updateResearchStatus(
+                              token,
+                              project.id,
+                              event.target.value,
+                            );
 
-                        setResearchRows(await api.research(token));
-                      }}
-                    >
-                      {[
-                        "Planning",
-                        "Active",
-                        "Under Review",
-                        "Completed",
-                        "Archived",
-                      ].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </select>
+                            setResearchRows(await api.research(token));
+                          }}
+                        >
+                          {[
+                            "Planning",
+                            "Active",
+                            "Under Review",
+                            "Completed",
+                            "Archived",
+                          ].map((value) => (
+                            <option key={value}>{value}</option>
+                          ))}
+                        </select>
+                      </label>
 
-                    <button
-                      type="button"
-                      onClick={async () => {
+                      <button
+                        className="research-open-workspace"
+                        type="button"
+                        onClick={async () => {
                         setSelectedResearch(project);
                         setResearchPlanDraft({
                           summary: project.summary || "",
@@ -8240,10 +8461,11 @@ export default function App() {
                               : "Research workspace could not be loaded.",
                           );
                         }
-                      }}
-                    >
-                      Open workspace
-                    </button>
+                        }}
+                      >
+                        Open workspace <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -8254,8 +8476,8 @@ export default function App() {
                   <p>AI RESEARCHER</p>
                   <h2>Evidence-led research workspace</h2>
                   <span>
-                    Combine deep web research with approved App2 documents while
-                    keeping every result under human review.
+                    Research approved App2 documents and live local records while
+                    keeping every result offline and under human review.
                   </span>
                 </div>
                 <button onClick={() => setAiResearchOpen(true)}>
@@ -8275,8 +8497,8 @@ export default function App() {
               />
               <div className="ai-engine-card">
                 <div>
-                  <strong>Free Local mode</strong>
-                  <span>No paid provider can run automatically.</span>
+                  <strong>Offline App2 mode</strong>
+                  <span>No internet or paid provider. Felix uses local App2 evidence only.</span>
                 </div>
                 <b
                   className={
@@ -8359,16 +8581,18 @@ export default function App() {
                     <Icon name="research" />
                     <h3>No AI research plans yet</h3>
                     <p>
-                      Create a question and choose whether the researcher should
-                      use the web, App2 documents, or both.
+                      Create a question and Felix will research approved App2
+                      documents using the local AI engine.
                     </p>
                   </div>
                 )}
               </div>
             </section>
-            <section className="felix-admin-management-view">
-              <FelixAdmin token={token} />
-            </section>
+            {user?.role === "Administrator" && (
+              <section className="felix-admin-management-view">
+                <FelixAdmin token={token} />
+              </section>
+            )}
             <section className="knowledge-management-view">
               <div className="assignment-page-head">
                 <div>
@@ -8487,14 +8711,17 @@ export default function App() {
                     role="tablist"
                     aria-label="Assignment views"
                   >
-                    {(["List", "Board", "Calendar", "Workload"] as const).map(
+                    {(["List", "Cards", "Board", "Calendar", "Workload"] as const).map(
                       (view) => (
                         <button
                           role="tab"
                           aria-selected={assignmentView === view}
                           className={assignmentView === view ? "active" : ""}
                           key={view}
-                          onClick={() => setAssignmentView(view)}
+                          onClick={() => {
+                            setAssignmentView(view);
+                            sessionStorage.setItem("app2-assignment-view", view);
+                          }}
                         >
                           {view}
                         </button>
@@ -8662,9 +8889,10 @@ export default function App() {
                       const lead =
                         item.members.find((member) => member.role === "Lead") ||
                         item.members[0];
-                      const days = item.due_date
+                      const normalizedDueDate = taskDateValue(item.due_date);
+                      const days = normalizedDueDate
                         ? Math.ceil(
-                            (new Date(`${item.due_date}T23:59:59`).getTime() -
+                            (new Date(`${normalizedDueDate}T23:59:59`).getTime() -
                               Date.now()) /
                               86400000,
                           )
@@ -8717,7 +8945,7 @@ export default function App() {
                           </b>
                           <div className="assignment-row-actions">
                             <button onClick={() => openAssignmentDetails(item)}>
-                              Open
+                              Open workspace
                             </button>
                             {isManager && (
                               <>
@@ -8733,6 +8961,57 @@ export default function App() {
                               </>
                             )}
                           </div>
+                        </article>
+                      );
+                    })}
+                    {!filteredAssignments.length && (
+                      <div className="assignment-empty">
+                        <Icon name="assignments" />
+                        <h3>No assignments match these filters</h3>
+                        <p>Clear the filters or create a new assignment.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {assignmentView === "Cards" && (
+                  <div className="assignment-card-view">
+                    {filteredAssignments.map((item) => {
+                      const lead =
+                        item.members.find((member) => member.role === "Lead") ||
+                        item.members[0];
+                      return (
+                        <article key={item.id}>
+                          <header>
+                            <small>{assignmentRef(item.id)}</small>
+                            <b
+                              className={`assignment-priority ${item.priority.toLowerCase()}`}
+                            >
+                              {item.priority}
+                            </b>
+                          </header>
+                          <button
+                            className="assignment-card-title"
+                            onClick={() => openAssignmentDetails(item)}
+                          >
+                            {item.title}
+                          </button>
+                          <p>{item.description || "No description provided."}</p>
+                          <dl>
+                            <div><dt>Status</dt><dd>{item.status}</dd></div>
+                            <div><dt>Health</dt><dd>{assignmentHealthFor(item)}</dd></div>
+                            <div><dt>Lead</dt><dd>{lead?.name || "Unassigned"}</dd></div>
+                            <div><dt>Due</dt><dd>{item.due_date ? formatResearchDate(item.due_date) : "Not set"}</dd></div>
+                          </dl>
+                          <footer>
+                            <span>
+                              {item.division} · {item.members.length} team member
+                              {item.members.length === 1 ? "" : "s"}
+                            </span>
+                            <div className="assignment-row-actions">
+                              <button onClick={() => openAssignmentDetails(item)}>Open workspace</button>
+                              {isManager && <button onClick={() => startAssignment(item)}>Edit</button>}
+                            </div>
+                          </footer>
                         </article>
                       );
                     })}
@@ -8797,6 +9076,13 @@ export default function App() {
                                       ).toLocaleDateString("en-KE")
                                     : "No due date"}
                                 </time>
+                                <button
+                                  type="button"
+                                  className="assignment-open-workspace"
+                                  onClick={() => openAssignmentDetails(item)}
+                                >
+                                  Open workspace
+                                </button>
                               </footer>
                             </article>
                           ))}
@@ -8852,6 +9138,7 @@ export default function App() {
                           >
                             {assignmentHealthFor(item)}
                           </span>
+                          <strong className="assignment-open-workspace">Open workspace</strong>
                         </button>
                       ))}
                     {!filteredAssignments.some((item) => item.due_date) && (
@@ -9138,6 +9425,28 @@ export default function App() {
               </header>
               {dashboardData ? (
                 <>
+                  {dashboardData.management && (() => {
+                    const management = dashboardData.management;
+                    const activeAssignments = management.assignments.active;
+                    const overdueAssignments = management.assignments.overdue;
+                    const deliveryHealth = activeAssignments ? Math.max(0, Math.round(((activeAssignments - overdueAssignments) / activeAssignments) * 100)) : 100;
+                    const openGovernance = dashboardData.attention.reviews + management.repository.awaitingPublication;
+                    const overallState = overdueAssignments > 0
+                      ? { label: "Needs attention", tone: "risk", detail: `${overdueAssignments} overdue assignment${overdueAssignments === 1 ? "" : "s"} require intervention.` }
+                      : openGovernance > 0
+                        ? { label: "Action pending", tone: "watch", detail: `${openGovernance} review or publication action${openGovernance === 1 ? "" : "s"} remain open.` }
+                        : { label: "On track", tone: "healthy", detail: "No overdue delivery or governance actions are currently open." };
+                    return <section className="executive-overview" aria-label="Management executive overview">
+                      <header><div><p>EXECUTIVE OVERVIEW</p><h2>Overall operational status</h2><span>A current organisation-wide view for management decisions.</span></div><div className={`executive-state ${overallState.tone}`}><i aria-hidden="true"/><span><strong>{overallState.label}</strong><small>{overallState.detail}</small></span></div></header>
+                      <div className="executive-metrics">
+                        <button onClick={() => navigateTo("Assignments")}><span>DELIVERY HEALTH</span><strong>{deliveryHealth}%</strong><small>{activeAssignments} active · {overdueAssignments} overdue</small><i style={{"--metric-progress":`${deliveryHealth}%`} as CSSProperties}/></button>
+                        <button onClick={() => navigateTo("Team & Users")}><span>TEAM COVERAGE</span><strong>{management.team.total}</strong><small>{Object.keys(management.team.roles).length} active role groups</small><i style={{"--metric-progress":"100%"} as CSSProperties}/></button>
+                        <button onClick={() => navigateTo("Research Repository")}><span>RESEARCH PIPELINE</span><strong>{management.research.active}</strong><small>Active research initiatives</small><i style={{"--metric-progress":management.research.active ? "72%" : "0%"} as CSSProperties}/></button>
+                        <button onClick={() => navigateTo("Document Repository")}><span>KNOWLEDGE PIPELINE</span><strong>{management.repository.published}</strong><small>{management.repository.awaitingPublication} awaiting publication</small><i style={{"--metric-progress":`${management.repository.published + management.repository.awaitingPublication ? Math.round((management.repository.published / (management.repository.published + management.repository.awaitingPublication)) * 100) : 100}%`} as CSSProperties}/></button>
+                      </div>
+                      <footer><span><b>{dashboardData.attention.reviews}</b> reviews open</span><span><b>{dashboardData.attention.almostDue}</b> deadlines approaching</span><span><b>{dashboardData.attention.notifications}</b> unread notifications</span><button onClick={() => navigateTo("Reports & Analytics")}>Open detailed analytics →</button></footer>
+                    </section>;
+                  })()}
                   <section className="command-attention">
                     <header>
                       <div>
@@ -9192,6 +9501,12 @@ export default function App() {
                       ))}
                     </div>
                   </section>
+                  {noticeRows.some(item => item.status === "Published" && item.is_pinned) && (
+                    <section className="dashboard-pinned-notices">
+                      <header><div><p>PINNED NOTICE</p><h2>Important organisation updates</h2></div><button onClick={() => navigateTo("Notice Board")}>Open Notice Board</button></header>
+                      <div>{noticeRows.filter(item => item.status === "Published" && item.is_pinned).sort((a,b)=>new Date(b.pinned_at||b.created_at).getTime()-new Date(a.pinned_at||a.created_at).getTime()).slice(0,3).map(item=><button key={item.id} onClick={() => navigateTo("Notice Board")}><span className={item.severity.toLowerCase()}>{item.severity}</span><div><strong>{item.title}</strong><small>{item.body}</small></div><time>Expires {new Date(String(item.expires_at)).toLocaleDateString("en-KE",{day:"2-digit",month:"short"})}</time></button>)}</div>
+                    </section>
+                  )}
                   <div className="command-grid">
                     <section className="command-panel active-work">
                       <header>
@@ -9428,7 +9743,7 @@ export default function App() {
                             minute: "2-digit",
                           })}
                         </time>
-                        <b>Open action â†’</b>
+                        <b>Open action →</b>
                       </button>
                     ))}
                   </div>
@@ -10107,7 +10422,7 @@ export default function App() {
                             {deadlineLabel(item.dueDate, item.status)}
                           </em>
                         </div>
-                        <span className="more">â‹®</span>
+                        <span className="more">⋮</span>
                       </button>
                     );
                   })}
@@ -10427,7 +10742,7 @@ export default function App() {
             </section>
             <footer>
               <span>
-                Â© 2026 Public Service Commission, Kenya. All rights reserved.
+                © 2026 Public Service Commission, Kenya. All rights reserved.
               </span>
               <div>
                 <a href="#">Privacy Policy</a>
@@ -10446,42 +10761,32 @@ export default function App() {
             }}
           />
         )}
-        {active === "Profile" && (
+        {profileMenuOpen && (
           <div
-            className="modal-backdrop"
-            onClick={() => setActive("Dashboard")}
+            className="account-menu-layer"
+            onClick={() => setProfileMenuOpen(false)}
           >
             <section
-              className="profile-modal"
+              className="account-menu"
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="close" onClick={() => setActive("Dashboard")}>
+              <button className="close" onClick={() => setProfileMenuOpen(false)}>
                 Ã—
               </button>
-              <div className="profile-avatar">{user.initials}</div>
-              <h2>{user.name}</h2>
-              <p>{user.email}</p>
-              <em>{user.role}</em>
-              <h3>Access rights</h3>
-              <ul>
-                {user.rights.map((right) => (
-                  <li key={right}>
-                    <Icon name="check" />
-                    {right}
-                  </li>
-                ))}
-              </ul>
+              <header>
+                <span className="user-icon">{user.initials}</span>
+                <div><strong>{user.name}</strong><small>{user.email}</small><em>{user.role}</em></div>
+              </header>
               <button
-                className="change-password-button"
                 onClick={() => {
+                  setProfileMenuOpen(false);
                   setPasswordMode("change");
                   setPasswordMessage("");
-                  setActive("Dashboard");
                 }}
               >
                 Change password
               </button>
-              <button className="sign-out" onClick={() => setShowLogout(true)}>
+              <button className="account-sign-out" onClick={() => { setProfileMenuOpen(false); setShowLogout(true); }}>
                 Sign out everywhere
               </button>
             </section>
@@ -10724,7 +11029,7 @@ export default function App() {
               aria-modal="true"
               aria-labelledby="account-success-title"
             >
-              <div className="success-mark">âœ“</div>
+              <div className="success-mark">✓</div>
               <p>ACCOUNT CREATED</p>
               <h2 id="account-success-title">
                 User account created successfully
@@ -10784,6 +11089,8 @@ export default function App() {
             >
               <button
                 className="close"
+                type="button"
+                aria-label="Close staff account editor"
                 disabled={savingUser}
                 onClick={() => setUserEditor(null)}
               >
@@ -10835,7 +11142,7 @@ export default function App() {
                       disabled={savingUser}
                     >
                       {[
-                        "Administrator",
+                        ...(user?.role === "Administrator" ? ["Administrator"] : []),
                         "Research Manager",
                         "Research Officer",
                         "Reviewer",
@@ -10843,6 +11150,11 @@ export default function App() {
                         <option key={value}>{value}</option>
                       ))}
                     </select>
+                    <small>
+                      System-wide role. Research Managers may assign approved
+                      management, officer and reviewer roles; Administrator
+                      access remains protected.
+                    </small>
                   </label>
                   <label>
                     Division
@@ -10965,6 +11277,7 @@ export default function App() {
                   Document
                   <input
                     type="file"
+                    accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
                     disabled={knowledgeUploading}
                     onChange={(event) =>
                       setKnowledgeFile(event.target.files?.[0] || null)
@@ -11124,6 +11437,26 @@ export default function App() {
                     reviewer and final approver.
                   </span>
                 </div>
+                <label className="setting-toggle repository-felix-toggle">
+                  <input
+                    type="checkbox"
+                    checked={knowledgeForm.felixEnabled}
+                    disabled={knowledgeUploading}
+                    onChange={(event) =>
+                      setKnowledgeForm({
+                        ...knowledgeForm,
+                        felixEnabled: event.target.checked,
+                      })
+                    }
+                  />
+                  <span>
+                    <strong>Make available to Felix after approval</strong>
+                    <small>
+                      The approved current version will be indexed automatically.
+                      Draft or rejected documents remain unavailable to Felix.
+                    </small>
+                  </span>
+                </label>
                 {knowledgeUploadProgress.progress > 0 && (
                   <div
                     className={`upload-link-progress ${knowledgeUploadProgress.state}`}
@@ -11138,6 +11471,11 @@ export default function App() {
                       />
                     </div>
                     <span>{knowledgeUploadProgress.label}</span>
+                  </div>
+                )}
+                {knowledgeUploadProgress.state === "failed" && knowledgeNotice && (
+                  <div className="user-form-error" role="alert">
+                    {knowledgeNotice}
                   </div>
                 )}
                 <button className="sign-in" disabled={knowledgeUploading}>
@@ -11714,8 +12052,6 @@ export default function App() {
                         })
                       }
                     >
-                      <option>All</option>
-                      <option>Web</option>
                       <option>App2 Documents</option>
                     </select>
                   </label>
@@ -12092,6 +12428,19 @@ export default function App() {
                 >
                   ×
                 </button>
+                {isManager && (
+                  <div className="research-record-actions" aria-label="Research record controls">
+                    {selectedResearch.status !== "Archived" ? (
+                      <button type="button" className="task-archive-button" onClick={archiveSelectedResearch}>
+                        Archive research
+                      </button>
+                    ) : (
+                      <button type="button" className="task-delete-button" onClick={deleteSelectedResearch}>
+                        Delete permanently
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="research-command-team">
@@ -12347,6 +12696,34 @@ export default function App() {
                       Complete research
                     </button>
                   )}
+                </div>
+              </div>
+              <div className="workspace-document-overview">
+                <header>
+                  <div>
+                    <small>AVAILABLE DOCUMENTS</small>
+                    <h4>Project documents</h4>
+                  </div>
+                  <div className="workspace-document-actions">
+                    <strong>{researchSources.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)).length}</strong>
+                    <label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Research", selectedResearch.id); event.currentTarget.value = ""; }} /></label>
+                  </div>
+                </header>
+                <div className="workspace-document-overview-list">
+                  {workspaceDocuments.map((item) => (
+                    <button type="button" key={`generated-${item.id}`} onClick={() => void openGeneratedDocument(item.id)}>
+                      <span><b>{item.title}</b><small>Generated report · {item.status}</small></span>
+                      <em>Open</em>
+                    </button>
+                  ))}
+                  {researchSources.map((item) => (
+                    <article key={`source-${item.id}`}>
+                      <span><b>{item.title}</b><small>{item.source_type || "Research source"} · {item.quality}</small></span>
+                      {item.url ? <a href={item.url} target="_blank" rel="noreferrer">View</a> : <em>Available</em>}
+                    </article>
+                  ))}
+                  {knowledgeRows.filter((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)).map((item) => <button type="button" key={`research-report-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>Attached report · {item.status}</small></span><em>Preview</em></button>)}
+                  {!researchSources.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)) && <p>No documents are available for this research project yet.</p>}
                 </div>
               </div>
             </section>
@@ -14859,7 +15236,7 @@ export default function App() {
         {builderDocument && (
           <div className="structured-document-builder">
             <header>
-              <button onClick={() => setBuilderDocument(null)}>â† Back</button>
+              <button onClick={() => setBuilderDocument(null)}>← Back</button>
               <div>
                 <p>
                   {builderDocument.context} / {builderDocument.reference} /
@@ -15431,11 +15808,17 @@ export default function App() {
               </nav>
 
               {assignmentNotice && (
-                <div className="session-message">{assignmentNotice}</div>
+                <div className="session-message assignment-dismissible-message" role="status">
+                  <span>{assignmentNotice}</span>
+                  <button type="button" aria-label="Dismiss message" onClick={() => setAssignmentNotice("")}>×</button>
+                </div>
               )}
               <aside className="assignment-felix-context">
-                <button type="button" onClick={() => setAssignmentFelixOpen((open) => !open)}>Ask Felix about this assignment</button>
-                {assignmentFelixOpen && <div><div className="assignment-felix-prompts">{["Summarize this assignment", "What is overdue?", "What should I do next?", "Give me a progress update"].map((question) => <button type="button" key={question} onClick={() => setAssignmentFelixQuestion(question)}>{question}</button>)}</div><label>Question<input value={assignmentFelixQuestion} onChange={(event) => setAssignmentFelixQuestion(event.target.value)} placeholder="Find documents about…" /></label><button type="button" disabled={!assignmentFelixQuestion.trim() || assignmentFelixBusy} onClick={async () => { if (!selectedAssignmentId) return; setAssignmentFelixBusy(true); setAssignmentFelixAnswer(""); try { const response = await api.askFelix(token, `Assignment context: ID ${selectedAssignmentId}; title: ${selectedAssignmentRecord?.title || selectedAssignment || "Assignment"}. ${assignmentFelixQuestion}`, [], "Auto"); setAssignmentFelixAnswer(response.answer); } catch (error) { setAssignmentFelixAnswer(error instanceof Error ? error.message : "Felix could not answer."); } finally { setAssignmentFelixBusy(false); } }}>{assignmentFelixBusy ? "Thinking…" : "Ask Felix"}</button>{assignmentFelixAnswer && <p>{assignmentFelixAnswer}</p>}</div>}
+                <header>
+                  <button type="button" onClick={() => setAssignmentFelixOpen((open) => !open)}>{assignmentFelixOpen ? "Felix assignment assistant" : "Ask Felix about this assignment"}</button>
+                  {assignmentFelixOpen && <button type="button" className="assignment-felix-hide" onClick={() => setAssignmentFelixOpen(false)} aria-label="Hide Felix assignment assistant">Hide ×</button>}
+                </header>
+                {assignmentFelixOpen && <div><div className="assignment-felix-prompts">{["Summarize this assignment", "What is overdue?", "What should I do next?", "Give me a progress update"].map((question) => <button type="button" key={question} onClick={() => setAssignmentFelixQuestion(question)}>{question}</button>)}</div><label>Question<input value={assignmentFelixQuestion} onChange={(event) => setAssignmentFelixQuestion(event.target.value)} placeholder="Find documents about…" /></label><button type="button" disabled={!assignmentFelixQuestion.trim() || assignmentFelixBusy} onClick={async () => { if (!selectedAssignmentId) return; setAssignmentFelixBusy(true); setAssignmentFelixAnswer(""); try { const response = await api.askFelix(token, `Assignment context: ID ${selectedAssignmentId}; title: ${selectedAssignmentRecord?.title || selectedAssignment || "Assignment"}. ${assignmentFelixQuestion}`, [], "Auto"); setAssignmentFelixAnswer(response.answer); } catch (error) { setAssignmentFelixAnswer(error instanceof Error ? error.message : "Felix could not answer."); } finally { setAssignmentFelixBusy(false); } }}>{assignmentFelixBusy ? "Thinking…" : "Ask Felix"}</button>{assignmentFelixAnswer && <p><span>{assignmentFelixAnswer}</span><button type="button" aria-label="Dismiss Felix response" onClick={() => setAssignmentFelixAnswer("")}>×</button></p>}</div>}
               </aside>
 
               {assignmentWorkspaceTab === "Overview" && (
@@ -15477,6 +15860,19 @@ export default function App() {
                       <dd>{assignmentProgressPercent}%</dd>
                     </div>
                   </dl>
+
+                  <div className="workspace-document-overview">
+                    <header>
+                      <div><small>AVAILABLE DOCUMENTS</small><h4>Assignment documents</h4></div>
+                      <div className="workspace-document-actions"><strong>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).length}</strong><label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Assignment", selectedAssignmentId); event.currentTarget.value = ""; }} /></label></div>
+                    </header>
+                    <div className="workspace-document-overview-list">
+                      {workspaceDocuments.map((item) => <button type="button" key={`generated-${item.id}`} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>Generated report · {item.status}</small></span><em>Open</em></button>)}
+                      {assignmentFiles.map((file) => <button type="button" key={`upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded document · {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><em>Download</em></button>)}
+                      {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).map((item) => <button type="button" key={`repository-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>Repository document · {item.status}</small></span><em>Preview</em></button>)}
+                      {!assignmentFiles.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)) && <p>No documents are available for this assignment yet.</p>}
+                    </div>
+                  </div>
 
                   <footer>
                     <div>
@@ -16630,6 +17026,19 @@ export default function App() {
                               {selectedAssignmentTask.reviewer_name ||
                                 "Not assigned"}
                             </strong>
+                          </div>
+                        </div>
+
+                        <div className="workspace-document-overview task-document-overview">
+                          <header>
+                            <div><small>AVAILABLE DOCUMENTS</small><h4>Task and assignment documents</h4></div>
+                            <div className="workspace-document-actions"><strong>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).length}</strong><label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Task", selectedAssignmentTask.id); event.currentTarget.value = ""; }} /></label></div>
+                          </header>
+                          <div className="workspace-document-overview-list">
+                            {workspaceDocuments.map((item) => <button type="button" key={`task-generated-${item.id}`} className={item.id === selectedAssignmentTask.target_document_id ? "is-linked" : ""} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>{item.id === selectedAssignmentTask.target_document_id ? "Linked task output" : "Generated report"} · {item.status}</small></span><em>Open</em></button>)}
+                            {assignmentFiles.map((file) => <button type="button" key={`task-upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded assignment document</small></span><em>Download</em></button>)}
+                            {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).map((item) => <button type="button" key={`task-repository-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>{item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id) ? "Attached task report" : "Repository document"} · {item.status}</small></span><em>Preview</em></button>)}
+                            {!assignmentFiles.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)) && <p>No documents are available for this task yet.</p>}
                           </div>
                         </div>
 
@@ -19032,9 +19441,9 @@ export default function App() {
                             setAssignmentMemberRole(event.target.value)
                           }
                         >
-                          <option>Lead</option>
-                          <option>Contributor</option>
-                          <option>Reviewer</option>
+                          <option value="Lead">Lead — coordinate this assignment</option>
+                          <option value="Contributor">Contributor — complete assigned work</option>
+                          <option value="Reviewer">Reviewer — review assignment outputs</option>
                         </select>
 
                         <button
@@ -19118,8 +19527,19 @@ export default function App() {
               {assignmentWorkspaceTab === "Documents" && (
                 <section className="assignment-resources-simple">
                   <header className="workspace-section-heading">
-                    <div><span className="workspace-eyebrow">RESEARCH &amp; DOCUMENTS</span><h3>Assignment resources</h3><p>Notes, uploads, repository documents and the assignment report in one place.</p></div>
+                    <div><span className="workspace-eyebrow">RESEARCH &amp; DOCUMENTS</span><h3>Assignment resources and workspaces</h3><p>Open controlled documents for review or create an assignment report workspace for active drafting.</p></div>
                   </header>
+                  {isManager && selectedAssignmentId && (
+                    <div className="assignment-document-workspace-create">
+                      <div><strong>Create report workspace</strong><small>Start a controlled assignment document with editable sections, review and approval.</small></div>
+                      <select value={builderCreate.templateId} onChange={(event) => setBuilderCreate({ ...builderCreate, templateId: event.target.value })} aria-label="Assignment report template">
+                        <option value="">Select a template</option>
+                        {builderTemplates.filter((template) => template.context === "Assignment" && template.active && ["Standard", "Approved"].includes(template.governance_status)).map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+                      </select>
+                      <input value={selectedAssignmentRecord?.title || selectedAssignment || builderCreate.title} readOnly aria-label="Assignment report title" title="The report title follows the assignment title." />
+                      <button type="button" disabled={builderCreating || !builderCreate.templateId} onClick={() => void createWorkspaceDocument("Assignment", selectedAssignmentId)}>{builderCreating ? "Creating..." : "Create report workspace"}</button>
+                    </div>
+                  )}
                   <div className="assignment-resource-tools">
                     <input value={assignmentDocumentSearch} onChange={(event) => setAssignmentDocumentSearch(event.target.value)} placeholder="Search this assignment" aria-label="Search assignment documents and notes" />
                     {(["All", "Documents", "Research Notes"] as const).map((filter) => <button type="button" className={assignmentDocumentFilter === filter ? "active" : ""} key={filter} onClick={() => setAssignmentDocumentFilter(filter)}>{filter}</button>)}
@@ -19767,17 +20187,14 @@ export default function App() {
               onClick={(e) => e.stopPropagation()}
             >
               <button className="close" onClick={() => setShowLogout(false)}>
-                Ã—
-              </button>
-
+                  Ã—
+                </button>
               <h2>Sign out</h2>
-
-              <p>
-                You are about to sign out of the dashboard. This will end your
-                session and return you to the sign-in screen.
-              </p>
+              <div className="logout-identity"><span>{user.initials}</span><div><strong>{user.name}</strong><small>{user.email}</small></div></div>
+              <p>This ends your session on this device and returns you to the secure sign-in screen. Your saved work will remain available.</p>
 
               <div className="logout-actions">
+                <button className="logout-cancel" onClick={() => setShowLogout(false)}>Stay signed in</button>
                 <button
                   className="danger"
                   onClick={() => {
@@ -19787,12 +20204,21 @@ export default function App() {
                 >
                   Sign out
                 </button>
-
-                <button onClick={() => setShowLogout(false)}>Cancel</button>
               </div>
             </section>
           </div>
         )}
+
+        {contextMenu&&<nav className="app-context-menu" aria-label="App actions" style={{left:contextMenu.x,top:contextMenu.y}} onClick={event=>event.stopPropagation()}>
+          <span>APP ACTIONS</span>
+          <button onClick={()=>{navigateTo("Dashboard");setContextMenu(null)}}><Icon name="dashboard"/>Dashboard</button>
+          <button onClick={()=>{setContextMenu(null);window.setTimeout(()=>document.querySelector<HTMLInputElement>('.header-search input')?.focus(),0)}}><Icon name="search"/>Search</button>
+          <button onClick={()=>{navigateTo("Notifications");setContextMenu(null)}}><Icon name="bell"/>Notifications</button>
+          <button onClick={()=>{navigateTo("Notice Board");setContextMenu(null)}}><Icon name="announce"/>Expiring notices <b>{noticeRows.filter(item=>item.status==="Published"&&item.expires_at&&new Date(item.expires_at).getTime()>Date.now()&&new Date(item.expires_at).getTime()<=Date.now()+3*86400000).length}</b></button>
+          <button onClick={()=>{refreshDashboard();setContextMenu(null)}}><Icon name="clock"/>Refresh data</button>
+          <button onClick={()=>{setProfileMenuOpen(true);setContextMenu(null)}}><Icon name="team"/>Account menu</button>
+          <small>Right-click actions are limited to App2.</small>
+        </nav>}
 
         {readerDocument && (
           <Suspense

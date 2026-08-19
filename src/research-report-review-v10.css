@@ -1,0 +1,39 @@
+/* Research Report Review v10 — theme-aware, scroll-safe complete-report workflow */
+.research-report-review-gate{
+  margin:16px 0;
+  padding:18px;
+  border:1px solid var(--border,rgba(148,163,184,.28));
+  border-radius:14px;
+  background:var(--surface,#111827);
+  color:var(--text,#e5e7eb);
+  display:grid;
+  gap:14px;
+  min-width:0;
+}
+.research-report-review-gate p{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted,#94a3b8)}
+.research-report-review-gate h3{margin:0;font-size:18px;line-height:1.3;color:var(--text,#e5e7eb)}
+.research-report-review-gate span,.research-report-review-gate small,.research-report-review-gate label{font-size:max(12px,inherit);color:var(--muted,#94a3b8)}
+.research-report-review-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.research-report-review-summary>span{display:grid;gap:4px;padding:12px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:10px;background:var(--surface-2,rgba(255,255,255,.03))}
+.research-report-review-summary strong{font-size:14px;color:var(--text,#e5e7eb);overflow-wrap:anywhere}
+.research-report-review-note{padding:12px;border-left:3px solid var(--accent,#d6a84a);background:var(--surface-2,rgba(255,255,255,.03));border-radius:8px}
+.research-report-review-note p{margin:6px 0 0;letter-spacing:0;font-weight:400;color:var(--text,#e5e7eb);white-space:pre-wrap}
+.research-report-review-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.research-report-review-actions>label{display:grid;gap:6px;min-width:240px;flex:1}
+.research-report-review-actions select,.research-report-review-actions textarea{width:100%;box-sizing:border-box;min-height:40px;border:1px solid var(--border,rgba(148,163,184,.28));border-radius:8px;background:var(--input-bg,var(--surface-2,#172033));color:var(--text,#e5e7eb);padding:9px 10px;font:inherit;font-size:12px}
+.research-report-decision-box{width:100%;display:grid;gap:10px;padding-top:4px}
+.research-report-decision-box label{display:grid;gap:6px}
+.research-report-decision-box textarea{min-height:88px;resize:vertical}
+.research-report-decision-box>div{display:flex;gap:8px;flex-wrap:wrap}
+.research-report-version-history{border-top:1px solid var(--border,rgba(148,163,184,.2));padding-top:10px}
+.research-report-version-history summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--text,#e5e7eb)}
+.research-report-version-history article{display:grid;grid-template-columns:minmax(140px,.7fr) minmax(220px,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border,rgba(148,163,184,.16));font-size:12px}
+.research-report-version-history article strong{color:var(--text,#e5e7eb)}
+.research-report-preview-modal{width:min(980px,94vw);max-height:90vh;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--surface,#111827);color:var(--text,#e5e7eb);border:1px solid var(--border,rgba(148,163,184,.28));border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.research-report-preview-modal>header,.research-report-preview-modal>footer{padding:16px 18px;border-bottom:1px solid var(--border,rgba(148,163,184,.2));display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.research-report-preview-modal>footer{border-top:1px solid var(--border,rgba(148,163,184,.2));border-bottom:0;justify-content:flex-end}
+.research-report-preview-modal h2{margin:2px 0 4px;font-size:20px}.research-report-preview-modal p,.research-report-preview-modal span{font-size:12px}
+.research-report-preview-body{overflow:auto;padding:22px;scrollbar-gutter:stable}
+.research-report-preview-body>section{padding:0 0 18px;margin:0 0 18px;border-bottom:1px solid var(--border,rgba(148,163,184,.16))}
+.research-report-preview-body h3{margin:0 0 8px;font-size:16px}.research-report-preview-body p{margin:0;white-space:pre-wrap;line-height:1.65;color:var(--text,#e5e7eb)}
+@media(max-width:760px){.research-report-review-summary{grid-template-columns:1fr}.research-report-version-history article{grid-template-columns:1fr}.research-report-review-actions{display:grid}.research-report-review-actions>label{min-width:0}.research-report-preview-modal{width:96vw;max-height:92vh}}

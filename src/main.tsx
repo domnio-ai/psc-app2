@@ -32,9 +32,22 @@ import './assignment-structure-plan.css'
 import './research-phase5.css'
 import './document-builders-phase6-8.css'
 import './assignment-report-builder.css'
+import './low-contrast-navy-theme.css'
+import './theme-readability-refinements.css'
+import './text-encoding-guard'
+import './actionable-navigation.css'
+import "./assignment-report-readiness-v1.css";
+import './app-button-clarity.css'
+import './research-theme-scroll-v3.css'
+
+import './research-repository-unified-v5.css'
+import './research-report-review-v10.css'
+import './research-completion-v11.css'
+import './task-review-routing-v12.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AppErrorBoundary><App /></AppErrorBoundary>
   </StrictMode>,
 )
+

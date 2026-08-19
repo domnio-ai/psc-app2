@@ -1,0 +1,18 @@
+.workspace-document-overview{margin-top:22px;padding:18px;border:1px solid #394145;border-radius:10px;background:#202629;color:#eef1f2}
+.workspace-document-overview>header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.workspace-document-overview>header small{display:block;color:#9ba5aa;font-size:9px;font-weight:800;letter-spacing:.08em}
+.workspace-document-overview>header h4{margin:3px 0 0;font-size:14px}
+.workspace-document-overview>header>strong{display:grid;place-items:center;min-width:30px;height:26px;border-radius:13px;background:#343d41;color:#f0c84b;font-size:12px}
+.workspace-document-actions{display:flex;align-items:center;gap:8px}.workspace-document-actions>strong{display:grid;place-items:center;min-width:30px;height:26px;border-radius:13px;background:#343d41;color:#f0c84b;font-size:12px}.workspace-attach-report{display:inline-flex;align-items:center;min-height:30px;padding:6px 10px;border:1px solid #806927;border-radius:7px;background:#343028;color:#e4c25b;font-size:9px;font-weight:850;cursor:pointer}.workspace-attach-report input{display:none}
+.workspace-document-overview-list{display:grid;gap:7px;max-height:280px;overflow:auto}
+.workspace-document-overview-list>button,.workspace-document-overview-list>article{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:10px 12px;border:1px solid #353e42;border-radius:7px;background:#272e31;color:inherit;text-align:left}
+.workspace-document-overview-list>button{cursor:pointer}
+.workspace-document-overview-list>button:hover{border-color:#69767c;background:#2c3538}
+.workspace-document-overview-list>button.is-linked{border-color:#bc9631;background:#302d22}
+.workspace-document-overview-list span,.workspace-document-overview-list b,.workspace-document-overview-list small{display:block}
+.workspace-document-overview-list b{overflow:hidden;color:#f3f5f5;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.workspace-document-overview-list small{margin-top:3px;color:#939da2;font-size:9px}
+.workspace-document-overview-list em,.workspace-document-overview-list a{flex:0 0 auto;color:#e7bd42;font-size:9px;font-style:normal;font-weight:800;text-decoration:none}
+.workspace-document-overview-list>p{margin:4px;color:#9ba5aa;font-size:11px}
+.task-document-overview{margin:14px 18px 0}
+@media(max-width:700px){.workspace-document-overview{padding:14px}.task-document-overview{margin:12px}.workspace-document-overview-list>button,.workspace-document-overview-list>article{align-items:flex-start}}

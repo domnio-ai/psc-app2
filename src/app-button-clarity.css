@@ -1,0 +1,104 @@
+/* APP2 GLOBAL BUTTON CLARITY V1
+   Every interactive button must look interactive in every theme. */
+button {
+  min-height: 34px;
+  border: 1px solid var(--border-strong, var(--border-default, #64748b));
+  border-radius: 7px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-primary, #f4f7fb);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent-primary, #d6a92d);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary, #d6a92d) 35%, transparent);
+}
+button:focus-visible {
+  outline: 2px solid var(--accent-primary, #d6a92d);
+  outline-offset: 2px;
+}
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .58; cursor: not-allowed; }
+button.primary,
+button.app-action-primary,
+.assignment-report-workflow-card button.primary {
+  border-color: var(--accent-primary, #d6a92d);
+  background: var(--accent-primary, #d6a92d);
+  color: var(--button-primary-text, #111827);
+}
+button.danger,
+button.task-delete-button {
+  border-color: var(--danger, #e46f69);
+}
+
+/* Assignment reporting action clarity */
+.assignment-report-stage-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.assignment-report-stage-actions > button,
+.assignment-source-register-body article > button,
+.report-document-group article > button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border-width: 1px;
+  background: var(--surface-secondary, #263341);
+}
+.assignment-report-stage-actions > button.app-action-primary {
+  background: var(--accent-primary, #d6a92d);
+  color: var(--button-primary-text, #111827);
+  border-color: var(--accent-primary, #d6a92d);
+}
+.assignment-report-next-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0;
+  padding: 9px 11px;
+  border: 1px solid var(--border-default, #526170);
+  border-radius: 8px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-primary, #f4f7fb);
+}
+.assignment-report-next-action strong,
+.assignment-report-next-action span { display: block; }
+.assignment-report-next-action span { color: var(--text-secondary, #d3dae3); font-size: 12px; }
+.assignment-report-workflow-guide {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px,1fr));
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-default, #526170);
+}
+.assignment-report-workflow-guide span {
+  padding: 7px 9px;
+  border: 1px solid var(--border-default, #526170);
+  border-radius: 7px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-secondary, #d3dae3);
+  font-size: 12px;
+  font-weight: 700;
+}
+.assignment-report-submit-blocker {
+  display: block;
+  flex: 1 1 100%;
+  color: var(--warning, #e0ad35);
+  font-size: 12px;
+  font-weight: 700;
+}
+@media(max-width:900px){
+  .assignment-report-workflow-guide { grid-template-columns: 1fr 1fr; }
+  .assignment-report-next-action { align-items: flex-start; flex-direction: column; }
+}
+
+
+/* APP2 FORMAL ASSIGNMENT REVIEW V1 */
+.assignment-review-v3{display:grid;gap:16px;padding:4px 0 24px}.assignment-review-v3-head,.assignment-formal-report-review,.review-v3-sources{border:1px solid var(--border-default);border-radius:12px;background:var(--surface-primary);overflow:hidden}.assignment-review-v3-head{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:18px 20px}.assignment-review-v3-head small,.assignment-formal-report-review small,.review-v3-sources small{font-weight:800;letter-spacing:.08em;color:var(--accent-primary)}.assignment-review-v3-head h2{margin:4px 0}.assignment-review-v3-head p{margin:0;color:var(--text-secondary)}.assignment-review-v3-head>b{padding:8px 12px;border-radius:999px;border:1px solid var(--border-strong)}.assignment-review-v3-head>b.ready{color:var(--success);border-color:var(--success)}.assignment-review-v3-head>b.blocked{color:var(--warning);border-color:var(--warning)}
+.assignment-formal-report-review>header,.review-v3-sources>header{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border-default)}.assignment-formal-report-review h3,.review-v3-sources h3{margin:4px 0}.assignment-formal-report-review p,.review-v3-sources p{margin:0;color:var(--text-secondary)}.assignment-review-status{padding:7px 10px;border:1px solid var(--border-strong);border-radius:999px;font-weight:800}.assignment-review-primary-actions{display:flex;gap:10px;padding:16px 18px}.assignment-review-decision-panel{display:grid;gap:12px;padding:0 18px 18px}.assignment-review-decision-panel label{display:grid;gap:6px}.assignment-review-decision-panel textarea{min-height:100px;padding:12px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-background);color:var(--text-primary);font:inherit}.assignment-review-decision-actions{display:flex;flex-wrap:wrap;gap:10px}.assignment-review-help{color:var(--text-secondary)!important;letter-spacing:0!important;font-weight:500!important}.assignment-review-empty,.assignment-review-readonly-note,.assignment-review-returned-note,.assignment-review-rejected-note,.assignment-review-final-note,.assignment-review-finalize-panel{margin:16px 18px;padding:14px;border:1px solid var(--border-default);border-radius:9px;background:var(--surface-secondary);color:var(--text-primary)}.assignment-review-rejected-note{border-color:var(--danger);color:var(--danger)}.assignment-review-finalize-panel{display:grid;gap:10px;border-color:var(--success)}.assignment-review-finalize-panel>button{justify-self:start}.review-v3-source-list{display:grid}.review-v3-source-list article{display:grid;grid-template-columns:minmax(280px,1fr) 150px auto;gap:16px;align-items:center;padding:14px 18px;border-top:1px solid var(--border-default)}.review-v3-source-list article:first-child{border-top:0}.review-v3-source-list strong,.review-v3-source-list small{display:block}.review-v3-source-list small{margin-top:4px;color:var(--text-secondary);letter-spacing:0;font-weight:500}.app-action-primary,.app-action-secondary,.app-action-return,.app-action-danger,.app-action-approve{min-height:38px;padding:8px 14px;border-radius:8px;font-weight:800;cursor:pointer}.app-action-primary{background:var(--accent-primary);color:var(--button-primary-text);border:1px solid var(--accent-primary)}.app-action-secondary{background:var(--surface-secondary);color:var(--text-primary);border:1px solid var(--border-strong)}.app-action-return{background:transparent;color:var(--warning);border:1px solid var(--warning)}.app-action-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}.app-action-approve{background:color-mix(in srgb,var(--success) 18%,var(--surface-secondary));color:var(--success);border:1px solid var(--success)}.app-action-primary:disabled,.app-action-secondary:disabled,.app-action-return:disabled,.app-action-danger:disabled,.app-action-approve:disabled{opacity:.55;cursor:not-allowed}@media(max-width:850px){.review-v3-source-list article{grid-template-columns:1fr}.assignment-review-v3-head,.assignment-formal-report-review>header,.review-v3-sources>header{align-items:flex-start;flex-direction:column}}

@@ -1,0 +1,22 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-modularization-tasks-phase2-preview-v1",
+  "purpose": "Extract the existing task-report preview modal from guarded src/App.tsx into src/modules/tasks/TaskReportPreview.tsx without changing report workflow behavior.",
+  "allowed_files": [
+    "src/App.tsx",
+    "src/modules/tasks/TaskReportPreview.tsx"
+  ],
+  "protected_shared_file_overrides": [
+    {
+      "path": "src/App.tsx",
+      "reason": "Behavior-preserving extraction of the existing Task Report Preview modal into the dedicated Tasks module. Existing preview generation and submission handlers remain unchanged."
+    }
+  ],
+  "database_migrations": [],
+  "contracts_affected": [
+    "TASK-REPORT-PREVIEW-UI",
+    "TASK-OWNER-REPORT-ENTRY-UI"
+  ],
+  "requires_full_regression": true,
+  "notes": "No backend, database, Research, Documents or Felix files are modified."
+}

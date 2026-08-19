@@ -1,0 +1,37 @@
+/* App2 Research Template-to-Outline V13 */
+.research-workspace .research-template-library-controls{
+  grid-template-columns:minmax(280px,1fr) auto!important;
+}
+.research-workspace .research-template-apply{
+  min-width:190px!important;
+}
+.research-workspace .research-template-preview{
+  border-left:3px solid var(--rw-primary)!important;
+}
+.research-workspace .report-outline-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:10px 12px!important;
+  border-bottom:1px solid var(--rw-border)!important;
+  background:var(--surface-strong)!important;
+}
+.research-workspace .report-outline-head small{
+  color:var(--rw-primary)!important;
+  font-size:12px!important;
+  font-weight:850!important;
+  letter-spacing:.06em!important;
+}
+.research-workspace .report-outline-head strong{
+  color:var(--muted)!important;
+  font-size:12px!important;
+}
+@media(max-width:900px){
+  .research-workspace .research-template-library-controls{
+    grid-template-columns:1fr!important;
+  }
+  .research-workspace .research-template-apply{
+    width:100%!important;
+  }
+}

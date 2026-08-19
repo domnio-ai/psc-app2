@@ -1,0 +1,22 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-research-work-progress-functional-v1",
+  "purpose": "Show live task completion, accepted outputs, review-ready outputs and overdue work for each assignment linked to a Research project.",
+  "allowed_files": [
+    "src/App.tsx",
+    "src/research-work-progress.css"
+  ],
+  "protected_shared_file_overrides": [
+    {
+      "path": "src/App.tsx",
+      "reason": "Adds read-only Research Work progress using existing assignment task APIs. No workflow or authorization logic is removed."
+    }
+  ],
+  "database_migrations": [],
+  "contracts_affected": [
+    "RESEARCH-REPOSITORY-UI",
+    "ASSIGNMENT-AUTHORIZATION"
+  ],
+  "requires_full_regression": true,
+  "notes": "Frontend/read-only API enhancement only."
+}

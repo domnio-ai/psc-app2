@@ -1,0 +1,17 @@
+﻿APP2 USER LOGIN HEALTH AUDIT
+Generated: 2026-08-18 20:34:08
+
+Total users: 9
+Healthy: 0
+Attention: 0
+Blocked/high-risk: 9
+
+Interpretation:
+- ACCOUNT_INACTIVE: login endpoint rejects the account.
+- PASSWORD_HASH_MISSING / PASSWORD_HASH_INVALID: password verification cannot work correctly.
+- MISSING_EMAIL / DUPLICATE_EMAIL: login identity is unsafe or ambiguous.
+- TEMP_PASSWORD_MUST_BE_CHANGED: login can still work; user should change the temporary password after sign-in.
+- Role/status by themselves are not login blockers in the current App2 login endpoint.
+
+This audit is read-only. No password hashes are exported.
+CSV: C:\Users\Admin\Documents\Codex\2026-07-28\referenced-chatgpt-conversation-this-is-untrusted\app2\diagnostics\user-login-health\user-login-health-20260818-203407.csv

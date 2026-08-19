@@ -1,0 +1,20 @@
+﻿APP2 KNOWN-GOOD CHECKPOINT
+Created: 2026-08-18 19:10:31
+App2 root: C:\Users\Admin\Documents\Codex\2026-07-28\referenced-chatgpt-conversation-this-is-untrusted\app2
+Database backup: C:\Users\Admin\Documents\Codex\2026-07-28\referenced-chatgpt-conversation-this-is-untrusted\app2\known-good-backups\psc_app2-known-good-20260818-190953.backup
+
+Expected verified data from recovery:
+Users: 9
+Assignments: 10
+Research projects: 7
+Documents: 16
+
+Checks completed:
+- PostgreSQL backup created
+- Core tables queried successfully
+- Research workflow tables checked
+- backend/src/app.js syntax passed
+- backend/src/server.js syntax passed
+- Frontend production build passed
+
+Do not delete this backup until a newer known-good checkpoint has been verified.

@@ -1,0 +1,23 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-research-work-progress-functional-v1.1",
+  "purpose": "Add read-only task/output progress to the exact current Research Work assignment rows using a dedicated component while preserving all existing Research assignment actions.",
+  "allowed_files": [
+    "src/App.tsx",
+    "src/modules/research/ResearchAssignmentProgress.tsx",
+    "src/research-work-progress.css"
+  ],
+  "protected_shared_file_overrides": [
+    {
+      "path": "src/App.tsx",
+      "reason": "Adds one ResearchAssignmentProgress component call per existing linked-assignment row plus imports. Existing Open Assignment, Unlink, create/link and milestones logic remain untouched."
+    }
+  ],
+  "database_migrations": [],
+  "contracts_affected": [
+    "RESEARCH-REPOSITORY-UI",
+    "ASSIGNMENT-AUTHORIZATION"
+  ],
+  "requires_full_regression": true,
+  "notes": "Frontend/read-only API enhancement only. No backend, database, report workflow, Documents or Felix changes."
+}

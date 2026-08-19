@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "name": "App2 Protected Modules",
+  "shared_files": [
+    {
+      "path": "src/App.tsx",
+      "policy": "guarded-shared",
+      "reason": "Currently contains multiple mature frontend workflows. Routine patches must not replace it wholesale."
+    },
+    {
+      "path": "backend/src/app.js",
+      "policy": "guarded-shared",
+      "reason": "Currently contains multiple mature API workflows and authorization rules."
+    },
+    {
+      "path": "src/api.ts",
+      "policy": "guarded-shared",
+      "reason": "Shared API client used by multiple modules."
+    },
+    {
+      "path": "backend/src/schema.sql",
+      "policy": "guarded-schema",
+      "reason": "Core database schema."
+    }
+  ],
+  "protected_database": {
+    "database": "psc_app2",
+    "core_tables": [
+      "users",
+      "assignments",
+      "research_projects",
+      "knowledge_items"
+    ],
+    "required_tables": [
+      "users",
+      "assignments",
+      "assignment_members",
+      "assignment_tasks",
+      "assignment_history",
+      "research_projects",
+      "research_collaborators",
+      "knowledge_items",
+      "knowledge_versions"
+    ],
+    "workflow_tables_if_installed": [
+      "research_reviewers",
+      "research_assignment_links",
+      "external_research_imports"
+    ],
+    "task_report_columns": [
+      "owner_id",
+      "reviewer_id",
+      "contribution_status",
+      "contribution_report_version",
+      "contribution_ready_at",
+      "contribution_title",
+      "contribution_summary",
+      "contribution_findings",
+      "contribution_recommendations"
+    ]
+  },
+  "source_contracts": [
+    {
+      "id": "TASK-OWNER-ONLY-REPORT-EDIT",
+      "file": "backend/src/app.js",
+      "required_any": [
+        "Only the task owner can edit or submit this task report",
+        "current.owner_id!==req.user.id"
+      ]
+    },
+    {
+      "id": "TASK-REPORT-SUBMISSION",
+      "file": "backend/src/app.js",
+      "required_all": [
+        "TASK_REPORT_SUBMITTED_TO_REVIEWER",
+        "Ready for Integration"
+      ]
+    },
+    {
+      "id": "TASK-REPORT-REVIEW",
+      "file": "backend/src/app.js",
+      "required_all": [
+        "TASK_REPORT_APPROVED",
+        "TASK_REPORT_CHANGES_REQUESTED",
+        "TASK_REPORT_REJECTED"
+      ]
+    },
+    {
+      "id": "TASK-FINAL-REPORT",
+      "file": "backend/src/app.js",
+      "required_any": [
+        "TASK_FINAL_REPORT_GENERATED",
+        "Final task report"
+      ]
+    },
+    {
+      "id": "TASK-REPORT-PREVIEW-UI",
+      "file": "src/App.tsx",
+      "required_all": [
+        "Preview Report",
+        "Submit to Reviewer",
+        "Preview Submitted Report"
+      ]
+    },
+    {
+      "id": "TASK-REVIEW-DECISIONS-UI",
+      "file": "src/App.tsx",
+      "required_all": [
+        "Approve Report",
+        "Request Changes",
+        "Reject Submission"
+      ]
+    },
+    {
+      "id": "RESEARCH-REVIEWER-RELATION",
+      "file": "backend/src/app.js",
+      "required_any": [
+        "research_reviewers",
+        "research_assignment_links"
+      ]
+    },
+    {
+      "id": "RESEARCH-REPOSITORY-UI",
+      "file": "src/App.tsx",
+      "required_any": [
+        "Research Repository",
+        "RESEARCH REPOSITORY"
+      ]
+    },
+    {
+      "id": "DOCUMENT-REPOSITORY",
+      "file": "backend/src/app.js",
+      "required_all": [
+        "knowledge_items",
+        "knowledge_versions"
+      ]
+    },
+    {
+      "id": "ASSIGNMENT-AUTHORIZATION",
+      "file": "backend/src/app.js",
+      "required_any": [
+        "canAccessAssignment",
+        "assignment_members"
+      ]
+    }
+  ]
+}

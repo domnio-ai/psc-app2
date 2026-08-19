@@ -1,0 +1,131 @@
+/* ============================================================
+   App2 Research Editor Ribbon V14.8
+   Tabs now switch populated tool groups instead of horizontally scrolling.
+   ============================================================ */
+
+.section-word-toolbar{
+  min-height:78px!important;
+  overflow-x:hidden!important;
+  align-items:stretch!important;
+}
+
+/* Hide every ribbon group by default. */
+.section-word-toolbar>.ribbon-group{
+  display:none!important;
+}
+
+/* HOME */
+.section-word-toolbar[data-active-tab="Home"]>.history-tools,
+.section-word-toolbar[data-active-tab="Home"]>.font-tools,
+.section-word-toolbar[data-active-tab="Home"]>.paragraph-tools,
+.section-word-toolbar[data-active-tab="Home"]>.styles-tools{
+  display:flex!important;
+}
+
+/* INSERT */
+.section-word-toolbar[data-active-tab="Insert"]>.insert-tools,
+.section-word-toolbar[data-active-tab="Insert"]>.image-tools{
+  display:flex!important;
+}
+
+/* LAYOUT */
+.section-word-toolbar[data-active-tab="Layout"]>.layout-tools{
+  display:flex!important;
+}
+
+/* RESEARCH TEMPLATES */
+.section-word-toolbar[data-active-tab="Templates"]>.report-template-tools{
+  display:grid!important;
+}
+
+/* Existing non-research References behavior stays available. */
+.section-word-toolbar[data-active-tab="References"]>.template-tools{
+  display:flex!important;
+}
+
+/* REVIEW */
+.section-word-toolbar[data-active-tab="Review"]>.editing-tools{
+  display:flex!important;
+}
+
+/* VIEW */
+.section-word-toolbar[data-active-tab="View"]>.view-tools,
+.section-word-toolbar[data-active-tab="View"]>.output-tools{
+  display:flex!important;
+}
+
+.section-word-toolbar>.ribbon-group{
+  min-height:66px!important;
+}
+
+/* Layout is a compact, real tab. */
+.section-word-toolbar .layout-tools{
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-width:480px!important;
+}
+.section-word-toolbar .layout-tools>span{
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+}
+.section-word-toolbar .layout-tools button{
+  min-height:30px!important;
+  padding:5px 9px!important;
+  font-size:12px!important;
+}
+
+/* Review's preview action is visually obvious. */
+.section-word-toolbar[data-active-tab="Review"]>.editing-tools button.active-view,
+.section-word-toolbar[data-active-tab="Review"]>.editing-tools button:last-of-type{
+  font-weight:850!important;
+}
+
+/* View controls. */
+.section-word-toolbar .view-tools{
+  min-width:130px!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+.section-word-toolbar .view-tools button{
+  min-height:34px!important;
+  padding:6px 10px!important;
+  font-size:12px!important;
+}
+
+/* Empty image group is naturally absent when no image is selected. */
+.section-word-toolbar[data-active-tab="Insert"]>.insert-tools{
+  display:flex!important;
+}
+
+/* Keep Research template control readable. */
+.section-word-toolbar[data-active-tab="Templates"]>.report-template-tools{
+  min-width:520px!important;
+  grid-template-columns:minmax(280px,1fr) auto!important;
+}
+
+/* Tab clarity */
+.ribbon-tabs button{
+  min-height:32px!important;
+  padding:6px 13px!important;
+  font-size:12px!important;
+}
+.ribbon-tabs button.active{
+  font-weight:850!important;
+}
+
+@media(max-width:900px){
+  .section-word-toolbar[data-active-tab="Home"]>.history-tools,
+  .section-word-toolbar[data-active-tab="Home"]>.font-tools,
+  .section-word-toolbar[data-active-tab="Home"]>.paragraph-tools,
+  .section-word-toolbar[data-active-tab="Home"]>.styles-tools,
+  .section-word-toolbar[data-active-tab="Insert"]>.insert-tools,
+  .section-word-toolbar[data-active-tab="Insert"]>.image-tools,
+  .section-word-toolbar[data-active-tab="Layout"]>.layout-tools,
+  .section-word-toolbar[data-active-tab="Review"]>.editing-tools,
+  .section-word-toolbar[data-active-tab="View"]>.view-tools,
+  .section-word-toolbar[data-active-tab="View"]>.output-tools{
+    min-width:0!important;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-temporary-password-visibility-fix-v1",
+  "purpose": "Make the existing one-time temporary password panel immediately visible after Administrator password reset by rendering it as a fixed high-priority overlay instead of ordinary page-flow content.",
+  "allowed_files": [
+    "src/App.tsx",
+    "src/temporary-password-visibility.css"
+  ],
+  "protected_shared_file_overrides": [
+    {
+      "path": "src/App.tsx",
+      "reason": "Adds one CSS import only; existing password-reset handler and credential UI logic remain unchanged."
+    }
+  ],
+  "database_migrations": [],
+  "contracts_affected": [],
+  "requires_full_regression": true,
+  "notes": "Frontend visibility fix only. No backend, authentication, password generation, user data or database changes."
+}

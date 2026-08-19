@@ -1,0 +1,140 @@
+﻿ M backend/src/app.js
+ M backend/src/audit.js
+ M backend/src/schema.sql
+ M src/AIResearchChat.tsx
+ M src/App.tsx
+ M src/AssignmentReportBuilder.tsx
+ M src/AssignmentReportsPanel.tsx
+ M src/NotificationCenter.tsx
+ M src/TaskSectionWorkspace.tsx
+ M src/ai-chat.css
+ M src/api.ts
+ M src/app-shell.css
+ M src/assignment-report-builder.css
+ M src/assignment-structure-plan.css
+ M src/assignment-task-workspace.css
+ M src/assignment-tasks-assignment-modal.css
+ M src/assignment-tasks-task-requests.css
+ M src/assignments-phase3.css
+ M src/assignments-phase4.css
+ M src/audit.css
+ M src/calendar.css
+ M src/components/ThemeProvider.tsx
+ M src/dashboard-phase2.css
+ M src/documents.css
+ M src/felix-actions.css
+ M src/felix-admin.css
+ M src/felix-expert.css
+ M src/felix.css
+ M src/main.tsx
+ M src/notice-board.css
+ M src/notice-fix.css
+ M src/notice-workspace.css
+ M src/notification-detail.css
+ M src/notifications.css
+ M src/reports-module.css
+ M src/reports.css
+ M src/research-phase5.css
+ M src/research.css
+ M src/settings.css
+ M src/styles.css
+ M src/task-section-workspace.css
+ M src/users.css
+ M src/workspace-document-overview.css
+?? .app2-guard/
+?? APP2_FEATURE_CONTRACTS.md
+?? APP2_PROTECTED_MODULES.json
+?? Start_App2.bat
+?? actionable-navigation-before-v1-20260818-083803/
+?? assignment-before-v1-20260817-222238/
+?? assignment-before-v2-20260817-230226/
+?? assignment-lead-editor-before-v1-20260818-101645/
+?? assignment-report-actions-before-v1-20260818-102754/
+?? assignment-report-editable-before-v2-20260818-104011/
+?? assignment-report-editable-step1-before-20260818-120404/
+?? assignment-report-readiness-before-v1-20260818-085555/
+?? assignment-report-workflow-v2-before-20260818-111227/
+?? assignment-report-workspace-before-v1-20260818-100115/
+?? assignment-reports-before-v1-20260818-012513/
+?? assignment-reports-linkage-before-v1-20260818-095012/
+?? assignment-reports-simplified-before-v1-20260818-124504/
+?? backend/migrations/016_low_contrast_navy_theme.sql
+?? backend/migrations/017_assignment_report_sources.sql
+?? backend/migrations/018_assignment_report_imports.sql
+?? backend/migrations/019_research_reviewers_assignments.sql
+?? backend/migrations/020_external_research_imports.sql
+?? backend/scripts/repair-text-encoding.js
+?? backend/src/app-before-my-reviews-fix.js
+?? backend/{
+?? complete-assignment-review-before-v1-20260818-123633/
+?? dashboard-before-v2-20260817-214752/
+?? dashboard-before-v3-20260817-221139/
+?? data-recovery-backups/
+?? diagnostics/
+?? docs/guard/
+?? encoding-fix-v1-backup-20260818-081428/
+?? functional-backups/
+?? guard-hotfix-before-20260818-194659/
+?? guard-hotfix-before-20260818-200417/
+?? guard-upgrade-v1.2-before-20260818-201448/
+?? known-good-backups/
+?? modularization-backups/
+?? navy-theme-v2-2-backup-20260818-075118/
+?? research-redesign-phase1-before-20260818-172552/
+?? research-redesign-phase1-before-20260818-172711/
+?? research-workflow-phase2-before-20260818-175004/
+?? research-workflow-phase2-before-20260818-175334/
+?? research-workflow-phase3-before-20260818-180727/
+?? research-workflow-phase3-before-20260818-181039/
+?? review-handoff-before-v1-20260818-003157/
+?? reviewer-approval-before-v1-1-20260818-091020/
+?? reviewer-approval-before-v1-20260818-090632/
+?? reviewer-approval-pg-before-v1-20260818-091825/
+?? reviewer-decision-before-v2-1-20260818-092539/
+?? reviewer-decision-before-v2-20260818-092357/
+?? reviewer-final-report-before-v1-20260818-001729/
+?? reviewer-rejection-before-v1-20260818-002326/
+?? reviewer-rules-before-v1-20260817-231414/
+?? role-dashboards-before-v1-20260817-225239/
+?? scripts/guard/
+?? simplified-assignment-reports-v3-before-20260818-130739/
+?? simplified-assignment-reports-v3-before-20260818-164609/
+?? src/App.before-reviewer-open-final-step2.tsx
+?? src/AssignmentReportReader.tsx
+?? src/AssignmentReportSimpleEditor.tsx
+?? src/ExternalResearchImportModal.tsx
+?? src/ExternalResearchReader.tsx
+?? src/actionable-navigation.css
+?? src/app-button-clarity.css
+?? src/assignment-report-readiness-v1.css
+?? src/assignment-report-simple-v3.css
+?? src/assignment-task-workspace-before-delete-visible.css
+?? src/assignment-task-workspace-before-left-dock.css
+?? src/assignment-task-workspace-before-mini-dock.css
+?? src/dashboard-phase2-before-management-redesign.css
+?? src/external-research-phase3.css
+?? src/low-contrast-navy-theme.css
+?? src/modules/
+?? src/research-work-progress.css
+?? src/research-workflow-phase2.css
+?? src/research-workspace-redesign-v1.css
+?? src/task-report-owner-access.css
+?? src/task-review-action-clarity.css
+?? src/temporary-password-visibility.css
+?? src/text-encoding-guard.ts
+?? src/theme-readability-refinements.css
+?? src/user-access-password-reset.css
+?? task-delete-zone-before-v1-20260818-005506/
+?? task-final-report-before-v1-20260818-093140/
+?? task-final-report-pg-before-v2-20260818-093621/
+?? task-header-controls-before-v1-20260818-014230/
+?? task-report-owner-access-before-20260818-191902/
+?? task-report-workflow-before-v1-20260818-072221/
+?? task-reporting-before-v1-1-20260817-234210/
+?? task-reporting-before-v1-20260817-233914/
+?? task-review-button-clarity-before-20260818-193314/
+?? task-work-status-before-v2-20260818-014702/
+?? task-workspace-before-consolidation-20260818-000008/
+?? theme-font12-before-v2-1-20260818-074652/
+?? theme-font12-before-v2-20260818-074350/
+?? theme-refinement-v3-backup-20260818-080624/

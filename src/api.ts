@@ -22,8 +22,17 @@ export type ApiAssignment = {
   status: string;
   priority: string;
   due_date: string | null;
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
+  research_id?: string | null;
+  research_title?: string | null;
+  research_relation_type?: string | null;
+  workflow_status?: string;
+  final_report_status?: string | null;
+  task_count?: number;
+  completed_task_count?: number;
+  accepted_task_report_count?: number;
   members: { id: string; name: string; role: string }[];
 };
 export type ApiAssignmentSection = {
@@ -134,6 +143,8 @@ export type ApiAssignmentTask = {
   contribution_report_html?: string;
   contribution_report_version?: number;
   contribution_report_generated_at?: string | null;
+  repository_document_id?: string | null;
+  repository_document_title?: string | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;
@@ -215,6 +226,80 @@ export type KnowledgeVersion = {
   created_at: string;
   created_by_name: string;
 };
+export type ExternalResearchImportReviewer = {
+  id: string;
+  reviewer_id: string;
+  name: string;
+  role: string;
+  division: string;
+  assigned_at: string;
+};
+export type ExternalResearchImportReview = {
+  id: string;
+  version_number: number;
+  reviewer_id: string;
+  reviewer_name: string;
+  decision: "Review Started" | "Revision Requested" | "Resubmitted" | "Approved" | "Rejected";
+  notes: string;
+  created_at: string;
+};
+export type ExternalResearchImportVersion = {
+  id: string;
+  version_number: number;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  notes: string;
+  created_at: string;
+  uploader_name: string;
+  is_current: boolean;
+};
+export type ExternalResearchImport = {
+  id: string;
+  knowledge_id: string;
+  submitted_by: string;
+  submitted_by_name: string;
+  institution: string | null;
+  research_type: string;
+  status: "Pending Review" | "Under Review" | "Revision Requested" | "Resubmitted" | "Published" | "Rejected";
+  revision_ready: boolean;
+  submitted_at: string;
+  updated_at: string;
+  published_at: string | null;
+  title: string;
+  description: string;
+  author: string | null;
+  document_date: string | null;
+  directorate: string | null;
+  classification: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "RESTRICTED";
+  tags: string[];
+  current_version: number;
+  current_version_id: string | null;
+  original_name: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  felix_enabled: boolean;
+  document_status: string;
+  reviewers: ExternalResearchImportReviewer[];
+  reviews?: ExternalResearchImportReview[];
+  versions?: ExternalResearchImportVersion[];
+  can_review: boolean;
+  can_upload_revision: boolean;
+};
+export type ExternalResearchImportInput = {
+  title: string;
+  description: string;
+  author: string;
+  institution: string;
+  directorate: string;
+  researchType: string;
+  researchDate: string;
+  tags: string;
+  classification: string;
+  reviewerIds: string[];
+  felixEnabled: boolean;
+};
+
 export type ResearchProject = {
   id: string;
   title: string;
@@ -229,6 +314,26 @@ export type ResearchProject = {
   lead_id: string;
   lead_name: string;
   collaborators: { id: string; name: string; role: string }[];
+  reviewers: {
+    id: string;
+    reviewer_id: string;
+    name: string;
+    role: string;
+    division: string;
+    review_role: string;
+    assigned_at: string;
+  }[];
+  assignments: {
+    id: string;
+    title: string;
+    description: string;
+    division: string;
+    due_date: string | null;
+    priority: string;
+    status: string;
+    relation_type: string;
+    linked_at: string;
+  }[];
   milestones: {
     id: string;
     title: string;
@@ -261,6 +366,22 @@ export type ResearchSource = {
   created_by_name: string;
   created_at: string;
 };
+export type ResearchRepositoryDocument = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  document_type?: string;
+  subject?: string;
+  classification?: string;
+  status: string;
+  current_version?: number;
+  latest_version: number;
+  original_name: string;
+  created_by_name: string;
+  linked_by_name?: string | null;
+  linked_at: string;
+};
 export type ResearchActivity = {
   id: number;
   action: string;
@@ -285,6 +406,7 @@ export type GeneratedDocumentSummary = {
   id: string;
   template_id: string;
   template_name: string;
+  template_key?: string;
   template_version: number;
   context: "Assignment" | "Research";
   context_id: string;
@@ -293,7 +415,20 @@ export type GeneratedDocumentSummary = {
   classification: string;
   status: string;
   version: number;
+  created_by?: string;
   created_by_name: string;
+  reviewer_id?: string | null;
+  reviewer_name?: string | null;
+  section_count?: number;
+  ready_sections?: number;
+  repository_document_id?: string | null;
+  repository_document_title?: string | null;
+  project_status?: string;
+  external_import_id?: string | null;
+  external_import_name?: string | null;
+  external_import_mime_type?: string | null;
+  external_import_version?: number | null;
+  external_import_status?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -317,9 +452,26 @@ export type GeneratedDocumentSection = {
   locked_by_name?: string;
   lock_expires_at?: string;
 };
+export type ExternalAssignmentReportImport = {
+  id: string;
+  version_number: number;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  sha256_hash: string;
+  status: string;
+  created_at: string;
+  uploader_name?: string;
+};
+
 export type GeneratedDocument = GeneratedDocumentSummary & {
   template_status: string;
   current_user_role?: "Lead" | "Contributor" | "Reviewer" | "Manager" | null;
+  can_edit_report?: boolean;
+  can_submit_report?: boolean;
+  can_review_report?: boolean;
+  can_finalize_report?: boolean;
+  external_import?: ExternalAssignmentReportImport | null;
   reviewer_name?: string;
   submitted_by_name?: string;
   submitted_at?: string;
@@ -786,13 +938,17 @@ export type DashboardWorkItem = {
     | "Task"
     | "Research Project"
     | "Research Milestone"
-    | "Review";
+    | "Review"
+    | "Finalization";
   title: string;
   status: string;
   dueDate: string | null;
   nextAction: string;
   destination: string;
   contextId: string;
+  contextTitle?: string | null;
+  ownerName?: string | null;
+  reviewKind?: "Task Report" | "Generated Document" | "Knowledge" | null;
   updatedAt?: string;
   days?: number;
   group?: "Overdue" | "Today" | "Tomorrow" | "This Week" | "Later";
@@ -825,6 +981,32 @@ export type DashboardResponse = {
     repository: { awaitingPublication: number; published: number };
   };
 };
+export type CompletedWorkResponse = {
+  assignments: {
+    id: string;
+    title: string;
+    status: string;
+    completed_at: string;
+    lead_name?: string | null;
+  }[];
+  tasks: {
+    id: string;
+    assignment_id: string;
+    title: string;
+    status: string;
+    completed_at: string;
+    assignment_title: string;
+    owner_name?: string | null;
+  }[];
+  research: {
+    id: string;
+    title: string;
+    status: string;
+    completed_at: string;
+    lead_name?: string | null;
+  }[];
+};
+
 export type NoticeItem = {
   id: string;
   title: string;
@@ -935,7 +1117,7 @@ export type SettingsResponse = {
     email_notifications: boolean;
     in_app_notifications: boolean;
     compact_layout: boolean;
-    theme_mode: "Dark" | "Light" | "System" | "Gold Grey";
+    theme_mode: "Dark" | "Light" | "System" | "Gold Grey" | "Navy Blue" | "Navy Blue";
     accent_color: "Gold" | "Blue" | "Green";
     updated_at?: string;
   };
@@ -1058,6 +1240,25 @@ async function aiRequest<T>(
     throw error;
   }
 }
+export type ResearchReportVersion = {
+  id: string;
+  project_id: string;
+  version_number: number;
+  title: string;
+  report_snapshot: { sections?: ResearchReportSection[] };
+  status: "Draft" | "Submitted" | "Changes Requested" | "Approved" | "Rejected";
+  reviewer_id: string | null;
+  reviewer_name?: string | null;
+  submitted_by?: string | null;
+  submitted_by_name?: string | null;
+  submitted_at?: string | null;
+  reviewed_by?: string | null;
+  reviewed_by_name?: string | null;
+  reviewed_at?: string | null;
+  review_comments?: string;
+  created_at: string;
+};
+
 export type ResearchReportSection = {
   id: string;
   section_key: string;
@@ -1296,10 +1497,15 @@ export const api = {
       { method: "POST" },
       token,
     ),
-  deleteAssignmentTask: (token: string, assignmentId: string, taskId: string) =>
+  deleteAssignmentTask: (
+    token: string,
+    assignmentId: string,
+    taskId: string,
+    reason: string,
+  ) =>
     request<void>(
       `/assignments/${assignmentId}/tasks/${taskId}`,
-      { method: "DELETE" },
+      { method: "DELETE", body: JSON.stringify({ reason }) },
       token,
     ),
   updateAssignmentTaskContribution: (
@@ -1311,6 +1517,37 @@ export const api = {
     request<ApiAssignmentTask>(
       `/assignments/${assignmentId}/tasks/${taskId}/contribution`,
       { method: "PATCH", body: JSON.stringify(input) },
+      token,
+    ),
+  reviewAssignmentTaskContribution: (
+    token: string,
+    assignmentId: string,
+    taskId: string,
+    input: { decision: "Changes Requested" | "Rejected" | "Approved"; comments: string },
+  ) =>
+    request<ApiAssignmentTask>(
+      `/assignments/${assignmentId}/tasks/${taskId}/contribution-review`,
+      { method: "POST", body: JSON.stringify(input) },
+      token,
+    ),
+  reopenRejectedAssignmentTask: (
+    token: string,
+    assignmentId: string,
+    taskId: string,
+  ) =>
+    request<ApiAssignmentTask>(
+      `/assignments/${assignmentId}/tasks/${taskId}/reopen-after-rejection`,
+      { method: "POST" },
+      token,
+    ),
+  finalizeAssignmentTaskContribution: (
+    token: string,
+    assignmentId: string,
+    taskId: string,
+  ) =>
+    request<ApiAssignmentTask>(
+      `/assignments/${assignmentId}/tasks/${taskId}/contribution-finalize`,
+      { method: "POST" },
       token,
     ),
   updateAssignmentTaskContributionSection: (
@@ -1352,6 +1589,12 @@ export const api = {
       status: string;
     }>(
       `/assignments/${assignmentId}/tasks/${taskId}/contribution-report`,
+      {},
+      token,
+    ),
+  taskReviewContext: (token: string, taskId: string) =>
+    request<{ assignment: ApiAssignment; task: ApiAssignmentTask }>(
+      `/task-reviews/${taskId}/context`,
       {},
       token,
     ),
@@ -1573,6 +1816,36 @@ export const api = {
     anchor.click();
     URL.revokeObjectURL(url);
   },
+  openKnowledgeCurrent: async (
+    token: string,
+    id: string,
+    fileName = "document",
+  ) => {
+    const popup = window.open("about:blank", "_blank");
+    const response = await fetch(`${API_URL}/documents/${id}/download`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      popup?.close();
+      throw new Error(
+        (await response.json().catch(() => ({}))).error ||
+          "The final report could not be opened.",
+      );
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    if (blob.type === "application/pdf" && popup) {
+      popup.location.href = url;
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else {
+      popup?.close();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+  },
   linkKnowledgeToAssignment: (token: string, id: string, assignmentId: string) =>
     request<void>(
       `/knowledge/${id}/assignments`,
@@ -1621,6 +1894,90 @@ export const api = {
       { method: "POST", body: JSON.stringify({ mode }) },
       token,
     ),
+  externalResearchImports: (token: string) =>
+    request<ExternalResearchImport[]>("/research-imports", {}, token),
+  externalResearchImport: (token: string, id: string) =>
+    request<ExternalResearchImport>(`/research-imports/${id}`, {}, token),
+  createExternalResearchImport: async (
+    token: string,
+    file: File,
+    metadata: ExternalResearchImportInput,
+  ) => {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const inferredMimeType = extension === "pdf"
+      ? "application/pdf"
+      : extension === "docx"
+        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        : extension === "md"
+          ? "text/markdown"
+          : extension === "txt"
+            ? "text/plain"
+            : "application/octet-stream";
+    const response = await fetch(`${API_URL}/research-imports`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": encodeURIComponent(file.name),
+        "X-File-Type": file.type || inferredMimeType,
+        "X-Title": encodeURIComponent(metadata.title),
+        "X-Description": encodeURIComponent(metadata.description),
+        "X-Author": encodeURIComponent(metadata.author),
+        "X-Institution": encodeURIComponent(metadata.institution),
+        "X-Directorate": encodeURIComponent(metadata.directorate),
+        "X-Research-Type": encodeURIComponent(metadata.researchType),
+        "X-Research-Date": encodeURIComponent(metadata.researchDate),
+        "X-Tags": encodeURIComponent(metadata.tags),
+        "X-Classification": metadata.classification,
+        "X-Reviewer-Ids": metadata.reviewerIds.join(","),
+        "X-Felix-Enabled": String(metadata.felixEnabled),
+      },
+      body: file,
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error || `Research import failed (HTTP ${response.status}).`);
+    return data as ExternalResearchImport;
+  },
+  startExternalResearchReview: (token: string, id: string) =>
+    request<ExternalResearchImport>(`/research-imports/${id}/start-review`, { method: "POST" }, token),
+  decideExternalResearch: (
+    token: string,
+    id: string,
+    decision: "Request Revision" | "Approve" | "Reject",
+    notes: string,
+  ) => request<ExternalResearchImport>(`/research-imports/${id}/decision`, { method: "POST", body: JSON.stringify({ decision, notes }) }, token),
+  uploadExternalResearchRevision: async (token: string, id: string, file: File, notes = "") => {
+    const response = await fetch(`${API_URL}/research-imports/${id}/revisions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": encodeURIComponent(file.name),
+        "X-File-Type": file.type || "application/octet-stream",
+        "X-Version-Notes": encodeURIComponent(notes),
+      },
+      body: file,
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.error || "Revised research version could not be uploaded.");
+    return data;
+  },
+  resubmitExternalResearch: (token: string, id: string) =>
+    request<ExternalResearchImport>(`/research-imports/${id}/resubmit`, { method: "POST" }, token),
+  loadDocumentReader: async (token: string, documentId: string, versionId?: string) => {
+    const suffix = versionId ? `/versions/${versionId}` : "";
+    const response = await fetch(`${API_URL}/documents/${documentId}${suffix}/reader`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || "Document reader could not be opened.");
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/pdf")) return { format: "pdf" as const, blob: await response.blob() };
+    return { format: "document" as const, ...(await response.json()) };
+  },
   research: (token: string) =>
     request<ResearchProject[]>("/research", {}, token),
   createResearch: (token: string, input: Record<string, unknown>) =>
@@ -1659,6 +2016,47 @@ export const api = {
       { method: "PATCH", body: JSON.stringify(input) },
       token,
     ),
+  requestResearchBriefChange: (token: string, id: string, reason: string) =>
+    request<{ requested: boolean }>(
+      `/research/${id}/brief-change-request`,
+      { method: "POST", body: JSON.stringify({ reason }) },
+      token,
+    ),
+  updateResearchReviewers: (token: string, id: string, reviewerIds: string[]) =>
+    request<{ reviewerIds: string[] }>(
+      `/research/${id}/reviewers`,
+      { method: "PATCH", body: JSON.stringify({ reviewerIds }) },
+      token,
+    ),
+  eligibleResearchReviewers: (token: string, id: string) =>
+    request<ApiUser[]>(`/research/${id}/eligible-reviewers`, {}, token),
+  createResearchAssignment: (
+    token: string,
+    researchId: string,
+    input: AssignmentInput,
+  ) =>
+    request<ApiAssignment>(
+      `/research/${researchId}/assignments`,
+      { method: "POST", body: JSON.stringify(input) },
+      token,
+    ),
+  linkResearchAssignment: (
+    token: string,
+    researchId: string,
+    assignmentId: string,
+    relationType = "Research Work",
+  ) =>
+    request<{ assignmentId: string }>(
+      `/research/${researchId}/assignments/link`,
+      { method: "POST", body: JSON.stringify({ assignmentId, relationType }) },
+      token,
+    ),
+  unlinkResearchAssignment: (token: string, researchId: string, assignmentId: string) =>
+    request<void>(
+      `/research/${researchId}/assignments/${assignmentId}`,
+      { method: "DELETE" },
+      token,
+    ),
   updateResearchStatus: (token: string, id: string, status: string) =>
     request<ResearchProject>(
       `/research/${id}/status`,
@@ -1690,6 +2088,20 @@ export const api = {
     request(
       `/research/${id}/milestones/${milestoneId}`,
       { method: "PATCH", body: JSON.stringify({ status }) },
+      token,
+    ),
+  researchRepositoryDocuments: (token: string, id: string) =>
+    request<ResearchRepositoryDocument[]>(`/research/${id}/repository-documents`, {}, token),
+  linkResearchRepositoryDocument: (token: string, id: string, knowledgeId: string) =>
+    request<{ knowledgeId: string; title: string }>(
+      `/research/${id}/repository-documents/link`,
+      { method: "POST", body: JSON.stringify({ knowledgeId }) },
+      token,
+    ),
+  unlinkResearchRepositoryDocument: (token: string, id: string, knowledgeId: string) =>
+    request<void>(
+      `/research/${id}/repository-documents/${knowledgeId}`,
+      { method: "DELETE" },
       token,
     ),
   researchSources: (token: string, id: string) =>
@@ -1837,6 +2249,27 @@ export const api = {
       { method: "PATCH", body: JSON.stringify({ resolved }) },
       token,
     ),
+  downloadResearchDocumentTemplate: async (
+    token: string,
+    id: string,
+    researchId: string,
+    name: string,
+  ) => {
+    const response = await fetch(
+      `${API_URL}/research-document-templates/${id}/download?researchId=${researchId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!response.ok)
+      throw new Error(
+        (await response.json()).error || "Research template could not be downloaded.",
+      );
+    const url = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${name}.doc`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  },
   downloadDocumentTemplate: async (
     token: string,
     id: string,
@@ -1937,6 +2370,95 @@ export const api = {
       { method: "POST", body: JSON.stringify(input) },
       token,
     ),
+  importAssignmentReport: async (
+    token: string,
+    id: string,
+    file: File,
+  ) => {
+    const response = await fetch(`${API_URL}/assignment-reports/${id}/import`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": encodeURIComponent(file.name),
+        "X-File-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok)
+      throw new Error(payload.error || "The external report could not be imported.");
+    return payload as ExternalAssignmentReportImport;
+  },
+  openImportedAssignmentReport: async (
+    token: string,
+    id: string,
+    fileName = "assignment-report",
+    mimeType = "application/octet-stream",
+  ) => {
+    const popup =
+      mimeType === "application/pdf" ? window.open("about:blank", "_blank") : null;
+    const response = await fetch(
+      `${API_URL}/assignment-reports/${id}/import/current/file`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!response.ok) {
+      popup?.close();
+      throw new Error(
+        (await response.json().catch(() => ({}))).error ||
+          "The imported report could not be opened.",
+      );
+    }
+    const url = URL.createObjectURL(await response.blob());
+    if (mimeType === "application/pdf" && popup) {
+      popup.location.href = url;
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else {
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+  },
+  fetchImportedAssignmentReportFile: async (
+    token: string,
+    id: string,
+  ) => {
+    const response = await fetch(
+      `${API_URL}/assignment-reports/${id}/import/current/file`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!response.ok) {
+      throw new Error(
+        (await response.json().catch(() => ({}))).error ||
+          "The imported report could not be opened.",
+      );
+    }
+    return {
+      blob: await response.blob(),
+      mimeType: response.headers.get("content-type") || "application/octet-stream",
+      fileName: "assignment-report",
+    };
+  },
+  readImportedAssignmentReport: (
+    token: string,
+    id: string,
+  ) =>
+    request<{ html: string; fileName: string; mimeType: string }>(
+      `/assignment-reports/${id}/import/current/reader`,
+      {},
+      token,
+    ),
+  discardImportedAssignmentReport: (
+    token: string,
+    id: string,
+  ) =>
+    request<{ discarded: boolean }>(
+      `/assignment-reports/${id}/import/current`,
+      { method: "DELETE" },
+      token,
+    ),
   compileAssignmentReport: (
     token: string,
     assignmentId: string,
@@ -1945,6 +2467,7 @@ export const api = {
       title: string;
       taskIds: string[];
       knowledgeIds: string[];
+      reportType?: "Progress" | "Final";
     },
   ) =>
     request<GeneratedDocumentSummary>(
@@ -1963,6 +2486,12 @@ export const api = {
       { method: "POST", body: JSON.stringify({ decision, comments }) },
       token,
     ),
+  finalizeAssignmentReport: (token: string, id: string) =>
+    request<{
+      report: GeneratedDocumentSummary;
+      repository_document_id: string;
+      repository_document_title: string;
+    }>(`/assignment-reports/${id}/finalize`, { method: "POST" }, token),
   newGeneratedDocumentVersion: (
     token: string,
     id: string,
@@ -2015,6 +2544,29 @@ export const api = {
 
   researchReport: (token: string, id: string) =>
     request<ResearchReportSection[]>(`/research/${id}/report`, {}, token),
+
+  researchReportVersions: (token: string, id: string) =>
+    request<ResearchReportVersion[]>(`/research/${id}/report/versions`, {}, token),
+
+  applyResearchReportTemplate: (
+    token: string,
+    id: string,
+    input: { templateKey: string; replaceExisting?: boolean },
+  ) =>
+    request<{
+      template: { name: string; template_key: string };
+      sections: ResearchReportSection[];
+    }>(
+      `/research/${id}/report/apply-template`,
+      { method: "POST", body: JSON.stringify(input) },
+      token,
+    ),
+
+  submitResearchReport: (token: string, id: string, input: { title: string; reviewerId: string }) =>
+    request<ResearchReportVersion>(`/research/${id}/report/submit`, { method: "POST", body: JSON.stringify(input) }, token),
+
+  decideResearchReport: (token: string, projectId: string, versionId: string, input: { decision: "Approved" | "Changes Requested" | "Rejected"; comments: string }) =>
+    request<ResearchReportVersion>(`/research/${projectId}/report/versions/${versionId}/decision`, { method: "POST", body: JSON.stringify(input) }, token),
 
   updateResearchReportSection: (
     token: string,
@@ -2218,6 +2770,12 @@ export const api = {
     request<ReviewEvent[]>(`/document-reviews/${id}/history`, {}, token),
   dashboard: (token: string, signal?: AbortSignal) =>
     request<DashboardResponse>("/dashboard", { signal }, token),
+  completedWork: (token: string, signal?: AbortSignal) =>
+    request<CompletedWorkResponse>(
+      "/dashboard/completed-work",
+      { signal },
+      token,
+    ),
   notifications: (token: string) =>
     request<ApiNotification[]>("/notifications", {}, token),
   readNotification: (token: string, id: string) =>
@@ -2416,7 +2974,7 @@ export const api = {
       emailNotifications: boolean;
       inAppNotifications: boolean;
       compactLayout: boolean;
-      themeMode: "Dark" | "Light" | "System" | "Gold Grey";
+      themeMode: "Dark" | "Light" | "System" | "Gold Grey" | "Navy Blue" | "Navy Blue";
       accentColor: "Gold" | "Blue" | "Green";
     },
   ) =>

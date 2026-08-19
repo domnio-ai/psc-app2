@@ -1,0 +1,460 @@
+.ai-message-content{
+  min-width:0;
+  width:100%;
+  overflow-wrap:anywhere;
+}
+
+/* =====================================
+   FELIX - CHATGPT STYLE CHAT EXPERIENCE
+   ===================================== */
+
+.ai-chat{
+  display:flex;
+  flex-direction:column;
+  height:calc(100vh - 150px);
+  min-height:620px;
+  background:#202123;
+  border:1px solid #303234;
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.ai-chat>header{
+  flex:0 0 auto;
+  background:#1b1d1f;
+}
+
+.ai-chat-messages{
+  flex:1;
+  display:block;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:28px 24px 150px;
+  scroll-behavior:smooth;
+}
+
+/* One clean conversation column */
+.ai-chat-messages article{
+  display:flex;
+  box-sizing:border-box;
+  width:100%;
+  max-width:860px;
+  margin:0 auto 26px;
+  align-items:flex-start;
+  gap:12px;
+}
+
+/* Felix avatar marker */
+.ai-chat-messages article>span{
+  display:grid;
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  place-items:center;
+  border-radius:50%;
+  background:#2c2f31;
+  color:var(--yellow);
+  font-size:8px;
+  font-weight:800;
+}
+
+/* Assistant response area */
+.ai-chat-messages article.assistant .ai-message-content{
+  flex:1;
+  min-width:0;
+}
+
+/* Felix response should read like a document, not a bubble */
+.ai-chat-messages article.assistant .felix-answer{
+  background:transparent;
+  border:0;
+  border-radius:0;
+  padding:0 0 8px;
+  box-shadow:none;
+  color:#e4e4e4;
+}
+
+/* User messages remain compact */
+.ai-chat-messages article.user{
+  justify-content:flex-end;
+  flex-direction:row;
+}
+
+.ai-chat-messages article.user>span{
+  display:none;
+}
+
+.ai-chat-messages article.user .ai-message-content{
+  width:auto;
+  max-width:72%;
+}
+
+.ai-chat-messages article.user p{
+  margin:0;
+  padding:11px 16px;
+  border-radius:20px;
+  background:#343638;
+  color:#f5f5f5;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+
+/* ===================
+   FELIX ANSWER FORMAT
+   =================== */
+
+.felix-answer-title{
+  margin:0 0 16px;
+  padding-bottom:12px;
+  border-bottom:1px solid color-mix(in srgb,var(--yellow) 35%,transparent);
+  color:var(--yellow);
+  font-size:18px;
+  line-height:1.25;
+  font-weight:850;
+  letter-spacing:.35px;
+}
+
+.felix-answer-section{
+  margin:20px 0 9px;
+  color:#e7c95c;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.felix-answer-body{
+  margin:0 0 12px !important;
+  padding:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#e5e5e5 !important;
+  font-size:14px;
+  line-height:1.72;
+}
+
+.felix-answer-space{
+  height:7px;
+}
+
+.felix-answer-bullet{
+  position:relative;
+  display:block;
+  margin:7px 0;
+  padding-left:18px;
+}
+
+.felix-answer-bullet::before{
+  content:"•";
+  position:absolute;
+  left:2px;
+  top:0;
+  color:var(--yellow);
+  font-size:14px;
+  font-weight:900;
+}
+
+.felix-answer-bullet>span{
+  display:none;
+}
+
+.felix-answer-bullet>p{
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#e4e4e4 !important;
+  font-size:14px;
+  line-height:1.62;
+}
+
+.felix-answer-step{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  margin:9px 0;
+}
+
+.felix-answer-step>strong{
+  flex:0 0 auto;
+  min-width:22px;
+  color:var(--yellow);
+  font-size:13px;
+  font-weight:850;
+}
+
+.felix-answer-step>p{
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#e4e4e4 !important;
+  font-size:14px;
+  line-height:1.62;
+}
+
+/* ==================
+   META INFORMATION
+   ================== */
+
+.felix-mode-label{
+  display:inline-block;
+  margin:0 0 10px;
+  padding:3px 7px;
+  border:1px solid #4c452d;
+  border-radius:6px;
+  background:#262318;
+  color:#d8bd5c;
+  font-size:8px;
+  font-weight:700;
+}
+
+.felix-confidence{
+  display:block;
+  margin-top:14px !important;
+  color:#8ce3af !important;
+  font-size:9px;
+  font-weight:700;
+}
+
+.felix-references{
+  display:block;
+  margin-top:18px !important;
+  padding:10px 0 !important;
+  border:0 !important;
+  border-top:1px solid #383a3c !important;
+  border-radius:0 !important;
+  color:#92989b !important;
+  font-size:9px;
+}
+
+.felix-references summary{
+  cursor:pointer;
+  color:#c7ab54 !important;
+  font-weight:750;
+}
+
+.felix-references code{
+  display:block;
+  margin-top:7px;
+  padding:0;
+  background:transparent;
+  color:#9da5a8;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  font:9px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+
+/* ==================
+   ACTIONS / FINDINGS
+   ================== */
+
+.felix-confirm-action{
+  display:block;
+  margin-top:12px;
+  padding:9px 13px;
+  border:1px solid #b9932d;
+  border-radius:8px;
+  background:#d8ad38;
+  color:#151515;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.felix-confirm-action:disabled{
+  opacity:.5;
+}
+
+.felix-action-done{
+  display:block;
+  margin-top:9px;
+  color:#74d9a0;
+  font-size:9px;
+}
+
+.felix-download-report{
+  margin-top:12px;
+  padding:9px 13px;
+  border:1px solid #527a68;
+  border-radius:8px;
+  background:#17352a;
+  color:#8ce3af;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.felix-finding{
+  display:grid;
+  gap:5px;
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #3a3420;
+  border-radius:8px;
+  background:#191914;
+}
+
+/* =================
+   CHAT INPUT / BOX
+   ================= */
+
+.ai-chat-input{
+  position:sticky;
+  bottom:0;
+  z-index:10;
+  display:flex;
+  align-items:flex-end;
+  width:min(860px,calc(100% - 32px));
+  margin:0 auto 16px;
+  padding:9px 9px 9px 17px;
+  gap:8px;
+  border:1px solid #505356;
+  border-radius:28px;
+  background:#303236;
+  box-shadow:0 -12px 35px rgba(0,0,0,.25);
+}
+
+.ai-chat-input textarea{
+  flex:1;
+  min-height:24px;
+  max-height:150px;
+  height:42px;
+  padding:10px 3px;
+  border:0;
+  outline:0;
+  border-radius:0;
+  background:transparent;
+  color:#f4f4f4;
+  font-size:14px;
+  line-height:1.45;
+  resize:none;
+}
+
+.ai-chat-input textarea:focus{
+  border:0;
+  outline:0;
+  box-shadow:none;
+}
+
+.ai-chat-input textarea::placeholder{
+  color:#8c8f92;
+}
+
+/* Circular send button */
+.ai-chat-input button{
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:var(--yellow);
+  color:#151515;
+  font-size:0;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.ai-chat-input button::after{
+  content:"↑";
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+}
+
+.ai-chat-input button:disabled{
+  opacity:.35;
+  cursor:default;
+}
+
+/* Footer note */
+.ai-chat-scope{
+  display:block;
+  max-width:860px;
+  margin:-7px auto 12px;
+  padding:0 15px;
+  color:#777;
+  text-align:center;
+  font-size:8px;
+  line-height:1.4;
+}
+
+/* =================
+   GOLD GREY THEME
+   ================= */
+
+[data-theme="gold-grey"] .ai-chat-messages article.assistant .felix-answer{
+  background:transparent;
+  color:#f5f2e9;
+}
+
+[data-theme="gold-grey"] .felix-answer-body,
+[data-theme="gold-grey"] .felix-answer-bullet>p,
+[data-theme="gold-grey"] .felix-answer-step>p{
+  color:#f5f2e9 !important;
+}
+
+[data-theme="gold-grey"] .ai-chat-input{
+  background:#3b3e41;
+  border-color:#747679;
+}
+
+/* ================
+   RESPONSIVE VIEW
+   ================ */
+
+@media(max-width:900px){
+  .ai-chat{
+    min-height:560px;
+  }
+
+  .ai-chat-messages{
+    padding:20px 14px 135px;
+  }
+
+  .ai-chat-messages article{
+    max-width:100%;
+  }
+
+  .ai-chat-messages article.user .ai-message-content{
+    max-width:88%;
+  }
+
+  .ai-chat-input{
+    width:calc(100% - 20px);
+  }
+}
+
+.felix-answer-citation{
+  display:inline-flex;
+  margin-left:7px;
+  padding:2px 6px;
+  border:1px solid color-mix(in srgb,var(--yellow) 32%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--yellow) 8%,transparent);
+  color:var(--yellow);
+  font-size:10px;
+  font-style:normal;
+  font-weight:750;
+  white-space:nowrap;
+}
+
+.felix-document-lock{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:10px 18px 0;
+  padding:8px 10px;
+  border:1px solid color-mix(in srgb,var(--yellow) 55%,#555);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--yellow) 8%,transparent);
+  color:var(--text-primary,#eee);
+  font-size:10px;
+}
+.felix-document-lock button{border:0;background:transparent;color:var(--yellow);font-size:9px;cursor:pointer;text-decoration:underline}
+.felix-evidence-scope{margin-top:12px;padding-top:9px;border-top:1px solid #4a4c4e;color:var(--text-muted,#aaa);font-size:9px}
+.felix-evidence-scope summary{cursor:pointer;color:var(--yellow);font-weight:750}
+.felix-evidence-scope dl{display:grid;gap:4px;margin:8px 0 0}.felix-evidence-scope dl div{display:grid;grid-template-columns:100px 1fr;gap:8px}.felix-evidence-scope dt{color:var(--text-muted,#999)}.felix-evidence-scope dd{margin:0;color:var(--text-primary,#eee)}

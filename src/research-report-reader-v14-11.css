@@ -1,0 +1,9 @@
+/* App2 Research Report Reader V14.11
+   Reader is intentionally above the full-screen editor. */
+.modal-backdrop:has(.research-report-preview-modal){
+  z-index:22000!important;
+}
+.research-report-preview-modal{
+  position:relative!important;
+  z-index:22001!important;
+}

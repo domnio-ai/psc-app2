@@ -1,0 +1,62 @@
+/* App2 Research Workspace Live V8 */
+.research-workspace[data-tab="Overview"]>.research-overview-panel,
+.research-workspace[data-tab="Overview"]>.research-team-panel,
+.research-workspace[data-tab="Overview"]>.research-brief-card{
+  display:block!important;
+}
+.research-workspace .research-overview-simple-head{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  margin-bottom:12px!important;
+}
+.research-workspace .research-overview-simple-head small,
+.research-workspace .research-work-section-head small{
+  color:var(--rw-primary)!important;font-size:12px!important;font-weight:850!important;letter-spacing:.06em!important;
+}
+.research-workspace .research-overview-simple-head h3,
+.research-workspace .research-work-section-head h3{
+  margin:3px 0!important;color:var(--text)!important;font-size:max(16px,1.04rem)!important;
+}
+.research-workspace .workspace-document-overview{
+  margin-top:14px!important;padding-top:14px!important;border-top:1px solid var(--rw-border)!important;
+}
+.research-workspace .workspace-document-overview>header{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;
+}
+.research-workspace .workspace-document-actions{display:flex!important;align-items:center!important;gap:8px!important}
+.research-workspace .workspace-attach-report{
+  position:relative!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:38px!important;padding:8px 13px!important;border:0!important;border-radius:8px!important;
+  background:linear-gradient(135deg,var(--rw-primary),var(--rw-primary-2))!important;color:#fff!important;
+  font-size:12px!important;font-weight:800!important;cursor:pointer!important;overflow:hidden!important;
+}
+.research-workspace .workspace-attach-report input{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important;
+}
+.research-workspace .workspace-document-overview-list{
+  display:grid!important;gap:7px!important;margin-top:10px!important;
+}
+.research-workspace .workspace-document-overview-list button{
+  width:100%!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;padding:10px 12px!important;border:1px solid var(--rw-border)!important;border-radius:9px!important;
+  background:var(--surface)!important;color:var(--text)!important;text-align:left!important;
+}
+.research-workspace .workspace-document-overview-list button:hover{
+  border-color:color-mix(in srgb,var(--rw-primary) 50%,var(--rw-border))!important;
+  background:color-mix(in srgb,var(--rw-primary) 5%,var(--surface))!important;
+}
+.research-workspace .workspace-document-overview-list button em{
+  color:var(--rw-primary)!important;font-style:normal!important;font-size:12px!important;font-weight:800!important;
+}
+.research-workspace[data-tab="Work"]>.research-milestones-panel,
+.research-workspace[data-tab="Work"]>.research-work-panel,
+.research-workspace[data-tab="Work"]>.research-discussion-panel{
+  display:block!important;margin:14px 26px!important;padding:16px 18px!important;
+  border:1px solid var(--rw-border)!important;border-radius:12px!important;background:var(--surface-strong)!important;
+}
+.research-workspace[data-tab="Work"] .research-work-head-actions>.research-import-action{display:none!important}
+.research-workspace[data-tab="Work"] .research-discussion-kpis{display:none!important}
+.research-workspace[data-tab="Work"] .research-work-section-head{margin-bottom:10px!important}
+@media(max-width:720px){
+  .research-workspace .workspace-document-overview>header{align-items:flex-start!important;flex-direction:column!important}
+  .research-workspace .workspace-document-actions{width:100%!important;justify-content:space-between!important}
+}

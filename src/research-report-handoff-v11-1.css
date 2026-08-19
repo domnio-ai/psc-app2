@@ -1,0 +1,120 @@
+/* ============================================================
+   App2 Research Report Handoff V11.1
+   Clear route: Edit -> Preview -> Templates -> Review -> Final
+   Assignment editor defaults are untouched.
+   ============================================================ */
+
+.research-workspace[data-tab="Report"] .report-builder-head{
+  grid-template-columns:minmax(0,1fr) auto auto auto!important;
+}
+.research-workspace .research-report-review-action{
+  min-height:40px!important;
+  padding:8px 14px!important;
+  border:1px solid color-mix(in srgb,var(--rw-primary) 45%,var(--rw-border))!important;
+  border-radius:8px!important;
+  background:var(--surface)!important;
+  color:var(--rw-primary)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.research-workspace .research-report-review-action:hover:not(:disabled){
+  background:color-mix(in srgb,var(--rw-primary) 8%,var(--surface))!important;
+}
+.research-workspace .research-report-review-action:disabled{
+  opacity:.5!important;
+  cursor:not-allowed!important;
+}
+
+/* Review is the only formal handoff/decision surface. */
+.research-workspace[data-tab="Review"] .research-submit-review-section{
+  margin:14px 26px!important;
+  padding:16px 18px!important;
+  border:1px solid var(--rw-border)!important;
+  border-radius:12px!important;
+  background:var(--surface-strong)!important;
+  box-shadow:none!important;
+}
+.research-workspace[data-tab="Review"] .research-submit-review-section>div:first-child p{
+  margin:0 0 3px!important;
+  color:var(--rw-primary)!important;
+  font-size:12px!important;
+  font-weight:850!important;
+  letter-spacing:.06em!important;
+}
+.research-workspace[data-tab="Review"] .research-submit-review-section>div:first-child h3{
+  margin:0!important;
+  color:var(--text)!important;
+  font-size:max(16px,1.04rem)!important;
+}
+.research-workspace[data-tab="Review"] .research-submit-review-section>div:first-child span{
+  display:block!important;
+  margin-top:4px!important;
+  color:var(--muted)!important;
+  font-size:max(12px,.84rem)!important;
+  line-height:1.45!important;
+}
+.research-workspace .research-review-journey{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  margin:12px 0!important;
+}
+.research-workspace .research-review-journey span{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-height:40px!important;
+  padding:8px 10px!important;
+  border:1px solid var(--rw-border)!important;
+  border-radius:8px!important;
+  background:var(--surface)!important;
+  color:var(--text)!important;
+  font-size:12px!important;
+}
+.research-workspace .research-review-journey b{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:22px!important;
+  height:22px!important;
+  border-radius:50%!important;
+  background:color-mix(in srgb,var(--rw-primary) 12%,var(--surface))!important;
+  color:var(--rw-primary)!important;
+  font-size:12px!important;
+}
+.research-workspace .research-report-review-actions>button:first-child,
+.research-workspace .research-report-review-actions .approve{
+  min-height:40px!important;
+  border:0!important;
+  border-radius:8px!important;
+  background:linear-gradient(135deg,var(--rw-primary),var(--rw-primary-2))!important;
+  color:#fff!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
+
+/* Full-screen section editor: explicit way back to Report. */
+.section-window-actions .section-return-button{
+  min-width:116px!important;
+  border:1px solid #56616a!important;
+  background:#252b2f!important;
+  color:#f2f5f7!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.section-footer-navigation .final-document-link{
+  color:#f2c94c!important;
+  border-color:#8b762f!important;
+}
+
+@media(max-width:900px){
+  .research-workspace[data-tab="Report"] .report-builder-head{
+    grid-template-columns:1fr!important;
+  }
+  .research-workspace .research-report-review-action{
+    width:100%!important;
+  }
+  .research-workspace .research-review-journey{
+    grid-template-columns:1fr 1fr!important;
+  }
+}

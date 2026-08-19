@@ -1,0 +1,288 @@
+/* ============================================================
+   APP2 ROLE-AWARE NAVIGATION & LAYOUT ENFORCEMENT V1
+   Dashboard content stays on Dashboard. Module workspaces get the
+   full content canvas. Counts open exact action queues.
+   ============================================================ */
+
+/* Hard route isolation: dashboard widgets must never leak into modules. */
+.dashboard-content:not(.dashboard-active) > .dashboard-command-centre,
+.dashboard-content:not(.dashboard-active) > .operational-dashboard,
+.dashboard-content:not(.dashboard-active) > .legacy-dashboard-section,
+.dashboard-content:not(.dashboard-active) > .management-area,
+.dashboard-content:not(.dashboard-active) > .primary-grid,
+.dashboard-content:not(.dashboard-active) > .dashboard-research-status,
+.dashboard-content:not(.dashboard-active) > .bottom-grid,
+.dashboard-content:not(.dashboard-active) > .stats-grid.deadline-summary-grid {
+  display: none !important;
+}
+
+/* Dashboard does not render module bodies behind its own cards. */
+.dashboard-active > .assignment-management-view,
+.dashboard-active > .research-management-view,
+.dashboard-active > .ai-research-management-view,
+.dashboard-active > .document-management-view,
+.dashboard-active > .notification-management-view,
+.dashboard-active > .notice-board-view,
+.dashboard-active > .calendar-management-view,
+.dashboard-active > .reports-management-view,
+.dashboard-active > .user-management-view,
+.dashboard-active > .audit-management-view,
+.dashboard-active > .settings-management-view {
+  display: none !important;
+}
+
+/* Non-dashboard workspaces own the full available canvas. */
+.dashboard-content:not(.dashboard-active) > .assignment-management-view,
+.dashboard-content:not(.dashboard-active) > .research-management-view,
+.dashboard-content:not(.dashboard-active) > .ai-research-management-view,
+.dashboard-content:not(.dashboard-active) > .document-management-view,
+.dashboard-content:not(.dashboard-active) > .notification-management-view,
+.dashboard-content:not(.dashboard-active) > .notice-board-view,
+.dashboard-content:not(.dashboard-active) > .calendar-management-view,
+.dashboard-content:not(.dashboard-active) > .reports-management-view,
+.dashboard-content:not(.dashboard-active) > .user-management-view,
+.dashboard-content:not(.dashboard-active) > .audit-management-view,
+.dashboard-content:not(.dashboard-active) > .settings-management-view {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Manager personal reviews are a full-width action queue, never a sidebar. */
+.management-dashboard-mode .manager-personal-reviews-card {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.management-dashboard-mode .manager-personal-reviews-card .dashboard-work-list {
+  width: 100% !important;
+}
+.management-dashboard-mode .manager-personal-reviews-card .dashboard-work-list > button {
+  grid-template-columns: auto minmax(260px, 1fr) minmax(150px, auto) !important;
+  gap: 14px !important;
+  min-width: 0 !important;
+}
+.management-dashboard-mode .manager-personal-reviews-card strong,
+.management-dashboard-mode .manager-personal-reviews-card small {
+  overflow-wrap: anywhere;
+}
+
+/* Keep dashboard rows concise: details belong in the opened record. */
+.management-dashboard-mode .my-work-card .dashboard-work-list > button > div {
+  min-width: 0;
+}
+.management-dashboard-mode .my-work-card .dashboard-work-list > button > div > strong {
+  display: block;
+}
+
+/* Exact-record action queue shown from dashboard totals. */
+.dashboard-action-queue-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1450;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(4, 10, 18, .68);
+  backdrop-filter: blur(4px);
+}
+.dashboard-action-queue {
+  width: min(880px, calc(100vw - 34px));
+  max-height: min(760px, calc(100vh - 42px));
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-primary);
+  box-shadow: 0 28px 80px rgba(0,0,0,.42);
+}
+.dashboard-action-queue > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-secondary);
+}
+.dashboard-action-queue > header p {
+  margin: 0 0 4px;
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.dashboard-action-queue > header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 21px;
+}
+.dashboard-action-queue > header span {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.dashboard-action-queue > header > button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-size: 20px;
+}
+.dashboard-action-queue-list {
+  display: grid;
+  max-height: 620px;
+  overflow: auto;
+}
+.dashboard-action-queue-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(145px, auto);
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  padding: 14px 20px;
+  border: 0;
+  border-bottom: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+.dashboard-action-queue-list > button:hover,
+.dashboard-action-queue-list > button:focus-visible {
+  background: var(--surface-secondary);
+}
+.dashboard-action-queue-list > button > span,
+.dashboard-action-queue-list > button strong,
+.dashboard-action-queue-list > button small,
+.dashboard-action-queue-list > button b {
+  display: block;
+}
+.dashboard-action-queue-list > button strong {
+  font-size: 14px;
+}
+.dashboard-action-queue-list > button small {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.dashboard-action-queue-list > button > span:last-child {
+  text-align: right;
+}
+.dashboard-action-queue-list > button b {
+  color: var(--accent-primary);
+  font-size: 12px;
+}
+.dashboard-action-queue-empty {
+  padding: 50px 20px;
+  text-align: center;
+}
+.dashboard-action-queue-empty strong,
+.dashboard-action-queue-empty span {
+  display: block;
+}
+.dashboard-action-queue-empty span {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Notifications: one authoritative list, with direct actions. */
+.notification-management-view > .legacy-notification-list {
+  display: none !important;
+}
+.actionable-notification-list > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-primary);
+}
+.actionable-notification-list > article.unread {
+  border-color: color-mix(in srgb, var(--accent-primary) 48%, var(--border-default));
+}
+.actionable-notification-list .notification-summary {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+}
+.actionable-notification-list .notification-summary span,
+.actionable-notification-list .notification-summary strong,
+.actionable-notification-list .notification-summary small,
+.actionable-notification-list .notification-summary time {
+  display: block;
+}
+.actionable-notification-list .notification-summary strong {
+  font-size: 14px;
+}
+.actionable-notification-list .notification-summary small {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.actionable-notification-list .notification-summary time {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.actionable-notification-list .notification-summary > b {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 3px 7px;
+  border-radius: 99px;
+  background: var(--accent-primary);
+  color: var(--button-primary-text, #111);
+  font-size: 12px;
+}
+.actionable-notification-list .notification-direct-action {
+  min-width: 150px;
+  padding: 0 16px;
+  border: 0;
+  border-left: 1px solid var(--border-default);
+  background: var(--surface-secondary);
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+.actionable-notification-list .notification-direct-action:hover,
+.actionable-notification-list .notification-direct-action:focus-visible {
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-secondary));
+}
+
+@media (max-width: 820px) {
+  .management-dashboard-mode .manager-personal-reviews-card .dashboard-work-list > button {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+  .management-dashboard-mode .manager-personal-reviews-card .dashboard-work-list > button > span:last-child {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+  }
+  .dashboard-action-queue-list > button {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .dashboard-action-queue-list > button > span:last-child {
+    text-align: left;
+  }
+  .actionable-notification-list > article {
+    grid-template-columns: 1fr;
+  }
+  .actionable-notification-list .notification-direct-action {
+    min-height: 42px;
+    border-left: 0;
+    border-top: 1px solid var(--border-default);
+  }
+}

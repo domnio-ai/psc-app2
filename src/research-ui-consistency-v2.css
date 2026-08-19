@@ -1,0 +1,473 @@
+/* App2 Research Repository UI consistency v2
+   Final research-only override. Imported last from App.tsx so legacy Phase 5
+   !important layout rules cannot collapse the five-tab workspace. */
+
+/* ---------- Shared research readability ---------- */
+.research-management-view,
+.research-workspace,
+.research-wizard-shell,
+.external-research-import-modal,
+.external-research-reader-shell {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+:is(.research-management-view,.research-workspace,.research-wizard-shell,.external-research-import-modal,.external-research-reader-shell)
+:is(button,input,select,textarea,label,small,span,p,dt,dd,li) {
+  font-size: max(12px, 1em) !important;
+}
+
+/* ---------- Repository landing page ---------- */
+.research-management-view {
+  width: 100% !important;
+  max-width: none !important;
+  padding-bottom: 28px !important;
+}
+
+.research-management-view .research-repository-head {
+  align-items: center !important;
+  min-height: 0 !important;
+  padding: 16px 20px !important;
+  margin-bottom: 12px !important;
+}
+
+.research-management-view .research-repository-head h2 {
+  margin: 2px 0 4px !important;
+  font-size: 22px !important;
+}
+
+.research-management-view .research-repository-head > div > span {
+  max-width: 900px !important;
+  font-size: 14px !important;
+}
+
+.research-portfolio-summary {
+  grid-template-columns: repeat(4,minmax(150px,1fr)) !important;
+  gap: 10px !important;
+  margin: 0 0 10px !important;
+}
+.research-portfolio-summary article {
+  min-height: 62px !important;
+  padding: 10px 14px !important;
+}
+.research-portfolio-summary article strong { font-size: 24px !important; }
+
+.research-repository-mode {
+  min-height: 44px !important;
+  margin: 0 0 10px !important;
+  padding: 4px !important;
+}
+.research-repository-mode button {
+  min-height: 36px !important;
+  padding: 7px 12px !important;
+}
+
+.research-portfolio-toolbar {
+  grid-template-columns: minmax(300px,1fr) 180px auto auto !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  margin-bottom: 12px !important;
+}
+.research-portfolio-toolbar input,
+.research-portfolio-toolbar select { min-height: 40px !important; }
+
+.research-grid.list-view > article {
+  grid-template-columns: 112px minmax(280px,2fr) minmax(220px,1fr) minmax(190px,auto) !important;
+  grid-template-areas:
+    "status title meta actions"
+    "status summary people actions" !important;
+  min-height: 104px !important;
+  padding: 14px 16px !important;
+  column-gap: 18px !important;
+  row-gap: 5px !important;
+  overflow: hidden !important;
+}
+.research-grid.list-view > article > .research-status:first-child {
+  grid-area: status !important;
+  position: static !important;
+  align-self: start !important;
+  margin-top: 2px !important;
+  transform: none !important;
+}
+.research-grid.list-view > article > h3 {
+  grid-area: title !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 17px !important;
+  line-height: 1.3 !important;
+}
+.research-grid.list-view > article > p:first-of-type {
+  grid-area: summary !important;
+  margin: 0 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+.research-grid.list-view > article > dl { grid-area: meta !important; }
+.research-grid.list-view > article > .research-collaborators { grid-area: people !important; }
+.research-grid.list-view > article > .research-card-actions {
+  grid-area: actions !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+.research-grid.list-view > article > h4,
+.research-grid.list-view > article > h4 + p { display:none !important; }
+
+.research-open-workspace {
+  min-width: 160px !important;
+  min-height: 42px !important;
+  padding: 9px 14px !important;
+}
+
+/* ---------- Full research workspace shell ---------- */
+.research-workspace {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1190 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: var(--surface-page,var(--surface)) !important;
+  color: var(--text) !important;
+  padding-bottom: 36px !important;
+}
+
+.research-command-header {
+  position: relative !important;
+  display: block !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.research-command-top {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 120px minmax(0,1fr) 190px !important;
+  align-items: start !important;
+  gap: 18px !important;
+  min-height: 0 !important;
+  padding: 14px 22px 12px !important;
+}
+
+.research-command-back {
+  grid-column: 1 !important;
+  align-self: start !important;
+  width: fit-content !important;
+  min-height: 38px !important;
+  height: auto !important;
+  padding: 8px 12px !important;
+}
+
+.research-command-title {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+}
+.research-command-title > p {
+  margin: 0 0 2px !important;
+  font-size: 12px !important;
+  letter-spacing: .1em !important;
+}
+.research-command-title > h1 {
+  margin: 0 !important;
+  font-size: clamp(20px,1.7vw,27px) !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+.research-command-subtitle {
+  margin-top: 4px !important;
+  max-width: 900px !important;
+  font-size: 13px !important;
+}
+
+.research-command-meta {
+  display: flex !important;
+  align-items: stretch !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-top: 9px !important;
+}
+.research-command-meta > span,
+.research-command-meta-item,
+.research-command-status {
+  display: inline-flex !important;
+  min-height: 38px !important;
+  height: auto !important;
+  padding: 6px 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: var(--surface-strong) !important;
+}
+.research-command-meta-item {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 0 !important;
+}
+.research-command-meta-item small {
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: .04em !important;
+}
+.research-command-meta-item strong { font-size: 13px !important; }
+.research-command-status {
+  align-items: center !important;
+  border-color: color-mix(in srgb,var(--accent) 52%,var(--border)) !important;
+  color: var(--accent) !important;
+  font-weight: 850 !important;
+}
+
+.research-command-actions {
+  grid-column: 3 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+.research-command-close {
+  order: 2 !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+}
+.research-record-actions {
+  order: 1 !important;
+  position: static !important;
+  display: flex !important;
+  margin: 0 !important;
+}
+.research-record-actions button {
+  min-height: 38px !important;
+  padding: 7px 11px !important;
+  border-radius: 8px !important;
+  white-space: nowrap !important;
+}
+
+/* Legacy team strip is intentionally suppressed; Project Accountability below is the canonical team view. */
+.research-command-team { display:none !important; }
+
+/* Tabs remain available while the workspace scrolls. */
+.research-workspace-tabs {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 35 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 7px 18px !important;
+  min-height: 50px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: color-mix(in srgb,var(--surface-strong) 96%,transparent) !important;
+  backdrop-filter: blur(10px) !important;
+}
+.research-workspace-tabs button {
+  min-height: 36px !important;
+  height: auto !important;
+  padding: 7px 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+  font-size: 13px !important;
+}
+.research-workspace-tabs button.active {
+  border-color: color-mix(in srgb,var(--accent) 62%,var(--border)) !important;
+  background: var(--accent) !important;
+  color: var(--accent-contrast,#171717) !important;
+}
+
+/* Workflow is a compact strip, not a second large navigation bar. */
+.research-workflow-guide {
+  display: grid !important;
+  grid-template-columns: repeat(5,minmax(120px,1fr)) !important;
+  gap: 6px !important;
+  margin: 12px 18px 0 !important;
+  padding: 8px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: var(--surface) !important;
+  overflow-x: auto !important;
+}
+.research-workflow-guide > div {
+  min-height: 40px !important;
+  padding: 6px 8px !important;
+}
+.research-workflow-guide > div > span {
+  width: 26px !important;
+  height: 26px !important;
+  flex-basis: 26px !important;
+}
+
+.research-next-action {
+  margin: 8px 18px 0 !important;
+  padding: 10px 12px !important;
+  min-height: 62px !important;
+}
+.research-next-action strong { font-size: 15px !important; }
+.research-next-action > button {
+  min-height: 38px !important;
+  padding: 7px 12px !important;
+}
+.research-workspace-notice { margin: 8px 18px 0 !important; }
+
+/* Critical fix: legacy phase5 gave every visible section flex:1/min-height:0.
+   With Overview showing multiple sections this collapsed them to thin bars.
+   All visible research sections now take natural height and the workspace scrolls. */
+.research-workspace > section {
+  flex: none !important;
+  width: auto !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 12px 18px 0 !important;
+  padding: 18px !important;
+  overflow: visible !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+.research-workspace > section[style*="display: none"] { display:none !important; }
+.research-workspace > section > h3,
+.research-workspace > section > header h3 {
+  margin: 0 0 6px !important;
+  font-size: 18px !important;
+}
+.research-workspace > section > p,
+.research-workspace > section > header p {
+  margin-top: 4px !important;
+  color: var(--muted) !important;
+  line-height: 1.55 !important;
+}
+
+.research-overview-panel,
+.research-team-panel,
+.research-plan-editor,
+.research-work-panel,
+.research-milestones-panel,
+.research-discussion-panel,
+.research-sources-panel,
+.research-builder-documents-panel,
+.research-report-builder,
+.research-activity-panel {
+  min-height: 0 !important;
+}
+
+.research-overview-metrics {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(160px,1fr)) !important;
+  gap:8px !important;
+  margin-top:12px !important;
+}
+.research-overview-metrics > span {
+  min-height: 62px !important;
+  padding: 9px 11px !important;
+}
+
+/* Work / Resources / Activity lists should expand naturally. */
+.research-assignment-list > article,
+.research-source-list article,
+.workspace-generated-documents > button,
+.research-activity-panel article {
+  min-height: 0 !important;
+}
+
+/* Report tab gets a usable document-working area without trapping the whole workspace. */
+.research-workspace[data-tab="Report"] > .research-report-builder {
+  overflow: visible !important;
+}
+.research-workspace[data-tab="Report"] .report-builder-layout {
+  height: auto !important;
+  min-height: 560px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.research-workspace[data-tab="Report"] .report-editor {
+  min-height: 560px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+.research-workspace[data-tab="Report"] .report-editor > textarea {
+  min-height: 400px !important;
+  height: auto !important;
+}
+
+/* ---------- Create research wizard ---------- */
+.research-wizard-header { min-height: 76px !important; padding: 11px 18px !important; }
+.research-wizard-header h1 { font-size: 21px !important; }
+.research-wizard-body { grid-template-columns: 250px minmax(0,1fr) !important; }
+.research-wizard-steps { padding: 16px 12px !important; }
+.research-wizard-steps > button { min-height: 52px !important; padding: 9px !important; }
+.research-wizard-form > section { padding: 22px clamp(20px,4vw,54px) !important; }
+.research-wizard-form label,
+.research-wizard-form input,
+.research-wizard-form select,
+.research-wizard-form textarea { font-size: 13px !important; }
+
+/* ---------- External research import / reader ---------- */
+.external-research-import-modal {
+  width: min(920px,calc(100vw - 32px)) !important;
+  max-height: calc(100dvh - 32px) !important;
+  overflow-y: auto !important;
+}
+.external-research-import-modal > header { position: sticky !important; top: 0 !important; z-index: 2 !important; }
+.external-reader-header h1 { font-size: clamp(19px,2vw,25px) !important; }
+.external-reader-layout { min-height: 0 !important; }
+.external-reader-document { min-width: 0 !important; }
+
+@media (max-width: 1100px) {
+  .research-command-top { grid-template-columns: 105px minmax(0,1fr) 160px !important; }
+  .research-grid.list-view > article {
+    grid-template-columns: 100px minmax(240px,1.6fr) minmax(190px,1fr) !important;
+    grid-template-areas:
+      "status title actions"
+      "status summary actions"
+      "status meta people" !important;
+  }
+  .research-portfolio-toolbar { grid-template-columns: minmax(240px,1fr) 170px auto !important; }
+  .research-portfolio-toolbar > strong { grid-column:1/-1 !important; }
+}
+
+@media (max-width: 760px) {
+  .research-portfolio-summary { grid-template-columns:repeat(2,1fr) !important; }
+  .research-portfolio-toolbar { grid-template-columns:1fr !important; }
+  .research-grid.list-view > article {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+  }
+  .research-card-actions { justify-content:flex-start !important; }
+  .research-command-top {
+    grid-template-columns:auto 1fr auto !important;
+    gap:10px !important;
+    padding:10px 12px !important;
+  }
+  .research-command-back { grid-column:1 !important; }
+  .research-command-title { grid-column:1/-1 !important; grid-row:2 !important; }
+  .research-command-actions { grid-column:3 !important; grid-row:1 !important; }
+  .research-record-actions button { font-size:12px !important; padding:6px 8px !important; }
+  .research-workspace-tabs { padding:6px 10px !important; }
+  .research-workflow-guide,
+  .research-next-action,
+  .research-workspace-notice,
+  .research-workspace > section { margin-left:10px !important; margin-right:10px !important; }
+  .research-next-action { align-items:flex-start !important; flex-direction:column !important; }
+  .research-overview-metrics { grid-template-columns:1fr !important; }
+  .research-wizard-body { grid-template-columns:1fr !important; }
+}

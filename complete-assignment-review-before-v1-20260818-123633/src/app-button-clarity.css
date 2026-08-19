@@ -1,0 +1,99 @@
+/* APP2 GLOBAL BUTTON CLARITY V1
+   Every interactive button must look interactive in every theme. */
+button {
+  min-height: 34px;
+  border: 1px solid var(--border-strong, var(--border-default, #64748b));
+  border-radius: 7px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-primary, #f4f7fb);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent-primary, #d6a92d);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary, #d6a92d) 35%, transparent);
+}
+button:focus-visible {
+  outline: 2px solid var(--accent-primary, #d6a92d);
+  outline-offset: 2px;
+}
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .58; cursor: not-allowed; }
+button.primary,
+button.app-action-primary,
+.assignment-report-workflow-card button.primary {
+  border-color: var(--accent-primary, #d6a92d);
+  background: var(--accent-primary, #d6a92d);
+  color: var(--button-primary-text, #111827);
+}
+button.danger,
+button.task-delete-button {
+  border-color: var(--danger, #e46f69);
+}
+
+/* Assignment reporting action clarity */
+.assignment-report-stage-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.assignment-report-stage-actions > button,
+.assignment-source-register-body article > button,
+.report-document-group article > button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border-width: 1px;
+  background: var(--surface-secondary, #263341);
+}
+.assignment-report-stage-actions > button.app-action-primary {
+  background: var(--accent-primary, #d6a92d);
+  color: var(--button-primary-text, #111827);
+  border-color: var(--accent-primary, #d6a92d);
+}
+.assignment-report-next-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0;
+  padding: 9px 11px;
+  border: 1px solid var(--border-default, #526170);
+  border-radius: 8px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-primary, #f4f7fb);
+}
+.assignment-report-next-action strong,
+.assignment-report-next-action span { display: block; }
+.assignment-report-next-action span { color: var(--text-secondary, #d3dae3); font-size: 12px; }
+.assignment-report-workflow-guide {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px,1fr));
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-default, #526170);
+}
+.assignment-report-workflow-guide span {
+  padding: 7px 9px;
+  border: 1px solid var(--border-default, #526170);
+  border-radius: 7px;
+  background: var(--surface-secondary, #263341);
+  color: var(--text-secondary, #d3dae3);
+  font-size: 12px;
+  font-weight: 700;
+}
+.assignment-report-submit-blocker {
+  display: block;
+  flex: 1 1 100%;
+  color: var(--warning, #e0ad35);
+  font-size: 12px;
+  font-weight: 700;
+}
+@media(max-width:900px){
+  .assignment-report-workflow-guide { grid-template-columns: 1fr 1fr; }
+  .assignment-report-next-action { align-items: flex-start; flex-direction: column; }
+}

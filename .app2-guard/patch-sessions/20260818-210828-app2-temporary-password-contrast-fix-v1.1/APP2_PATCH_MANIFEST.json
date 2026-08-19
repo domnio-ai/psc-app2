@@ -1,0 +1,13 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-temporary-password-contrast-fix-v1.1",
+  "purpose": "Correct unreadable inherited text colors in the light temporary-password overlay while preserving the existing reset and credential-display behavior.",
+  "allowed_files": [
+    "src/temporary-password-visibility.css"
+  ],
+  "protected_shared_file_overrides": [],
+  "database_migrations": [],
+  "contracts_affected": [],
+  "requires_full_regression": true,
+  "notes": "CSS-only contrast correction. No App.tsx, backend, authentication, user-data or database changes."
+}

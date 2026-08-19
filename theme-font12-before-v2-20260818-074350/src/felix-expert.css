@@ -1,0 +1,51 @@
+.felix-mode-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #303234;
+  background: #17191b;
+}
+.felix-mode-picker label { display: flex; align-items: center; gap: 9px; color: #aaa; font-size: 9px; }
+.felix-mode-picker select { padding: 7px 28px 7px 9px; border: 1px solid #424446; border-radius: 7px; background: #202224; color: #eee; }
+.felix-mode-picker > small { color: #777; font-size: 8px; }
+.felix-mode-label, .felix-confidence { display: block; margin: 0 0 5px; color: var(--yellow); font-size: 8px; }
+.felix-references { display: block; margin-top: 7px; padding: 7px 9px; border: 1px solid #343638; border-radius: 7px; color: #aaa; font-size: 8px; }
+.felix-references summary { cursor: pointer; color: var(--yellow); }
+.felix-references code { display: block; margin-top: 6px; white-space: normal; overflow-wrap: anywhere; color: #aaa; font: 8px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+@media (max-width: 640px) { .felix-mode-picker { align-items: flex-start; flex-direction: column; } }
+.felix-finding { display: grid; gap: 5px; margin-top: 8px; padding: 9px; border: 1px solid #3a3420; border-radius: 7px; background: #191914; }
+.felix-finding strong { color: #e7c95c; font-size: 9px; }
+.felix-finding small { color: #999; font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.felix-finding button, .proposal-actions button { justify-self: start; padding: 6px 9px; border: 0; border-radius: 6px; background: var(--yellow); color: #111; font-size: 8px; font-weight: 700; }
+.felix-finding button:disabled { opacity: .45; }
+.ai-chat-history details { margin-top: 6px; color: #aaa; font-size: 8px; }
+.ai-chat-history pre { max-height: 220px; overflow: auto; white-space: pre-wrap; color: #bbb; font: 8px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.proposal-actions { display: flex; gap: 6px; }
+.proposal-actions button:last-child { background: #714037; color: #fff; }
+
+/* App2 theme integration */
+.ai-chat-layout{color:var(--text-primary)}
+.ai-chat,.ai-chat-history{border-color:var(--border-default);background:var(--surface-primary);color:var(--text-primary);box-shadow:0 14px 34px rgba(0,0,0,.12)}
+.ai-chat>header{border-color:var(--border-default);background:linear-gradient(135deg,color-mix(in srgb,var(--accent-primary) 7%,var(--surface-secondary)),var(--surface-primary))}
+.ai-chat>header strong,.ai-chat-history h3{color:var(--text-primary)}
+.ai-chat>header small,.ai-chat-scope,.ai-chat-history article small,.ai-chat-history>p{color:var(--text-muted)}
+.felix-mode-picker{border-color:var(--border-default);background:var(--surface-secondary)}
+.felix-mode-picker label{color:var(--text-secondary)}.felix-mode-picker>small{color:var(--text-muted)}
+.felix-mode-picker select{border-color:var(--input-border);background:var(--input-background);color:var(--text-primary)}
+.ai-chat-messages{background:var(--surface-primary)}
+.ai-chat-messages article>span{background:var(--surface-elevated);color:var(--accent-primary)}
+.ai-chat-messages article.assistant .felix-answer,.felix-answer-body,.felix-answer-bullet>p,.felix-answer-step>p{color:var(--text-primary)!important}
+.felix-answer-title,.felix-answer-section,.felix-answer-step>strong{color:var(--accent-primary)}
+.ai-chat-messages article.user p{background:color-mix(in srgb,var(--accent-primary) 15%,var(--surface-secondary));color:var(--text-primary)}
+.felix-mode-label{border-color:var(--accent-secondary);background:color-mix(in srgb,var(--accent-primary) 9%,var(--surface-secondary));color:var(--accent-primary)}
+.felix-references{border-color:var(--border-default)!important;color:var(--text-secondary)!important}
+.felix-references summary{color:var(--accent-primary)!important}.felix-references code{color:var(--text-muted)}
+.felix-finding{border-color:var(--border-default);background:var(--surface-secondary)}
+.ai-chat-input{border-color:var(--input-border);background:var(--input-background);box-shadow:0 -12px 35px color-mix(in srgb,var(--app-background) 55%,transparent)}
+.ai-chat-input:focus-within{border-color:var(--accent-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 16%,transparent)}
+.ai-chat-input textarea{background:transparent!important;color:var(--text-primary)!important}.ai-chat-input textarea::placeholder{color:var(--text-muted)}
+.ai-chat-input button{background:var(--button-primary-bg);color:var(--button-primary-text)}
+.ai-chat-history article{border-color:var(--border-default)}
+.felix-answer-bullet::before{content:"•"}.ai-chat-input button::after{content:"↑"}

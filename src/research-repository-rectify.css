@@ -1,0 +1,401 @@
+/* Research Repository UI rectification — 18 Aug 2026
+   Presentation-only overrides. No API, RBAC, workflow or persistence changes. */
+
+.research-management-view {
+  --research-row-gap: 14px;
+  font-size: 15px;
+}
+
+.research-management-view .research-repository-head {
+  align-items: center !important;
+  gap: 18px !important;
+  margin-bottom: 10px !important;
+  padding: 16px 20px !important;
+}
+
+.research-repository-head > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.research-repository-head h2 {
+  margin: 2px 0 4px !important;
+  font-size: 22px !important;
+  line-height: 1.2 !important;
+}
+
+.research-repository-head > div:first-child > span {
+  max-width: 900px;
+  color: var(--text-secondary, var(--muted));
+  font-size: 14px !important;
+  line-height: 1.45;
+}
+
+.research-repository-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.research-repository-actions button {
+  min-height: 40px !important;
+  padding: 8px 13px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+  white-space: nowrap;
+}
+
+.research-import-action > span {
+  margin-right: 6px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.research-portfolio-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+  margin: 0 0 10px !important;
+}
+
+.research-portfolio-summary article {
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 58px !important;
+  padding: 10px 14px !important;
+  border: 1px solid var(--border-default, var(--border)) !important;
+  border-radius: 10px !important;
+  background: var(--surface-primary, var(--surface)) !important;
+  box-shadow: none !important;
+}
+
+.research-portfolio-summary article small {
+  color: var(--text-secondary, var(--muted)) !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+}
+
+.research-portfolio-summary article strong {
+  color: var(--text-primary, var(--text)) !important;
+  font-size: 23px !important;
+  line-height: 1 !important;
+}
+
+.research-repository-mode {
+  display: flex !important;
+  width: max-content !important;
+  gap: 4px !important;
+  margin: 0 0 10px !important;
+  padding: 4px !important;
+  border: 1px solid var(--border-default, var(--border)) !important;
+  border-radius: 9px !important;
+  background: var(--surface-primary, var(--surface)) !important;
+}
+
+.research-repository-mode button {
+  min-height: 36px !important;
+  padding: 7px 12px !important;
+  border-radius: 7px !important;
+  color: var(--text-secondary, var(--muted)) !important;
+  font-size: 13px !important;
+}
+
+.research-repository-mode button.active {
+  background: var(--surface-secondary, var(--surface-strong)) !important;
+  color: var(--text-primary, var(--text)) !important;
+}
+
+.research-portfolio-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(320px, 1fr) 170px auto auto !important;
+  align-items: end !important;
+  gap: 10px !important;
+  margin: 0 0 10px !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--border-default, var(--border)) !important;
+  border-radius: 9px !important;
+  background: var(--surface-primary, var(--surface)) !important;
+}
+
+.research-portfolio-toolbar > label {
+  display: grid !important;
+  gap: 4px !important;
+  min-width: 0;
+}
+
+.research-portfolio-toolbar > label > span {
+  color: var(--text-secondary, var(--muted)) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+.research-portfolio-toolbar input,
+.research-portfolio-toolbar select {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  padding: 7px 10px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+}
+
+.research-portfolio-toolbar .assignment-view-switch {
+  align-self: end;
+  min-height: 40px;
+}
+
+.research-portfolio-toolbar .assignment-view-switch button {
+  min-height: 40px !important;
+  padding: 7px 13px !important;
+  font-size: 13px !important;
+}
+
+.research-portfolio-toolbar > strong {
+  align-self: center !important;
+  color: var(--text-primary, var(--text)) !important;
+  font-size: 13px !important;
+  white-space: nowrap;
+}
+
+.research-grid.list-view {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 9px !important;
+}
+
+.research-grid.list-view > article {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 2.1fr) minmax(220px, 1.25fr) minmax(250px, 1.45fr) minmax(170px, .9fr) !important;
+  grid-template-areas:
+    "title meta progress actions"
+    "summary meta progress actions" !important;
+  align-items: center !important;
+  column-gap: 18px !important;
+  row-gap: 5px !important;
+  min-height: 104px !important;
+  padding: 13px 16px 13px 18px !important;
+  border: 1px solid var(--border-default, var(--border)) !important;
+  border-top-width: 1px !important;
+  border-left: 3px solid color-mix(in srgb, var(--accent-primary, var(--accent)) 78%, transparent) !important;
+  border-radius: 10px !important;
+  background: var(--surface-primary, var(--surface)) !important;
+  box-shadow: none !important;
+}
+
+.research-grid.list-view > article:hover {
+  transform: none !important;
+  border-color: color-mix(in srgb, var(--accent-primary, var(--accent)) 65%, var(--border-default, var(--border))) !important;
+}
+
+.research-grid.list-view > article > .research-status:first-child {
+  grid-area: title !important;
+  align-self: start !important;
+  justify-self: start !important;
+  margin: 0 0 5px !important;
+  transform: translateY(-1px);
+}
+
+.research-grid.list-view > article > h3 {
+  grid-area: title !important;
+  align-self: end !important;
+  margin: 27px 0 0 !important;
+  padding: 0 !important;
+  color: var(--text-primary, var(--text)) !important;
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+}
+
+.research-grid.list-view > article > p:first-of-type {
+  grid-area: summary !important;
+  display: -webkit-box !important;
+  margin: 0 !important;
+  color: var(--text-secondary, var(--muted)) !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.research-grid.list-view > article > dl {
+  grid-area: meta !important;
+  display: grid !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.research-grid.list-view > article > dl > div {
+  min-width: 0;
+}
+
+.research-grid.list-view dt {
+  margin: 0 !important;
+  color: var(--text-secondary, var(--muted)) !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+.research-grid.list-view dd {
+  margin: 3px 0 0 !important;
+  color: var(--text-primary, var(--text)) !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  line-height: 1.35 !important;
+}
+
+.research-grid.list-view > article > .research-row-progress {
+  grid-area: progress !important;
+  min-width: 0;
+}
+
+.research-row-progress > small {
+  color: var(--text-secondary, var(--muted));
+  font-size: 12px !important;
+}
+
+.research-row-progress .research-assignment-progress {
+  margin: 0 !important;
+  padding: 9px 10px !important;
+  border: 1px solid var(--border-default, var(--border)) !important;
+  border-radius: 8px !important;
+  background: var(--surface-secondary, var(--surface-strong)) !important;
+}
+
+.research-row-progress .research-assignment-progress-head {
+  gap: 8px !important;
+}
+
+.research-row-progress .research-assignment-progress-head strong {
+  font-size: 15px !important;
+}
+
+.research-row-progress .research-assignment-progress-head span,
+.research-row-progress .research-assignment-work-signals span {
+  font-size: 12px !important;
+}
+
+.research-row-progress .research-assignment-work-signals {
+  margin-top: 6px !important;
+  gap: 5px 8px !important;
+}
+
+.research-grid.list-view > article > .research-card-actions {
+  grid-area: actions !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.research-grid.list-view .research-card-actions > label {
+  display: none !important;
+}
+
+.research-grid.list-view .research-open-workspace {
+  width: 100% !important;
+  max-width: 210px !important;
+  min-height: 44px !important;
+  height: auto !important;
+  padding: 9px 14px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
+.research-grid.list-view > article > h4,
+.research-grid.list-view > article > h4 + p,
+.research-grid.list-view > article > .research-collaborators {
+  display: none !important;
+}
+
+.research-grid.card-view > article {
+  min-height: 0 !important;
+}
+
+.research-grid.card-view .research-row-progress {
+  margin-top: 2px;
+}
+
+.research-status {
+  min-height: 25px !important;
+  padding: 3px 8px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+.user .user-menu-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  color: var(--text-secondary, var(--muted));
+  font-size: 14px;
+}
+
+@media (max-width: 1180px) {
+  .research-grid.list-view > article {
+    grid-template-columns: minmax(240px, 1.7fr) minmax(180px, 1fr) minmax(220px, 1.2fr) !important;
+    grid-template-areas:
+      "title meta actions"
+      "summary progress actions" !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .research-repository-head {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+  .research-repository-actions {
+    justify-content: flex-start;
+  }
+  .research-portfolio-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .research-portfolio-toolbar {
+    grid-template-columns: 1fr 160px !important;
+  }
+  .research-portfolio-toolbar .assignment-view-switch,
+  .research-portfolio-toolbar > strong {
+    justify-self: start;
+  }
+  .research-grid.list-view > article {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-areas:
+      "title meta"
+      "summary meta"
+      "progress actions" !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .research-portfolio-summary,
+  .research-portfolio-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+  .research-repository-mode {
+    width: 100% !important;
+  }
+  .research-repository-mode button {
+    flex: 1 1 0;
+  }
+  .research-grid.list-view > article {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "title"
+      "summary"
+      "meta"
+      "progress"
+      "actions" !important;
+  }
+  .research-grid.list-view .research-open-workspace {
+    max-width: none !important;
+  }
+}

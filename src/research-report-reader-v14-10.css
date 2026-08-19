@@ -1,0 +1,73 @@
+/* App2 Research Report Reader V14.10 */
+.research-report-preview-modal{
+  width:min(1180px,96vw)!important;
+  height:min(92vh,980px)!important;
+  max-height:92vh!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  overflow:hidden!important;
+  border-radius:12px!important;
+}
+.research-report-preview-modal>header{
+  padding:14px 18px!important;
+}
+.research-report-reader-body{
+  overflow:auto!important;
+  padding:28px!important;
+  background:#dfe4e8!important;
+}
+.research-report-reader-section{
+  width:min(860px,100%)!important;
+  margin:0 auto 18px!important;
+  padding:34px 42px!important;
+  background:#fff!important;
+  color:#17202a!important;
+  border:1px solid #cbd3da!important;
+  border-radius:4px!important;
+  box-shadow:0 3px 12px rgba(0,0,0,.08)!important;
+}
+.research-report-reader-section h3{
+  margin:0 0 18px!important;
+  padding-bottom:10px!important;
+  border-bottom:1px solid #d9dee3!important;
+  color:#17202a!important;
+  font-size:20px!important;
+}
+.research-report-reader-content,
+.research-report-reader-content p,
+.research-report-reader-content li,
+.research-report-reader-content td,
+.research-report-reader-content th{
+  color:#1c2730!important;
+  font-size:14px!important;
+  line-height:1.65!important;
+}
+.research-report-reader-content h1,
+.research-report-reader-content h2,
+.research-report-reader-content h3,
+.research-report-reader-content h4{
+  color:#15212b!important;
+}
+.research-report-reader-content img{
+  max-width:100%!important;
+  height:auto!important;
+}
+.research-report-reader-content table{
+  width:100%!important;
+  border-collapse:collapse!important;
+  margin:14px 0!important;
+}
+.research-report-reader-content th,
+.research-report-reader-content td{
+  border:1px solid #cbd3da!important;
+  padding:7px 9px!important;
+  vertical-align:top!important;
+}
+.research-report-preview-footer{
+  position:relative!important;
+  z-index:2!important;
+}
+@media(max-width:760px){
+  .research-report-reader-body{padding:10px!important}
+  .research-report-reader-section{padding:20px!important}
+}

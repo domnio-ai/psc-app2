@@ -1,0 +1,21 @@
+{
+  "manifest_version": 1,
+  "patch_id": "app2-user-access-password-reset-functional-fix-v1",
+  "purpose": "Align User Management UI with Administrator-only backend account administration and make password reset clear, confirmable and usable without weakening authentication.",
+  "allowed_files": [
+    "src/App.tsx",
+    "src/user-access-password-reset.css"
+  ],
+  "protected_shared_file_overrides": [
+    {
+      "path": "src/App.tsx",
+      "reason": "Functional correction to User Management permissions and Administrator password-reset UX. Backend authorization remains unchanged."
+    }
+  ],
+  "database_migrations": [],
+  "contracts_affected": [
+    "ASSIGNMENT-AUTHORIZATION"
+  ],
+  "requires_full_regression": true,
+  "notes": "Frontend only. Does not change user data, password hashes, backend auth, database schema, Research, Tasks, Documents or Felix."
+}

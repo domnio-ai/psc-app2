@@ -1,0 +1,22 @@
+/* App2 Research Editor Preview -> Review V14.7 */
+.section-footer-navigation .research-preview-back,
+.section-footer-navigation .research-preview-proceed{
+  min-height:40px!important;
+  padding:8px 14px!important;
+  border-radius:8px!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+.section-footer-navigation .research-preview-back{
+  border:1px solid #56616a!important;
+  background:#252b2f!important;
+  color:#f2f5f7!important;
+}
+.section-footer-navigation .research-preview-proceed{
+  border:0!important;
+  background:#e8b52d!important;
+  color:#101820!important;
+}
+.section-footer-navigation .research-preview-proceed:hover:not(:disabled){
+  filter:brightness(1.04)!important;
+}

@@ -1,0 +1,4 @@
+.live-notification-list>button.read{border-color:#34383b;background:#151719;color:#aeb5b8;opacity:.72}
+.live-notification-list>button.read strong{color:#c0c5c7;font-weight:600}
+.live-notification-list>button.unread{border-color:#c59b28;background:linear-gradient(90deg,rgba(255,196,0,.14),rgba(255,196,0,.035));color:#f7f7f3;opacity:1;box-shadow:inset 4px 0 #e2b541}
+.live-notification-list>button.unread strong{color:#fff;font-weight:800}

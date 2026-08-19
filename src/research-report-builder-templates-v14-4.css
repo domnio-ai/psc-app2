@@ -1,0 +1,51 @@
+/* App2 Research Report Builder Templates V14.4
+   Makes the research template visible INSIDE the full-screen report editor. */
+
+.section-word-toolbar .report-template-tools{
+  min-width:420px!important;
+  display:grid!important;
+  grid-template-columns:minmax(240px,1fr) auto!important;
+  align-items:end!important;
+  gap:7px!important;
+  padding-inline:14px!important;
+}
+.section-word-toolbar .workspace-report-template-picker{
+  display:grid!important;
+  gap:4px!important;
+  color:#eef3f6!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.section-word-toolbar .workspace-report-template-picker select{
+  min-width:240px!important;
+  min-height:38px!important;
+  border:1px solid #56616a!important;
+  border-radius:6px!important;
+  background:#172532!important;
+  color:#f5f7f8!important;
+  font-size:12px!important;
+}
+.section-word-toolbar .report-template-tools>button{
+  min-height:38px!important;
+  padding:7px 12px!important;
+  border:0!important;
+  border-radius:6px!important;
+  background:#e8b52d!important;
+  color:#101820!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+.section-word-toolbar .report-template-tools>small{
+  grid-column:1/-1!important;
+  color:#aebbc4!important;
+  font-size:12px!important;
+}
+@media(max-width:900px){
+  .section-word-toolbar .report-template-tools{
+    min-width:300px!important;
+    grid-template-columns:1fr!important;
+  }
+  .section-word-toolbar .workspace-report-template-picker select{
+    min-width:260px!important;
+  }
+}

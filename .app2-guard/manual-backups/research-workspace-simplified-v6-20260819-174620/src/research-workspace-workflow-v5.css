@@ -1,0 +1,238 @@
+/* ============================================================
+   App2 Research Workspace Workflow V5
+   Simplifies the live Research workflow without changing backend states.
+   ============================================================ */
+
+/* V5 owns tab visibility after all legacy Research CSS. */
+.research-workspace > section {
+  display:none !important;
+}
+
+.research-workspace[data-tab="Overview"] > .research-overview-panel,
+.research-workspace[data-tab="Overview"] > .research-team-panel,
+.research-workspace[data-tab="Overview"] > .research-plan-editor,
+.research-workspace[data-tab="Work"] > .research-work-panel,
+.research-workspace[data-tab="Work"] > .research-milestones-panel,
+.research-workspace[data-tab="Work"] > .research-discussion-panel,
+.research-workspace[data-tab="Resources"] > .research-sources-panel,
+.research-workspace[data-tab="Resources"] > .research-builder-documents-panel,
+.research-workspace[data-tab="Report"] > .research-report-builder,
+.research-workspace[data-tab="Review"] > .research-report-review-gate,
+.research-workspace[data-tab="Review"] > .research-completion-section,
+.research-workspace[data-tab="Activity"] > .research-activity-panel {
+  display:block !important;
+}
+
+/* Evidence: remove the old placeholder/duplicate entry surface. */
+.research-workspace[data-tab="Resources"] > .research-documents-placeholder {
+  display:none !important;
+}
+
+/* Report means drafting only. Review means formal submission/decision only. */
+.research-workspace[data-tab="Report"] > .research-report-review-gate,
+.research-workspace[data-tab="Report"] > .research-completion-section {
+  display:none !important;
+}
+.research-workspace[data-tab="Review"] > .research-report-builder {
+  display:none !important;
+}
+
+/* The report builder should be an editor, not another analytics dashboard. */
+.research-workspace[data-tab="Report"] .research-report-readiness {
+  display:none !important;
+}
+
+/* Full-report review replaces the old section-by-section approval panel visually.
+   Backend permissions/state remain untouched. */
+.research-workspace[data-tab="Report"] .research-section-approval {
+  display:none !important;
+}
+.research-workspace[data-tab="Report"] .report-editor > header > select:first-of-type {
+  display:none !important;
+}
+
+/* Hide review-mode duplication inside individual report sections.
+   Users write here; formal review happens once in Review. */
+.research-workspace[data-tab="Report"] .report-editor > footer button:first-of-type {
+  display:none !important;
+}
+
+/* Formal Review tab: one concise decision surface. */
+.research-workspace[data-tab="Review"] > .research-report-review-gate {
+  margin:18px 26px 12px !important;
+  padding:18px !important;
+  border:1px solid var(--rw-border) !important;
+  border-radius:12px !important;
+  background:var(--surface-strong) !important;
+  box-shadow:var(--rw-shadow) !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-gate > div:first-child p {
+  color:var(--rw-primary) !important;
+  font-size:12px !important;
+  font-weight:850 !important;
+  letter-spacing:.07em !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-gate > div:first-child h3 {
+  margin:4px 0 !important;
+  color:var(--text) !important;
+  font-size:max(17px,1.08rem) !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-gate > div:first-child > span {
+  color:var(--muted) !important;
+  font-size:max(12px,.86rem) !important;
+}
+
+/* Keep review metadata compact. */
+.research-workspace[data-tab="Review"] .research-report-review-summary {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:1px !important;
+  overflow:hidden !important;
+  margin:14px 0 !important;
+  border:1px solid var(--rw-border) !important;
+  border-radius:9px !important;
+  background:var(--rw-border) !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-summary > span {
+  min-height:58px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  padding:9px 12px !important;
+  background:var(--surface) !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-summary small {
+  color:var(--muted) !important;
+  font-size:12px !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-summary strong {
+  margin-top:2px !important;
+  color:var(--text) !important;
+  font-size:max(13px,.9rem) !important;
+}
+
+/* One primary action hierarchy. */
+.research-workspace[data-tab="Review"] .research-report-review-actions {
+  display:flex !important;
+  align-items:end !important;
+  gap:8px !important;
+  flex-wrap:wrap !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-actions > button.approve,
+.research-workspace[data-tab="Review"] .research-report-decision-box button.approve {
+  border:0 !important;
+  background:linear-gradient(135deg,var(--rw-primary),var(--rw-primary-2)) !important;
+  color:#fff !important;
+  font-weight:800 !important;
+}
+.research-workspace[data-tab="Review"] .research-report-review-actions button,
+.research-workspace[data-tab="Review"] .research-report-review-actions select,
+.research-workspace[data-tab="Review"] .research-report-review-actions textarea {
+  min-height:38px !important;
+  border-radius:8px !important;
+  font-size:max(12px,.84rem) !important;
+}
+
+/* Completion is not a second dashboard. Keep only the final gate + action. */
+.research-workspace[data-tab="Review"] > .research-completion-section {
+  margin:0 26px 18px !important;
+  padding:14px 18px !important;
+  border:1px solid var(--rw-border) !important;
+  border-radius:12px !important;
+  background:var(--surface-strong) !important;
+  box-shadow:none !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-checklist {
+  display:none !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-heading {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-heading p {
+  display:none !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-heading h3 {
+  margin:0 0 3px !important;
+  color:var(--text) !important;
+  font-size:max(15px,1rem) !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-heading > div > span {
+  color:var(--muted) !important;
+  font-size:12px !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-action {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  margin-top:10px !important;
+  padding-top:10px !important;
+  border-top:1px solid var(--rw-border) !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-action p {
+  margin:0 !important;
+  color:var(--muted) !important;
+  font-size:12px !important;
+}
+.research-workspace[data-tab="Review"] .research-completion-action button {
+  flex:0 0 auto !important;
+  min-height:38px !important;
+  border:0 !important;
+  border-radius:8px !important;
+  background:linear-gradient(135deg,var(--rw-primary),var(--rw-primary-2)) !important;
+  color:#fff !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+}
+
+/* Version history is available but not visually dominant. */
+.research-workspace[data-tab="Review"] .research-report-version-history {
+  margin-top:10px !important;
+  border-top:1px solid var(--rw-border) !important;
+  padding-top:9px !important;
+}
+.research-workspace[data-tab="Review"] .research-report-version-history summary {
+  color:var(--rw-primary) !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+}
+
+/* Evidence terminology and layout are quieter. */
+.research-workspace[data-tab="Resources"] > .research-sources-panel,
+.research-workspace[data-tab="Resources"] > .research-builder-documents-panel {
+  margin:14px 26px !important;
+  border:1px solid var(--rw-border) !important;
+  border-radius:12px !important;
+  background:var(--surface-strong) !important;
+  box-shadow:none !important;
+}
+
+/* Activity is read-only history, with no dashboard treatment. */
+.research-workspace[data-tab="Activity"] > .research-activity-panel {
+  margin:14px 26px 18px !important;
+  border:1px solid var(--rw-border) !important;
+  border-radius:12px !important;
+  background:var(--surface-strong) !important;
+}
+
+/* Next Step wording/button stays the only cross-workspace CTA. */
+.research-workspace .research-next-action > button {
+  text-transform:none !important;
+}
+
+@media(max-width:760px){
+  .research-workspace[data-tab="Review"] .research-report-review-summary {
+    grid-template-columns:1fr !important;
+  }
+  .research-workspace[data-tab="Review"] .research-completion-heading,
+  .research-workspace[data-tab="Review"] .research-completion-action {
+    align-items:flex-start !important;
+    flex-direction:column !important;
+  }
+  .research-workspace[data-tab="Review"] .research-completion-action button {
+    width:100% !important;
+  }
+}

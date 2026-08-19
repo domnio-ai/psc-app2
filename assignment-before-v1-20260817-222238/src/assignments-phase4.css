@@ -1,0 +1,3662 @@
+/* =========================================================
+   APP2 ASSIGNMENT WORKSPACE
+   Phase 4 - Operational command centre
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   WORKSPACE SHELL
+   --------------------------------------------------------- */
+
+.assignment-workspace {
+  --assignment-gap: 14px;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* The active-view router hides non-portfolio siblings. A selected assignment
+   is an intentional full-screen sibling and must remain visible. */
+.assignments-active > .assignment-workspace,
+.assignments-active > .collab-drawer.assignment-workspace {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.assignment-open-workspace {
+  margin-left: auto;
+  padding: 7px 10px;
+  border: 1px solid #b8922f;
+  border-radius: 7px;
+  background: #d5ad36;
+  color: #17140b;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.assignment-document-workspace-create{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,.7fr) minmax(180px,.8fr) auto;gap:9px;align-items:center;padding:13px;border:1px solid #66531d;border-radius:9px;background:linear-gradient(135deg,#29271f,#181c1f)}
+.assignment-document-workspace-create strong,.assignment-document-workspace-create small{display:block}.assignment-document-workspace-create small{margin-top:4px;color:#9ba2a6}.assignment-document-workspace-create select,.assignment-document-workspace-create input{min-width:0;padding:9px;border:1px solid #485057;border-radius:7px;background:#111517;color:#fff}.assignment-document-workspace-create button{padding:10px 13px;border:0;border-radius:7px;background:#d5ad36;color:#17140b;font-weight:900}.assignment-document-workspace-create button:disabled{opacity:.45}@media(max-width:900px){.assignment-document-workspace-create{grid-template-columns:1fr}}
+
+/* Overview v2 — one brief, one action, one progress story. */
+.assignment-overview-v2{display:grid;gap:18px;padding:26px;border:1px solid #3b4246;border-radius:18px;background:linear-gradient(145deg,#191d20,#111416);box-shadow:0 22px 50px rgba(0,0,0,.22)}
+.overview-v2-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding-bottom:18px;border-bottom:1px solid #343a3e}
+.overview-v2-heading small,.overview-v2-brief>small,.overview-v2-action>small{color:#e1b83f;font-size:9px;font-weight:900;letter-spacing:.17em}
+.overview-v2-heading h2{margin:7px 0 3px;color:#fff;font-size:clamp(25px,3vw,38px);line-height:1.1}
+.overview-v2-heading p{margin:0;color:#8e979c;font-size:11px}
+.overview-v2-stage{padding:9px 13px;border:1px solid #76652d;border-radius:999px;background:#2d2a20;color:#f0cc5e;font-size:10px;font-weight:900;white-space:nowrap}
+.overview-v2-body{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.75fr);gap:16px}
+.overview-v2-brief,.overview-v2-action,.overview-v2-progress{border:1px solid #3b4246;border-radius:14px;background:#202427}
+.overview-v2-brief{min-height:260px;padding:25px}
+.overview-v2-brief>p{max-width:850px;margin:22px 0 28px;color:#f1f0eb;font-size:17px;line-height:1.7}
+.overview-v2-brief dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.overview-v2-brief dl div{padding:12px 13px;border-radius:9px;background:#191d1f}
+.overview-v2-brief dt{color:#7f898e;font-size:8px;font-weight:800;text-transform:uppercase}
+.overview-v2-brief dd{margin:5px 0 0;color:#dfe2e3;font-size:11px;font-weight:800}
+.overview-v2-action{display:flex;flex-direction:column;padding:25px;background:linear-gradient(145deg,#343026,#24282a);box-shadow:inset 0 3px 0 #e1b83f}
+.overview-v2-action h3{margin:12px 0 8px;color:#fff;font-size:24px;line-height:1.15}
+.overview-v2-action p{margin:0;color:#b9bec1;font-size:11px;line-height:1.6}
+.overview-v2-action button{width:100%;margin-top:auto;padding:14px 16px;border:0;border-radius:9px;background:#e1b83f;color:#17150d;font-weight:900;box-shadow:0 8px 20px rgba(225,184,63,.16)}
+.overview-v2-progress{padding:19px 22px}
+.overview-v2-progress>header{display:flex;align-items:center;justify-content:space-between;color:#8e979c;font-size:9px;text-transform:uppercase}
+.overview-v2-progress>header strong{color:#d9dddf}
+.overview-v2-progress ol{display:grid;grid-template-columns:repeat(5,1fr);margin:18px 0 16px;padding:0;list-style:none}
+.overview-v2-progress li{position:relative;display:flex;align-items:center;gap:8px;color:#686f73;font-size:9px;font-weight:800}
+.overview-v2-progress li:not(:last-child):after{content:"";position:absolute;z-index:0;top:11px;left:24px;right:0;height:2px;background:#343b3e}
+.overview-v2-progress li i{position:relative;z-index:1;display:grid;place-items:center;width:23px;height:23px;border:2px solid #495055;border-radius:50%;background:#202427;color:#767e82;font-style:normal}
+.overview-v2-progress li.done,.overview-v2-progress li.current{color:#eef0f1}.overview-v2-progress li.done i{border-color:#3aa76d;background:#286746;color:#fff}.overview-v2-progress li.done:not(:last-child):after{background:#3aa76d}.overview-v2-progress li.current i{border-color:#e1b83f;color:#e1b83f}
+.overview-v2-progress footer{display:flex;gap:22px;padding-top:14px;border-top:1px solid #343a3e;color:#8e979c;font-size:9px}.overview-v2-progress footer b{color:#f3f2ed;font-size:12px}
+@media(max-width:850px){.assignment-overview-v2{padding:15px}.overview-v2-heading,.overview-v2-progress footer{align-items:flex-start;flex-direction:column}.overview-v2-body{grid-template-columns:1fr}.overview-v2-brief{min-height:0}.overview-v2-action button{margin-top:22px}.overview-v2-progress ol{grid-template-columns:1fr;gap:9px}.overview-v2-progress li:not(:last-child):after{display:none}}
+@media(max-width:560px){.overview-v2-brief dl{grid-template-columns:1fr}.overview-v2-stage{align-self:flex-start}}
+
+/* Overview v3 — operational summary requested by the assignment team. */
+.assignment-overview-v3{display:grid;gap:0;border:1px solid #3b4246;border-radius:16px;background:#171b1d;color:#eef0f1;overflow:hidden}
+.assignment-overview-v3>section,.overview-v3-summary{padding:24px 28px;border-bottom:1px solid #343a3e}.assignment-overview-v3>section:last-child{border-bottom:0}
+.overview-v3-summary{display:grid;grid-template-columns:minmax(280px,1.2fr) auto minmax(250px,.75fr);align-items:center;gap:28px;background:linear-gradient(120deg,#252a2d,#1c2022)}
+.overview-v3-title>small,.overview-v3-summary aside small{color:#d9ad2c;font-size:8px;font-weight:900;letter-spacing:.16em}.overview-v3-title h2{margin:6px 0 8px;color:#fff;font-size:27px;text-transform:uppercase}.overview-v3-title p{display:flex;gap:22px;margin:0;color:#aeb5b8;font-size:10px}.overview-v3-title p b{color:#e3b63a}.overview-v3-summary dl{display:flex;gap:24px;margin:0}.overview-v3-summary dl div{min-width:68px}.overview-v3-summary dt{color:#7f898e;font-size:8px}.overview-v3-summary dd{margin:5px 0 0;color:#fff;font-size:13px;font-weight:900}.overview-v3-summary aside{display:grid;gap:7px;padding:16px 18px;border-left:3px solid #d9ad2c;border-radius:0 10px 10px 0;background:#171a1c}.overview-v3-summary aside strong{font-size:14px}.overview-v3-summary aside button{justify-self:start;padding:9px 14px;border:0;border-radius:7px;background:#d9ad2c;color:#17150d;font-size:9px;font-weight:900}
+.assignment-overview-v3 h3{margin:0 0 17px;color:#9ba4a8;font-size:9px;letter-spacing:.14em}.overview-v3-workflow ol{display:grid;grid-template-columns:repeat(5,1fr);margin:0;padding:0;list-style:none}.overview-v3-workflow li{display:grid;grid-template-columns:21px 1fr auto;align-items:center;gap:8px;padding:0 14px;border-right:1px solid #343a3e;color:#737c80}.overview-v3-workflow li:first-child{padding-left:0}.overview-v3-workflow li:last-child{border-right:0}.overview-v3-workflow li b{display:grid;place-items:center;width:21px;height:21px;border:1px solid #4a5256;border-radius:50%;font-size:8px}.overview-v3-workflow li span{font-size:10px;font-weight:800}.overview-v3-workflow li i{font-style:normal}.overview-v3-workflow li.done{color:#55c986}.overview-v3-workflow li.current{color:#e7bb3c}.overview-v3-workflow li.done b{border-color:#34845a;background:#255c40;color:#fff}.overview-v3-workflow li.current b{border-color:#e7bb3c;color:#e7bb3c}
+.overview-v3-progress>div{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.overview-v3-progress article{display:grid;gap:5px;padding:15px;border:1px solid #353c40;border-radius:9px;background:#202527}.overview-v3-progress article span{color:#8d979b;font-size:9px}.overview-v3-progress article strong{color:#fff;font-size:17px}.overview-v3-progress article small{color:#8f989d;font-size:9px}.overview-v3-progress article.overall{border-color:#715f27;background:#2a281f}.overview-v3-progress article.overall strong{color:#e7bb3c}
+.overview-v3-brief>div{display:grid;grid-template-columns:1.5fr .8fr .6fr;gap:12px}.overview-v3-brief article{padding:17px 18px;border-left:2px solid #d9ad2c;background:#202527}.overview-v3-brief article span{color:#8c969a;font-size:8px;font-weight:800;text-transform:uppercase}.overview-v3-brief article p{margin:8px 0 0;color:#edf0f1;font-size:11px;line-height:1.55}
+.overview-v3-contributions>header{display:flex;align-items:center;justify-content:space-between}.overview-v3-contributions>header h3{margin:0}.overview-v3-contributions>header button{border:0;background:transparent;color:#d9ad2c;font-size:9px;font-weight:800}.overview-v3-contributions>div{display:grid;gap:7px;margin-top:15px}.overview-v3-contributions article{display:grid;grid-template-columns:minmax(0,1fr) auto 60px;align-items:center;gap:18px;padding:12px 14px;border:1px solid #343b3e;border-radius:8px;background:#202527}.overview-v3-contributions article span strong,.overview-v3-contributions article span small{display:block}.overview-v3-contributions article span strong{font-size:11px}.overview-v3-contributions article span small{margin-top:4px;color:#8d969a;font-size:8px}.overview-v3-contributions article>b{font-size:8px;font-weight:800}.overview-v3-contributions article>button{padding:7px 10px;border:1px solid #5d6569;border-radius:6px;background:transparent;color:#e7eaeb;font-size:8px;font-weight:800}
+@media(max-width:950px){.overview-v3-summary{grid-template-columns:1fr 1fr}.overview-v3-summary aside{grid-column:1/-1}.overview-v3-brief>div{grid-template-columns:1fr}.overview-v3-progress>div{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.assignment-overview-v3>section,.overview-v3-summary{padding:18px}.overview-v3-summary{grid-template-columns:1fr}.overview-v3-summary aside{grid-column:auto}.overview-v3-summary dl{flex-wrap:wrap}.overview-v3-workflow ol{grid-template-columns:1fr;gap:8px}.overview-v3-workflow li{border-right:0;padding:0}.overview-v3-progress>div{grid-template-columns:1fr}.overview-v3-contributions article{grid-template-columns:1fr auto}.overview-v3-contributions article>button{grid-column:1/-1}.overview-v3-title p{flex-direction:column;gap:4px}}
+
+/* Direct formal review. */
+.assignment-review-v2{display:grid;gap:14px;padding:24px;border:1px solid #3b4246;border-radius:16px;background:#171b1d;color:#eef0f1}.assignment-review-v2>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:2px 2px 8px}.assignment-review-v2>header small,.review-v2-decision>div>small{color:#d9ad2c;font-size:8px;font-weight:900;letter-spacing:.16em}.assignment-review-v2>header h2{margin:6px 0 3px;font-size:26px}.assignment-review-v2>header p{margin:0;color:#8f989d;font-size:9px}.assignment-review-v2>header>b{padding:8px 11px;border-radius:999px;font-size:8px}.assignment-review-v2>header>b.ready{background:#234b35;color:#68dfa0}.assignment-review-v2>header>b.blocked{background:#49351f;color:#f4bc61}
+.review-v2-reports,.review-v2-decision,.review-v2-history{border:1px solid #373f42;border-radius:12px;background:#202527}.review-v2-reports{padding:19px}.review-v2-reports>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.review-v2-reports h3,.review-v2-decision h3{margin:0;color:#fff;font-size:16px}.review-v2-reports header p{margin:5px 0 0;color:#8f989d;font-size:9px}.review-v2-reports header>span{color:#d9ad2c;font-size:9px;font-weight:900}.review-v2-reports>div{display:grid;gap:7px;margin-top:15px}.review-v2-reports article{display:grid;grid-template-columns:minmax(0,1fr) auto 65px;align-items:center;gap:16px;padding:11px 13px;border:1px solid #343b3e;border-radius:8px;background:#191d1f}.review-v2-reports article span strong,.review-v2-reports article span small{display:block}.review-v2-reports article span strong{font-size:10px}.review-v2-reports article span small{margin-top:3px;color:#858f93;font-size:8px}.review-v2-reports article>b{font-size:8px}.review-v2-reports article button{padding:7px;border:1px solid #5c6569;border-radius:6px;background:transparent;color:#eef0f1;font-size:8px;font-weight:800}
+.review-v2-decision{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(300px,1.2fr);gap:18px;padding:21px}.review-v2-decision>div h3{margin-top:7px}.review-v2-decision>div p{margin:7px 0 0;color:#929b9f;font-size:9px;line-height:1.55}.review-v2-decision textarea{min-height:90px;padding:12px;border:1px solid #444c50;border-radius:8px;background:#171b1d;color:#fff;resize:vertical}.review-v2-decision footer{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;padding-top:14px;border-top:1px solid #343b3e}.review-v2-decision footer button{padding:10px 15px;border:0;border-radius:7px;background:#d9ad2c;color:#17150d;font-size:9px;font-weight:900}.review-v2-decision footer button.changes{background:#59432a;color:#ffd18a}.review-v2-decision footer button.approve{background:#2c7b50;color:#fff}.review-v2-decision footer button:disabled{opacity:.42}.review-v2-decision footer strong{color:#68dfa0;font-size:10px}
+.review-v2-history{padding:0 18px}.review-v2-history summary{padding:15px 0;color:#aab2b5;font-size:9px;font-weight:800;cursor:pointer}.review-v2-history>div{display:grid;gap:8px;padding:0 0 17px}.review-v2-history article{display:grid;grid-template-columns:120px 1fr;gap:15px;padding:11px;border-top:1px solid #343b3e}.review-v2-history article>b{font-size:9px}.review-v2-history article span>*{display:block}.review-v2-history article span strong{font-size:9px}.review-v2-history article span small{margin-top:2px;color:#7f898d;font-size:8px}.review-v2-history article p{margin:6px 0 0;color:#b9bec0;font-size:9px}
+@media(max-width:700px){.assignment-review-v2{padding:15px}.assignment-review-v2>header,.review-v2-reports>header{flex-direction:column}.review-v2-decision{grid-template-columns:1fr}.review-v2-reports article{grid-template-columns:1fr auto}.review-v2-reports article button{grid-column:1/-1}.review-v2-decision footer{justify-content:stretch;flex-direction:column}.review-v2-history article{grid-template-columns:1fr}}
+
+/* Final minimal Overview — intentionally one card and one action. */
+.assignment-overview-minimal{max-width:1050px;margin:22px auto;padding:30px;border:1px solid #3b4246;border-radius:14px;background:#1b2022;color:#eef0f1;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+.assignment-overview-minimal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.assignment-overview-minimal>header h2{margin:0;color:#fff;font-size:28px;line-height:1.15}.assignment-overview-minimal>header p{display:flex;gap:8px;margin:8px 0 0;color:#a5adb1;font-size:10px}.assignment-overview-minimal>header>strong{color:#e0b437;font-size:28px;line-height:1}
+.overview-minimal-brief{max-width:760px;margin:0 0 27px;color:#d9dddf;font-size:14px;line-height:1.7}
+.assignment-overview-minimal dl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:0;padding:17px 0;border-top:1px solid #343b3e;border-bottom:1px solid #343b3e}.assignment-overview-minimal dl div{padding:0 18px;border-right:1px solid #343b3e}.assignment-overview-minimal dl div:first-child{padding-left:0}.assignment-overview-minimal dl div:last-child{border-right:0}.assignment-overview-minimal dt{color:#7f898e;font-size:8px;text-transform:uppercase}.assignment-overview-minimal dd{margin:5px 0 0;color:#f0f2f2;font-size:11px;font-weight:800}
+.assignment-overview-minimal>footer{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:22px;padding:17px 18px;border-radius:10px;background:#252922}.assignment-overview-minimal>footer div small,.assignment-overview-minimal>footer div strong{display:block}.assignment-overview-minimal>footer div small{color:#9a8a57;font-size:8px;text-transform:uppercase}.assignment-overview-minimal>footer div strong{margin-top:4px;color:#fff;font-size:13px}.assignment-overview-minimal>footer button{padding:11px 17px;border:0;border-radius:7px;background:#d9ad2c;color:#17150d;font-size:9px;font-weight:900;white-space:nowrap}
+@media(max-width:700px){.assignment-overview-minimal{margin:12px;padding:20px}.assignment-overview-minimal>header h2{font-size:22px}.assignment-overview-minimal dl{grid-template-columns:1fr 1fr;gap:16px}.assignment-overview-minimal dl div,.assignment-overview-minimal dl div:first-child{padding:0;border:0}.assignment-overview-minimal>footer{align-items:stretch;flex-direction:column}.assignment-overview-minimal>footer button{width:100%}}
+
+/* Final compact Tasks list. */
+.task-workspace-polished{max-width:1120px;margin:20px auto}.tasks-minimal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:10px;padding:12px 14px;border:1px solid #3a4246;border-radius:10px;background:#1b2022}.tasks-minimal-toolbar p{margin:0;color:#929b9f;font-size:10px}.tasks-minimal-toolbar p strong{color:#fff;font-size:13px}.tasks-minimal-toolbar p span{margin:0 4px;color:#586165}.tasks-minimal-toolbar>div{display:flex;gap:8px}.tasks-minimal-toolbar select,.tasks-minimal-toolbar button{height:34px;border-radius:7px;font-size:9px;font-weight:800}.tasks-minimal-toolbar select{padding:0 30px 0 10px;border:1px solid #444c50;background:#252a2d;color:#dfe2e3}.tasks-minimal-toolbar button{padding:0 14px;border:0;background:#d9ad2c;color:#17150d}
+.tasks-minimal-list{overflow:hidden;border:1px solid #3a4246;border-radius:10px;background:#1b2022}.tasks-minimal-list>div{display:grid}.task-minimal-row{display:grid;grid-template-columns:4px minmax(220px,1fr) 110px 110px 120px;align-items:center;gap:16px;min-height:62px;padding:0 14px 0 0;border-bottom:1px solid #30373a}.task-minimal-row:last-child{border-bottom:0}.task-minimal-state{align-self:stretch;background:#667075}.task-minimal-state.state-in-progress{background:#d9ad2c}.task-minimal-state.state-completed{background:#43ad73}.task-minimal-state.state-blocked{background:#d0665e}.task-minimal-row>div strong,.task-minimal-row>div small{display:block}.task-minimal-row>div strong{color:#eef0f1;font-size:11px}.task-minimal-row>div small{margin-top:5px;color:#818b8f;font-size:8px}.task-minimal-row>div small span{margin:0 4px}.task-minimal-status,.task-minimal-due{font-size:8px;font-style:normal}.task-minimal-status{color:#b9c0c3}.task-minimal-status.status-completed{color:#62d994}.task-minimal-status.status-blocked,.task-minimal-due.due-overdue{color:#ed8b82}.task-minimal-due{color:#838d91}.task-minimal-row>button{padding:8px 10px;border:1px solid #566064;border-radius:6px;background:transparent;color:#eef0f1;font-size:8px;font-weight:800}.tasks-minimal-list .task-empty-card{border:0;background:transparent;box-shadow:none}
+@media(max-width:760px){.task-workspace-polished{margin:12px}.tasks-minimal-toolbar{align-items:stretch;flex-direction:column}.tasks-minimal-toolbar>div{justify-content:space-between}.task-minimal-row{grid-template-columns:4px 1fr auto;padding:12px 12px 12px 0}.task-minimal-status{grid-column:3}.task-minimal-due{grid-column:2}.task-minimal-row>button{grid-column:3;grid-row:2}.task-minimal-state{grid-row:1/3}}
+
+/* Readability pass for the simplified assignment workflow. */
+.assignment-overview-minimal dt,
+.assignment-overview-minimal>footer div small,
+.tasks-minimal-toolbar select,
+.tasks-minimal-toolbar button,
+.task-minimal-status,
+.task-minimal-due,
+.task-minimal-row>button,
+.assignment-integration-queue small,
+.assignment-integration-queue em,
+.assignment-integration-queue button,
+.assignment-review-v2 small,
+.review-v2-reports article>b,
+.review-v2-reports article button,
+.review-v2-decision footer button,
+.review-v2-history summary {
+  font-size: 10px;
+}
+
+.assignment-overview-minimal dd,
+.tasks-minimal-toolbar p,
+.task-minimal-row>div small,
+.assignment-integration-queue p,
+.assignment-review-v2 p,
+.review-v2-reports article span small,
+.review-v2-history article span small,
+.review-v2-history article p {
+  font-size: 11px;
+}
+
+.task-minimal-row>div strong,
+.assignment-overview-minimal>footer div strong,
+.review-v2-reports article span strong {
+  font-size: 12px;
+}
+
+.assignment-workspace-tabs button {
+  font-size: 11px;
+}
+
+.assignment-workspace-tabs button b {
+  font-size: 10px;
+}
+
+.assignment-workspace .assignment-phase4 {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 28px 36px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--accent) 5%, transparent),
+      transparent 30%
+    ),
+    var(--surface);
+}
+
+/* ---------------------------------------------------------
+   ASSIGNMENT HEADER
+   --------------------------------------------------------- */
+
+.assignment-workspace-head {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+
+  flex: 0 0 auto;
+
+  padding: 16px 28px;
+
+  border-bottom: 1px solid var(--border);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--surface-strong),
+      color-mix(
+        in srgb,
+        var(--surface-strong) 94%,
+        var(--accent) 6%
+      )
+    );
+}
+
+.assignment-workspace-back,
+.assignment-workspace-close {
+  display: inline-grid;
+  place-items: center;
+
+  min-height: 38px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.assignment-workspace-back {
+  padding: 8px 13px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.assignment-workspace-close {
+  width: 38px;
+  padding: 0;
+
+  font-size: 22px;
+  line-height: 1;
+}
+
+.assignment-workspace-back:hover,
+.assignment-workspace-close:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 55%,
+      var(--border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 10%,
+      var(--surface)
+    );
+
+  transform: translateY(-1px);
+}
+
+.assignment-workspace-title {
+  min-width: 0;
+}
+
+.assignment-workspace-title > p {
+  margin: 0 0 4px;
+
+  overflow: hidden;
+
+  color: var(--accent);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-workspace-title h2 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: clamp(19px, 2vw, 25px);
+  line-height: 1.18;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-title-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 8px;
+}
+
+.assignment-title-meta > span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 25px;
+  padding: 4px 8px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: var(--surface);
+
+  color: var(--muted);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.assignment-title-meta .assignment-status-badge {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 48%,
+      var(--border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 11%,
+      var(--surface)
+    );
+
+  color: var(--accent);
+}
+
+.assignment-title-meta .assignment-priority-badge {
+  border-color: rgba(219, 151, 57, 0.42);
+  background: rgba(219, 151, 57, 0.10);
+  color: #edbd72;
+}
+
+/* ---------------------------------------------------------
+   GENERAL SECTION STYLES
+   --------------------------------------------------------- */
+
+.assignment-phase4 section {
+  animation: assignment-panel-in 0.16s ease-out;
+}
+
+@keyframes assignment-panel-in {
+  from {
+    opacity: 0.4;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.workspace-eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--accent);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.workspace-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+
+  margin-bottom: 16px;
+}
+
+.workspace-section-heading h3 {
+  margin: 0 0 4px;
+
+  font-size: 20px;
+}
+
+.workspace-section-heading p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------
+   INPUTS AND BUTTONS
+   --------------------------------------------------------- */
+
+.assignment-phase4 input,
+.assignment-phase4 select,
+.assignment-phase4 textarea {
+  box-sizing: border-box;
+
+  min-height: 40px;
+  padding: 9px 11px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font: inherit;
+}
+
+.assignment-phase4 textarea {
+  resize: vertical;
+}
+
+.assignment-phase4 input:focus,
+.assignment-phase4 select:focus,
+.assignment-phase4 textarea:focus {
+  outline: 2px solid
+    color-mix(
+      in srgb,
+      var(--accent) 30%,
+      transparent
+    );
+
+  border-color: var(--accent);
+}
+
+.assignment-phase4 button {
+  cursor: pointer;
+}
+
+.assignment-phase4 section button {
+  min-height: 38px;
+  padding: 7px 12px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--accent) 35%,
+      var(--border)
+    );
+
+  border-radius: 8px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 8%,
+      var(--surface-strong)
+    );
+
+  color: var(--text);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.assignment-phase4 section button:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 55%,
+      var(--border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      var(--surface-strong)
+    );
+}
+
+.assignment-phase4 button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+/* =========================================================
+   OVERVIEW COMMAND CENTRE
+   ========================================================= */
+
+.assignment-command-centre {
+  display: grid;
+  gap: 12px;
+
+  padding: 14px 0 8px;
+}
+
+/* ---------------------------------------------------------
+   WORKFLOW
+   --------------------------------------------------------- */
+
+.assignment-workflow-compact {
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface-strong);
+}
+
+.assignment-workflow-compact > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 10px 13px;
+
+  border-bottom: 1px solid var(--border);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 5%,
+      var(--surface-strong)
+    );
+}
+
+.assignment-workflow-compact > header > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 1px;
+
+  min-width: 0;
+}
+
+.assignment-workflow-compact > header span {
+  grid-column: 1 / -1;
+
+  color: var(--accent);
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+.assignment-workflow-compact > header strong {
+  font-size: 14px;
+}
+
+.assignment-workflow-compact > header small {
+  overflow: hidden;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-workflow-compact > header button {
+  flex: 0 0 auto;
+
+  min-height: 34px;
+  padding: 6px 11px;
+
+  border-color: var(--accent);
+
+  background: var(--accent);
+  color: #19140a;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.assignment-workflow-compact > ol {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(68px, 1fr));
+
+  margin: 0;
+  padding: 12px 12px 10px;
+
+  overflow-x: auto;
+
+  list-style: none;
+
+  scrollbar-width: thin;
+}
+
+.assignment-workflow-compact li {
+  position: relative;
+
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+
+  min-width: 68px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+  text-align: center;
+}
+
+.assignment-workflow-compact li:not(:last-child)::after {
+  content: '';
+
+  position: absolute;
+  z-index: 0;
+
+  top: 11px;
+  left: calc(50% + 13px);
+  right: calc(-50% + 13px);
+
+  height: 2px;
+
+  background: var(--border);
+}
+
+.assignment-workflow-compact li.done:not(:last-child)::after {
+  background: #4f9d67;
+}
+
+.assignment-workflow-compact li > b {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  place-items: center;
+
+  width: 23px;
+  height: 23px;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--surface);
+
+  color: var(--muted);
+
+  font-size: 8px;
+}
+
+.assignment-workflow-compact li.done {
+  color: #79cc91;
+}
+
+.assignment-workflow-compact li.done > b {
+  border-color: #4f9d67;
+  background: #315d3e;
+  color: #fff;
+}
+
+.assignment-workflow-compact li.current {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.assignment-workflow-compact li.current > b {
+  border-color: var(--accent);
+
+  background: var(--accent);
+  color: #19140a;
+
+  box-shadow:
+    0 0 0 4px
+    color-mix(
+      in srgb,
+      var(--accent) 12%,
+      transparent
+    );
+}
+
+/* ---------------------------------------------------------
+   SUMMARY KPI STRIP
+   --------------------------------------------------------- */
+
+.assignment-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--surface-strong);
+}
+
+.assignment-summary-strip > div {
+  min-width: 0;
+  padding: 10px 12px;
+
+  border-right: 1px solid var(--border);
+}
+
+.assignment-summary-strip > div:last-child {
+  border-right: 0;
+}
+
+.assignment-summary-strip small,
+.assignment-summary-strip strong {
+  display: block;
+}
+
+.assignment-summary-strip small {
+  margin-bottom: 4px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assignment-summary-strip strong {
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   70 / 30 LAYOUT
+   --------------------------------------------------------- */
+
+.assignment-command-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 7.1fr)
+    minmax(270px, 2.9fr);
+
+  gap: 12px;
+
+  align-items: start;
+}
+
+.assignment-command-main,
+.assignment-command-side {
+  display: grid;
+  align-content: start;
+  gap: 11px;
+
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   CARD BASE
+   --------------------------------------------------------- */
+
+.command-card {
+  min-width: 0;
+  padding: 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--surface-strong),
+      color-mix(
+        in srgb,
+        var(--surface-strong) 96%,
+        var(--accent) 4%
+      )
+    );
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+.command-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.command-card header span,
+.command-card > span {
+  color: var(--accent);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+}
+
+.command-card h3 {
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------
+   ASSIGNMENT BRIEF
+   --------------------------------------------------------- */
+
+.assignment-brief-card {
+  border-left: 3px solid
+    color-mix(
+      in srgb,
+      var(--accent) 75%,
+      var(--border)
+    );
+}
+
+.assignment-brief-card h3 {
+  margin: 4px 0 0;
+
+  font-size: 16px;
+}
+
+.assignment-brief-content {
+  margin-top: 11px;
+}
+
+.assignment-brief-content section {
+  margin: 0;
+  padding: 11px 12px;
+
+  border-radius: 8px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--surface) 76%,
+      transparent
+    );
+}
+
+.assignment-brief-content small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing: 0.08em;
+}
+
+.assignment-brief-content p {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------
+   CURRENT TASKS
+   --------------------------------------------------------- */
+
+.current-tasks-card h3 {
+  margin: 4px 0 0;
+
+  font-size: 16px;
+}
+
+.command-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.command-card-actions button {
+  min-height: 32px !important;
+  padding: 5px 9px !important;
+
+  font-size: 9px !important;
+}
+
+.overview-task-table {
+  margin-top: 10px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.overview-task-head,
+.overview-task-row {
+  display: grid;
+  grid-template-columns:
+    minmax(190px, 1.7fr)
+    minmax(100px, 0.8fr)
+    minmax(85px, 0.6fr)
+    minmax(95px, 0.7fr);
+
+  gap: 10px;
+  align-items: center;
+}
+
+.overview-task-head {
+  padding: 7px 10px;
+
+  border-bottom: 1px solid var(--border);
+
+  background: var(--surface);
+
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.overview-task-row {
+  width: 100%;
+  min-height: 53px !important;
+  padding: 8px 10px !important;
+
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+
+  color: var(--text);
+
+  text-align: left;
+}
+
+.overview-task-row:last-child {
+  border-bottom: 0 !important;
+}
+
+.overview-task-row:hover {
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 6%,
+      var(--surface-strong)
+    ) !important;
+}
+
+.overview-task-row > span {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-task-row > span:first-child {
+  display: block;
+}
+
+.overview-task-row strong,
+.overview-task-row small {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-task-row strong {
+  color: var(--text);
+
+  font-size: 11px;
+}
+
+.overview-task-row small {
+  margin-top: 3px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.overview-task-row > b {
+  justify-self: start;
+
+  padding: 4px 7px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: var(--surface);
+
+  color: var(--text);
+
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------
+   PROGRESS
+   --------------------------------------------------------- */
+
+.assignment-progress-card > header > div span {
+  display: block;
+}
+
+.assignment-progress-card h3 {
+  margin: 4px 0 0;
+
+  font-size: 15px;
+}
+
+.assignment-progress-card > header > strong {
+  color: var(--accent);
+
+  font-size: 20px;
+}
+
+.command-progress {
+  height: 7px;
+  margin: 11px 0 14px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: var(--border);
+}
+
+.command-progress i {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #9d791b,
+      var(--accent),
+      #ecd16d
+    );
+}
+
+.assignment-progress-card ol {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  gap: 4px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.assignment-progress-card li {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  text-align: center;
+}
+
+.assignment-progress-card li b {
+  display: grid;
+  place-items: center;
+
+  width: 23px;
+  height: 23px;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--surface);
+
+  font-size: 8px;
+}
+
+.assignment-progress-card li.reached {
+  color: var(--text);
+}
+
+.assignment-progress-card li.reached b {
+  border-color: var(--accent);
+
+  background: var(--accent);
+  color: #19140a;
+}
+
+/* ---------------------------------------------------------
+   NEXT ACTION
+   --------------------------------------------------------- */
+
+.next-action-card {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 16px;
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 50%,
+      var(--border)
+    );
+
+  border-left: 4px solid var(--accent);
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--accent) 12%,
+        var(--surface-strong)
+      ),
+      var(--surface-strong)
+    );
+}
+
+.next-action-card h3 {
+  margin: 7px 0 5px;
+
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.next-action-card p {
+  margin: 0 0 12px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.next-action-button {
+  width: 100%;
+
+  min-height: 40px !important;
+
+  border-color: var(--accent) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dfbd4b,
+      #b58c19
+    ) !important;
+
+  color: #19140a !important;
+
+  font-weight: 900 !important;
+}
+
+.next-action-button:hover {
+  filter: brightness(1.05);
+}
+
+/* ---------------------------------------------------------
+   TEAM SIDEBAR
+   --------------------------------------------------------- */
+
+.overview-team-card > header button,
+.recent-activity-card > header button {
+  min-height: 29px !important;
+  padding: 4px 7px !important;
+
+  border-color: transparent !important;
+  background: transparent !important;
+
+  color: var(--muted) !important;
+
+  font-size: 9px !important;
+}
+
+.overview-team-card > header button:hover,
+.recent-activity-card > header button:hover {
+  color: var(--accent) !important;
+}
+
+.overview-team-member {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+
+  min-height: 45px;
+  padding: 7px 0;
+
+  border-top: 1px solid var(--border);
+}
+
+.overview-team-member:first-of-type {
+  margin-top: 7px;
+}
+
+.overview-team-member > b {
+  display: grid;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 88%,
+      white
+    );
+
+  color: #19140a;
+
+  font-size: 9px;
+}
+
+.overview-team-member > span {
+  min-width: 0;
+}
+
+.overview-team-member strong,
+.overview-team-member small {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-team-member strong {
+  color: var(--text);
+
+  font-size: 11px;
+}
+
+.overview-team-member small {
+  margin-top: 2px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+/* ---------------------------------------------------------
+   RECENT ACTIVITY SIDEBAR
+   --------------------------------------------------------- */
+
+.recent-activity-item {
+  padding: 8px 0;
+
+  border-top: 1px solid var(--border);
+}
+
+.recent-activity-item:first-of-type {
+  margin-top: 7px;
+}
+
+.recent-activity-item b,
+.recent-activity-item small {
+  display: block;
+}
+
+.recent-activity-item b {
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 750;
+
+  text-transform: capitalize;
+}
+
+.recent-activity-item small {
+  margin-top: 3px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+/* ---------------------------------------------------------
+   EMPTY STATES
+   --------------------------------------------------------- */
+
+.assignment-empty-state,
+.phase4-empty {
+  padding: 22px 18px;
+
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--surface-strong) 67%,
+      transparent
+    );
+
+  color: var(--muted);
+
+  text-align: center;
+}
+
+.assignment-empty-state strong {
+  display: block;
+
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+.assignment-empty-state p {
+  margin: 5px auto 11px;
+
+  max-width: 420px;
+
+  color: var(--muted);
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   TASKS WORKSPACE
+   ========================================================= */
+
+.phase4-tasks {
+  margin-top: 16px;
+}
+
+.phase4-tasks > header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+
+  margin-bottom: 12px;
+}
+
+.phase4-tasks > header h3 {
+  margin: 0 0 4px;
+
+  font-size: 20px;
+}
+
+.phase4-tasks > header p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+}
+
+.task-create-inline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.task-create-inline input {
+  min-width: 220px;
+}
+
+.task-workspace-filters {
+  display: flex;
+  gap: 6px;
+
+  overflow-x: auto;
+
+  margin-bottom: 12px;
+  padding-bottom: 3px;
+}
+
+.task-workspace-filters button {
+  flex: 0 0 auto;
+
+  min-height: 32px !important;
+  padding: 5px 9px !important;
+
+  border-color: var(--border) !important;
+
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+
+  font-size: 9px !important;
+}
+
+.task-workspace-filters button.active {
+  border-color: var(--accent) !important;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 13%,
+      var(--surface)
+    ) !important;
+
+  color: var(--accent) !important;
+}
+
+.assignment-task-list {
+  display: grid;
+  gap: 8px;
+}
+
+.assignment-task-list > article {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.6fr)
+    minmax(105px, 0.75fr)
+    minmax(130px, 0.8fr)
+    52px
+    minmax(125px, 0.75fr);
+
+  align-items: center;
+  gap: 12px;
+
+  min-height: 67px;
+  padding: 11px 12px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface-strong);
+}
+
+.task-primary {
+  min-width: 0;
+}
+
+.task-primary strong,
+.task-primary small,
+.task-primary span {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-primary strong {
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+.task-primary small {
+  margin-top: 3px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.task-primary span {
+  margin-top: 4px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.assignment-task-list time {
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.task-progress-track {
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: var(--border);
+}
+
+.task-progress-track i {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--accent),
+      color-mix(
+        in srgb,
+        var(--accent) 70%,
+        white
+      )
+    );
+}
+
+.task-progress-value {
+  color: var(--accent);
+
+  font-size: 11px;
+  text-align: right;
+}
+
+/* =========================================================
+   TEAM WORKSPACE
+   ========================================================= */
+
+.phase4-team {
+  margin-top: 16px;
+}
+
+.phase4-team > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.phase4-team > header h3 {
+  margin: 0 0 4px;
+
+  font-size: 20px;
+}
+
+.phase4-team > header p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+}
+
+.phase4-team > header > div:last-child {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.team-workspace-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(260px, 1fr)
+    );
+
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+.team-workspace-grid > article {
+  padding: 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--surface-strong);
+}
+
+.team-workspace-grid article > header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.team-workspace-grid article > header > b {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 37px;
+
+  width: 37px;
+  height: 37px;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent),
+      color-mix(
+        in srgb,
+        var(--accent) 68%,
+        white
+      )
+    );
+
+  color: #19140a;
+
+  font-size: 10px;
+}
+
+.team-workspace-grid article > header > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.team-workspace-grid article > header strong,
+.team-workspace-grid article > header small {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-workspace-grid article > header strong {
+  font-size: 11px;
+}
+
+.team-workspace-grid article > header small {
+  margin-top: 2px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.team-workspace-grid article > header > i {
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background: var(--surface);
+
+  color: #7bd294;
+
+  font-size: 8px;
+  font-style: normal;
+}
+
+.team-workspace-grid article > header > i.busy {
+  color: #ff9b80;
+}
+
+.team-workspace-grid article dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 6px;
+
+  margin: 12px 0 0;
+}
+
+.team-workspace-grid article dl > div {
+  padding: 8px;
+
+  border-radius: 7px;
+
+  background: var(--surface);
+}
+
+.team-workspace-grid dt {
+  color: var(--muted);
+
+  font-size: 8px;
+}
+
+.team-workspace-grid dd {
+  margin: 4px 0 0;
+
+  color: var(--accent);
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   DOCUMENTS & OUTPUTS
+   ========================================================= */
+
+.phase4-documents {
+  margin-top: 16px;
+}
+
+.phase4-documents .workspace-document-create {
+  border-radius: 10px;
+}
+
+.phase4-documents label {
+  cursor: pointer;
+}
+
+/* =========================================================
+   DISCUSSION
+   ========================================================= */
+
+.phase4-discussion {
+  margin-top: 16px;
+}
+
+.phase4-discussion .comments {
+  max-height: none;
+}
+
+.phase4-discussion .comment-box {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+
+  padding: 11px 0 2px;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      var(--surface) 20%
+    );
+}
+
+/* =========================================================
+   ACTIVITY
+   ========================================================= */
+
+.phase4-activity {
+  margin-top: 16px;
+}
+
+.phase4-activity .history-list {
+  display: grid;
+  gap: 7px;
+}
+
+.phase4-activity .history-list > div {
+  padding: 11px 13px;
+
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+
+  background: var(--surface-strong);
+}
+
+.phase4-activity .history-list strong,
+.phase4-activity .history-list span {
+  display: block;
+}
+
+.phase4-activity .history-list strong {
+  text-transform: capitalize;
+}
+
+.phase4-activity .history-list span {
+  margin-top: 3px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   REVIEW & APPROVAL
+   ========================================================= */
+
+.phase4-review {
+  max-width: 1000px;
+  margin-top: 16px;
+}
+
+.phase4-review > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 15px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--surface-strong);
+}
+
+.phase4-review > header h3 {
+  margin: 0 0 4px;
+
+  font-size: 19px;
+}
+
+.phase4-review > header p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 10px;
+}
+
+.phase4-review > header strong {
+  display: inline;
+
+  color: var(--accent);
+}
+
+.review-stage {
+  flex: 0 0 auto;
+
+  padding: 6px 9px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: var(--surface);
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.review-stage.under-review {
+  border-color: #d9a441;
+  color: #f3c969;
+}
+
+.review-stage.submitted {
+  border-color: #5d85bd;
+  color: #8eb7ed;
+}
+
+.review-stage.approved {
+  border-color: #4a9b62;
+  color: #71d78d;
+}
+
+.review-stage.changes-requested {
+  border-color: #bd6958;
+  color: #ff9580;
+}
+
+.phase4-review > textarea {
+  width: 100%;
+  min-height: 120px;
+  margin: 12px 0;
+
+  padding: 13px;
+
+  line-height: 1.55;
+}
+
+.phase4-review-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+
+  padding: 0 0 15px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.phase4-review-actions .approve {
+  border-color: #4a9b62 !important;
+
+  background: #317044 !important;
+  color: #fff !important;
+}
+
+.phase4-review-actions .approve:hover {
+  background: #3d8752 !important;
+}
+
+.review-complete {
+  margin: 0;
+  padding: 11px 13px;
+
+  border: 1px solid #4a9b62;
+  border-radius: 8px;
+
+  background: rgba(74, 155, 98, 0.12);
+  color: #71d78d;
+
+  font-weight: 800;
+}
+
+.review-timeline {
+  display: grid;
+  gap: 8px;
+
+  margin-top: 14px;
+}
+
+.review-timeline article {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 15px;
+
+  margin: 0;
+  padding: 12px 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface-strong);
+}
+
+.review-timeline article::before {
+  content: '';
+
+  position: absolute;
+
+  inset: 0 auto 0 0;
+
+  width: 3px;
+
+  border-radius: 4px;
+
+  background: var(--accent);
+}
+
+.review-timeline article > b {
+  color: var(--accent);
+
+  font-size: 10px;
+}
+
+.review-timeline article span strong,
+.review-timeline article span small {
+  display: block;
+}
+
+.review-timeline article span small {
+  margin-top: 2px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+}
+
+.review-timeline article p {
+  margin: 6px 0 0;
+
+  color: var(--text);
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   RESPONSIVE - LAPTOP / TABLET
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .assignment-summary-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .assignment-summary-strip > div:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .assignment-summary-strip > div:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .assignment-command-grid {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(240px, 300px);
+  }
+}
+
+@media (max-width: 980px) {
+  .assignment-workspace .assignment-phase4 {
+    padding: 0 18px 28px;
+  }
+
+  .assignment-workspace-head {
+    padding: 14px 18px;
+  }
+
+  .assignment-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-command-side {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .assignment-task-list > article {
+    grid-template-columns: minmax(200px, 1fr) 110px 1fr;
+  }
+
+  .assignment-task-list > article .task-progress-value,
+  .assignment-task-list > article select {
+    grid-column: auto;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 720px) {
+  .assignment-workspace-head {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+
+    gap: 10px;
+
+    padding: 12px;
+  }
+
+  .assignment-workspace-back {
+    width: 36px;
+    padding: 0;
+
+    overflow: hidden;
+
+    font-size: 0;
+  }
+
+  .assignment-workspace-back::before {
+    content: '←';
+
+    font-size: 16px;
+  }
+
+  .assignment-workspace-title h2 {
+    font-size: 17px;
+  }
+
+  .assignment-title-meta {
+    display: none;
+  }
+
+  .assignment-workspace .assignment-phase4 {
+    padding: 0 12px 24px;
+  }
+
+  .assignment-workspace-tabs button {
+    min-height: 37px;
+    padding: 6px 9px;
+  }
+
+  .assignment-workflow-compact > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .assignment-workflow-compact > header button {
+    width: 100%;
+  }
+
+  .assignment-summary-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .assignment-summary-strip > div {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .assignment-summary-strip > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .assignment-summary-strip > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .assignment-command-side {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-task-head {
+    display: none;
+  }
+
+  .overview-task-row {
+    grid-template-columns: 1fr auto;
+
+    gap: 6px 10px;
+  }
+
+  .overview-task-row > span:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .assignment-progress-card ol {
+    grid-template-columns: repeat(3, 1fr);
+
+    row-gap: 12px;
+  }
+
+  .phase4-tasks > header,
+  .phase4-team > header,
+  .phase4-review > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-create-inline {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .task-create-inline input {
+    min-width: 0;
+  }
+
+  .assignment-task-list > article {
+    grid-template-columns: 1fr;
+
+    gap: 8px;
+  }
+
+  .task-progress-value {
+    text-align: left;
+  }
+
+  .team-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-timeline article {
+    grid-template-columns: 1fr;
+
+    gap: 5px;
+  }
+}
+
+@media (max-width: 460px) {
+  .assignment-summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-summary-strip > div {
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .assignment-summary-strip > div:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .assignment-progress-card ol {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .command-card-actions {
+    display: none;
+  }
+
+  .phase4-review-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .phase4-review-actions button {
+    width: 100%;
+  }
+}
+/* =========================================================
+   PROFESSIONAL ASSIGNMENT NAVIGATION + WORKFLOW
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   TAB BAR
+   --------------------------------------------------------- */
+
+.assignment-workspace-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  margin: 14px 0 18px;
+  padding: 6px;
+
+  overflow-x: auto;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-strong) 97%, var(--accent) 3%),
+      var(--surface-strong)
+    );
+
+  box-shadow: 0 5px 18px rgba(0,0,0,.08);
+
+  scrollbar-width: thin;
+}
+
+.assignment-workspace-tabs button {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  flex: 0 0 auto;
+
+  min-height: 42px;
+  padding: 8px 14px;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  background: transparent;
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 750;
+
+  white-space: nowrap;
+
+  transition:
+    color .16s ease,
+    background .16s ease,
+    border-color .16s ease,
+    box-shadow .16s ease;
+}
+
+.assignment-workspace-tabs button:hover {
+  border-color: var(--border);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--surface) 82%,
+      var(--accent) 5%
+    );
+
+  color: var(--text);
+}
+
+.assignment-workspace-tabs button.active {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 45%,
+      var(--border)
+    );
+
+  background: var(--surface);
+
+  color: var(--text);
+
+  box-shadow:
+    0 3px 10px rgba(0,0,0,.13);
+}
+
+.assignment-workspace-tabs button.active::after {
+  content: '';
+
+  position: absolute;
+
+  left: 10px;
+  right: 10px;
+  bottom: -7px;
+
+  height: 3px;
+
+  border-radius: 999px;
+
+  background: var(--accent);
+}
+
+.assignment-workspace-tabs button > b {
+  display: inline-grid;
+  place-items: center;
+
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: var(--surface-strong);
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.assignment-workspace-tabs button.active > b {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent) 55%,
+      var(--border)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      var(--surface)
+    );
+
+  color: var(--accent);
+}
+
+
+/* ---------------------------------------------------------
+   WORKFLOW PANEL
+   --------------------------------------------------------- */
+
+.assignment-workflow-compact {
+  margin: 0 0 14px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--surface-strong),
+      color-mix(
+        in srgb,
+        var(--surface-strong) 96%,
+        var(--accent) 4%
+      )
+    );
+
+  box-shadow: 0 7px 22px rgba(0,0,0,.08);
+}
+
+
+/* workflow header */
+
+.assignment-workflow-compact > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  min-height: 62px;
+  padding: 11px 16px;
+
+  border-bottom: 1px solid var(--border);
+
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(
+        in srgb,
+        var(--accent) 7%,
+        var(--surface-strong)
+      ),
+      var(--surface-strong)
+    );
+}
+
+.assignment-workflow-compact > header > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+
+  column-gap: 12px;
+  row-gap: 2px;
+
+  min-width: 0;
+}
+
+.assignment-workflow-compact > header span {
+  grid-column: 1 / -1;
+
+  color: var(--accent);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.assignment-workflow-compact > header strong {
+  color: var(--text);
+
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.assignment-workflow-compact > header small {
+  overflow: hidden;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* workflow action */
+
+.assignment-workflow-compact > header button {
+  flex: 0 0 auto;
+
+  min-height: 36px;
+  padding: 7px 13px;
+
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--accent) 55%,
+      var(--border)
+    );
+
+  border-radius: 8px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent) 12%,
+      var(--surface)
+    );
+
+  color: var(--accent);
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.assignment-workflow-compact > header button:hover {
+  background: var(--accent);
+  color: #19140a;
+}
+
+
+/* ---------------------------------------------------------
+   WORKFLOW STEPPER
+   --------------------------------------------------------- */
+
+.assignment-workflow-compact > ol {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(95px, 1fr));
+
+  margin: 0;
+  padding: 18px 18px 16px;
+
+  overflow-x: auto;
+
+  list-style: none;
+
+  scrollbar-width: thin;
+}
+
+.assignment-workflow-compact li {
+  position: relative;
+
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 7px;
+
+  min-width: 95px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-align: center;
+}
+
+
+/* connecting line */
+
+.assignment-workflow-compact li:not(:last-child)::after {
+  content: '';
+
+  position: absolute;
+  z-index: 0;
+
+  top: 14px;
+
+  left: calc(50% + 16px);
+  right: calc(-50% + 16px);
+
+  height: 2px;
+
+  background: var(--border);
+}
+
+
+/* completed connector */
+
+.assignment-workflow-compact li.done:not(:last-child)::after {
+  background: #4d9d67;
+}
+
+
+/* step circle */
+
+.assignment-workflow-compact li > b {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  place-items: center;
+
+  width: 29px;
+  height: 29px;
+
+  border: 2px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--surface);
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 900;
+}
+
+
+/* completed */
+
+.assignment-workflow-compact li.done {
+  color: #7acb90;
+}
+
+.assignment-workflow-compact li.done > b {
+  border-color: #4d9d67;
+
+  background: #315f3e;
+  color: #fff;
+}
+
+
+/* current */
+
+.assignment-workflow-compact li.current {
+  color: var(--text);
+
+  font-weight: 900;
+}
+
+.assignment-workflow-compact li.current > b {
+  border-color: var(--accent);
+
+  background: var(--accent);
+  color: #19140a;
+
+  box-shadow:
+    0 0 0 5px
+    color-mix(
+      in srgb,
+      var(--accent) 13%,
+      transparent
+    );
+}
+
+.assignment-workflow-compact li.current span {
+  color: var(--accent);
+}
+
+
+/* future */
+
+.assignment-workflow-compact li:not(.done):not(.current) {
+  opacity: .7;
+}
+
+
+/* ---------------------------------------------------------
+   SUMMARY SEPARATION
+   --------------------------------------------------------- */
+
+.assignment-summary-strip {
+  margin-bottom: 2px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface-strong);
+
+  box-shadow: 0 4px 14px rgba(0,0,0,.05);
+}
+
+
+/* ---------------------------------------------------------
+   CLEAR CONTENT SEPARATION
+   --------------------------------------------------------- */
+
+.assignment-command-grid {
+  margin-top: 2px;
+}
+
+.assignment-command-main > .command-card,
+.assignment-command-side > .command-card {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--border) 88%,
+      var(--accent) 12%
+    );
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 950px) {
+
+  .assignment-workspace-tabs {
+    border-radius: 9px;
+  }
+
+  .assignment-workspace-tabs button {
+    min-height: 40px;
+    padding: 7px 11px;
+  }
+
+  .assignment-workflow-compact > ol {
+    grid-template-columns:
+      repeat(8, minmax(90px, 1fr));
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .assignment-workspace-tabs {
+    margin-top: 12px;
+  }
+
+  .assignment-workflow-compact > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-workflow-compact > header button {
+    width: 100%;
+  }
+
+}
+/* =========================================================
+   DASHBOARD-STYLE ASSIGNMENT CARDS
+   ========================================================= */
+
+.assignment-command-main,
+.assignment-command-side {
+  gap: 14px;
+}
+
+/* Shared card treatment */
+.command-card {
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--surface-strong);
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.10);
+}
+
+/* Colored dashboard heading strip */
+.command-card > header {
+  margin: -14px -14px 14px;
+  padding: 12px 14px;
+
+  border-bottom: 1px solid rgba(255,255,255,.06);
+
+  background: var(--card-heading-bg, var(--surface));
+}
+
+.command-card > header span {
+  color: var(--card-accent, var(--accent));
+}
+
+.command-card > header h3 {
+  margin: 4px 0 0;
+  color: #fff;
+}
+
+/* =========================================================
+   ASSIGNMENT BRIEF - GOLD
+   ========================================================= */
+
+.assignment-brief-card {
+  --card-accent: #e2b93b;
+  --card-heading-bg:
+    linear-gradient(
+      135deg,
+      rgba(180,137,28,.30),
+      rgba(69,58,25,.18)
+    );
+
+  border-left: 4px solid #e2b93b;
+}
+
+.assignment-brief-card .assignment-brief-content section {
+  border-left: 3px solid rgba(226,185,59,.55);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(226,185,59,.07),
+      transparent
+    );
+}
+
+/* =========================================================
+   CURRENT TASKS - BLUE
+   ========================================================= */
+
+.current-tasks-card {
+  --card-accent: #71a7e8;
+  --card-heading-bg:
+    linear-gradient(
+      135deg,
+      rgba(55,105,165,.34),
+      rgba(27,48,75,.20)
+    );
+
+  border-left: 4px solid #5c8fcf;
+}
+
+.current-tasks-card .overview-task-head {
+  background:
+    rgba(65,105,155,.10);
+}
+
+.current-tasks-card .overview-task-row:hover {
+  background:
+    rgba(77,126,184,.09) !important;
+}
+
+/* =========================================================
+   PROGRESS - GREEN
+   ========================================================= */
+
+.assignment-progress-card {
+  --card-accent: #71c68b;
+  --card-heading-bg:
+    linear-gradient(
+      135deg,
+      rgba(47,116,70,.34),
+      rgba(26,65,42,.18)
+    );
+
+  border-left: 4px solid #4d9d67;
+}
+
+.assignment-progress-card > header > strong {
+  color: #78d394;
+}
+
+.assignment-progress-card .command-progress i {
+  background:
+    linear-gradient(
+      90deg,
+      #397f50,
+      #5ab977,
+      #85dc9c
+    );
+}
+
+/* =========================================================
+   NEXT ACTION - AMBER
+   ========================================================= */
+
+.next-action-card {
+  --card-accent: #f0c64a;
+
+  border: 1px solid rgba(225,181,52,.38);
+  border-left: 4px solid #e2b93b;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(183,139,26,.13),
+      var(--surface-strong) 42%
+    );
+}
+
+.next-action-card > span {
+  color: #eac64f;
+}
+
+.next-action-card h3 {
+  color: #fff;
+}
+
+.next-action-card .next-action-button {
+  background:
+    linear-gradient(
+      135deg,
+      #efca51,
+      #c79719
+    ) !important;
+
+  border-color: #d5ab2c !important;
+
+  box-shadow:
+    0 6px 14px rgba(202,151,24,.18);
+}
+
+/* =========================================================
+   TEAM - TEAL
+   ========================================================= */
+
+.overview-team-card {
+  --card-accent: #58c3b5;
+  --card-heading-bg:
+    linear-gradient(
+      135deg,
+      rgba(43,125,116,.32),
+      rgba(24,69,65,.18)
+    );
+
+  border-left: 4px solid #4aa99e;
+}
+
+.overview-team-member > b {
+  background:
+    linear-gradient(
+      135deg,
+      #66cabc,
+      #418e86
+    );
+
+  color: #10201e;
+}
+
+/* =========================================================
+   RECENT ACTIVITY - PURPLE / SLATE
+   ========================================================= */
+
+.recent-activity-card {
+  --card-accent: #a597da;
+  --card-heading-bg:
+    linear-gradient(
+      135deg,
+      rgba(91,76,145,.34),
+      rgba(47,42,76,.20)
+    );
+
+  border-left: 4px solid #8172bf;
+}
+
+.recent-activity-item {
+  position: relative;
+  padding-left: 15px;
+}
+
+.recent-activity-item::before {
+  content: '';
+
+  position: absolute;
+  left: 1px;
+  top: 13px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #9a8bd0;
+}
+
+/* =========================================================
+   SUMMARY STRIP AS DASHBOARD CARDS
+   ========================================================= */
+
+.assignment-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0,1fr));
+
+  gap: 8px;
+
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.assignment-summary-strip > div {
+  position: relative;
+
+  padding: 12px 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface-strong);
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.07);
+}
+
+.assignment-summary-strip > div::before {
+  content: '';
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  border-radius: 9px 0 0 9px;
+
+  background: var(--summary-accent, var(--accent));
+}
+
+/* status */
+.assignment-summary-strip > div:nth-child(1) {
+  --summary-accent: #5e91cf;
+}
+
+/* priority */
+.assignment-summary-strip > div:nth-child(2) {
+  --summary-accent: #dfa934;
+}
+
+/* progress */
+.assignment-summary-strip > div:nth-child(3) {
+  --summary-accent: #58ad70;
+}
+
+/* due date */
+.assignment-summary-strip > div:nth-child(4) {
+  --summary-accent: #b27cbd;
+}
+
+/* lead */
+.assignment-summary-strip > div:nth-child(5) {
+  --summary-accent: #4faea3;
+}
+
+/* team */
+.assignment-summary-strip > div:nth-child(6) {
+  --summary-accent: #8f87c8;
+}
+
+/* =========================================================
+   WORKFLOW AS DASHBOARD PROCESS CARD
+   ========================================================= */
+
+.assignment-workflow-compact {
+  border-top: 3px solid var(--accent);
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--surface-strong),
+      rgba(210,170,45,.025)
+    );
+}
+
+.assignment-workflow-compact > header {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(202,157,37,.16),
+      rgba(202,157,37,.03) 55%,
+      transparent
+    );
+}
+
+/* =========================================================
+   CLEANER TITLES
+   ========================================================= */
+
+.command-card > span,
+.command-card > header span,
+.workspace-eyebrow {
+  letter-spacing: .11em;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.command-card h3 {
+  font-size: 18px;
+}
+
+/* =========================================================
+   MOBILE / TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .assignment-summary-strip {
+    grid-template-columns: repeat(3,1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .assignment-summary-strip {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .assignment-summary-strip {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================================================
+   FINAL ASSIGNMENT WORKSPACE POLISH
+   Fix card header overlap and spacing
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   CARD STRUCTURE
+   --------------------------------------------------------- */
+
+.command-card {
+  overflow: hidden;
+  padding: 0;
+
+  border-radius: 12px;
+
+  background: var(--surface-strong);
+}
+
+.command-card > header {
+  margin: 0;
+  padding: 14px 18px;
+
+  border-bottom: 1px solid rgba(255,255,255,.06);
+
+  background: var(--card-heading-bg, var(--surface));
+
+  position: relative;
+  z-index: 1;
+}
+
+.command-card > header + * {
+  margin-top: 0;
+}
+
+/* body spacing */
+.assignment-brief-content,
+.overview-task-table,
+.assignment-empty-state,
+.assignment-progress-card > .command-progress,
+.assignment-progress-card > ol {
+  margin-left: 18px;
+  margin-right: 18px;
+}
+
+/* ---------------------------------------------------------
+   ASSIGNMENT BRIEF
+   --------------------------------------------------------- */
+
+.assignment-brief-card {
+  padding-bottom: 16px;
+}
+
+.assignment-brief-content {
+  margin-top: 16px;
+}
+
+.assignment-brief-content section {
+  padding: 14px 16px;
+}
+
+/* ---------------------------------------------------------
+   CURRENT TASKS
+   --------------------------------------------------------- */
+
+.current-tasks-card {
+  padding-bottom: 16px;
+}
+
+.current-tasks-card .overview-task-table {
+  margin-top: 14px;
+}
+
+.current-tasks-card .assignment-empty-state {
+  margin-top: 14px;
+}
+
+/* ---------------------------------------------------------
+   PROGRESS
+   --------------------------------------------------------- */
+
+.assignment-progress-card {
+  padding-bottom: 18px;
+}
+
+.assignment-progress-card > .command-progress {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.assignment-progress-card > ol {
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------
+   RIGHT COLUMN CARDS
+   --------------------------------------------------------- */
+
+.next-action-card,
+.overview-team-card,
+.recent-activity-card {
+  padding: 0 0 16px;
+}
+
+/* cards without header element */
+.next-action-card {
+  padding: 18px;
+}
+
+.next-action-card > span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.next-action-card h3 {
+  margin: 0 0 6px;
+}
+
+.next-action-card p {
+  margin-bottom: 16px;
+}
+
+/* team body */
+.overview-team-card .overview-team-member,
+.overview-team-card > p {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+/* activity body */
+.recent-activity-card .recent-activity-item,
+.recent-activity-card > p {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+/* ---------------------------------------------------------
+   MAIN / SIDE COLUMN SPACING
+   --------------------------------------------------------- */
+
+.assignment-command-grid {
+  align-items: start;
+  gap: 16px;
+}
+
+.assignment-command-main,
+.assignment-command-side {
+  gap: 16px;
+}
+
+/* ---------------------------------------------------------
+   KEEP CARD HEADINGS INSIDE THEIR OWN CARD
+   --------------------------------------------------------- */
+
+.assignment-brief-card > header,
+.current-tasks-card > header,
+.assignment-progress-card > header,
+.overview-team-card > header,
+.recent-activity-card > header {
+  width: auto;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   REMOVE OLD HEADER OVERFLOW EFFECTS
+   --------------------------------------------------------- */
+
+.command-card > header {
+  transform: none !important;
+  inset: auto !important;
+}
+
+.command-card {
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------
+   SUMMARY STRIP SPACING
+   --------------------------------------------------------- */
+
+.assignment-summary-strip {
+  margin: 14px 0 16px;
+}
+
+/* ---------------------------------------------------------
+   WORKFLOW SPACING
+   --------------------------------------------------------- */
+
+.assignment-workflow-compact {
+  margin-bottom: 16px;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+  .assignment-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-command-side {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* Simplified assignment workspace */
+.assignment-workspace-tabs{display:flex;align-items:center;gap:5px}.assignment-workspace-tabs .assignment-quick-add{position:relative;margin-left:auto}.assignment-quick-add>button.primary{min-height:36px;padding:7px 16px;border:0;border-radius:7px;background:#d5ad36;color:#17140b;font-weight:900}.assignment-quick-add>div{position:absolute;right:0;z-index:80;display:grid;min-width:170px;margin-top:6px;padding:6px;border:1px solid #51575b;border-radius:8px;background:#191d20;box-shadow:0 12px 28px rgba(0,0,0,.4)}.assignment-quick-add>div button,.assignment-quick-add>div label{padding:9px 11px;border:0;border-radius:5px;background:transparent;color:#edf0f1;font-size:11px;text-align:left;cursor:pointer}.assignment-quick-add>div button:hover,.assignment-quick-add>div label:hover{background:#292f33}.assignment-felix-context{margin:8px 0 12px;padding:8px 11px;border:1px solid #3c4449;border-radius:8px;background:#171b1e}.assignment-felix-context>button{border:0;background:transparent;color:#d8b84d;font-weight:800}.assignment-felix-context>div{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;margin-top:9px}.assignment-felix-prompts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px}.assignment-felix-prompts button{padding:6px 8px;border:1px solid #454d52;border-radius:999px;background:#20262a;color:#dbe0e2;font-size:9px}.assignment-felix-context label{display:flex;align-items:center;gap:8px;color:#929b9f;font-size:9px}.assignment-felix-context input{width:100%;padding:8px;border:1px solid #475057;border-radius:6px;background:#111517;color:#fff}.assignment-felix-context p{grid-column:1/-1;margin:2px 0;padding:9px;border-radius:6px;background:#20262a;color:#d9dddf;white-space:pre-wrap}.assignment-resources-simple{display:grid;gap:11px}.assignment-resource-tools,.assignment-repository-link{display:flex;gap:7px;align-items:center}.assignment-resource-tools input,.assignment-repository-link select{min-width:0;flex:1;padding:9px;border:1px solid #424a50;border-radius:7px;background:#171c20;color:#fff}.assignment-resource-tools button,.assignment-repository-link button{padding:8px 10px;border:1px solid #485158;border-radius:7px;background:#1d2327;color:#dce0e2}.assignment-resource-tools button.active{border-color:#cba432;color:#e2bd4d}.assignment-resource-list{display:grid;gap:6px}.assignment-resource-list article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid #343c41;border-radius:8px;background:#151a1d}.assignment-resource-list strong,.assignment-resource-list small{display:block}.assignment-resource-list small{margin-top:3px;color:#929ba0}.assignment-resource-list button,.assignment-note-composer button{padding:8px 11px;border:1px solid #b18f2b;border-radius:6px;background:#d3ad39;color:#17130a;font-weight:800}.assignment-note-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.assignment-note-composer textarea{min-height:72px;padding:10px;border:1px solid #424b50;border-radius:7px;background:#171c20;color:#fff;resize:vertical}.assignment-human-activity strong{text-transform:none}.assignment-activity-comment{position:static!important;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 0!important;background:transparent!important}.assignment-activity-comment textarea{min-height:58px!important}
+@media(max-width:760px){.assignment-workspace-tabs{overflow:visible;flex-wrap:wrap}.assignment-workspace-tabs>button{flex:1}.assignment-workspace-tabs .assignment-quick-add{width:100%;margin-left:0}.assignment-quick-add>button.primary{width:100%}.assignment-felix-context>div,.assignment-note-composer,.assignment-activity-comment{grid-template-columns:1fr}.assignment-resource-tools,.assignment-repository-link{align-items:stretch;flex-direction:column}.assignment-resource-tools>* ,.assignment-repository-link>*{width:100%}.assignment-resource-list article{align-items:flex-start;flex-direction:column}.assignment-resource-list article button{width:100%}}
+
+.assignment-dismissible-message{display:flex;align-items:center;justify-content:space-between;gap:12px}.assignment-dismissible-message>span{min-width:0}.assignment-dismissible-message>button{display:grid;flex:0 0 28px;height:28px;place-items:center;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;font-size:17px;line-height:1}.assignment-felix-context>header{display:flex;align-items:center;justify-content:space-between;gap:12px}.assignment-felix-context>header>button:first-child{border:0;background:transparent;color:#d8b84d;font-weight:800}.assignment-felix-hide{padding:5px 9px;border:1px solid #59636a;border-radius:6px;background:#252b2f;color:#dce1e4;font-size:9px;font-weight:800}.assignment-felix-context>div>p{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.assignment-felix-context>div>p>span{min-width:0}.assignment-felix-context>div>p>button{display:grid;flex:0 0 26px;height:26px;place-items:center;border:1px solid #59636a;border-radius:6px;background:transparent;color:inherit;font-size:16px}
+.assignment-my-work{margin-bottom:12px;padding:12px;border:1px solid #353d42;border-radius:9px;background:#151a1d}.assignment-my-work header h3{margin:3px 0 9px;font-size:15px}.assignment-my-work>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.assignment-my-work>div button{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid #41494e;border-radius:7px;background:#1d2327;color:#dce0e2;text-align:left}.assignment-my-work>div b{color:#d5ad36}@media(max-width:760px){.assignment-my-work>div{grid-template-columns:1fr 1fr}}
+/* =========================================================
+   FULL-SCREEN ASSIGNMENT WORKSPACE
+   ========================================================= */
+
+.collab-drawer.assignment-workspace {
+  position: fixed !important;
+
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  border-left: 0 !important;
+  box-shadow: none !important;
+
+  background: var(--surface, #111315);
+
+  z-index: 1200 !important;
+
+  animation: none !important;
+}
+
+/* Assignment header belongs inside the workspace */
+.assignment-workspace-head {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+
+  width: 100%;
+
+  flex: 0 0 auto;
+
+  padding: 14px 24px;
+
+  border-bottom: 1px solid var(--border);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--surface-strong),
+      color-mix(
+        in srgb,
+        var(--surface-strong) 94%,
+        var(--accent) 6%
+      )
+    );
+
+  z-index: 10;
+}
+
+/* Main scrolling area */
+.assignment-workspace .assignment-phase4 {
+  width: 100%;
+
+  flex: 1;
+  min-height: 0;
+
+  padding: 0 24px 32px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Prevent any horizontal clipping */
+.assignment-command-centre,
+.assignment-command-grid,
+.assignment-command-main,
+.assignment-command-side,
+.assignment-summary-strip,
+.assignment-workflow-compact {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Keep content away from edges */
+.assignment-command-centre {
+  padding-bottom: 30px;
+}
+
+.assignment-direct-overview .assignment-summary-strip {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.assignment-direct-overview-grid {
+  align-items: start;
+}
+
+.assignment-direct-overview .assignment-brief-card,
+.assignment-direct-overview .next-action-card {
+  min-height: 0;
+  height: auto;
+}
+
+.assignment-direct-overview .assignment-command-side {
+  align-content: start;
+}
+
+/* Direct Overview: deliberately distinct from the legacy command centre. */
+.assignment-direct-overview {
+  --direct-gold: #e1b83f;
+  --direct-ink: #181b1d;
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(225,184,63,.13), transparent 31%),
+    linear-gradient(145deg, #191d20 0%, #111416 100%);
+  border: 1px solid #3b4145;
+  border-radius: 18px;
+  box-shadow: 0 22px 50px rgba(0,0,0,.24);
+}
+
+.assignment-direct-overview .assignment-workflow-compact {
+  overflow: hidden;
+  border: 1px solid rgba(225,184,63,.42);
+  border-radius: 15px;
+  background: linear-gradient(120deg, #2e2b20, #202326 58%, #252a2d);
+  box-shadow: inset 4px 0 0 var(--direct-gold);
+}
+
+.assignment-direct-overview .assignment-workflow-compact > header {
+  padding: 21px 22px 17px 25px;
+}
+
+.assignment-direct-overview .assignment-workflow-compact > header span {
+  color: var(--direct-gold);
+  font-size: 9px;
+  letter-spacing: .19em;
+}
+
+.assignment-direct-overview .assignment-workflow-compact > header strong {
+  margin-top: 5px;
+  color: #fff;
+  font-size: clamp(21px, 2.4vw, 32px);
+}
+
+.assignment-direct-overview .assignment-workflow-compact > header small {
+  margin-top: 5px;
+  color: #b8bec1;
+  font-size: 11px;
+}
+
+.assignment-direct-overview .assignment-workflow-compact > header button,
+.assignment-direct-overview .next-action-button {
+  border: 0;
+  border-radius: 9px;
+  background: var(--direct-gold);
+  color: #17150d;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(225,184,63,.18);
+}
+
+.assignment-direct-overview .assignment-workflow-compact ol {
+  padding: 0 22px 19px 25px;
+}
+
+.assignment-direct-overview .assignment-summary-strip {
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.assignment-direct-overview .assignment-summary-strip > div {
+  min-height: 82px;
+  padding: 15px 16px;
+  border: 1px solid #3b4246;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #24292c, #1c2022);
+}
+
+.assignment-direct-overview .assignment-summary-strip small {
+  color: #8f989d;
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.assignment-direct-overview .assignment-summary-strip strong {
+  margin-top: 8px;
+  color: #f4f2eb;
+  font-size: 18px;
+}
+
+.assignment-direct-overview-grid {
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+  gap: 16px;
+}
+
+.assignment-direct-overview .assignment-brief-card,
+.assignment-direct-overview .next-action-card {
+  border: 1px solid #3b4246;
+  border-radius: 14px;
+  background: #202427;
+}
+
+.assignment-direct-overview .assignment-brief-card {
+  padding: 22px;
+  box-shadow: inset 0 3px 0 #626b70;
+}
+
+.assignment-direct-overview .assignment-brief-card header span,
+.assignment-direct-overview .next-action-card > span {
+  color: var(--direct-gold);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.assignment-direct-overview .assignment-brief-card h3 {
+  margin-top: 5px;
+  color: #fff;
+  font-size: 20px;
+}
+
+.assignment-direct-overview .assignment-brief-content section {
+  margin-top: 18px;
+  padding: 17px;
+  border-left: 3px solid var(--direct-gold);
+  border-radius: 0 10px 10px 0;
+  background: #191d1f;
+}
+
+.assignment-direct-overview .next-action-card {
+  padding: 22px;
+  background: linear-gradient(145deg, #343026, #24282a);
+  box-shadow: inset 0 3px 0 var(--direct-gold);
+}
+
+.assignment-direct-overview .next-action-card h3 {
+  margin: 9px 0 7px;
+  color: #fff;
+  font-size: 20px;
+}
+
+.assignment-direct-overview .next-action-card p {
+  color: #b9bec1;
+  line-height: 1.55;
+}
+
+.assignment-direct-overview .next-action-button {
+  width: 100%;
+  margin-top: 17px;
+  padding: 13px 16px;
+}
+
+.assignment-direct-overview .assignment-overview-readiness {
+  margin: 10px 0 0;
+  padding: 15px 16px;
+  border-radius: 12px;
+}
+
+
+/* =========================================================
+   TABLET / MOBILE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .assignment-workspace-head {
+    padding: 12px 16px;
+  }
+
+  .assignment-workspace .assignment-phase4 {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .assignment-direct-overview .assignment-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-direct-overview {
+    padding: 13px;
+  }
+
+  .assignment-direct-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+/* Assignment Workspace solid header + tabs */
+
+.assignment-workspace-head {
+  background: #202428 !important;
+  border-bottom: 3px solid #c89b2c !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace-head * {
+  backdrop-filter: none !important;
+}
+
+.assignment-workspace-tabs {
+  background: #292e33 !important;
+  border: 0 !important;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.assignment-workspace-tabs button {
+  background: #343a40 !important;
+  color: #c8cdd2 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace-tabs button:hover {
+  background: #41474d !important;
+  color: #ffffff !important;
+}
+
+.assignment-workspace-tabs button.active {
+  background: #c89b2c !important;
+  color: #17191b !important;
+  font-weight: 800 !important;
+}
+
+/* Compact, self-explanatory assignment identity bar. */
+.assignment-workspace-head {
+  min-height: 68px !important;
+  padding: 9px 16px !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.assignment-workspace-back {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  gap: 6px;
+  border-color: #464c50 !important;
+  color: #d8dcdf !important;
+  white-space: nowrap;
+}
+
+.assignment-workspace-title {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.assignment-title-copy {
+  min-width: 0;
+}
+
+.assignment-title-copy > p {
+  margin: 0 0 2px !important;
+  color: #d5aa39 !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.assignment-title-copy > h2 {
+  margin: 0 !important;
+  overflow: hidden;
+  color: #f4f5f6 !important;
+  font-size: 21px !important;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-workspace-title .assignment-title-meta {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px !important;
+  margin: 0 !important;
+  white-space: nowrap;
+}
+
+.assignment-workspace-title .assignment-title-meta > span {
+  font-size: 10px !important;
+}
+
+.assignment-workspace-close {
+  min-width: 34px !important;
+  min-height: 34px !important;
+}
+
+.assignment-workspace .assignment-phase4 {
+  padding-top: 0 !important;
+}
+
+.assignment-workspace-tabs {
+  margin-top: 0 !important;
+  padding: 6px 10px !important;
+}
+
+.assignment-workspace-tabs button {
+  min-height: 36px !important;
+  padding: 6px 13px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 900px) {
+  .assignment-workspace-title {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .assignment-workspace-title .assignment-title-meta {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+}

@@ -1,0 +1,440 @@
+/* App2 Research Workflow Phase 2
+   Formal reviewers, many related assignments, and five-tab research workspace. */
+
+/* Five clear workspace areas. Override legacy tab visibility rules. */
+.research-workspace > section {
+  display: none !important;
+}
+
+.research-workspace[data-tab="Overview"] > .research-overview-panel,
+.research-workspace[data-tab="Overview"] > .research-team-panel,
+.research-workspace[data-tab="Overview"] > .research-plan-editor,
+.research-workspace[data-tab="Work"] > .research-work-panel,
+.research-workspace[data-tab="Work"] > .research-milestones-panel,
+.research-workspace[data-tab="Work"] > .research-discussion-panel,
+.research-workspace[data-tab="Resources"] > .research-documents-placeholder,
+.research-workspace[data-tab="Resources"] > .research-sources-panel,
+.research-workspace[data-tab="Resources"] > .research-builder-documents-panel,
+.research-workspace[data-tab="Report"] > .research-report-builder,
+.research-workspace[data-tab="Activity"] > .research-activity-panel {
+  display: block !important;
+}
+
+.research-workspace[data-tab="Overview"] > .research-overview-panel,
+.research-workspace[data-tab="Overview"] > .research-team-panel,
+.research-workspace[data-tab="Overview"] > .research-plan-editor,
+.research-workspace[data-tab="Work"] > .research-work-panel,
+.research-workspace[data-tab="Work"] > .research-milestones-panel,
+.research-workspace[data-tab="Work"] > .research-discussion-panel,
+.research-workspace[data-tab="Resources"] > .research-documents-placeholder,
+.research-workspace[data-tab="Resources"] > .research-sources-panel,
+.research-workspace[data-tab="Resources"] > .research-builder-documents-panel,
+.research-workspace[data-tab="Report"] > .research-report-builder,
+.research-workspace[data-tab="Activity"] > .research-activity-panel {
+  grid-column: 1 / -1 !important;
+  margin-top: 14px;
+}
+
+/* Formal reviewers are visually separate from the working team. */
+.research-reviewer-management {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-strong));
+}
+
+.research-reviewer-management > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.research-reviewer-management > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.research-reviewer-management > header small:first-child {
+  color: var(--accent);
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+
+.research-reviewer-management > header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.research-reviewer-management > header p {
+  margin: 0;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.research-reviewer-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 9px;
+}
+
+.research-reviewer-picker > label,
+.research-reviewer-readonly {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.research-reviewer-picker > label.selected {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+
+.research-reviewer-picker > label input {
+  width: 18px;
+  height: 18px;
+}
+
+.research-reviewer-picker span,
+.research-reviewer-readonly {
+  min-width: 0;
+}
+
+.research-reviewer-picker strong,
+.research-reviewer-readonly strong {
+  display: block;
+  font-size: 14px;
+}
+
+.research-reviewer-picker small,
+.research-reviewer-readonly small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px !important;
+}
+
+.research-save-reviewers {
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 9px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 72%, var(--border));
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-contrast, #171717);
+  font-weight: 850;
+}
+
+/* Research Work = related App2 assignments, not duplicate tasks. */
+.research-work-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.research-work-panel > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.research-work-panel > header small:first-child {
+  color: var(--accent);
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+
+.research-work-panel > header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.research-work-panel > header p {
+  margin: 0;
+  max-width: 850px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.research-assignment-controls {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.research-link-assignment {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-strong);
+}
+
+.research-link-assignment label {
+  display: grid;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.research-link-assignment select,
+.research-link-assignment button {
+  min-height: 42px;
+}
+
+.research-link-assignment button {
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 62%, var(--border));
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-contrast, #171717);
+  font-weight: 850;
+}
+
+.research-create-assignment {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-strong);
+}
+
+.research-create-assignment > summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.research-assignment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.research-assignment-form > label,
+.research-assignment-form > fieldset {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.research-assignment-form .wide {
+  grid-column: 1 / -1;
+}
+
+.research-assignment-form :is(input,select,textarea) {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.research-assignment-form textarea {
+  min-height: 92px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.research-assignment-form fieldset {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.research-assignment-form fieldset legend {
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+.research-assignment-form fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.research-assignment-form fieldset label input {
+  width: 17px;
+  min-height: 17px;
+}
+
+.research-assignment-form fieldset label small {
+  display: block;
+  color: var(--muted);
+}
+
+.research-assignment-list {
+  display: grid;
+  gap: 9px;
+}
+
+.research-assignment-list > article {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(150px, auto) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 82px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+}
+
+.research-assignment-list > article > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.research-assignment-list > article > div:first-child > span {
+  color: var(--accent) !important;
+  font-size: 13px !important;
+  font-weight: 850;
+}
+
+.research-assignment-list > article strong {
+  font-size: 15px;
+}
+
+.research-assignment-list > article small {
+  color: var(--muted);
+  font-size: 13px !important;
+}
+
+.research-assignment-list > article > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.research-assignment-list > article > div:nth-child(2) b {
+  width: fit-content;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  font-size: 13px;
+}
+
+.research-assignment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.research-assignment-actions button {
+  min-height: 40px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
+  color: var(--text);
+  font-weight: 800;
+}
+
+.research-assignment-actions button.unlink {
+  border-color: var(--border);
+  background: var(--surface-strong);
+  color: var(--muted);
+}
+
+.research-work-empty {
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: 11px;
+  text-align: center;
+  background: var(--surface-strong);
+}
+
+.research-work-empty strong {
+  font-size: 16px;
+}
+
+.research-work-empty p {
+  margin: 5px auto 0;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Resources tab groups evidence and controlled outputs while central storage remains unchanged. */
+.research-workspace[data-tab="Resources"] > .research-documents-placeholder {
+  min-height: auto !important;
+  padding: 14px 16px !important;
+  border-style: dashed !important;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface)) !important;
+}
+
+.research-workspace[data-tab="Resources"] > .research-documents-placeholder h3 {
+  margin-bottom: 4px;
+}
+
+/* Creation wizard: formal reviewer assignment is visibly distinct. */
+.research-reviewer-picker-wizard {
+  margin-top: 14px;
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border)) !important;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface-strong));
+}
+
+.research-reviewer-help {
+  grid-column: 1 / -1;
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 13px !important;
+}
+
+/* Reader / review comfort: maintain readable scale in controlled research outputs. */
+.research-workspace[data-tab="Report"] .research-report-builder,
+.research-workspace[data-tab="Resources"] .research-builder-documents-panel {
+  font-size: 15px;
+}
+
+@media (max-width: 850px) {
+  .research-link-assignment,
+  .research-assignment-form,
+  .research-assignment-list > article {
+    grid-template-columns: 1fr;
+  }
+  .research-assignment-form .wide { grid-column: 1; }
+  .research-assignment-actions { justify-content: flex-start; }
+  .research-reviewer-management > header,
+  .research-work-panel > header { flex-direction: column; }
+}
+
+/* Cross-navigation: assignment work should show its parent research clearly. */
+.assignment-research-link {
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 52%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-strong));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.assignment-research-link:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-strong));
+}

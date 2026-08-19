@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   AiResearchEngine,
   AiResearchJob,
@@ -72,15 +72,15 @@ type Props = {
 
 function cleanFelixText(value: string) {
   return value
-    .replace(/â€¢/g, '-')
-    .replace(/â€”/g, '-')
-    .replace(/â€“/g, '-')
-    .replace(/â€œ/g, '"')
-    .replace(/â€/g, '"')
-    .replace(/â€™/g, "'")
-    .replace(/â€¦/g, '...')
-    .replace(/Â·/g, '-')
-    .replace(/âœ“/g, '')
+    .replace(/•/g, '-')
+    .replace(/—/g, '-')
+    .replace(/–/g, '-')
+    .replace(/“/g, '"')
+    .replace(/”/g, '"')
+    .replace(/’/g, "'")
+    .replace(/…/g, '...')
+    .replace(/·/g, '-')
+    .replace(/✓/g, '')
     .replace(/^\s*#{1,6}\s+/gm, '')
     .replace(/^\s*[•▪◦‣]\s*/gm, '- ')
     .replace(/\*\*([^*]+)\*\*/g, '$1')

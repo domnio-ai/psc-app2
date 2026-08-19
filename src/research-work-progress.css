@@ -1,0 +1,89 @@
+.research-assignment-list > article {
+  grid-template-columns: minmax(220px, 1.15fr) minmax(135px, 0.55fr) minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.research-assignment-progress {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.research-assignment-progress > small {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.research-assignment-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.research-assignment-progress-head strong {
+  font-size: 15px;
+}
+
+.research-assignment-progress-head span {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.research-assignment-progress-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.research-assignment-progress-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+}
+
+.research-assignment-work-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.research-assignment-work-signals > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.research-assignment-work-signals .review {
+  border-color: rgba(217, 119, 6, 0.62);
+}
+
+.research-assignment-work-signals .overdue {
+  border-color: rgba(185, 28, 28, 0.62);
+  font-weight: 800;
+}
+
+.research-assignment-progress .error {
+  font-weight: 750;
+}
+
+@media (max-width: 1080px) {
+  .research-assignment-list > article {
+    grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .research-assignment-list > article {
+    grid-template-columns: 1fr;
+  }
+}

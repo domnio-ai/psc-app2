@@ -17,11 +17,16 @@ type Props = {
   linkedWorkPlaceholder?: string;
   linkedWorkActionLabel?: string;
   mode: "edit" | "review";
+  isEditable?: boolean;
+  initialPreview?: boolean;
   status: "Draft" | "In Review" | "Final";
   value: string;
   busy?: boolean;
   canSendReview?: boolean;
   canMarkFinal?: boolean;
+  canMarkReady?: boolean;
+  statusMessage?: string;
+  statusTone?: "info" | "success" | "error";
   canGoPrevious?: boolean;
   canGoNext?: boolean;
   sectionNumber?: number;
@@ -36,6 +41,36 @@ type Props = {
     sections?: { key: string; title: string }[];
   }[];
   currentTemplateId?: string;
+  reportTemplateOptions?: {
+    key: string;
+    name: string;
+    description?: string;
+    sectionCount?: number;
+  }[];
+  onApplyReportTemplate?: (templateKey: string) => void | Promise<void>;
+  workspaceVariant?: "default" | "assignment-report";
+  saveLabel?: string;
+  closeLabel?: string;
+  reviewerOptions?: { id: string; name: string; role: string }[];
+  canSubmitForReview?: boolean;
+  submissionReady?: boolean;
+  readySectionCount?: number;
+  totalSectionCount?: number;
+  externalReport?: {
+    id: string;
+    version_number: number;
+    original_name: string;
+    mime_type: string;
+    size_bytes: number;
+    status: string;
+  };
+  canImportExternalReport?: boolean;
+  onImportExternalReport?: (file: File) => void | Promise<void>;
+  onOpenExternalReport?: () => void | Promise<void>;
+  onSubmitForReview?: (
+    reviewerId: string,
+    comments: string,
+  ) => void | Promise<void>;
   onChange: (value: string) => void;
   onClose: () => void;
   onSave: (latestValue?: string) => void | boolean | Promise<void | boolean>;
@@ -43,22 +78,28 @@ type Props = {
   onNext?: () => void | Promise<void>;
   onSendReview?: () => void | Promise<void>;
   onMarkFinal?: () => void | Promise<void>;
+  onMarkReady?: (latestValue?: string) => void | Promise<void>;
   onOpenFinalDocument?: (latestValue?: string) => void | Promise<void>;
   onSelectSection?: (sectionId: string) => void | Promise<void>;
+  onProceedForReview?: (latestValue?: string) => void | Promise<void>;
+  onPreviewReport?: (latestValue?: string) => void | Promise<void>;
 };
+
+
 
 export default function TaskSectionWorkspace(props: Props) {
   const { title, reportTitle, mode, status, value, busy, onChange } = props;
   const editorRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const reportImportInputRef = useRef<HTMLInputElement | null>(null);
+  const externalReportInputRef = useRef<HTMLInputElement | null>(null);
   const imageToReplaceRef = useRef<HTMLImageElement | null>(null);
   const savedEditorRangeRef = useRef<Range | null>(null);
   const latestValueRef = useRef(value);
   const syncFrameRef = useRef<number | null>(null);
   const [find, setFind] = useState("");
   const [cursorPosition, setCursorPosition] = useState(0);
-  const [preview, setPreview] = useState(mode === "review");
+  const [preview, setPreview] = useState(props.initialPreview ?? mode === "review");
   const [maximized, setMaximized] = useState(
     () => sessionStorage.getItem(WORKSPACE_SIZE_KEY) !== "false",
   );
@@ -68,6 +109,9 @@ export default function TaskSectionWorkspace(props: Props) {
     props.currentTemplateId || "",
   );
   const [templatePreviewOpen, setTemplatePreviewOpen] = useState(false);
+  const [reportTemplateKey, setReportTemplateKey] = useState("");
+  const [reportTemplateBusy, setReportTemplateBusy] = useState(false);
+  const [reportTemplateMessage, setReportTemplateMessage] = useState("");
   const [linkedWorkItemId, setLinkedWorkItemId] = useState("");
   const [linkedWorkSectionId, setLinkedWorkSectionId] = useState(
     props.currentSectionId || "",
@@ -80,30 +124,27 @@ export default function TaskSectionWorkspace(props: Props) {
   const [reportImportError, setReportImportError] = useState("");
   const [importingReport, setImportingReport] = useState(false);
   const [activeRibbonTab, setActiveRibbonTab] = useState("Home");
-  const openRibbonTab = (tab: string, selector: string) => {
+  const [reviewerId, setReviewerId] = useState("");
+  const [reviewNote, setReviewNote] = useState("");
+  const [workflowBusy, setWorkflowBusy] = useState(false);
+  const [workflowMessage, setWorkflowMessage] = useState("");
+  const [workflowTone, setWorkflowTone] = useState<"success" | "error" | "info">("info");
+  const editMode = mode === "edit" && props.isEditable !== false;
+  const openRibbonTab = (tab: string) => {
     setActiveRibbonTab(tab);
-    window.requestAnimationFrame(() =>
-      document
-        .querySelector<HTMLElement>(selector)
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        }),
-    );
   };
 
   useEffect(() => {
-    setPreview(mode === "review");
+    setPreview(props.initialPreview ?? mode === "review");
     setCursorPosition(0);
-  }, [mode, title]);
+  }, [mode, title, props.initialPreview]);
 
   useEffect(() => {
     setLinkedWorkSectionId(props.currentSectionId || "");
   }, [props.currentSectionId]);
 
   useEffect(() => {
-    if (!editorRef.current || preview || mode !== "edit") return;
+    if (!editorRef.current || preview || !editMode) return;
     const source = value.trim();
     editorRef.current.innerHTML = /<[a-z][\s\S]*>/i.test(source)
       ? source
@@ -111,6 +152,7 @@ export default function TaskSectionWorkspace(props: Props) {
           .split("\n")
           .map((line) => (line ? `<p>${safeName(line)}</p>` : "<p><br></p>"))
           .join("");
+    window.requestAnimationFrame(() => editorRef.current?.focus({ preventScroll: true }));
   }, [title, mode, preview]);
 
   useEffect(() => {
@@ -118,7 +160,7 @@ export default function TaskSectionWorkspace(props: Props) {
     if (
       !editor ||
       preview ||
-      mode !== "edit" ||
+      !editMode ||
       document.activeElement === editor
     )
       return;
@@ -484,15 +526,15 @@ export default function TaskSectionWorkspace(props: Props) {
       className="section-workspace-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-label={`${mode === "edit" ? "Edit" : "Review"} ${title}`}
+      aria-label={`${editMode ? "Edit" : "Review"} ${title}`}
     >
       <section
-        className={`section-workspace-shell${maximized ? " maximized" : ""}`}
+        className={`section-workspace-shell${maximized ? " maximized" : ""}${props.workspaceVariant === "assignment-report" ? " assignment-report-v2" : ""}`}
       >
         <header>
           <div>
             <small>
-              {mode === "edit"
+              {editMode
                 ? "EDITING REPORT SECTION"
                 : "PREVIEWING REPORT SECTION"}
               {props.sectionNumber && props.sectionCount
@@ -501,6 +543,14 @@ export default function TaskSectionWorkspace(props: Props) {
             </small>
             <h2>{title}</h2>
             <p>{props.contextTitle || reportTitle}</p>
+            {props.statusMessage && (
+              <div
+                className={`section-workspace-feedback ${props.statusTone || "info"}`}
+                role={props.statusTone === "error" ? "alert" : "status"}
+              >
+                {props.statusMessage}
+              </div>
+            )}
             {!!props.linkedWorkItems?.length && (
               <>
                 <div
@@ -580,6 +630,9 @@ export default function TaskSectionWorkspace(props: Props) {
             )}
           </div>
           <div className="section-workspace-state">
+            <strong className={`section-editability ${editMode ? "editable" : "readonly"}`}>
+              {editMode ? "EDITABLE" : "READ ONLY"}
+            </strong>
             <small>SAVING AS</small>
             <span
               className={`section-status section-${status.toLowerCase().replaceAll(" ", "-")}`}
@@ -588,6 +641,15 @@ export default function TaskSectionWorkspace(props: Props) {
             </span>
           </div>
           <div className="section-window-actions">
+            {props.closeLabel && (
+              <button
+                type="button"
+                className="section-return-button"
+                onClick={props.onClose}
+              >
+                {props.closeLabel}
+              </button>
+            )}
             <button type="button" onClick={toggleMaximized}>
               {maximized ? "Minimize" : "Maximize"}
             </button>
@@ -600,29 +662,187 @@ export default function TaskSectionWorkspace(props: Props) {
             </button>
           </div>
         </header>
+        {props.workspaceVariant === "assignment-report" && (
+          <section className="assignment-report-editor-actions" aria-label="Assignment report workflow">
+            <div className="assignment-report-editor-status">
+              <strong>{editMode ? "EDITABLE" : "READ ONLY"}</strong>
+              <span>
+                {props.externalReport
+                  ? `External report v${props.externalReport.version_number}: ${props.externalReport.original_name}`
+                  : `${props.readySectionCount || 0}/${props.totalSectionCount || 0} sections Ready`}
+              </span>
+            </div>
+            <div className="assignment-report-editor-buttons">
+              {editMode && (
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={busy || workflowBusy}
+                  onClick={() =>
+                    void props.onSave(
+                      editorRef.current?.innerHTML ?? latestValueRef.current,
+                    )
+                  }
+                >
+                  Save Draft
+                </button>
+              )}
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy || workflowBusy}
+                onClick={() => setPreview((current) => !current)}
+              >
+                {preview ? "Return to Edit" : "Preview Report"}
+              </button>
+              {props.canImportExternalReport && (
+                <>
+                  <button
+                    type="button"
+                    className="secondary"
+                    disabled={busy || workflowBusy}
+                    onClick={() => externalReportInputRef.current?.click()}
+                  >
+                    Import PDF/DOCX for Review
+                  </button>
+                  <input
+                    ref={externalReportInputRef}
+                    hidden
+                    type="file"
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (!file || !props.onImportExternalReport) return;
+                      setWorkflowBusy(true);
+                      setWorkflowMessage("");
+                      void Promise.resolve(props.onImportExternalReport(file))
+                        .then(() => {
+                          setWorkflowTone("success");
+                          setWorkflowMessage("External report imported and preserved for formal review.");
+                        })
+                        .catch((error) => {
+                          setWorkflowTone("error");
+                          setWorkflowMessage(
+                            error instanceof Error
+                              ? error.message
+                              : "The external report could not be imported.",
+                          );
+                        })
+                        .finally(() => setWorkflowBusy(false));
+                    }}
+                  />
+                </>
+              )}
+              {props.externalReport && props.onOpenExternalReport && (
+                <button
+                  type="button"
+                  className="secondary"
+                  disabled={busy || workflowBusy}
+                  onClick={() => void props.onOpenExternalReport?.()}
+                >
+                  Open Imported Report
+                </button>
+              )}
+            </div>
+            {props.canSubmitForReview && props.onSubmitForReview && (
+              <div className="assignment-report-submit-inline">
+                <select
+                  aria-label="Reviewer"
+                  value={reviewerId}
+                  onChange={(event) => setReviewerId(event.target.value)}
+                >
+                  <option value="">Select reviewer</option>
+                  {props.reviewerOptions?.map((reviewer) => (
+                    <option key={reviewer.id} value={reviewer.id}>
+                      {reviewer.name} — {reviewer.role}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={reviewNote}
+                  onChange={(event) => setReviewNote(event.target.value)}
+                  placeholder="Submission note (optional)"
+                />
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={
+                    !reviewerId ||
+                    !props.submissionReady ||
+                    busy ||
+                    workflowBusy
+                  }
+                  title={
+                    props.submissionReady
+                      ? "Submit the current controlled report to the selected reviewer."
+                      : "Mark all sections Ready, or import a complete PDF/DOCX report first."
+                  }
+                  onClick={() => {
+                    if (!reviewerId) return;
+                    setWorkflowBusy(true);
+                    setWorkflowMessage("");
+                    void Promise.resolve(
+                      props.onSubmitForReview?.(reviewerId, reviewNote.trim()),
+                    )
+                      .then(() => {
+                        setWorkflowTone("success");
+                        setWorkflowMessage("Report submitted to reviewer.");
+                      })
+                      .catch((error) => {
+                        setWorkflowTone("error");
+                        setWorkflowMessage(
+                          error instanceof Error
+                            ? error.message
+                            : "The report could not be submitted.",
+                        );
+                      })
+                      .finally(() => setWorkflowBusy(false));
+                  }}
+                >
+                  {workflowBusy ? "Working..." : "Submit to Reviewer"}
+                </button>
+              </div>
+            )}
+            {!props.submissionReady && props.canSubmitForReview && (
+              <small className="assignment-report-submit-hint">
+                Complete and mark all sections Ready, or import a complete PDF/DOCX report for formal review.
+              </small>
+            )}
+            {workflowMessage && (
+              <div className={`assignment-report-workflow-message ${workflowTone}`}>
+                {workflowMessage}
+              </div>
+            )}
+          </section>
+        )}
         <div className="document-ribbon">
           <nav className="ribbon-tabs" aria-label="Document ribbon">
             {[
-              ["Home", ".font-tools"],
-              ["Insert", ".insert-tools"],
-              ["Layout", ".paragraph-tools"],
-              ["References", ".template-tools"],
-              ["Review", ".editing-tools"],
-              ["View", ".output-tools"],
-            ].map(([tab, selector]) => (
+              "Home",
+              "Insert",
+              "Layout",
+              props.reportTemplateOptions?.length ? "Templates" : "References",
+              "Review",
+              "View",
+            ].map((tab) => (
               <button
                 type="button"
                 key={tab}
                 className={activeRibbonTab === tab ? "active" : ""}
                 aria-pressed={activeRibbonTab === tab}
-                onClick={() => openRibbonTab(tab, selector)}
+                onClick={() => openRibbonTab(tab)}
               >
                 {tab}
               </button>
             ))}
           </nav>
-          <nav className="section-word-toolbar" aria-label="Document tools">
-            {mode === "edit" && (
+          <nav
+            className="section-word-toolbar"
+            aria-label="Document tools"
+            data-active-tab={activeRibbonTab}
+          >
+            {editMode && (
               <>
                 <div className="ribbon-group history-tools">
                   <button
@@ -781,6 +1001,57 @@ export default function TaskSectionWorkspace(props: Props) {
                   </span>
                   <small>Paragraph</small>
                 </div>
+                <div className="ribbon-group layout-tools">
+                  <span>
+                    <button
+                      type="button"
+                      title="Decrease indent"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("outdent")}
+                    >
+                      Decrease indent
+                    </button>
+                    <button
+                      type="button"
+                      title="Increase indent"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("indent")}
+                    >
+                      Increase indent
+                    </button>
+                  </span>
+                  <span>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("justifyLeft")}
+                    >
+                      Align left
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("justifyCenter")}
+                    >
+                      Centre
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("justifyRight")}
+                    >
+                      Align right
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => command("justifyFull")}
+                    >
+                      Justify
+                    </button>
+                  </span>
+                  <small>Layout</small>
+                </div>
                 <div className="ribbon-group styles-tools">
                   <button
                     type="button"
@@ -921,13 +1192,75 @@ export default function TaskSectionWorkspace(props: Props) {
                   <button
                     type="button"
                     className={preview ? "active-view" : ""}
-                    onClick={() => setPreview((current) => !current)}
+                    onClick={() => {
+                      if (props.onPreviewReport) {
+                        void props.onPreviewReport(
+                          editorRef.current?.innerHTML ?? latestValueRef.current,
+                        );
+                        return;
+                      }
+                      setPreview((current) => !current);
+                    }}
                   >
                     {preview ? "Edit" : "Preview"}
                   </button>
-                  <small>Editing</small>
+                  <small>Review & preview</small>
                 </div>
               </>
+            )}
+            {!!props.reportTemplateOptions?.length && (
+              <div className="ribbon-group report-template-tools">
+                <label className="workspace-report-template-picker">
+                  Report template
+                  <select
+                    aria-label="Research report template"
+                    value={reportTemplateKey}
+                    disabled={reportTemplateBusy}
+                    onChange={(event) => {
+                      setReportTemplateKey(event.target.value);
+                      setReportTemplateMessage("");
+                    }}
+                  >
+                    <option value="">Choose report structure</option>
+                    {props.reportTemplateOptions.map((template) => (
+                      <option key={template.key} value={template.key}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={!reportTemplateKey || reportTemplateBusy}
+                  onClick={() => {
+                    if (!reportTemplateKey || !props.onApplyReportTemplate) return;
+                    setReportTemplateBusy(true);
+                    setReportTemplateMessage("Updating outline...");
+                    void Promise.resolve(
+                      props.onApplyReportTemplate(reportTemplateKey),
+                    )
+                      .then(() => {
+                        setReportTemplateMessage("Report outline updated.");
+                        setReportTemplateKey("");
+                      })
+                      .catch((error) => {
+                        setReportTemplateMessage(
+                          error instanceof Error
+                            ? error.message
+                            : "Template could not be applied.",
+                        );
+                      })
+                      .finally(() => setReportTemplateBusy(false));
+                  }}
+                >
+                  {reportTemplateBusy ? "Applying..." : "Apply to Outline"}
+                </button>
+                <small>
+                  {reportTemplateMessage ||
+                    `${props.reportTemplateOptions.length} research structures`}
+                </small>
+              </div>
             )}
             {!!props.templateOptions?.length && (
               <div className="ribbon-group template-tools">
@@ -952,26 +1285,36 @@ export default function TaskSectionWorkspace(props: Props) {
                     </option>
                   </select>
                 </label>
-                <button
-                  type="button"
-                  disabled={importingReport}
-                  onClick={() => reportImportInputRef.current?.click()}
-                >
-                  {importingReport ? "Importing…" : "Import report"}
-                </button>
-                <input
-                  ref={reportImportInputRef}
-                  hidden
-                  type="file"
-                  accept=".pdf,.doc,.docx,.html,.htm,.txt,.md,.markdown"
-                  onChange={(event) => {
-                    void importReport(event.target.files?.[0]);
-                    event.currentTarget.value = "";
-                  }}
-                />
+                {props.workspaceVariant !== "assignment-report" && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={importingReport}
+                      onClick={() => reportImportInputRef.current?.click()}
+                    >
+                      {importingReport ? "Importing…" : "Import into section"}
+                    </button>
+                    <input
+                      ref={reportImportInputRef}
+                      hidden
+                      type="file"
+                      accept=".pdf,.doc,.docx,.html,.htm,.txt,.md,.markdown"
+                      onChange={(event) => {
+                        void importReport(event.target.files?.[0]);
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                  </>
+                )}
                 <small>Template & import</small>
               </div>
             )}
+            <div className="ribbon-group view-tools">
+              <button type="button" onClick={toggleMaximized}>
+                {maximized ? "Window view" : "Full screen"}
+              </button>
+              <small>View</small>
+            </div>
             <div className="ribbon-group output-tools">
               <button type="button" onClick={downloadWord}>
                 Word
@@ -1066,11 +1409,16 @@ export default function TaskSectionWorkspace(props: Props) {
                   <h1>{title}</h1>
                 </header>
               )}
-              {mode === "edit" && !preview ? (
+              {editMode && !preview ? (
                 <div
                   ref={editorRef}
                   className="rich-document-editor"
-                  contentEditable
+                  contentEditable={editMode}
+                  tabIndex={editMode ? 0 : -1}
+                  role="textbox"
+                  aria-multiline="true"
+                  aria-readonly={!editMode}
+                  spellCheck
                   suppressContentEditableWarning
                   onInput={syncEditor}
                   onMouseUp={rememberEditorSelection}
@@ -1122,19 +1470,42 @@ export default function TaskSectionWorkspace(props: Props) {
                 />
               )}
               <span className="a4-page-number">
-                Page {mode === "edit" ? currentPage : 1} of {totalPages}
+                Page {editMode ? currentPage : 1} of {totalPages}
               </span>
             </div>
           </main>
         </div>
         <footer>
           <span>
-            {mode === "edit"
+            {editMode
               ? `${value.length.toLocaleString()} characters · ${totalPages} page${totalPages === 1 ? "" : "s"} · Changes save as Draft`
               : "Read-only report preview"}
           </span>
           <div className="section-footer-navigation">
-            {props.onPrevious && (
+            {preview && props.onProceedForReview && (
+              <>
+                <button
+                  type="button"
+                  className="secondary research-preview-back"
+                  onClick={() => setPreview(false)}
+                >
+                  Back to Editing
+                </button>
+                <button
+                  type="button"
+                  className="research-preview-proceed"
+                  disabled={busy || workflowBusy}
+                  onClick={() =>
+                    void props.onProceedForReview?.(
+                      editorRef.current?.innerHTML ?? latestValueRef.current,
+                    )
+                  }
+                >
+                  Proceed for Review
+                </button>
+              </>
+            )}
+            {!preview && props.onPrevious && (
               <button
                 type="button"
                 className="secondary"
@@ -1144,7 +1515,7 @@ export default function TaskSectionWorkspace(props: Props) {
                 ← Previous section
               </button>
             )}
-            {props.onNext && (
+            {!preview && props.onNext && (
               <button
                 type="button"
                 className="secondary"
@@ -1152,6 +1523,20 @@ export default function TaskSectionWorkspace(props: Props) {
                 onClick={() => void props.onNext?.()}
               >
                 Next section →
+              </button>
+            )}
+            {!preview && props.onPreviewReport && (
+              <button
+                type="button"
+                className="secondary research-footer-preview"
+                disabled={busy || workflowBusy}
+                onClick={() =>
+                  void props.onPreviewReport?.(
+                    editorRef.current?.innerHTML ?? latestValueRef.current,
+                  )
+                }
+              >
+                Preview Report
               </button>
             )}
             {props.onOpenFinalDocument && (
@@ -1168,10 +1553,27 @@ export default function TaskSectionWorkspace(props: Props) {
                 {props.finalDocumentLabel || "Templates & final document"}
               </button>
             )}
-            <button type="button" className="secondary" onClick={props.onClose}>
-              {mode === "edit" ? "Cancel" : "Close"}
-            </button>
-            {mode === "edit" && (
+            {!preview && (
+              <button type="button" className="secondary" onClick={props.onClose}>
+                {props.closeLabel || (editMode ? "Cancel" : "Close")}
+              </button>
+            )}
+            {!preview && editMode && props.onMarkReady && (
+              <button
+                type="button"
+                className="secondary mark-ready-button"
+                disabled={busy}
+                title={props.canMarkReady === false ? "Add content before marking this section Ready." : "Save this section and mark it Ready."}
+                onClick={() =>
+                  void props.onMarkReady?.(
+                    editorRef.current?.innerHTML ?? latestValueRef.current,
+                  )
+                }
+              >
+                {busy ? "Saving…" : "Mark Section Ready"}
+              </button>
+            )}
+            {!preview && editMode && (
               <button
                 type="button"
                 disabled={busy}
@@ -1181,7 +1583,7 @@ export default function TaskSectionWorkspace(props: Props) {
                   )
                 }
               >
-                {busy ? "Saving Draft..." : "Save Draft & Return"}
+                {busy ? "Saving Draft..." : props.saveLabel || "Save Draft & Return"}
               </button>
             )}
             {mode === "review" && props.canSendReview && props.onSendReview && (

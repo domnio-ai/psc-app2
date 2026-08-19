@@ -1,0 +1,3 @@
+import FelixCharacter from './FelixCharacter'
+import type {FelixVisualState} from './animations/felixStates'
+export default function FelixLauncher({online,onOpen,state='idle',hasSuggestion=false}:{online:boolean;onOpen:()=>void;state?:FelixVisualState;hasSuggestion?:boolean}){const title=state==='auditing'?'Felix is auditing this document':hasSuggestion?'Felix has a suggestion':'Ask Felix';return <button className="felix-launcher" onClick={onOpen} aria-label="Ask Felix" title={title}><FelixCharacter state={state} size="sm" interactive/><span className={online?'online':''} aria-label={online?'Local AI online':'Local AI offline'}/></button>}

@@ -1,0 +1,22 @@
+/* App2 Research Report Builder Templates V14 */
+.research-workspace[data-tab="Report"] .report-builder-head{
+  grid-template-columns:minmax(220px,1fr) minmax(250px,.72fr) auto auto!important;
+  align-items:end!important;
+}
+.research-workspace .research-builder-template-control{
+  display:grid!important;gap:5px!important;min-width:250px!important;
+}
+.research-workspace .research-builder-template-control>span{
+  color:var(--text)!important;font-size:12px!important;font-weight:800!important;
+}
+.research-workspace .research-builder-template-control select{
+  min-height:40px!important;width:100%!important;border:1px solid var(--rw-border)!important;
+  border-radius:8px!important;background:var(--surface)!important;color:var(--text)!important;font-size:12px!important;
+}
+.research-workspace .research-builder-template-control small{
+  color:var(--muted)!important;font-size:12px!important;
+}
+@media(max-width:1000px){
+  .research-workspace[data-tab="Report"] .report-builder-head{grid-template-columns:1fr!important}
+  .research-workspace .research-builder-template-control{width:100%!important}
+}

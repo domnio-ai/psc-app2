@@ -1,0 +1,52 @@
+/* App2 Research Review Finalization V15 */
+.research-auto-completion-note{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:16px!important;
+  padding:16px!important;
+  margin-top:12px!important;
+  border:1px solid var(--rw-border)!important;
+  border-radius:12px!important;
+  background:var(--surface)!important;
+}
+.research-auto-completion-note p{
+  margin:0 0 4px!important;
+  font-size:12px!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+}
+.research-auto-completion-note h3{
+  margin:0 0 4px!important;
+  font-size:16px!important;
+}
+.research-auto-completion-note span{
+  color:var(--muted)!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+}
+.research-auto-completion-note>strong{
+  flex:0 0 auto!important;
+  padding:7px 10px!important;
+  border-radius:999px!important;
+  font-size:12px!important;
+}
+.research-auto-completion-note>strong.complete{
+  background:#e8f5eb!important;
+  color:#155b2a!important;
+}
+.research-auto-completion-note>strong.pending{
+  background:#f4f0df!important;
+  color:#66520d!important;
+}
+.research-final-report-card .research-report-generate button{
+  min-height:42px!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+@media(max-width:760px){
+  .research-auto-completion-note{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+  }
+}

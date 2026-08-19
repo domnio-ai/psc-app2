@@ -1,0 +1,35 @@
+﻿{
+    "baseline_version":  1,
+    "checkpoint_id":  "20260818-211858-before-research-work-progress",
+    "created_at":  "2026-08-18T21:19:09.0482629+03:00",
+    "label":  "before-research-work-progress",
+    "database":  "psc_app2",
+    "counts":  {
+                   "users":  9,
+                   "assignments":  11,
+                   "research_projects":  7,
+                   "documents":  17
+               },
+    "workflow_tables":  {
+                            "research_reviewers":  true,
+                            "research_assignment_links":  true,
+                            "external_research_imports":  true
+                        },
+    "critical_files":  {
+                           "src/App.tsx":  "83ae3d2fb059012e4bd10d8265d072553f2c421c77e5d25a54f0de82d37276cf",
+                           "backend/src/app.js":  "857b7dc96cc095cd42a6d781859ec9697c49d42807fc84ece0959a5b8d0d12f1",
+                           "src/api.ts":  "40441b935d90201916839913618a0f2c024a6ab608a5d1e6073a407455dfffec",
+                           "backend/src/schema.sql":  "0ad219ea7693607fe8530bf0866c5ded0decd489e7c93b362730db6602bc1bd1",
+                           "APP2_PROTECTED_MODULES.json":  "f3414766d80a1145f68f845f022cdcdbe68fac40f3caf4cd456869d387046644",
+                           "APP2_FEATURE_CONTRACTS.md":  "db75672853579235a5ab8488301cabb28870ad5150427cef60114a5b74913e63"
+                       },
+    "protected_source_file_count":  140,
+    "git":  {
+                "branch":  "app2-test-checkpoint-2026-08-17",
+                "commit":  "c2559a381fcfb18fb3744edc33d67905a1ab5a92",
+                "dirty":  true
+            },
+    "checkpoint_path":  "C:\\Users\\Admin\\Documents\\Codex\\2026-07-28\\referenced-chatgpt-conversation-this-is-untrusted\\app2\\.app2-guard\\checkpoints\\20260818-211858-before-research-work-progress",
+    "database_backup":  "C:\\Users\\Admin\\Documents\\Codex\\2026-07-28\\referenced-chatgpt-conversation-this-is-untrusted\\app2\\.app2-guard\\checkpoints\\20260818-211858-before-research-work-progress\\psc_app2.backup",
+    "source_backup":  "C:\\Users\\Admin\\Documents\\Codex\\2026-07-28\\referenced-chatgpt-conversation-this-is-untrusted\\app2\\.app2-guard\\checkpoints\\20260818-211858-before-research-work-progress\\app2-protected-source.zip"
+}

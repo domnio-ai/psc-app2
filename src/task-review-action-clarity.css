@@ -1,0 +1,210 @@
+/*
+  App2 Task Review Action Clarity v1
+  Purpose: make report status and reviewer actions immediately distinguishable.
+  Scope: task report/reviewer UI only.
+*/
+
+.task-review-decision-card {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.task-review-decision-card > header {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.20);
+}
+
+.task-review-decision-card .task-review-open-report,
+.task-contribution-view-report {
+  min-height: 48px;
+  padding: 11px 18px;
+  border: 1px solid #2563eb;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.25;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+  cursor: pointer;
+}
+
+.task-review-decision-card .task-review-open-report {
+  width: 100%;
+  margin: 16px 0;
+}
+
+.task-review-decision-card .task-review-open-report:hover:not(:disabled),
+.task-contribution-view-report:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.task-review-decision-card footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(170px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.20);
+}
+
+.task-review-decision-card footer button {
+  min-height: 48px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.task-review-decision-card footer button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.task-review-decision-card .task-review-accept {
+  border: 1px solid #15803d;
+  background: #15803d;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(21, 128, 61, 0.20);
+}
+
+.task-review-decision-card .task-review-accept:hover:not(:disabled) {
+  background: #166534;
+  border-color: #166534;
+}
+
+.task-review-decision-card .task-review-changes {
+  border: 1px solid #d97706;
+  background: #d97706;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(217, 119, 6, 0.18);
+}
+
+.task-review-decision-card .task-review-changes:hover:not(:disabled) {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.task-review-decision-card .task-review-reject {
+  border: 1px solid #b91c1c;
+  background: #b91c1c;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.18);
+}
+
+.task-review-decision-card .task-review-reject:hover:not(:disabled) {
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+.task-review-decision-card footer button:focus-visible,
+.task-review-decision-card .task-review-open-report:focus-visible,
+.task-contribution-view-report:focus-visible {
+  outline: 3px solid rgba(96, 165, 250, 0.70);
+  outline-offset: 3px;
+}
+
+.task-review-decision-card button:disabled,
+.task-contribution-view-report:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Status is intentionally styled as a badge, never as an action. */
+.task-contribution-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.task-contribution-status.ready-for-integration {
+  border: 1px solid #b8860b;
+  background: #8a6a0a;
+  color: #ffffff;
+}
+
+.task-contribution-status.integrated {
+  border: 1px solid #15803d;
+  background: rgba(21, 128, 61, 0.18);
+  color: #86efac;
+}
+
+.task-contribution-status.accepted {
+  border: 1px solid #166534;
+  background: #166534;
+  color: #ffffff;
+}
+
+.task-contribution-status.draft {
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(100, 116, 139, 0.16);
+  color: inherit;
+}
+
+/* Make the task report header read as STATUS + ACTION, not two equal buttons. */
+.task-report-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.task-report-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Preserve button meaning in every theme; color is not the only signal. */
+.task-review-decision-card .task-review-open-report::before,
+.task-contribution-view-report::before {
+  content: "OPEN  ";
+}
+
+.task-review-decision-card .task-review-accept::before {
+  content: "✓  ";
+}
+
+.task-review-decision-card .task-review-changes::before {
+  content: "↺  ";
+}
+
+.task-review-decision-card .task-review-reject::before {
+  content: "×  ";
+}
+
+@media (max-width: 780px) {
+  .task-review-decision-card footer {
+    grid-template-columns: 1fr;
+  }
+
+  .task-review-decision-card footer button,
+  .task-review-decision-card .task-review-open-report,
+  .task-contribution-view-report {
+    width: 100%;
+  }
+
+  .task-report-header-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

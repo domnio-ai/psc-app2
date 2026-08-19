@@ -279,7 +279,20 @@ CREATE TABLE IF NOT EXISTS research_report_versions(
 
 CREATE INDEX IF NOT EXISTS idx_research_report_versions_project
 ON research_report_versions(project_id,version_number);
-CREATE TABLE IF NOT EXISTS research_knowledge_links(project_id UUID NOT NULL REFERENCES research_projects(id) ON DELETE CASCADE,knowledge_item_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,PRIMARY KEY(project_id,knowledge_item_id));
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'Draft';
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS submitted_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS review_comments TEXT NOT NULL DEFAULT '';
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS parent_version_id UUID REFERENCES research_report_versions(id) ON DELETE SET NULL;
+DO $$ BEGIN ALTER TABLE research_report_versions ADD CONSTRAINT research_report_versions_status_check CHECK(status IN('Draft','Submitted','Changes Requested','Approved','Rejected')); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE INDEX IF NOT EXISTS idx_research_report_versions_review ON research_report_versions(project_id,status,created_at DESC);
+CREATE TABLE IF NOT EXISTS research_knowledge_links(project_id UUID NOT NULL REFERENCES research_projects(id) ON DELETE CASCADE,knowledge_item_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,linked_by UUID REFERENCES users(id),linked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(project_id,knowledge_item_id));
+ALTER TABLE research_knowledge_links ADD COLUMN IF NOT EXISTS linked_by UUID REFERENCES users(id);
+ALTER TABLE research_knowledge_links ADD COLUMN IF NOT EXISTS linked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+CREATE INDEX IF NOT EXISTS research_knowledge_links_project_idx ON research_knowledge_links(project_id,linked_at DESC);
 CREATE INDEX IF NOT EXISTS research_projects_status_idx ON research_projects(status);
 CREATE TABLE IF NOT EXISTS document_locks(knowledge_id UUID PRIMARY KEY REFERENCES knowledge_items(id) ON DELETE CASCADE,locked_by UUID NOT NULL REFERENCES users(id),locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW()+INTERVAL '2 hours');
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS retention_until DATE;
@@ -294,7 +307,7 @@ INSERT INTO system_settings(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS user_preferences(user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,email_notifications BOOLEAN NOT NULL DEFAULT TRUE,in_app_notifications BOOLEAN NOT NULL DEFAULT TRUE,compact_layout BOOLEAN NOT NULL DEFAULT FALSE,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS theme_mode VARCHAR(20) NOT NULL DEFAULT 'Dark' CHECK(theme_mode IN('Dark','Light','System'));
 ALTER TABLE user_preferences DROP CONSTRAINT IF EXISTS user_preferences_theme_mode_check;
-ALTER TABLE user_preferences ADD CONSTRAINT user_preferences_theme_mode_check CHECK(theme_mode IN('Dark','Light','System','Gold Grey'));
+ALTER TABLE user_preferences ADD CONSTRAINT user_preferences_theme_mode_check CHECK(theme_mode IN('Dark','Light','System','Gold Grey','Navy Blue'));
 ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS accent_color VARCHAR(20) NOT NULL DEFAULT 'Gold' CHECK(accent_color IN('Gold','Blue','Green'));
 
 

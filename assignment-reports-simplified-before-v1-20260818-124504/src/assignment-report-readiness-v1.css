@@ -1,0 +1,154 @@
+/* ============================================================
+   APP2 ASSIGNMENT REPORT READINESS & SOURCE REGISTER V1
+   ============================================================ */
+.assignment-reports-v3 {
+  display: grid;
+  gap: 14px;
+}
+.assignment-report-readiness-v3 > header {
+  align-items: flex-end;
+}
+.assignment-readiness-score {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+.assignment-readiness-score strong {
+  font-size: 30px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.assignment-readiness-score span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.assignment-readiness-progress {
+  height: 7px;
+  margin: 0 15px 2px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+}
+.assignment-readiness-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--success);
+  transition: width .2s ease;
+}
+.assignment-report-readiness-kpis-v3 {
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+}
+.assignment-report-readiness-kpis-v3 > span:nth-child(6) {
+  border-right: 0;
+}
+.readiness-message {
+  font-weight: 700;
+}
+.readiness-message.ready {
+  color: var(--success);
+}
+.readiness-message.pending {
+  color: var(--text-primary);
+}
+.assignment-source-register > header > div > p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.assignment-source-register > header > b {
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.assignment-source-register-head,
+.assignment-source-register-body > article {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.5fr) minmax(125px, .75fr) minmax(125px, .75fr) minmax(125px, .75fr) minmax(170px, .9fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.assignment-source-register-head {
+  padding: 9px 15px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+.assignment-source-register-body > article {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-default);
+}
+.assignment-source-register-body > article:last-child {
+  border-bottom: 0;
+}
+.assignment-source-register-body span strong,
+.assignment-source-register-body span small {
+  display: block;
+}
+.assignment-source-register-body span small {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.assignment-source-register-body .source-repository-title {
+  color: var(--text-primary);
+}
+.assignment-source-register-body article > b {
+  justify-self: start;
+  padding: 5px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 99px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.assignment-source-register-body article.source-final > b {
+  border-color: var(--success);
+  color: var(--success);
+}
+.assignment-source-register-body article.source-review > b,
+.assignment-source-register-body article.source-approved > b {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+.assignment-source-register-body article.source-blocked > b {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.assignment-source-register-body article > button {
+  min-height: 34px;
+  white-space: nowrap;
+}
+.final-report-lock-reason {
+  display: block;
+  padding: 9px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+@media(max-width:1180px){
+  .assignment-report-readiness-kpis-v3 {
+    grid-template-columns: repeat(3, minmax(130px,1fr));
+  }
+  .assignment-source-register-head {
+    display: none;
+  }
+  .assignment-source-register-body > article {
+    grid-template-columns: 1.3fr 1fr 1fr;
+  }
+  .assignment-source-register-body article > button {
+    justify-self: start;
+  }
+}
+@media(max-width:720px){
+  .assignment-report-readiness-kpis-v3,
+  .assignment-source-register-body > article {
+    grid-template-columns: 1fr;
+  }
+  .assignment-readiness-score {
+    justify-items: start;
+  }
+}

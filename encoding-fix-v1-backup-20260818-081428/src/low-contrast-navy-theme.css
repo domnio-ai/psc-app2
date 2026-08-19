@@ -1,0 +1,370 @@
+
+/* ============================================================
+   APP2 LOW-CONTRAST NAVY BLUE + ACCESSIBLE TYPOGRAPHY
+   Institutional dark navy surfaces with softened contrast.
+   Imported last so it safely overrides legacy black/grey rules.
+   ============================================================ */
+
+[data-theme="navy-blue"]{
+  color-scheme:dark;
+  --app-background:#132033;
+  --surface-primary:#19283d;
+  --surface-secondary:#203249;
+  --surface-elevated:#273a52;
+  --text-primary:#e7edf4;
+  --text-secondary:#c2ceda;
+  --text-muted:#9eafc0;
+  --border-default:#31465d;
+  --border-strong:#486079;
+  --accent-primary:#c8aa52;
+  --accent-secondary:#8f7b45;
+  --success:#72ad88;
+  --warning:#cfae68;
+  --danger:#cf7f82;
+  --info:#7ca8d0;
+  --sidebar-background:#111d2d;
+  --header-background:#16253a;
+  --button-primary-bg:#c8aa52;
+  --button-primary-text:#132033;
+  --input-background:#16263a;
+  --input-border:#40566e;
+  --focus-ring:#88aecd;
+
+  --yellow:#c8aa52;
+  --orange:#c98763;
+  --green:#72ad88;
+  --blue:#7ca8d0;
+  --bg:#132033;
+  --bg-2:#16253a;
+  --panel:#19283d;
+  --panel-2:#203249;
+  --line:#31465d;
+  --muted:#9eafc0;
+  --text:#e7edf4;
+}
+
+/* Core canvas */
+[data-theme="navy-blue"] html,
+[data-theme="navy-blue"] body,
+[data-theme="navy-blue"] #root,
+[data-theme="navy-blue"] .dashboard-shell,
+[data-theme="navy-blue"] .app-shell,
+[data-theme="navy-blue"] .dashboard-shell>main,
+[data-theme="navy-blue"] .dashboard-content{
+  background:var(--app-background)!important;
+  color:var(--text-primary)!important;
+}
+
+[data-theme="navy-blue"] body{
+  background:
+    radial-gradient(circle at 72% 0,rgba(66,94,127,.13),transparent 32%),
+    linear-gradient(180deg,#142237 0%,#132033 100%)!important;
+}
+
+/* Navigation */
+[data-theme="navy-blue"] .sidebar{
+  background:linear-gradient(180deg,#111d2d 0%,#132237 100%)!important;
+  border-right:1px solid var(--border-default)!important;
+  box-shadow:8px 0 24px rgba(4,12,24,.18)!important;
+}
+[data-theme="navy-blue"] .brand,
+[data-theme="navy-blue"] .quick-access,
+[data-theme="navy-blue"] .sidebar nav button,
+[data-theme="navy-blue"] .quick-access button{
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] .brand strong,
+[data-theme="navy-blue"] .brand span,
+[data-theme="navy-blue"] .sidebar nav button,
+[data-theme="navy-blue"] .quick-access button{
+  color:var(--text-secondary)!important;
+}
+[data-theme="navy-blue"] .brand small,
+[data-theme="navy-blue"] .nav-section-title{
+  color:var(--text-muted)!important;
+}
+[data-theme="navy-blue"] .sidebar nav button:hover,
+[data-theme="navy-blue"] .quick-access button:hover{
+  background:#1a2a40!important;
+  color:var(--text-primary)!important;
+}
+[data-theme="navy-blue"] .sidebar nav button.active{
+  background:#263a52!important;
+  border:1px solid #4a6178!important;
+  color:#f0f3f6!important;
+  box-shadow:inset 3px 0 var(--accent-primary)!important;
+}
+[data-theme="navy-blue"] .sidebar nav button.active .icon{
+  color:var(--accent-primary)!important;
+}
+
+/* Header */
+[data-theme="navy-blue"] .topbar{
+  background:rgba(22,37,58,.98)!important;
+  border-bottom:1px solid var(--border-default)!important;
+  box-shadow:0 4px 16px rgba(4,12,24,.14)!important;
+}
+[data-theme="navy-blue"] .topbar .title h1{
+  color:#e6edf4!important;
+}
+[data-theme="navy-blue"] .topbar .title p,
+[data-theme="navy-blue"] .live-time,
+[data-theme="navy-blue"] .user small{
+  color:var(--text-muted)!important;
+}
+[data-theme="navy-blue"] .header-search,
+[data-theme="navy-blue"] .topbar .user{
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] .user-icon{
+  border-color:#6e879e!important;
+  color:#dce6ef!important;
+  background:#203249!important;
+}
+
+/* Shared surfaces */
+[data-theme="navy-blue"] :is(
+  .panel,.stat-card,.command-card,.assignment-card,.research-card,.knowledge-library>article,
+  .settings-panel,.settings-health article,.felix-admin-panel,.ai-engine-card,
+  .ai-research-grid>article,.ai-chat,.ai-chat-history,.management-area,
+  .assignment-overview-minimal,.research-overview-panel,.research-plan-panel,
+  .research-team-panel,.research-discussion-panel,.research-report-panel,
+  .research-sources-panel,.research-builder-documents-panel,.research-activity-panel,
+  .phase4-tasks,.assignment-resources-simple,.assignment-structure-plan,
+  .assignment-contributions-board,.task-section-workspace,.workspace-header,
+  .workspace-document-overview,.assignment-report-workspace,.assignment-reports-panel,
+  .reports-panel,.reports-card,.document-card,.repository-card
+){
+  background:var(--surface-primary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+  box-shadow:0 6px 18px rgba(4,12,24,.12)!important;
+}
+
+/* Secondary rows / cards */
+[data-theme="navy-blue"] :is(
+  .assignment-toolbar,.document-toolbar,.research-toolbar,.tasks-minimal-toolbar,
+  .assignment-resource-tools,.assignment-repository-link,.setting-toggle,
+  .theme-options button,.accent-options button,.workspace-reference,.status-badge,
+  .research-overview-metrics>span,.research-document-kpis>span,.assignment-structure-kpis span,
+  .task-screen-meta>div,.assignment-overview-minimal dl,.assignment-resource-list>article,
+  .tasks-minimal-list article,.assignment-section-list>article,
+  .assignment-contribution-sections>article,.member-record,.allocation-row
+){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-secondary)!important;
+}
+
+/* Headings, labels and subdued copy */
+[data-theme="navy-blue"] :is(
+  h1,h2,h3,h4,h5,h6,.panel h2,.panel h3,.command-card h3,
+  .workspace-heading h1,.assignment-page-head h2,.research-page-head h2,
+  .documents-page-head h2,.reports-page-head h2,.users-page-head h2,
+  .settings-page-head h2,.audit-page-head h2,.calendar-page-head h2
+){
+  color:var(--text-primary)!important;
+}
+[data-theme="navy-blue"] :is(
+  p,small,.workspace-heading span,.workspace-section-heading p,
+  .task-screen-title p,.task-screen-meta small,.assignment-overview-minimal dt
+){
+  color:var(--text-muted);
+}
+[data-theme="navy-blue"] :is(
+  .workspace-eyebrow,.workspace-heading p,.panel>header>div>small,
+  .command-card header span,.research-documents-head small,.assignment-structure-head small
+){
+  color:#9fb8d0!important;
+}
+
+/* Tabs */
+[data-theme="navy-blue"] .research-workspace-tabs,
+[data-theme="navy-blue"] .assignment-workspace-tabs,
+[data-theme="navy-blue"] .ribbon-tabs{
+  background:#16263a!important;
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] .research-workspace-tabs button,
+[data-theme="navy-blue"] .assignment-workspace-tabs button,
+[data-theme="navy-blue"] .ribbon-tabs button{
+  color:#aebdcb!important;
+  background:transparent!important;
+}
+[data-theme="navy-blue"] .research-workspace-tabs button.active,
+[data-theme="navy-blue"] .assignment-workspace-tabs button.active,
+[data-theme="navy-blue"] .ribbon-tabs button.active{
+  color:#f0f3f6!important;
+  background:#263a52!important;
+  border-color:#65819b!important;
+  box-shadow:inset 0 -2px var(--accent-primary)!important;
+}
+
+/* Form controls */
+[data-theme="navy-blue"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="navy-blue"] textarea,
+[data-theme="navy-blue"] select{
+  background:var(--input-background)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--input-border)!important;
+}
+[data-theme="navy-blue"] input::placeholder,
+[data-theme="navy-blue"] textarea::placeholder{
+  color:#8194a7!important;
+  opacity:1;
+}
+[data-theme="navy-blue"] input:focus,
+[data-theme="navy-blue"] textarea:focus,
+[data-theme="navy-blue"] select:focus{
+  border-color:#6e8aa5!important;
+  outline:2px solid rgba(136,174,205,.24)!important;
+}
+
+/* Buttons are restrained rather than high-contrast blocks. */
+[data-theme="navy-blue"] button{
+  color:var(--text-secondary);
+}
+[data-theme="navy-blue"] :is(
+  button.primary,.sign-in,.assignment-page-head>button,.workspace-section-heading button,
+  .research-documents-head>button,.assignment-structure-head button:not(.secondary),
+  .task-modal-primary,.assignment-quick-add>button.primary
+){
+  background:#37516b!important;
+  border-color:#607a94!important;
+  color:#f2f5f8!important;
+}
+[data-theme="navy-blue"] :is(
+  button.primary,.sign-in,.assignment-page-head>button,.workspace-section-heading button
+):hover{
+  background:#405d78!important;
+}
+[data-theme="navy-blue"] button.approve{
+  background:#355f4b!important;
+  border-color:#5d8a70!important;
+  color:#eaf4ee!important;
+}
+
+/* Task workspace — soften the existing near-black surfaces. */
+[data-theme="navy-blue"] .task-workspace-backdrop.task-workspace-fullscreen{
+  background:var(--app-background)!important;
+}
+[data-theme="navy-blue"] .task-workspace-screen{
+  background:#15243a!important;
+}
+[data-theme="navy-blue"] .task-screen-header,
+[data-theme="navy-blue"] .task-screen-footer{
+  background:#182a40!important;
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] .task-screen-body{
+  background:#15243a!important;
+}
+[data-theme="navy-blue"] .task-screen-body>section,
+[data-theme="navy-blue"] .task-screen-body>details,
+[data-theme="navy-blue"] .task-member-output-card,
+[data-theme="navy-blue"] .task-contribution-map-card{
+  background:#1a2b40!important;
+  border-color:#344b63!important;
+}
+[data-theme="navy-blue"] .task-screen-meta>div{
+  background:#203249!important;
+  border-color:#344b63!important;
+}
+[data-theme="navy-blue"] .task-header-tools summary,
+[data-theme="navy-blue"] .task-header-attach{
+  background:#203249!important;
+  border-color:#405872!important;
+  color:#c8d3de!important;
+}
+[data-theme="navy-blue"] .task-header-tools summary:hover,
+[data-theme="navy-blue"] .task-header-attach:hover{
+  border-color:#69839c!important;
+  color:#e7edf4!important;
+}
+[data-theme="navy-blue"] .task-header-tools summary b{
+  background:#2a4058!important;
+  color:#d7bd70!important;
+}
+[data-theme="navy-blue"] .task-header-popover,
+[data-theme="navy-blue"] .task-delete-dialog{
+  background:#1a2b40!important;
+  border-color:#405872!important;
+  box-shadow:0 18px 46px rgba(4,12,24,.34)!important;
+}
+[data-theme="navy-blue"] .task-header-documents-popover>header,
+[data-theme="navy-blue"] .task-header-work-popover>header,
+[data-theme="navy-blue"] .task-delete-dialog header,
+[data-theme="navy-blue"] .task-delete-dialog footer{
+  border-color:#344b63!important;
+}
+[data-theme="navy-blue"] .task-header-document-list>button:hover{
+  background:#22364d!important;
+}
+[data-theme="navy-blue"] .task-header-work-form select,
+[data-theme="navy-blue"] .task-header-work-form input[type="date"],
+[data-theme="navy-blue"] .task-header-work-form input[type="number"]{
+  background:#16263a!important;
+  border-color:#405872!important;
+}
+[data-theme="navy-blue"] .task-report-access-notice{
+  background:#18283b!important;
+  border-color:#374e65!important;
+}
+[data-theme="navy-blue"] .task-report-access-notice strong{
+  color:#e7edf4!important;
+}
+[data-theme="navy-blue"] .task-report-access-notice span{
+  color:#a7b6c5!important;
+}
+[data-theme="navy-blue"] .task-report-section-actions>b{
+  background:#2a3644!important;
+  color:#d7bd70!important;
+}
+[data-theme="navy-blue"] .task-report-section-actions>button{
+  background:#22344a!important;
+  border-color:#435c75!important;
+  color:#cbd6df!important;
+}
+
+/* Tables, repository rows, lists */
+[data-theme="navy-blue"] table,
+[data-theme="navy-blue"] thead,
+[data-theme="navy-blue"] tbody,
+[data-theme="navy-blue"] .assignment-list-view,
+[data-theme="navy-blue"] .document-list,
+[data-theme="navy-blue"] .reports-table{
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] th{
+  background:#1c2e45!important;
+  color:#b8c7d5!important;
+  border-color:var(--border-default)!important;
+}
+[data-theme="navy-blue"] td{
+  background:#19283d!important;
+  color:#d1dae3!important;
+  border-color:#2e4359!important;
+}
+[data-theme="navy-blue"] tr:hover td{
+  background:#203249!important;
+}
+
+/* Modal / overlays */
+[data-theme="navy-blue"] :is(
+  .assignment-editor,.user-editor,.modal-card,.section-workspace,.document-reader,
+  .notice-detail,.account-menu,.app-context-menu
+){
+  background:var(--surface-elevated)!important;
+  border-color:var(--border-strong)!important;
+  color:var(--text-primary)!important;
+}
+
+/* Theme preview in Settings */
+.theme-preview.navy-blue{
+  background:linear-gradient(135deg,#111d2d 0 42%,#1a2b40 42% 72%,#273a52 72%)!important;
+  border:1px solid #4b637a!important;
+}
+[data-theme="navy-blue"] .theme-options button.selected{
+  border-color:#6e879f!important;
+  background:#203249!important;
+}

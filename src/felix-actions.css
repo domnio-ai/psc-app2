@@ -56,7 +56,7 @@
   border-radius:50%;
   background:#2c2f31;
   color:var(--yellow);
-  font-size:8px;
+  font-size:12px;
   font-weight:800;
 }
 
@@ -208,7 +208,7 @@
   border-radius:6px;
   background:#262318;
   color:#d8bd5c;
-  font-size:8px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -216,7 +216,7 @@
   display:block;
   margin-top:14px !important;
   color:#8ce3af !important;
-  font-size:9px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -228,7 +228,7 @@
   border-top:1px solid #383a3c !important;
   border-radius:0 !important;
   color:#92989b !important;
-  font-size:9px;
+  font-size:12px;
 }
 
 .felix-references summary{
@@ -272,7 +272,7 @@
   display:block;
   margin-top:9px;
   color:#74d9a0;
-  font-size:9px;
+  font-size:12px;
 }
 
 .felix-download-report{
@@ -377,7 +377,7 @@
   padding:0 15px;
   color:#777;
   text-align:center;
-  font-size:8px;
+  font-size:12px;
   line-height:1.4;
 }
 
@@ -435,7 +435,7 @@
   border-radius:999px;
   background:color-mix(in srgb,var(--yellow) 8%,transparent);
   color:var(--yellow);
-  font-size:10px;
+  font-size:12px;
   font-style:normal;
   font-weight:750;
   white-space:nowrap;
@@ -452,9 +452,9 @@
   border-radius:8px;
   background:color-mix(in srgb,var(--yellow) 8%,transparent);
   color:var(--text-primary,#eee);
-  font-size:10px;
+  font-size:12px;
 }
-.felix-document-lock button{border:0;background:transparent;color:var(--yellow);font-size:9px;cursor:pointer;text-decoration:underline}
-.felix-evidence-scope{margin-top:12px;padding-top:9px;border-top:1px solid #4a4c4e;color:var(--text-muted,#aaa);font-size:9px}
+.felix-document-lock button{border:0;background:transparent;color:var(--yellow);font-size:12px;cursor:pointer;text-decoration:underline}
+.felix-evidence-scope{margin-top:12px;padding-top:9px;border-top:1px solid #4a4c4e;color:var(--text-muted,#aaa);font-size:12px}
 .felix-evidence-scope summary{cursor:pointer;color:var(--yellow);font-weight:750}
 .felix-evidence-scope dl{display:grid;gap:4px;margin:8px 0 0}.felix-evidence-scope dl div{display:grid;grid-template-columns:100px 1fr;gap:8px}.felix-evidence-scope dt{color:var(--text-muted,#999)}.felix-evidence-scope dd{margin:0;color:var(--text-primary,#eee)}

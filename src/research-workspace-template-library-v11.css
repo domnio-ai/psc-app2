@@ -1,0 +1,61 @@
+/* App2 Research Template Library V11 */
+.research-workspace[data-tab="Report"]>.research-template-library{
+  display:block!important;margin:0 26px 14px!important;padding:16px 18px!important;
+  border:1px solid var(--rw-border)!important;border-radius:12px!important;
+  background:var(--surface-strong)!important;box-shadow:none!important;
+}
+.research-workspace .research-template-library>header{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;margin-bottom:12px!important;
+}
+.research-workspace .research-template-library>header small{
+  color:var(--rw-primary)!important;font-size:12px!important;font-weight:850!important;letter-spacing:.06em!important;
+}
+.research-workspace .research-template-library>header h3{
+  margin:3px 0!important;color:var(--text)!important;font-size:max(16px,1.03rem)!important;
+}
+.research-workspace .research-template-library>header p{
+  max-width:820px!important;margin:0!important;color:var(--muted)!important;font-size:max(12px,.84rem)!important;line-height:1.45!important;
+}
+.research-workspace .research-template-library>header>strong{
+  display:inline-flex!important;align-items:center!important;min-height:32px!important;padding:6px 9px!important;
+  border:1px solid var(--rw-border)!important;border-radius:8px!important;background:var(--surface)!important;color:var(--text)!important;font-size:12px!important;white-space:nowrap!important;
+}
+.research-workspace .research-template-library-controls{
+  display:grid!important;grid-template-columns:minmax(280px,1fr) auto auto!important;align-items:end!important;gap:8px!important;
+}
+.research-workspace .research-template-library-controls label:first-child{
+  display:grid!important;gap:5px!important;color:var(--text)!important;font-size:12px!important;font-weight:700!important;
+}
+.research-workspace .research-template-library-controls select{
+  width:100%!important;min-height:40px!important;border:1px solid var(--rw-border)!important;border-radius:8px!important;
+  background:var(--surface)!important;color:var(--text)!important;font-size:12px!important;
+}
+.research-workspace .research-template-library-controls button.primary,
+.research-workspace .research-template-attach{
+  min-height:40px!important;padding:8px 14px!important;border-radius:8px!important;font-size:12px!important;font-weight:800!important;
+}
+.research-workspace .research-template-library-controls button.primary{
+  border:0!important;background:linear-gradient(135deg,var(--rw-primary),var(--rw-primary-2))!important;color:#fff!important;
+}
+.research-workspace .research-template-attach{
+  position:relative!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;overflow:hidden!important;
+  background:var(--surface)!important;color:var(--rw-primary)!important;border:1px solid color-mix(in srgb,var(--rw-primary) 45%,var(--rw-border))!important;
+}
+.research-workspace .research-template-attach input{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important;
+}
+.research-workspace .research-template-preview{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;margin-top:10px!important;padding:10px 12px!important;
+  border:1px solid var(--rw-border)!important;border-radius:9px!important;background:var(--surface)!important;
+}
+.research-workspace .research-template-preview>div{display:grid!important;gap:2px!important}
+.research-workspace .research-template-preview strong{color:var(--text)!important;font-size:max(12px,.88rem)!important}
+.research-workspace .research-template-preview span,
+.research-workspace .research-template-preview small,
+.research-workspace .research-template-note{color:var(--muted)!important;font-size:12px!important}
+.research-workspace .research-template-note{margin:9px 0 0!important}
+@media(max-width:900px){
+  .research-workspace .research-template-library-controls{grid-template-columns:1fr!important}
+  .research-workspace .research-template-library-controls button,.research-workspace .research-template-attach{width:100%!important}
+  .research-workspace .research-template-preview{align-items:flex-start!important;flex-direction:column!important}
+}

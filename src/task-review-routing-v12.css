@@ -1,0 +1,262 @@
+/* App2 v12 - task reviewer routing clarity */
+.task-review-routing-card {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  min-width: 0;
+  color: var(--text-primary, inherit);
+  font-family: inherit;
+}
+
+.task-review-routing-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--border, rgba(148, 163, 184, .28));
+  border-radius: 14px;
+  background: var(--surface, rgba(15, 23, 42, .55));
+}
+
+.task-review-routing-card > header small,
+.task-review-routing-card .workspace-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--accent, #d7ad2f);
+}
+
+.task-review-routing-card > header h2,
+.task-review-routing-list h3 {
+  margin: 0;
+  color: var(--text-primary, inherit);
+}
+
+.task-review-routing-card > header p,
+.task-review-routing-list p,
+.task-review-routing-note span {
+  margin: 7px 0 0;
+  font-size: max(12px, .95rem);
+  line-height: 1.5;
+  color: var(--text-secondary, rgba(226, 232, 240, .82));
+}
+
+.task-review-routing-card > header > b,
+.task-review-routing-status {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--accent, #d7ad2f);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--accent, #d7ad2f);
+  background: color-mix(in srgb, var(--accent, #d7ad2f) 9%, transparent);
+}
+
+.task-review-routing-list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-review-routing-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--border, rgba(148, 163, 184, .28));
+  border-radius: 14px;
+  background: var(--surface, rgba(15, 23, 42, .42));
+}
+
+.task-review-routing-note {
+  display: grid;
+  gap: 4px;
+  padding: 15px 17px;
+  border-left: 3px solid var(--accent, #d7ad2f);
+  border-radius: 8px;
+  background: var(--surface-muted, rgba(30, 41, 59, .5));
+}
+
+.task-review-routing-note strong {
+  font-size: max(12px, .9rem);
+}
+
+@media (max-width: 900px) {
+  .task-review-routing-card > header,
+  .task-review-routing-list article {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .task-review-routing-card > header > b,
+  .task-review-routing-status {
+    justify-self: start;
+  }
+
+  .task-review-routing-list article button {
+    width: 100%;
+  }
+}
+
+
+/* App2 v15 - reviewer decision inside Task Report preview */
+.task-contribution-report-modal > footer:has(.task-preview-review-panel){
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+.task-preview-review-panel{
+  flex:1 1 100%;
+  display:grid;
+  gap:12px;
+  width:100%;
+  margin-top:4px;
+  padding:14px;
+  border:1px solid var(--border,rgba(148,163,184,.28));
+  border-radius:12px;
+  background:var(--surface-muted,rgba(30,41,59,.48));
+  color:var(--text-primary,inherit);
+  font-family:inherit;
+}
+.task-preview-review-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.task-preview-review-heading>div{display:grid;gap:3px}
+.task-preview-review-heading small{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:var(--accent,#d7ad2f);
+}
+.task-preview-review-heading strong{font-size:max(12px,1rem)}
+.task-preview-review-heading>span{
+  max-width:620px;
+  font-size:max(12px,.9rem);
+  line-height:1.45;
+  color:var(--text-secondary,rgba(226,232,240,.82));
+}
+.task-preview-review-comments{
+  display:grid;
+  gap:6px;
+  width:100%;
+}
+.task-preview-review-comments>span{
+  font-size:max(12px,.9rem);
+  font-weight:700;
+}
+.task-preview-review-comments textarea{
+  width:100%;
+  min-height:78px;
+  resize:vertical;
+  box-sizing:border-box;
+  padding:10px 12px;
+  border:1px solid var(--border,rgba(148,163,184,.32));
+  border-radius:10px;
+  background:var(--surface,rgba(15,23,42,.72));
+  color:var(--text-primary,inherit);
+  font:inherit;
+  font-size:max(12px,.95rem);
+  line-height:1.45;
+}
+.task-preview-review-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:10px;
+}
+.task-preview-review-actions button{
+  min-height:42px;
+  font:inherit;
+  font-size:max(12px,.92rem);
+}
+@media(max-width:800px){
+  .task-preview-review-heading{display:grid}
+  .task-preview-review-actions{display:grid;grid-template-columns:1fr}
+  .task-preview-review-actions button{width:100%}
+}
+
+
+/* App2 v16 - one-step Task Report review from the formatted preview */
+.task-contribution-report-modal {
+  max-height: 94vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.task-contribution-report-frame {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.task-contribution-report-frame iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+}
+
+.task-contribution-report-modal > footer {
+  max-height: 34vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 3;
+}
+
+.task-preview-review-panel {
+  border-top: 2px solid var(--accent, #d7ad2f);
+}
+
+.task-preview-final-state {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border, rgba(148,163,184,.28));
+  border-radius: 10px;
+  background: var(--surface-muted, rgba(30,41,59,.48));
+  color: var(--text-primary, inherit);
+}
+
+.task-preview-final-state > div {
+  display: grid;
+  gap: 2px;
+}
+
+.task-preview-final-state small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--accent, #d7ad2f);
+}
+
+.task-preview-final-state strong {
+  font-size: max(12px, 1rem);
+}
+
+.task-preview-final-state > span {
+  max-width: 720px;
+  font-size: max(12px, .9rem);
+  line-height: 1.45;
+  color: var(--text-secondary, inherit);
+}
+
+@media (max-width: 800px) {
+  .task-contribution-report-modal {
+    max-height: 96vh;
+  }
+
+  .task-contribution-report-modal > footer {
+    max-height: 42vh;
+  }
+
+  .task-preview-final-state {
+    display: grid;
+  }
+}

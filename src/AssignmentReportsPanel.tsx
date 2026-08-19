@@ -1,331 +1,289 @@
-import { useRef, useState } from "react";
-import type {
-  ApiAttachment,
-  DocumentTemplate,
-  GeneratedDocumentSummary,
-} from "./api";
+import { useMemo, useState } from "react";
+import type { ApiAssignmentTask, GeneratedDocumentSummary, KnowledgeItem } from "./api";
+import "./assignment-report-simple-v3.css";
+
+type ReviewerOption = { id: string; name: string; role: string };
+type ReportKind = "Progress" | "Final";
 
 type Props = {
-  templates: DocumentTemplate[];
+  assignmentTitle: string;
+  tasks: ApiAssignmentTask[];
   documents: GeneratedDocumentSummary[];
-  attachments: ApiAttachment[];
-  onCreate: (templateId: string, title: string) => Promise<void>;
+  knowledge: KnowledgeItem[];
+  reviewers: ReviewerOption[];
+  currentUserId?: string;
+  canManage: boolean;
+  onCompile: (kind: ReportKind, taskIds: string[], knowledgeIds: string[]) => Promise<void>;
   onOpen: (id: string) => void;
-  onDownloadTemplate: (template: DocumentTemplate) => void;
-  onUpload: (file?: File) => void;
-  onDownloadAttachment: (file: ApiAttachment) => void;
+  onPreview: (id: string) => void;
+  onOpenTask: (task: ApiAssignmentTask) => void;
+  onOpenRepository: (id: string) => void;
+  onSubmit: (id: string, reviewerId: string, comments: string) => Promise<void>;
+  onReview: (id: string, decision: "Changes Requested" | "Rejected" | "Approved", comments: string) => Promise<void>;
+  onFinalize: (id: string) => Promise<void>;
+  onDiscardImport?: (id: string) => Promise<void>;
 };
 
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString("en-KE") : "—";
+const normalize = (value: string) => String(value || "").replaceAll("Ã¢â‚¬”", "—").replaceAll("Ã‚Â·", "·").replaceAll("Â·", "·");
+
 export default function AssignmentReportsPanel({
-  templates,
+  assignmentTitle,
+  tasks,
   documents,
-  attachments,
-  onCreate,
+  knowledge,
+  reviewers,
+  currentUserId,
+  canManage,
+  onCompile,
   onOpen,
-  onDownloadTemplate,
-  onUpload,
-  onDownloadAttachment,
+  onPreview,
+  onOpenTask,
+  onOpenRepository,
+  onSubmit,
+  onReview,
+  onFinalize,
+  onDiscardImport,
 }: Props) {
-  const approved = templates.filter(
-    (item) =>
-      item.template_key === "progress-report" &&
-      item.active &&
-      ["Approved", "Standard"].includes(item.governance_status),
+  const [reviewerByReport, setReviewerByReport] = useState<Record<string, string>>({});
+  const [noteByReport, setNoteByReport] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState("");
+  const [notice, setNotice] = useState("");
+  const [showOtherReports, setShowOtherReports] = useState(false);
+
+  const taskFinalReportByTaskId = useMemo(() => {
+    const rows = new Map<string, KnowledgeItem>();
+    for (const item of knowledge) {
+      if (item.status !== "Published" || item.document_type !== "Task Final Report") continue;
+      for (const link of item.origin_links || []) {
+        if (link.type === "task" && !rows.has(link.id)) rows.set(link.id, item);
+      }
+    }
+    return rows;
+  }, [knowledge]);
+
+  const approvedSources = useMemo(
+    () => tasks.filter((task) => task.contribution_status === "Accepted" && Boolean(task.repository_document_id || taskFinalReportByTaskId.get(task.id)?.id)),
+    [tasks, taskFinalReportByTaskId],
   );
-  const [creating, setCreating] = useState(false),
-    [templateId, setTemplateId] = useState(""),
-    [title, setTitle] = useState(""),
-    [preview, setPreview] = useState<DocumentTemplate | null>(null),
-    [creatingReport, setCreatingReport] = useState(false),
-    [error, setError] = useState("");
-  const titleInput = useRef<HTMLInputElement>(null);
-  const chooseTemplate = (template: DocumentTemplate) => {
-    setTemplateId(template.id);
-    setTitle((current) =>
-      current.trim()
-        ? current
-        : `${template.name} - ${new Date().toLocaleDateString("en-KE", { month: "long", year: "numeric" })}`,
-    );
-    setError("");
-    window.setTimeout(() => titleInput.current?.focus(), 0);
+  const allSourcesReady = tasks.length > 0 && approvedSources.length === tasks.length;
+
+  const finalCandidates = documents
+    .filter((item) => item.template_key === "assignment-final-report" || /Final Assignment Report/i.test(item.title || ""))
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  const primaryReport = finalCandidates[0] || null;
+  const otherReports = documents.filter((item) => !primaryReport || item.id !== primaryReport.id);
+
+  const run = async (key: string, work: () => Promise<void>) => {
+    setBusy(key);
+    setNotice("");
+    try { await work(); }
+    catch (error) { setNotice(error instanceof Error ? error.message : "The report action could not be completed."); }
+    finally { setBusy(""); }
   };
-  const openCreate = () => {
-    setCreating(true);
-    setError("");
-    if (approved[0]) chooseTemplate(approved[0]);
-  };
-  const create = async () => {
-    if (!templateId) return setError("Select a report template.");
-    if (!title.trim()) {
-      setError("Enter a report title.");
-      titleInput.current?.focus();
-      return;
-    }
-    setCreatingReport(true);
-    setError("");
-    try {
-      await onCreate(templateId, title.trim());
-      setCreating(false);
-      setTitle("");
-      setTemplateId("");
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Report could not be created.",
-      );
-    } finally {
-      setCreatingReport(false);
-    }
-  };
+
+  const reportReviewer = primaryReport ? reviewerByReport[primaryReport.id] || "" : "";
+  const reportNote = primaryReport ? noteByReport[primaryReport.id] || "" : "";
+  const draftStage = Boolean(primaryReport && ["Draft", "Revised", "Changes Requested"].includes(primaryReport.status));
+  const canAuthorReport = Boolean(canManage || (primaryReport?.created_by && primaryReport.created_by === currentUserId));
+  const importedDraft = Boolean(draftStage && primaryReport?.external_import_id);
+  const reviewStage = Boolean(primaryReport && ["Submitted", "Under Review"].includes(primaryReport.status));
+  const isAssignedReviewer = Boolean(
+    reviewStage &&
+    primaryReport?.reviewer_id &&
+    currentUserId &&
+    String(primaryReport.reviewer_id).trim().toLowerCase() === String(currentUserId).trim().toLowerCase()
+  );
+
   return (
-    <section className="assignment-reports-panel">
-      <header>
+    <section className="assignment-reports-panel assignment-reports-simple-v3">
+      <header className="assignment-reports-titlebar">
         <div>
-          <p>REPORT WORKSPACE</p>
-          <h2>Assignment Report</h2>
-          <span>
-            Open the current draft or create a report when no draft exists.
-          </span>
+          <p>ASSIGNMENT REPORTING</p>
+          <h2>Final Assignment Report</h2>
+          <span>Prepare one report, send it for review, then publish the approved final copy.</span>
         </div>
-        {!documents.some(
-          (item) => !["Approved", "Final"].includes(item.status),
-        ) && (
-          <button className="primary" onClick={openCreate}>
-            Create report
-          </button>
-        )}
       </header>
-      {creating && (
-        <div
-          className="template-library"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Choose assignment report template"
-        >
+
+      {notice && <div className="assignment-report-notice">{notice}</div>}
+
+      <section className="assignment-source-simple">
+        <header>
+          <div>
+            <strong>Approved task report sources</strong>
+            <small>{approvedSources.length} of {tasks.length} task report{tasks.length === 1 ? "" : "s"} ready</small>
+          </div>
+          <b>{approvedSources.length}/{tasks.length}</b>
+        </header>
+        <div className="assignment-source-simple-list">
+          {tasks.map((task) => {
+            const repositoryId = task.repository_document_id || taskFinalReportByTaskId.get(task.id)?.id || null;
+            const final = task.contribution_status === "Accepted" && Boolean(repositoryId);
+            return (
+              <article key={task.id}>
+                <span>
+                  <strong>{task.contribution_title || task.title}</strong>
+                  <small>{task.owner_name || "Researcher"} · {final ? "Final approved source" : "Not yet final"}</small>
+                </span>
+                {final && repositoryId ? (
+                  <button type="button" onClick={() => onOpenRepository(repositoryId)}>Read Final Report</button>
+                ) : (
+                  <button type="button" onClick={() => onOpenTask(task)}>Open Task</button>
+                )}
+              </article>
+            );
+          })}
+          {!tasks.length && <p>No assignment tasks exist yet.</p>}
+        </div>
+      </section>
+
+      {!primaryReport && (
+        <section className="assignment-primary-report-card">
+          <header><div><small>FINAL REPORT</small><h3>No Final Assignment Report draft yet</h3></div></header>
+          <p>{allSourcesReady ? "All task reports are final. Create the assignment draft and start writing." : "The Final Assignment Report becomes available when every required task has a published final report."}</p>
+          <div className="assignment-primary-report-actions">
+            <button
+              type="button"
+              className="primary"
+              disabled={!allSourcesReady || busy === "compile-final"}
+              onClick={() => run("compile-final", () => onCompile("Final", approvedSources.map((task) => task.id), []))}
+            >
+              {busy === "compile-final" ? "Creating..." : "Create Final Assignment Draft"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {primaryReport && (
+        <section className="assignment-primary-report-card">
           <header>
             <div>
-              <span className="template-kicker">APP2 REPORT BUILDER</span>
-              <h3>Create an assignment report</h3>
-              <p>
-                Select the approved structure, confirm its title, then open the
-                working report.
-              </p>
+              <small>FINAL ASSIGNMENT REPORT</small>
+              <h3>{normalize(primaryReport.title)}</h3>
             </div>
-            <button
-              className="template-close"
-              aria-label="Close template selection"
-              onClick={() => setCreating(false)}
-            >
-              ×
-            </button>
+            <b>{primaryReport.status}</b>
           </header>
-          <div className="template-cards">
-            {approved.map((template) => (
-              <article
-                className={templateId === template.id ? "selected" : ""}
-                key={template.id}
-                onClick={() => chooseTemplate(template)}
-              >
-                <span className="template-mark" aria-hidden="true">
-                  ▤
-                </span>
-                <span>
-                  <strong>{template.name}</strong>
-                  <small>{template.description}</small>
-                  <em>
-                    <b>{template.governance_status}</b> · Version{" "}
-                    {template.version} · {template.sections.length} sections
-                  </em>
-                </span>
+          <div className="assignment-primary-report-meta">
+            <span>Version {primaryReport.version}</span>
+            <span>Reviewer: {primaryReport.reviewer_name || "Not assigned"}</span>
+            <span>Updated {formatDate(primaryReport.updated_at)}</span>
+            <span>{approvedSources.length} approved task sources</span>
+          </div>
+
+          {importedDraft ? (
+            <div className="assignment-import-handoff">
+              <header>
                 <div>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setPreview(template);
-                    }}
-                  >
-                    Preview Sections
-                  </button>
-                  <button
-                    className="use-template"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      chooseTemplate(template);
-                    }}
-                  >
-                    {templateId === template.id ? "✓ Selected" : "Use Template"}
-                  </button>
+                  <small>IMPORTED REPORT READY FOR REVIEW</small>
+                  <h4>{primaryReport.external_import_name}</h4>
+                  <p>The authoring workspace is closed. Read the imported report, select a reviewer, submit it, or discard this import.</p>
                 </div>
+                <b>v{primaryReport.external_import_version || 1}</b>
+              </header>
+              <div className="assignment-import-handoff-actions">
+                <button type="button" onClick={() => onPreview(primaryReport.id)}>Read Imported Report</button>
+                <select value={reportReviewer} onChange={(event) => setReviewerByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}>
+                  <option value="">Select reviewer</option>
+                  {reviewers.filter((reviewer) => reviewer.id !== currentUserId).map((reviewer) => (
+                    <option key={reviewer.id} value={reviewer.id}>{reviewer.name} — {reviewer.role}</option>
+                  ))}
+                </select>
+                <input value={reportNote} onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))} placeholder="Submission note (optional)" />
+                <button type="button" className="primary" disabled={!reportReviewer || busy === "submit-import"} onClick={() => run("submit-import", () => onSubmit(primaryReport.id, reportReviewer, reportNote))}>Submit for Review</button>
+                <button type="button" className="danger" disabled={busy === "discard-import"} onClick={() => run("discard-import", () => onDiscardImport ? onDiscardImport(primaryReport.id) : Promise.resolve())}>Discard Import</button>
+              </div>
+            </div>
+          ) : (
+            <div className="assignment-primary-report-actions">
+              {draftStage && canAuthorReport && (
+                <>
+                  <button type="button" className="primary" onClick={() => onOpen(primaryReport.id)}>Continue Editing</button>
+                  <button type="button" onClick={() => onPreview(primaryReport.id)}>Preview</button>
+                  <select value={reportReviewer} onChange={(event) => setReviewerByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}>
+                    <option value="">Select reviewer</option>
+                    {reviewers.filter((reviewer) => reviewer.id !== currentUserId).map((reviewer) => (
+                      <option key={reviewer.id} value={reviewer.id}>{reviewer.name} — {reviewer.role}</option>
+                    ))}
+                  </select>
+                  <input value={reportNote} onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))} placeholder="Submission note (optional)" />
+                  <button type="button" className="primary" disabled={!reportReviewer || busy === "submit"} onClick={() => run("submit", () => onSubmit(primaryReport.id, reportReviewer, reportNote))}>Submit for Review</button>
+                </>
+              )}
+              {["Submitted", "Under Review"].includes(primaryReport.status) && (
+                <>
+                  <button type="button" className="primary" onClick={() => onPreview(primaryReport.id)}>Read Submitted Report</button>
+                  {isAssignedReviewer ? (
+                    <div className="assignment-reviewer-decision">
+                      <strong>Your review is required</strong>
+                      <label>
+                        <span>Reviewer comments</span>
+                        <textarea
+                          rows={3}
+                          value={reportNote}
+                          onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}
+                          placeholder="Add comments. Required when requesting changes or rejecting."
+                        />
+                      </label>
+                      <div className="assignment-reviewer-decision-actions">
+                        <button
+                          type="button"
+                          className="primary"
+                          disabled={Boolean(busy)}
+                          onClick={() => run("approve", () => onReview(primaryReport.id, "Approved", reportNote.trim()))}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={Boolean(busy) || !reportNote.trim()}
+                          title={!reportNote.trim() ? "Enter reviewer comments before requesting changes." : undefined}
+                          onClick={() => run("changes", () => onReview(primaryReport.id, "Changes Requested", reportNote.trim()))}
+                        >
+                          Request Changes
+                        </button>
+                        <button
+                          type="button"
+                          className="danger"
+                          disabled={Boolean(busy) || !reportNote.trim()}
+                          title={!reportNote.trim() ? "Enter reviewer comments before rejecting the report." : undefined}
+                          onClick={() => run("reject", () => onReview(primaryReport.id, "Rejected", reportNote.trim()))}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <span>Waiting for {primaryReport.reviewer_name || "reviewer"}</span>
+                  )}
+                </>
+              )}
+              {primaryReport.status === "Approved" && (
+                <>
+                  <button type="button" onClick={() => onPreview(primaryReport.id)}>Read Approved Report</button>
+                  <button type="button" className="primary" disabled={busy === "finalize"} onClick={() => run("finalize", () => onFinalize(primaryReport.id))}>{busy === "finalize" ? "Publishing..." : "Generate Final Report & Save to Repository"}</button>
+                </>
+              )}
+              {primaryReport.status === "Final" && (
+                <button type="button" className="primary" onClick={() => primaryReport.repository_document_id ? onOpenRepository(primaryReport.repository_document_id) : onPreview(primaryReport.id)}>Read Final Report</button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {otherReports.length > 0 && (
+        <details className="assignment-report-evidence-picker" open={showOtherReports} onToggle={(event) => setShowOtherReports((event.currentTarget as HTMLDetailsElement).open)}>
+          <summary>Other reports ({otherReports.length})</summary>
+          <div>
+            {otherReports.map((report) => (
+              <article key={report.id}>
+                <span><strong>{normalize(report.title)}</strong><small>{report.template_name} · {report.status}</small></span>
+                <button type="button" onClick={() => onPreview(report.id)}>Read</button>
               </article>
             ))}
           </div>
-          {!approved.length && (
-            <p className="template-error">
-              No approved Progress Report template is available.
-            </p>
-          )}
-          <footer>
-            <label>
-              Report title
-              <input
-                ref={titleInput}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="e.g. August Progress Report"
-              />
-            </label>
-            <button
-              className="build-report"
-              disabled={!templateId || !title.trim() || creatingReport}
-              onClick={create}
-            >
-              {creatingReport ? "Creating report…" : "Create & Open Report →"}
-            </button>
-          </footer>
-          {error && (
-            <p className="template-error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
+        </details>
       )}
-      {preview && (
-        <div
-          className="template-preview"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${preview.name} preview`}
-        >
-          <button onClick={() => setPreview(null)}>×</button>
-          <span className="template-kicker">APPROVED STRUCTURE</span>
-          <h2>{preview.name}</h2>
-          <p>{preview.description}</p>
-          <ol>
-            {preview.sections.map((section) => (
-              <li key={section.key}>{section.title}</li>
-            ))}
-          </ol>
-          <footer>
-            <button onClick={() => onDownloadTemplate(preview)}>
-              Download Blank Template
-            </button>
-            <button
-              className="primary"
-              onClick={() => {
-                chooseTemplate(preview);
-                setPreview(null);
-              }}
-            >
-              Use This Template
-            </button>
-          </footer>
-        </div>
-      )}
-      <section className="report-document-group">
-        <header>
-          <div>
-            <span>CURRENT REPORT</span>
-            <h3>
-              {documents.some(
-                (item) => !["Approved", "Final"].includes(item.status),
-              )
-                ? "Continue working"
-                : "No draft report"}
-            </h3>
-          </div>
-        </header>
-        {documents
-          .filter((item) => !["Approved", "Final"].includes(item.status))
-          .map((item) => (
-            <article key={item.id}>
-              <span>
-                <strong>{item.title}</strong>
-                <small>
-                  Version {item.version} · Updated{" "}
-                  {new Date(item.updated_at).toLocaleString("en-KE", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  · {item.created_by_name}
-                </small>
-              </span>
-              <b>{item.status}</b>
-              <button className="primary" onClick={() => onOpen(item.id)}>
-                Open report
-              </button>
-            </article>
-          ))}
-        {!documents.some(
-          (item) => !["Approved", "Final"].includes(item.status),
-        ) && <p>Create a report or compile approved task reports above.</p>}
-      </section>
-      <details className="report-supporting-files">
-        <summary>
-          Supporting files <b>{attachments.length}</b>
-        </summary>
-        <div>
-          <label className="document-upload">
-            Upload file
-            <input
-              type="file"
-              onChange={(event) => onUpload(event.target.files?.[0])}
-            />
-          </label>
-          <button
-            disabled={!approved[0]}
-            onClick={() => approved[0] && onDownloadTemplate(approved[0])}
-          >
-            Download blank template
-          </button>
-        </div>
-        {attachments.map((file) => (
-          <article key={file.id}>
-            <span>
-              <strong>{file.original_name}</strong>
-              <small>
-                {Math.ceil(file.size_bytes / 1024)} KB ·{" "}
-                {new Date(file.created_at).toLocaleDateString("en-KE", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </small>
-            </span>
-            <button onClick={() => onDownloadAttachment(file)}>Download</button>
-          </article>
-        ))}
-      </details>
-      <section className="report-document-group final-outputs">
-        <header>
-          <div>
-            <span>FINAL OUTPUTS</span>
-            <h3>Approved assignment deliverables</h3>
-          </div>
-        </header>
-        {documents
-          .filter((item) => ["Approved", "Final"].includes(item.status))
-          .map((item) => (
-            <article key={item.id}>
-              <span>
-                <strong>{item.title}</strong>
-                <small>
-                  {item.template_name} · v{item.version} · Updated{" "}
-                  {new Date(item.updated_at).toLocaleString("en-KE")} ·{" "}
-                  {item.created_by_name}
-                </small>
-              </span>
-              <b>{item.status}</b>
-              <button onClick={() => onOpen(item.id)}>Preview</button>
-            </article>
-          ))}
-        {!documents.some((item) =>
-          ["Approved", "Final"].includes(item.status),
-        ) && <p>No final outputs have been approved yet.</p>}
-      </section>
     </section>
   );
 }

@@ -1,0 +1,25 @@
+/* App2 Research Template Outline V13.1 */
+.research-workspace .research-template-library-controls{
+  grid-template-columns:minmax(280px,1fr) minmax(210px,.55fr)!important;
+}
+.research-workspace .research-template-auto-apply-note{
+  display:flex!important;
+  align-items:center!important;
+  min-height:40px!important;
+  padding:8px 11px!important;
+  border:1px solid var(--rw-border)!important;
+  border-radius:8px!important;
+  background:color-mix(in srgb,var(--rw-primary) 5%,var(--surface))!important;
+  color:var(--rw-primary)!important;
+  font-size:12px!important;
+  font-weight:750!important;
+}
+.research-workspace .research-template-library-controls select:disabled{
+  opacity:.72!important;
+  cursor:wait!important;
+}
+@media(max-width:900px){
+  .research-workspace .research-template-library-controls{
+    grid-template-columns:1fr!important;
+  }
+}

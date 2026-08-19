@@ -1186,7 +1186,7 @@
   border-radius:8px;
   font-weight:850;
 }
-.task-authorized-reviewers{display:flex;min-width:0;flex:1;flex-direction:column;justify-content:center;margin-right:auto}.task-authorized-reviewers small{color:#d8ad3f;font-size:10px;font-weight:850;letter-spacing:.08em}.task-authorized-reviewers strong{color:#f2f4f5;font-size:13px}.task-authorized-reviewers span{overflow:hidden;color:#aeb5ba;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.task-authorized-reviewers{display:flex;min-width:0;flex:1;flex-direction:column;justify-content:center;margin-right:auto}.task-authorized-reviewers small{color:#d8ad3f;font-size:12px;font-weight:850;letter-spacing:.08em}.task-authorized-reviewers strong{color:#f2f4f5;font-size:13px}.task-authorized-reviewers span{overflow:hidden;color:#aeb5ba;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
 
 
 /* Contribution workflow: explicit saved state and next action */
@@ -1350,16 +1350,943 @@
 }
 
 /* Compact task workspace: one header, one work area, one report, one action bar. */
-.task-workspace-screen{background:#171b1d!important}.task-screen-header{min-height:64px!important;padding:11px 18px!important;grid-template-columns:auto 1fr auto!important;gap:16px!important}.task-screen-title h2{margin:0!important;font-size:19px!important}.task-screen-title p{margin:4px 0 0!important;font-size:10px!important}.task-back-button{padding:8px 11px!important;font-size:10px!important}.task-management-actions button{padding:7px 9px!important;font-size:9px!important}
-.task-screen-meta{display:grid!important;grid-template-columns:.7fr 2fr .7fr 1fr!important;gap:0!important;padding:0 18px!important;border-bottom:1px solid #343b3e!important;background:#1d2224!important}.task-screen-meta>div{min-height:54px!important;padding:10px 14px!important;border-right:1px solid #343b3e!important}.task-screen-meta>div:last-child{border-right:0!important}.task-screen-meta small{font-size:9px!important}.task-screen-meta strong{margin-top:4px!important;font-size:11px!important}
-.task-screen-body{display:grid!important;grid-template-columns:minmax(260px,.7fr) minmax(360px,1.3fr)!important;align-content:start!important;gap:12px!important;max-width:1180px!important;margin:0 auto!important;padding:16px 18px 84px!important}.task-screen-body>section,.task-screen-body>details{margin:0!important;border:1px solid #394145!important;border-radius:10px!important;background:#202527!important;box-shadow:none!important}.task-management-compact{grid-column:1/-1;padding:0!important}.task-management-compact>summary{padding:13px 16px;color:#d9ad2c;font-size:10px;font-weight:900;cursor:pointer}.task-management-compact[open]>summary{border-bottom:1px solid #343b3e}.task-management-compact .task-management-grid{padding:15px!important}
-.task-work-status-card{grid-column:1/-1;padding:16px!important}.task-work-status-card>header{margin-bottom:12px!important}.task-work-status-card>header h3{font-size:13px!important}.task-work-status-card>header b{font-size:14px!important}.task-member-output-card{grid-column:1/-1;padding:17px!important}.task-member-output-card>header{margin-bottom:14px!important}.task-member-output-card>header h3{font-size:14px!important}.task-member-output-grid{gap:10px!important}.task-member-output-grid label span,.task-status-progress-grid label span{font-size:10px!important}.task-member-output-grid input,.task-member-output-grid textarea,.task-status-progress-grid input,.task-status-progress-grid select{font-size:11px!important}.task-member-output-grid textarea{min-height:82px!important}.task-member-output-card>footer{gap:8px!important;margin-top:14px!important;padding-top:13px!important}.task-member-output-card>footer button{min-height:34px!important;padding:8px 11px!important;font-size:9px!important}.task-contribution-saved-mark{font-size:9px!important}
-.task-screen-footer{justify-content:flex-end!important;min-height:58px!important;padding:10px 18px!important}.task-screen-footer>div{gap:8px!important}.task-screen-footer button{min-height:36px!important;padding:8px 13px!important;font-size:10px!important}
+.task-workspace-screen{background:#171b1d!important}.task-screen-header{min-height:64px!important;padding:11px 18px!important;grid-template-columns:auto 1fr auto!important;gap:16px!important}.task-screen-title h2{margin:0!important;font-size:19px!important}.task-screen-title p{margin:4px 0 0!important;font-size:12px!important}.task-back-button{padding:8px 11px!important;font-size:12px!important}.task-management-actions button{padding:7px 9px!important;font-size:12px!important}
+.task-screen-meta{display:grid!important;grid-template-columns:.7fr 2fr .7fr 1fr!important;gap:0!important;padding:0 18px!important;border-bottom:1px solid #343b3e!important;background:#1d2224!important}.task-screen-meta>div{min-height:54px!important;padding:10px 14px!important;border-right:1px solid #343b3e!important}.task-screen-meta>div:last-child{border-right:0!important}.task-screen-meta small{font-size:12px!important}.task-screen-meta strong{margin-top:4px!important;font-size:12px!important}
+.task-screen-body{display:grid!important;grid-template-columns:minmax(260px,.7fr) minmax(360px,1.3fr)!important;align-content:start!important;gap:12px!important;max-width:1180px!important;margin:0 auto!important;padding:16px 18px 84px!important}.task-screen-body>section,.task-screen-body>details{margin:0!important;border:1px solid #394145!important;border-radius:10px!important;background:#202527!important;box-shadow:none!important}.task-management-compact{grid-column:1/-1;padding:0!important}.task-management-compact>summary{padding:13px 16px;color:#d9ad2c;font-size:12px;font-weight:900;cursor:pointer}.task-management-compact[open]>summary{border-bottom:1px solid #343b3e}.task-management-compact .task-management-grid{padding:15px!important}
+.task-work-status-card{grid-column:1/-1;padding:16px!important}.task-work-status-card>header{margin-bottom:12px!important}.task-work-status-card>header h3{font-size:13px!important}.task-work-status-card>header b{font-size:14px!important}.task-member-output-card{grid-column:1/-1;padding:17px!important}.task-member-output-card>header{margin-bottom:14px!important}.task-member-output-card>header h3{font-size:14px!important}.task-member-output-grid{gap:10px!important}.task-member-output-grid label span,.task-status-progress-grid label span{font-size:12px!important}.task-member-output-grid input,.task-member-output-grid textarea,.task-status-progress-grid input,.task-status-progress-grid select{font-size:12px!important}.task-member-output-grid textarea{min-height:82px!important}.task-member-output-card>footer{gap:8px!important;margin-top:14px!important;padding-top:13px!important}.task-member-output-card>footer button{min-height:34px!important;padding:8px 11px!important;font-size:12px!important}.task-contribution-saved-mark{font-size:12px!important}
+.task-screen-footer{justify-content:flex-end!important;min-height:58px!important;padding:10px 18px!important}.task-screen-footer>div{gap:8px!important}.task-screen-footer button{min-height:36px!important;padding:8px 13px!important;font-size:12px!important}
 @media(max-width:800px){.task-screen-header{grid-template-columns:auto 1fr!important}.task-management-actions{grid-column:1/-1!important}.task-screen-meta{grid-template-columns:1fr 1fr!important}.task-screen-body{grid-template-columns:1fr!important}.task-member-output-card,.task-management-compact{grid-column:auto}.task-screen-footer>div{width:100%;display:grid!important}.task-screen-footer button{width:100%}}
 
-.task-report-section-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:7px}.task-report-section-actions>b{margin-right:auto;padding:4px 7px;border-radius:999px;background:#39352a;color:#e4bc54;font-size:8px}.task-report-section-actions>b.section-in-review{background:#263d4e;color:#74bde9}.task-report-section-actions>b.section-final{background:#234634;color:#65d995}.task-report-section-actions>button{padding:5px 8px;border:1px solid #4d565a;border-radius:5px;background:#252a2d;color:#cfd4d6;font-size:8px;font-weight:800}.task-report-section-actions>button:last-child{border-color:#477259;color:#76d99e}.task-report-section-actions>button:disabled{opacity:.45}
+.task-report-section-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:7px}.task-report-section-actions>b{margin-right:auto;padding:4px 7px;border-radius:999px;background:#39352a;color:#e4bc54;font-size:12px}.task-report-section-actions>b.section-in-review{background:#263d4e;color:#74bde9}.task-report-section-actions>b.section-final{background:#234634;color:#65d995}.task-report-section-actions>button{padding:5px 8px;border:1px solid #4d565a;border-radius:5px;background:#252a2d;color:#cfd4d6;font-size:12px;font-weight:800}.task-report-section-actions>button:last-child{border-color:#477259;color:#76d99e}.task-report-section-actions>button:disabled{opacity:.45}
 .task-member-output-grid input[readonly],.task-member-output-grid textarea[readonly]{border-color:#343b3e!important;background:#191d1f!important;color:#aeb5b8!important;cursor:default}.task-member-output-grid input:not([readonly]),.task-member-output-grid textarea:not([readonly]){border-color:#b28d2c!important;background:#24292b!important;box-shadow:0 0 0 1px rgba(217,173,44,.12)}
 @media(max-width:600px){.task-report-section-actions{align-items:stretch;flex-wrap:wrap}.task-report-section-actions>b{width:100%;margin:0}.task-report-section-actions>button{flex:1}}
 
-.task-section-workspace-backdrop{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:20px;background:rgba(7,9,10,.82);backdrop-filter:blur(5px)}.task-section-workspace-modal{display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:min(820px,calc(100vw - 32px));max-height:calc(100vh - 40px);border:1px solid #4a5357;border-radius:13px;background:#1b2022;box-shadow:0 28px 80px rgba(0,0,0,.55);overflow:hidden}.task-section-workspace-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:17px 20px;border-bottom:1px solid #363e42}.task-section-workspace-modal>header small{color:#d9ad2c;font-size:9px;font-weight:900;letter-spacing:.14em}.task-section-workspace-modal>header h3{margin:6px 0 8px;color:#fff;font-size:18px}.task-section-workspace-modal>header span{display:inline-block;padding:4px 8px;border-radius:999px;background:#39352a;color:#e4bc54;font-size:8px}.task-section-workspace-modal>header span.section-in-review{background:#263d4e;color:#74bde9}.task-section-workspace-modal>header span.section-final{background:#234634;color:#65d995}.task-section-workspace-modal>header>button{border:0;background:transparent;color:#aeb6b9;font-size:22px}.task-section-workspace-modal>main{overflow:auto;padding:20px}.task-section-workspace-modal>main input,.task-section-workspace-modal>main textarea{width:100%;box-sizing:border-box;padding:14px;border:1px solid #b28d2c;border-radius:8px;background:#24292b;color:#f1f3f3;font-size:12px;line-height:1.6}.task-section-workspace-modal>main textarea{min-height:360px;resize:vertical}.task-section-review-content{min-height:260px;padding:18px;border:1px solid #363e42;border-radius:8px;background:#171b1d;color:#e2e5e6;font-size:12px;line-height:1.75;white-space:pre-wrap}.task-section-workspace-modal>footer{display:flex;justify-content:flex-end;gap:8px;padding:13px 20px;border-top:1px solid #363e42;background:#191d1f}.task-section-workspace-modal>footer button{padding:10px 15px;border:0;border-radius:7px;background:#d9ad2c;color:#17150d;font-size:10px;font-weight:900}.task-section-workspace-modal>footer button.secondary{border:1px solid #525b5f;background:transparent;color:#d4d9db}.task-section-workspace-modal>footer button.final{background:#2f8a59;color:#fff}.task-section-workspace-modal>footer button:disabled{opacity:.45}
+.task-section-workspace-backdrop{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:20px;background:rgba(7,9,10,.82);backdrop-filter:blur(5px)}.task-section-workspace-modal{display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:min(820px,calc(100vw - 32px));max-height:calc(100vh - 40px);border:1px solid #4a5357;border-radius:13px;background:#1b2022;box-shadow:0 28px 80px rgba(0,0,0,.55);overflow:hidden}.task-section-workspace-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:17px 20px;border-bottom:1px solid #363e42}.task-section-workspace-modal>header small{color:#d9ad2c;font-size:12px;font-weight:900;letter-spacing:.14em}.task-section-workspace-modal>header h3{margin:6px 0 8px;color:#fff;font-size:18px}.task-section-workspace-modal>header span{display:inline-block;padding:4px 8px;border-radius:999px;background:#39352a;color:#e4bc54;font-size:12px}.task-section-workspace-modal>header span.section-in-review{background:#263d4e;color:#74bde9}.task-section-workspace-modal>header span.section-final{background:#234634;color:#65d995}.task-section-workspace-modal>header>button{border:0;background:transparent;color:#aeb6b9;font-size:22px}.task-section-workspace-modal>main{overflow:auto;padding:20px}.task-section-workspace-modal>main input,.task-section-workspace-modal>main textarea{width:100%;box-sizing:border-box;padding:14px;border:1px solid #b28d2c;border-radius:8px;background:#24292b;color:#f1f3f3;font-size:12px;line-height:1.6}.task-section-workspace-modal>main textarea{min-height:360px;resize:vertical}.task-section-review-content{min-height:260px;padding:18px;border:1px solid #363e42;border-radius:8px;background:#171b1d;color:#e2e5e6;font-size:12px;line-height:1.75;white-space:pre-wrap}.task-section-workspace-modal>footer{display:flex;justify-content:flex-end;gap:8px;padding:13px 20px;border-top:1px solid #363e42;background:#191d1f}.task-section-workspace-modal>footer button{padding:10px 15px;border:0;border-radius:7px;background:#d9ad2c;color:#17150d;font-size:12px;font-weight:900}.task-section-workspace-modal>footer button.secondary{border:1px solid #525b5f;background:transparent;color:#d4d9db}.task-section-workspace-modal>footer button.final{background:#2f8a59;color:#fff}.task-section-workspace-modal>footer button:disabled{opacity:.45}
 @media(max-width:600px){.task-section-workspace-backdrop{padding:8px}.task-section-workspace-modal{width:calc(100vw - 16px);max-height:calc(100vh - 16px)}.task-section-workspace-modal>main textarea{min-height:280px}.task-section-workspace-modal>footer{flex-direction:column}.task-section-workspace-modal>footer button{width:100%}}
+
+/* Assignment task reporting workflow: Draft -> Submitted -> Review -> Accepted */
+.task-review-feedback-card,
+.task-review-decision-card {
+  grid-column: 1 / -1;
+  padding: 16px;
+  border: 1px solid #4b4330 !important;
+  border-radius: 10px;
+  background: #24231d !important;
+}
+.task-review-feedback-card h4,
+.task-review-decision-card h3 {
+  margin: 5px 0 7px;
+  color: #f4f5f5;
+}
+.task-review-feedback-card p,
+.task-review-decision-card p {
+  margin: 0;
+  color: #c5c9cb;
+  line-height: 1.5;
+}
+.task-review-feedback-card small { display:block; margin-top:8px; color:#d9ad2c; }
+.task-review-decision-card > header {
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:flex-start;
+  margin-bottom:12px;
+}
+.task-review-decision-card > header b {
+  padding:5px 9px;
+  border-radius:999px;
+  background:#273037;
+  color:#bcd5e5;
+  font-size:12px;
+  white-space:nowrap;
+}
+.task-review-decision-card > label { display:block; margin-top:12px; }
+.task-review-decision-card > label > span {
+  display:block;
+  margin-bottom:6px;
+  color:#aeb7bb;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.task-review-decision-card textarea {
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border:1px solid #4b5357;
+  border-radius:8px;
+  background:#191d1f;
+  color:#eef1f2;
+  resize:vertical;
+}
+.task-review-open-report,
+.task-review-decision-card footer button {
+  min-height:36px;
+  padding:8px 12px;
+  border-radius:7px;
+  font-size:12px;
+  font-weight:900;
+}
+.task-review-open-report {
+  margin-top:12px;
+  border:1px solid #5a6266;
+  background:#23282b;
+  color:#f1f3f4;
+}
+.task-review-decision-card footer {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:12px;
+}
+.task-review-changes { border:1px solid #ba6d37; background:#35271f; color:#ffbd8c; }
+.task-review-accept { border:0; background:#d9ad2c; color:#17150d; }
+.task-review-decision-card button:disabled { opacity:.45; cursor:not-allowed; }
+.task-report-accepted-mark { color:#71d397; font-size:12px; }
+.task-completion-rule {
+  display:inline-flex;
+  align-items:center;
+  max-width:420px;
+  color:#aeb6b9;
+  font-size:12px;
+  line-height:1.35;
+}
+.task-workspace-readonly .task-review-decision-card { margin-top:12px; }
+@media(max-width:700px){
+  .task-review-decision-card > header,
+  .task-review-decision-card footer { flex-direction:column; }
+  .task-review-decision-card footer button,
+  .task-review-open-report { width:100%; }
+}
+
+
+/* ============================================================
+   APP2 TASK WORKSPACE CONSOLIDATION V1
+   One canonical task workspace. Report editing stays inline.
+   ============================================================ */
+.task-workspace-single-source {
+  margin: 4px 0 0;
+  color: #aeb4b9;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.task-report-section-actions {
+  justify-content: flex-start;
+}
+
+.task-report-section-actions > b {
+  margin-right: 0;
+}
+
+.task-report-section-actions > small {
+  color: #899195;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.task-member-output-grid input:not([readonly]),
+.task-member-output-grid textarea:not([readonly]) {
+  border-color: #b28d2c !important;
+  background: #24292b !important;
+  box-shadow: 0 0 0 1px rgba(217,173,44,.12);
+}
+
+.task-member-output-grid input[readonly],
+.task-member-output-grid textarea[readonly] {
+  border-color: #343b3e !important;
+  background: #191d1f !important;
+  color: #aeb5b8 !important;
+}
+
+@media (max-width: 720px) {
+  .task-report-section-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Reviewer finalisation state */
+.task-review-approved-card {
+  border-color: #4b8a67;
+  background: linear-gradient(180deg, rgba(49, 85, 66, .26), rgba(26, 31, 29, .92));
+}
+.task-review-approved-card .workspace-eyebrow {
+  color: #7fd19d;
+}
+
+
+/* Reviewer rejection workflow */
+.task-review-reject {
+  border: 1px solid #d66a55 !important;
+  color: #ff9a86 !important;
+  background: rgba(151, 54, 38, .12) !important;
+}
+.task-review-rejected-card {
+  margin-top: 16px;
+  border: 1px solid #a64f43;
+  border-radius: 12px;
+  background: rgba(78, 30, 25, .18);
+  overflow: hidden;
+}
+.task-review-rejected-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(214, 106, 85, .24);
+}
+.task-review-rejected-card header b { color: #ff927e; }
+.task-review-rejection-reason { padding: 14px 16px; }
+.task-review-rejection-reason span {
+  display: block;
+  margin-bottom: 6px;
+  color: #ffb4a5;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.task-review-rejection-reason p, .task-review-rejected-wait {
+  margin: 0;
+  color: #d7dcde;
+  line-height: 1.55;
+}
+.task-review-rejected-card footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(214, 106, 85, .24);
+}
+.task-review-reopen {
+  border: 1px solid #d9ad2c !important;
+  background: #d9ad2c !important;
+  color: #111 !important;
+  font-weight: 800 !important;
+}
+.task-review-rejected-wait { padding: 14px 16px 16px; }
+
+
+/* ============================================================
+   APP2 TASK ADMINISTRATION / DANGER ZONE
+   ============================================================ */
+.task-danger-zone {
+  margin: 0 18px 14px;
+  border: 1px solid rgba(220, 82, 82, 0.35);
+  border-radius: 12px;
+  background: rgba(83, 31, 31, 0.12);
+  overflow: hidden;
+}
+.task-danger-zone-heading { padding: 14px 16px 10px; border-bottom: 1px solid rgba(220,82,82,.18); }
+.task-danger-zone-heading h3 { margin: 3px 0 4px; font-size: 14px; }
+.task-danger-zone-heading p { margin: 0; color: #aeb4b8; font-size: 12px; line-height: 1.45; }
+.task-danger-zone-actions { display: grid; grid-template-columns: 1fr 1fr; }
+.task-danger-zone-actions > div { padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.task-danger-zone-actions > div + div { border-left: 1px solid rgba(220,82,82,.18); }
+.task-danger-zone-actions strong { font-size: 12px; }
+.task-danger-zone-actions small { color: #9ba2a6; line-height: 1.4; min-height: 28px; }
+.task-danger-zone-actions button { justify-self: start; margin-top: 4px; }
+.task-delete-locked { color: #e2a3a3 !important; min-height: 0 !important; }
+.task-delete-dialog-backdrop { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: 22px; background: rgba(0,0,0,.72); }
+.task-delete-dialog { width: min(560px, 96vw); border: 1px solid rgba(230,83,83,.48); border-radius: 14px; background: #1d2224; box-shadow: 0 24px 70px rgba(0,0,0,.5); overflow: hidden; }
+.task-delete-dialog header { display: flex; justify-content: space-between; gap: 18px; padding: 18px; border-bottom: 1px solid #343a3d; }
+.task-delete-dialog header h3 { margin: 4px 0 6px; font-size: 20px; }
+.task-delete-dialog header p { margin: 0; color: #aeb4b8; font-size: 12px; line-height: 1.5; }
+.task-delete-dialog header > button { align-self: flex-start; border: 0; background: transparent; color: #fff; font-size: 16px; }
+.task-delete-dialog > label { display: grid; gap: 7px; margin: 16px 18px 0; font-size: 12px; font-weight: 700; }
+.task-delete-dialog textarea { width: 100%; resize: vertical; min-height: 96px; padding: 11px; border: 1px solid #555e62; border-radius: 8px; background: #161a1c; color: #fff; font: inherit; }
+.task-delete-confirm-row { grid-template-columns: auto 1fr !important; align-items: start; font-weight: 400 !important; color: #c5c9cb; line-height: 1.45; }
+.task-delete-confirm-row input { margin-top: 2px; }
+.task-delete-dialog footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding: 14px 18px; border-top: 1px solid #343a3d; }
+@media (max-width: 720px) { .task-danger-zone-actions { grid-template-columns: 1fr; } .task-danger-zone-actions > div + div { border-left: 0; border-top: 1px solid rgba(220,82,82,.18); } }
+
+/* ============================================================
+   APP2 TASK ADMINISTRATION VISIBILITY FIX V1
+   Keep the danger zone in the workspace layout instead of
+   allowing the sticky task footer to cover its actions.
+   ============================================================ */
+.task-workspace-screen:has(.task-danger-zone) {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-screen-body {
+  grid-row: 3 !important;
+  padding-bottom: 16px !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-danger-zone {
+  grid-row: 4 !important;
+  margin: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-radius: 0 !important;
+  position: relative !important;
+  z-index: 8 !important;
+  background: #211d1e !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-screen-footer {
+  grid-row: 5 !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 9 !important;
+  box-shadow: 0 -6px 18px rgba(0,0,0,.20) !important;
+}
+
+.task-danger-zone-heading {
+  padding: 9px 16px 7px !important;
+}
+
+.task-danger-zone-heading h3 {
+  margin: 2px 0 2px !important;
+  font-size: 12px !important;
+}
+
+.task-danger-zone-heading p {
+  font-size: 12px !important;
+}
+
+.task-danger-zone-actions > div {
+  padding: 9px 16px 10px !important;
+  gap: 4px !important;
+}
+
+.task-danger-zone-actions strong {
+  font-size: 12px !important;
+}
+
+.task-danger-zone-actions small {
+  min-height: 0 !important;
+  font-size: 12px !important;
+}
+
+.task-danger-zone-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 32px !important;
+  margin-top: 3px !important;
+  padding: 6px 11px !important;
+  font-size: 12px !important;
+}
+
+.task-danger-zone .task-delete-button:not(:disabled) {
+  border-color: #d95b5b !important;
+  background: rgba(217, 91, 91, .18) !important;
+  color: #ff9d9d !important;
+}
+
+@media (max-width: 720px) {
+  .task-workspace-screen:has(.task-danger-zone) {
+    grid-template-rows: auto auto minmax(0,1fr) auto auto !important;
+  }
+  .task-danger-zone {
+    max-height: 190px;
+    overflow-y: auto !important;
+  }
+}
+
+/* ============================================================
+   APP2 TASK ADMINISTRATION LEFT-DOCK FIX V1
+   Move the danger zone to a compact lower-left dock so it stops
+   consuming full workspace width.
+   ============================================================ */
+.task-workspace-screen:has(.task-danger-zone) {
+  position: relative !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-screen-body {
+  padding-bottom: 110px !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-danger-zone {
+  position: absolute !important;
+  left: 18px !important;
+  bottom: 74px !important;
+  width: min(360px, calc(100% - 36px)) !important;
+  max-width: 360px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(220, 82, 82, 0.32) !important;
+  border-radius: 12px !important;
+  background: rgba(34, 26, 27, 0.96) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28) !important;
+  z-index: 8 !important;
+  overflow: hidden !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-screen-footer {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 9 !important;
+}
+
+.task-danger-zone-heading {
+  padding: 10px 12px 8px !important;
+}
+
+.task-danger-zone-heading h3 {
+  margin: 2px 0 2px !important;
+  font-size: 12px !important;
+}
+
+.task-danger-zone-heading p {
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.task-danger-zone-actions {
+  grid-template-columns: 1fr !important;
+}
+
+.task-danger-zone-actions > div {
+  padding: 10px 12px 12px !important;
+  gap: 4px !important;
+}
+
+.task-danger-zone-actions > div + div {
+  border-left: 0 !important;
+  border-top: 1px solid rgba(220, 82, 82, 0.16) !important;
+}
+
+.task-danger-zone-actions strong {
+  font-size: 12px !important;
+}
+
+.task-danger-zone-actions small {
+  min-height: 0 !important;
+  font-size: 12px !important;
+}
+
+.task-danger-zone-actions button {
+  min-height: 31px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 900px) {
+  .task-workspace-screen:has(.task-danger-zone) .task-danger-zone {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: 72px !important;
+  }
+
+  .task-workspace-screen:has(.task-danger-zone) .task-screen-body {
+    padding-bottom: 190px !important;
+  }
+}
+
+/* ============================================================
+   APP2 TASK ADMINISTRATION MINI-DOCK V1
+   Keep task administration available without competing with
+   the primary task/report workspace.
+   ============================================================ */
+.task-workspace-screen:has(.task-danger-zone) .task-danger-zone {
+  left: 14px !important;
+  bottom: 70px !important;
+  width: min(300px, calc(100% - 28px)) !important;
+  max-width: 300px !important;
+  border-radius: 9px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.24) !important;
+}
+
+.task-danger-zone-heading {
+  padding: 7px 9px 6px !important;
+}
+
+.task-danger-zone-heading .workspace-eyebrow {
+  font-size: 12px !important;
+}
+
+.task-danger-zone-heading h3 {
+  margin: 1px 0 1px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+.task-danger-zone-heading p {
+  margin-top: 2px !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+}
+
+.task-danger-zone-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+}
+
+.task-danger-zone-actions > div {
+  padding: 7px 8px 8px !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.task-danger-zone-actions > div + div {
+  border-top: 0 !important;
+  border-left: 1px solid rgba(220,82,82,.16) !important;
+}
+
+.task-danger-zone-actions strong {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+.task-danger-zone-actions small {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  min-height: 0 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+}
+
+.task-danger-zone-actions button {
+  min-height: 27px !important;
+  margin-top: 2px !important;
+  padding: 4px 7px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+}
+
+.task-delete-locked {
+  margin-top: 1px !important;
+  font-size: 12px !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.task-workspace-screen:has(.task-danger-zone) .task-screen-body {
+  padding-bottom: 78px !important;
+}
+
+@media (max-width: 700px) {
+  .task-workspace-screen:has(.task-danger-zone) .task-danger-zone {
+    left: 8px !important;
+    right: auto !important;
+    width: min(286px, calc(100% - 16px)) !important;
+    max-width: 286px !important;
+    bottom: 68px !important;
+  }
+
+  .task-danger-zone-actions {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .task-workspace-screen:has(.task-danger-zone) .task-screen-body {
+    padding-bottom: 82px !important;
+  }
+}
+
+/* ============================================================
+   APP2 TASK HEADER CONTROLS V1
+   Move supporting documents and task administration into the
+   header and return the full lower screen to task/report work.
+   ============================================================ */
+.task-screen-header {
+  overflow: visible !important;
+}
+
+.task-header-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  position: relative;
+  z-index: 40;
+}
+
+.task-header-tools details {
+  position: relative;
+}
+
+.task-header-tools summary,
+.task-header-attach {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid #434b4f;
+  border-radius: 7px;
+  background: #292f32;
+  color: #d9dcde;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.task-header-tools summary::-webkit-details-marker {
+  display: none;
+}
+
+.task-header-tools summary:hover,
+.task-header-attach:hover {
+  border-color: #8b721d;
+  color: #efc33a;
+}
+
+.task-header-tools summary b {
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: #384044;
+  color: #efc33a;
+  font-size: 12px;
+}
+
+.task-header-attach {
+  border-color: #786116;
+  color: #efc33a;
+}
+
+.task-header-attach input {
+  display: none;
+}
+
+.task-header-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  width: min(430px, calc(100vw - 290px));
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #41494d;
+  border-radius: 10px;
+  background: #1b2022;
+  box-shadow: 0 18px 50px rgba(0,0,0,.42);
+}
+
+.task-header-documents-popover > header {
+  padding: 12px 13px;
+  border-bottom: 1px solid #343b3e;
+}
+
+.task-header-documents-popover > header strong,
+.task-header-admin-popover > strong {
+  display: block;
+  margin-top: 3px;
+  color: #f0f1f2;
+  font-size: 12px;
+}
+
+.task-header-document-list {
+  display: grid;
+  gap: 0;
+}
+
+.task-header-document-list > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid #30373a;
+  background: transparent;
+  color: #eceeef;
+  text-align: left;
+}
+
+.task-header-document-list > button:hover {
+  background: #252b2e;
+}
+
+.task-header-document-list span,
+.task-header-document-list b,
+.task-header-document-list small {
+  display: block;
+}
+
+.task-header-document-list small {
+  margin-top: 2px;
+  color: #8f989c;
+  font-size: 12px;
+}
+
+.task-header-document-list em {
+  color: #efc33a;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.task-header-document-list > p {
+  margin: 0;
+  padding: 18px 13px;
+  color: #929b9f;
+  font-size: 12px;
+}
+
+.task-header-admin-popover {
+  width: 300px;
+  padding: 12px;
+  overflow: visible;
+}
+
+.task-header-admin-popover > small {
+  display: block;
+  margin-top: 5px;
+  color: #9da5a8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.task-header-admin-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.task-header-admin-actions button {
+  min-height: 31px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.task-header-admin-actions .task-archive-button {
+  border: 1px solid #555e62;
+  background: #30373a;
+  color: #e4bd36;
+}
+
+.task-header-admin-actions .task-delete-button {
+  border: 1px solid rgba(211,82,82,.5);
+  background: rgba(114,39,39,.25);
+  color: #ef8888;
+}
+
+.task-header-admin-actions button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* the former document overview and danger-zone rows no longer exist */
+.task-workspace-screen {
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+}
+
+.task-screen-body {
+  padding-bottom: 74px !important;
+}
+
+@media (max-width: 1000px) {
+  .task-screen-header {
+    grid-template-columns: auto minmax(0,1fr) !important;
+  }
+
+  .task-header-tools {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .task-header-popover {
+    left: 0;
+    right: auto;
+    width: min(430px, calc(100vw - 32px));
+  }
+}
+
+
+/* ============================================================
+   APP2 TASK HEADER WORK STATUS V2
+   Move Status/Progress out of the body and reclaim the full
+   workspace width for report/evidence work.
+   ============================================================ */
+.task-header-work-popover {
+  width: 330px !important;
+  padding: 0 !important;
+}
+
+.task-header-work-popover > header {
+  padding: 11px 12px;
+  border-bottom: 1px solid #343b3e;
+}
+
+.task-header-work-popover > header strong {
+  display: block;
+  margin-top: 3px;
+  color: #f0f1f2;
+  font-size: 12px;
+}
+
+.task-header-work-form {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.task-header-work-form > label {
+  display: grid;
+  gap: 6px;
+}
+
+.task-header-work-form > label > span {
+  color: #aeb5b8;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.task-header-work-form select,
+.task-header-work-form input[type="date"],
+.task-header-work-form input[type="number"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid #454e52;
+  border-radius: 7px;
+  background: #252b2e;
+  color: #eef0f1;
+  padding: 0 9px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.task-header-progress-editor {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 58px 12px;
+  align-items: center;
+  gap: 7px;
+}
+
+.task-header-progress-editor input[type="range"] {
+  width: 100%;
+}
+
+.task-header-progress-editor input[type="number"] {
+  text-align: center;
+  padding: 0 4px;
+}
+
+.task-header-progress-editor > span {
+  color: #aeb5b8;
+  font-size: 12px;
+}
+
+.task-header-work-form > small {
+  color: #899296;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Remove the old left-column layout completely. */
+.task-screen-body {
+  grid-template-columns: minmax(0, 1fr) !important;
+  max-width: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.task-management-compact,
+.task-contribution-map-card,
+.task-member-output-card,
+.task-workspace-owner-feedback {
+  grid-column: 1 / -1 !important;
+}
+
+.task-work-status-card {
+  display: none !important;
+}
+
+@media (max-width: 1000px) {
+  .task-header-work-popover {
+    width: min(330px, calc(100vw - 32px)) !important;
+  }
+}
+
+/* ============================================================
+   APP2 TASK REPORT WORKFLOW VISIBILITY + CLEAN CONTENT V1
+   Keep the role-appropriate report action visible at the top of
+   the report and explain why other actions are unavailable.
+   ============================================================ */
+.task-member-output-card > header {
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+.task-report-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.task-report-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.task-report-header-controls button {
+  min-height: 32px !important;
+  padding: 7px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+
+.task-report-access-notice {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border: 1px solid #3d464a;
+  border-left: 3px solid #7e8a90;
+  border-radius: 7px;
+  background: #1c2123;
+}
+
+.task-report-access-notice strong {
+  color: #eef0f1;
+  font-size: 12px;
+}
+
+.task-report-access-notice span {
+  color: #9fa8ac;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.task-report-access-notice.owner { border-left-color: #e1b82e; }
+.task-report-access-notice.review { border-left-color: #4fa3df; }
+.task-report-access-notice.waiting { border-left-color: #8f989c; }
+.task-report-access-notice.approved { border-left-color: #5ca7df; }
+.task-report-access-notice.final { border-left-color: #5cb879; }
+.task-report-access-notice.danger { border-left-color: #dc6262; }
+
+.task-report-status-footer {
+  min-height: 0 !important;
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 760px) {
+  .task-member-output-card > header {
+    display: grid !important;
+  }
+  .task-report-header-controls {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+  .task-report-header-actions {
+    flex-wrap: wrap;
+  }
+}
+
+
+/* APP2 REVIEWER APPROVAL RELIABILITY V1 */
+.task-review-result{margin:10px 0 0;padding:10px 12px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-secondary);color:var(--text-primary);font-size:12px;line-height:1.45}.task-review-result.success{border-color:rgba(62,169,112,.55);background:rgba(62,169,112,.12)}.task-review-result.error{border-color:rgba(214,91,91,.58);background:rgba(214,91,91,.12)}.task-review-result.info{border-color:rgba(90,145,214,.52);background:rgba(90,145,214,.11)}

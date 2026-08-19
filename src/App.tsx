@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
+﻿import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   api,
   type AiResearchEngine,
@@ -18,10 +18,12 @@ import {
   type AuditLog,
   type CalendarItem,
   type DashboardResponse,
+  CompletedWorkResponse,
   type DocumentDeletionRequest,
   type DocumentItem,
   type DocumentTemplate,
   type EmailDeliveryStatus,
+  type ExternalResearchImport,
   type FelixAction,
   type GeneratedDocument,
   type GeneratedDocumentControl,
@@ -34,6 +36,8 @@ import {
   type ResearchActivity,
   type ResearchProject,
   type ResearchReportSection,
+  type ResearchReportVersion,
+  type ResearchRepositoryDocument,
   type ResearchSource,
   type ReviewItem,
   type SettingsResponse,
@@ -44,6 +48,10 @@ import NoticeComposer from "./NoticeComposer";
 import NotificationCenter from "./NotificationCenter";
 import NoticeBoardWorkspace from "./NoticeBoardWorkspace";
 import AIResearchChat from "./AIResearchChat";
+import ExternalResearchImportModal from "./ExternalResearchImportModal";
+import ExternalResearchReader from "./ExternalResearchReader";
+import { ResearchAssignmentProgress } from "./modules/research/ResearchAssignmentProgress";
+import "./assignment-overview-v4.css";
 
 const DocumentReader = lazy(() => import("./DocumentReader"));
 const ReportsModule = lazy(() => import("./ReportsModule"));
@@ -58,7 +66,39 @@ import TaskSectionWorkspace from "./TaskSectionWorkspace";
 import "./assignment-tasks-assignment-modal.css";
 import "./assignment-tasks-task-requests.css";
 import "./assignment-task-workspace.css";
+import "./task-review-action-clarity.css";
+import "./user-access-password-reset.css";
+import "./temporary-password-visibility.css";
+import "./task-report-owner-access.css";
 import "./workspace-document-overview.css";
+import "./research-workspace-redesign-v1.css";
+import "./research-work-progress.css";
+import "./research-workflow-phase2.css";
+import "./external-research-phase3.css";
+import "./research-workspace-theme-v4.css";
+import "./research-workspace-workflow-v5.css";
+import "./research-workspace-simplified-v6.css";
+import "./research-workspace-live-v8.css";
+import "./research-workspace-evidence-v9.css";
+import "./research-workspace-report-v10.css";
+import "./research-workspace-template-library-v11.css";
+import "./research-report-handoff-v11-1.css";
+import "./research-review-v12.css";
+import "./research-template-outline-v13.css";
+import "./research-template-outline-v13-1.css";
+import "./research-report-builder-templates-v14.css";
+import "./research-report-builder-templates-v14-4.css";
+import "./research-preview-review-v14-6.css";
+import "./research-editor-preview-review-v14-7.css";
+import "./research-editor-ribbon-v14-8.css";
+import "./research-footer-preview-v14-9.css";
+import "./research-report-reader-v14-10.css";
+import "./research-report-reader-v14-11.css";
+import "./research-review-finalization-v15.css";
+import "./research-reviewer-selector-v15-1.css";
+import "./manager-completed-work-v15-5-6.css";
+import "./manager-completed-work-v15-5-6-1.css";
+import "./manager-completed-work-layout-v15-5-6-7.css";
 
 type IconName = keyof typeof icons;
 type Role =
@@ -67,6 +107,7 @@ type Role =
   | "Research Officer"
   | "Reviewer";
 type User = {
+  id?: string;
   name: string;
   email: string;
   role: Role;
@@ -84,11 +125,43 @@ type TeamMember = User & {
 type StoredSession = { token: string; user: User };
 const SESSION_KEY = "psc-app2-session";
 const THEME_KEY = "psc-app2-theme";
+
+const taskReportPlainText = (value: unknown) => {
+  const raw = String(value ?? "");
+  if (!raw.trim()) return "";
+  const withBreaks = raw
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\s*li\b[^>]*>/gi, "â€¢ ")
+    .replace(/<\/\s*(?:p|div|li|h[1-6]|tr|section|article)\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, "");
+  const decode = (text: string) => {
+    if (typeof document === "undefined") {
+      return text
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '\"')
+        .replace(/&#0*39;|&apos;/gi, "'");
+    }
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+  return decode(withBreaks)
+    .replace(/\u00a0/g, " ")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
 type PreferenceForm = {
   emailNotifications: boolean;
   inAppNotifications: boolean;
   compactLayout: boolean;
-  themeMode: "Dark" | "Light" | "System" | "Gold Grey";
+  themeMode: "Dark" | "Light" | "System" | "Gold Grey" | "Navy Blue" | "Navy Blue";
   accentColor: "Gold" | "Blue" | "Green";
 };
 
@@ -524,6 +597,7 @@ const roleNavigation: Record<Role, string[]> = {
     "Assignments",
     "Document Repository",
     "Documents",
+    "Research Repository",
     "Reports & Analytics",
     "Notifications",
     "Notice Board",
@@ -532,6 +606,8 @@ const roleNavigation: Record<Role, string[]> = {
   ],
 };
 
+const navigationDisplayLabel = (label: string) =>
+  label === "Research Repository" ? "Research Workspace" : label;
 const navigationDescriptions: Record<string, string> = {
   Dashboard:
     "Open the department overview, workload summaries, announcements and recent activity.",
@@ -539,7 +615,7 @@ const navigationDescriptions: Record<string, string> = {
   "Document Repository":
     "Centrally manage documents, versions, links, review, publication and retention.",
   "Research Repository":
-    "Plan and monitor research projects, methods, collaborators and milestones.",
+    "Open the Research Workspace to plan, conduct, review and manage research projects, evidence and outputs.",
   "AI Researcher": "Open the separate AI-assisted research planning workspace.",
   Documents:
     "Upload, review, approve, retain and archive controlled documents.",
@@ -593,9 +669,9 @@ const workspaceMeta: Record<
     icon: "assignments",
   },
   "Research Repository": {
-    title: "Research",
+    title: "Research Workspace",
     subtitle:
-      "Plan and monitor structured research projects, evidence and milestones.",
+      "Plan, conduct, review and manage structured research work, evidence and outputs.",
     icon: "research",
   },
   Calendar: {
@@ -665,6 +741,183 @@ function Icon({ name }: { name: IconName }) {
     </span>
   );
 }
+
+const BUILT_IN_RESEARCH_REPORT_TEMPLATES = [
+  {
+    "template_key": "research-blank-report",
+    "name": "Blank Research Report",
+    "description": "Minimal unrestricted format for work that does not fit a predefined research structure.",
+    "section_count": 1
+  },
+  {
+    "template_key": "research-standard-report",
+    "name": "Standard Research Report",
+    "description": "General-purpose institutional research report suitable for most studies.",
+    "section_count": 14
+  },
+  {
+    "template_key": "research-quantitative-report",
+    "name": "Quantitative Research Report",
+    "description": "For studies based primarily on numerical data and statistical analysis.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-qualitative-report",
+    "name": "Qualitative Research Report",
+    "description": "For interviews, focus groups, observation and other qualitative inquiry.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-mixed-methods-report",
+    "name": "Mixed Methods Research Report",
+    "description": "For integrated quantitative and qualitative research.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-survey-report",
+    "name": "Survey Research Report",
+    "description": "For questionnaire-based staff, citizen, customer or institutional surveys.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-case-study-report",
+    "name": "Case Study Research Report",
+    "description": "For in-depth analysis of a programme, institution, event, process or bounded case.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-comparative-report",
+    "name": "Comparative Research Report",
+    "description": "For comparison of institutions, jurisdictions, programmes, groups or periods.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-cross-sectional-report",
+    "name": "Cross-Sectional Study Report",
+    "description": "For studies measuring variables at a defined point or period in time.",
+    "section_count": 17
+  },
+  {
+    "template_key": "research-longitudinal-report",
+    "name": "Longitudinal / Cohort Study Report",
+    "description": "For repeated observation of a population, cohort or indicators over time.",
+    "section_count": 19
+  },
+  {
+    "template_key": "research-evaluation-report",
+    "name": "Programme / Policy Evaluation Report",
+    "description": "For formal evaluation of programmes, policies, projects or services.",
+    "section_count": 17
+  },
+  {
+    "template_key": "research-baseline-report",
+    "name": "Baseline Study Report",
+    "description": "For pre-intervention benchmark measurement.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-midline-report",
+    "name": "Midline Study Report",
+    "description": "For interim measurement and course correction.",
+    "section_count": 16
+  },
+  {
+    "template_key": "research-endline-report",
+    "name": "Endline Study Report",
+    "description": "For final-period measurement and comparison with baseline or targets.",
+    "section_count": 17
+  },
+  {
+    "template_key": "research-impact-evaluation-report",
+    "name": "Impact Evaluation Report",
+    "description": "For causal or counterfactual assessment of intervention effects.",
+    "section_count": 21
+  },
+  {
+    "template_key": "research-needs-assessment-report",
+    "name": "Needs Assessment Report",
+    "description": "For identifying gaps between current conditions and desired services, capabilities or outcomes.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-situational-analysis-report",
+    "name": "Situational Analysis Report",
+    "description": "For current-state, trend, stakeholder, risk and opportunity analysis.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-feasibility-report",
+    "name": "Feasibility Study Report",
+    "description": "For assessing whether a proposed intervention, system, programme or policy is viable.",
+    "section_count": 20
+  },
+  {
+    "template_key": "research-policy-report",
+    "name": "Policy Research Report",
+    "description": "For evidence-to-policy analysis of a public problem, options and implementation implications.",
+    "section_count": 20
+  },
+  {
+    "template_key": "research-systematic-review-report",
+    "name": "Systematic Review / Evidence Synthesis Report",
+    "description": "For transparent evidence synthesis with documented search, selection and appraisal.",
+    "section_count": 22
+  },
+  {
+    "template_key": "research-scoping-review-report",
+    "name": "Scoping Review Report",
+    "description": "For broad evidence mapping, concepts and research-gap identification.",
+    "section_count": 19
+  },
+  {
+    "template_key": "research-rapid-evidence-report",
+    "name": "Rapid Evidence Assessment Report",
+    "description": "For time-bounded review using explicitly streamlined evidence methods.",
+    "section_count": 17
+  },
+  {
+    "template_key": "research-literature-review-report",
+    "name": "Literature Review Report",
+    "description": "For narrative or structured synthesis of published and grey literature.",
+    "section_count": 16
+  },
+  {
+    "template_key": "research-desk-review-report",
+    "name": "Desk Review Report",
+    "description": "For analysis of existing documents, administrative data, policies and secondary sources.",
+    "section_count": 14
+  },
+  {
+    "template_key": "research-action-research-report",
+    "name": "Action Research Report",
+    "description": "For iterative practitioner research organised around action, observation and reflection.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-organisational-diagnostic-report",
+    "name": "Institutional / Organisational Diagnostic Report",
+    "description": "For organisational structure, process, capability and performance diagnostics.",
+    "section_count": 21
+  },
+  {
+    "template_key": "research-benchmarking-report",
+    "name": "Benchmarking Report",
+    "description": "For comparison of performance or practices against peers, standards or benchmarks.",
+    "section_count": 17
+  },
+  {
+    "template_key": "research-technical-report",
+    "name": "Technical Research Report",
+    "description": "For detailed methods, specifications, analysis, validation and reproducibility.",
+    "section_count": 18
+  },
+  {
+    "template_key": "research-research-brief",
+    "name": "Research Brief / Executive Summary",
+    "description": "For concise decision-oriented communication of evidence, findings and implications.",
+    "section_count": 9
+  }
+] as const;
 
 export default function App() {
   const [now, setNow] = useState(new Date());
@@ -750,6 +1003,13 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null,
   );
+  const [managerCompletedWork, setManagerCompletedWork] =
+    useState<CompletedWorkResponse>({
+      assignments: [],
+      tasks: [],
+      research: [],
+    });
+  const [dashboardActionQueue, setDashboardActionQueue] = useState<string | null>(null);
   const [dashboardRefreshState, setDashboardRefreshState] = useState<
     "idle" | "refreshing" | "failed"
   >("idle");
@@ -780,6 +1040,8 @@ export default function App() {
   const [assignmentEditor, setAssignmentEditor] = useState<
     ApiAssignment | "new" | null
   >(null);
+  const [assignmentSourceChoiceOpen, setAssignmentSourceChoiceOpen] = useState(false);
+  const [assignmentCreationMode, setAssignmentCreationMode] = useState<"Internal" | "External">("Internal");
   const [assignmentForm, setAssignmentForm] = useState<AssignmentInput>({
     title: "",
     description: "",
@@ -806,6 +1068,7 @@ export default function App() {
     | "Contributions"
     | "Team"
     | "Documents"
+    | "Reports"
     | "Discussion"
     | "Activity"
     | "Review"
@@ -975,7 +1238,23 @@ export default function App() {
   ] = useState("");
   const [assignmentTaskReportPreviewBusy, setAssignmentTaskReportPreviewBusy] =
     useState(false);
+  const [assignmentTaskReviewComment, setAssignmentTaskReviewComment] =
+    useState("");
+  const [assignmentTaskReviewSaving, setAssignmentTaskReviewSaving] =
+    useState(false);
+  const [assignmentTaskFinalizing, setAssignmentTaskFinalizing] =
+    useState(false);
+  const [assignmentTaskReviewResult, setAssignmentTaskReviewResult] = useState<{
+    tone: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
   const [assignmentTaskManagementBusy, setAssignmentTaskManagementBusy] =
+    useState(false);
+  const [assignmentTaskDeleteDialogOpen, setAssignmentTaskDeleteDialogOpen] =
+    useState(false);
+  const [assignmentTaskDeleteReason, setAssignmentTaskDeleteReason] =
+    useState("");
+  const [assignmentTaskDeleteConfirmed, setAssignmentTaskDeleteConfirmed] =
     useState(false);
   const [assignmentMemberId, setAssignmentMemberId] = useState("");
   const [assignmentMemberRole, setAssignmentMemberRole] =
@@ -1035,10 +1314,18 @@ export default function App() {
   const [researchPortfolioView, setResearchPortfolioView] = useState<
     "List" | "Cards"
   >(() =>
-    sessionStorage.getItem("app2-research-view") === "List"
-      ? "List"
-      : "Cards",
+    sessionStorage.getItem("app2-research-view") === "Cards"
+      ? "Cards"
+      : "List",
   );
+  const [researchSearch, setResearchSearch] = useState("");
+  const [researchStatusFilter, setResearchStatusFilter] = useState("All");
+  const [researchRepositoryMode, setResearchRepositoryMode] = useState<"Workspace" | "Imported">("Workspace");
+  const [externalResearchRows, setExternalResearchRows] = useState<ExternalResearchImport[]>([]);
+  const [externalResearchOpen, setExternalResearchOpen] = useState(false);
+  const [selectedExternalResearch, setSelectedExternalResearch] = useState<ExternalResearchImport | null>(null);
+  const [externalResearchSearch, setExternalResearchSearch] = useState("");
+  const [externalResearchStatusFilter, setExternalResearchStatusFilter] = useState("All");
   const [aiResearchJobs, setAiResearchJobs] = useState<AiResearchJob[]>([]);
   const [aiResearchEngine, setAiResearchEngine] =
     useState<AiResearchEngine | null>(null);
@@ -1052,6 +1339,7 @@ export default function App() {
     depth: "Standard",
   });
   const [researchOpen, setResearchOpen] = useState(false);
+  const [researchSourceChoiceOpen, setResearchSourceChoiceOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] =
     useState<ResearchProject | null>(null);
   const [researchComments, setResearchComments] = useState<
@@ -1076,7 +1364,13 @@ export default function App() {
   const [researchReport, setResearchReport] = useState<ResearchReportSection[]>(
     [],
   );
+  const [researchReportVersions, setResearchReportVersions] = useState<ResearchReportVersion[]>([]);
+  const [researchReportReviewComments, setResearchReportReviewComments] = useState("");
+  const [researchReportPreviewOpen, setResearchReportPreviewOpen] = useState(false);
+  const [researchReportSubmitting, setResearchReportSubmitting] = useState(false);
   const [researchSources, setResearchSources] = useState<ResearchSource[]>([]);
+  const [researchRepositoryDocuments, setResearchRepositoryDocuments] = useState<ResearchRepositoryDocument[]>([]);
+  const [researchRepositoryLinkId, setResearchRepositoryLinkId] = useState("");
   const [researchSourceSearch, setResearchSourceSearch] = useState("");
   const [researchSourceQuality, setResearchSourceQuality] = useState("All");
   const [researchSourceRelevance, setResearchSourceRelevance] = useState("All");
@@ -1086,7 +1380,7 @@ export default function App() {
   const [researchActivitySearch, setResearchActivitySearch] = useState("");
   const [researchActivityFilter, setResearchActivityFilter] = useState("All");
   const [researchTab, setResearchTab] = useState<
-    "Overview" | "Research Plan" | "Team" | "Discussion" | "Report" | "Activity"
+    "Overview" | "Work" | "Resources" | "Report" | "Review" | "Activity"
   >("Overview");
   const [researchSourceForm, setResearchSourceForm] = useState({
     sourceType: "Report",
@@ -1118,6 +1412,12 @@ export default function App() {
     endDate: "",
   });
   const [researchPlanSaving, setResearchPlanSaving] = useState(false);
+  const [researchBriefOpen, setResearchBriefOpen] = useState(false);
+  const [researchBriefEditing, setResearchBriefEditing] = useState(false);
+  const [researchBriefRequestOpen, setResearchBriefRequestOpen] = useState(false);
+  const [researchBriefChangeReason, setResearchBriefChangeReason] = useState("");
+  const [researchBriefRequesting, setResearchBriefRequesting] = useState(false);
+  const [researchTeamEditing, setResearchTeamEditing] = useState(false);
   const [researchTeamDraft, setResearchTeamDraft] = useState<{
     leadId: string;
     collaborators: { userId: string; role: string }[];
@@ -1126,11 +1426,32 @@ export default function App() {
   const [builderTemplates, setBuilderTemplates] = useState<DocumentTemplate[]>(
     [],
   );
+  const [researchTemplateDownloadId, setResearchTemplateDownloadId] =
+    useState("");
+  const [researchTemplateApplying, setResearchTemplateApplying] =
+    useState(false);
+  const researchTemplateLibrary = [...BUILT_IN_RESEARCH_REPORT_TEMPLATES].sort(
+    (a, b) => {
+      if (a.template_key === "research-blank-report") return -1;
+      if (b.template_key === "research-blank-report") return 1;
+      return a.name.localeCompare(b.name);
+    },
+  );
   const researchDocumentTemplates = builderTemplates.filter(
-    (template) =>
+    (template: DocumentTemplate) =>
       template.context === "Research" &&
       template.active &&
       ["Standard", "Approved"].includes(template.governance_status),
+  );
+  const latestApprovedResearchVersion =
+    researchReportVersions.find((version) => version.status === "Approved") ||
+    null;
+  const canGenerateApprovedResearchFinal = Boolean(
+    latestApprovedResearchVersion &&
+      (user?.role === "Administrator" ||
+        user?.role === "Research Manager" ||
+        latestApprovedResearchVersion.reviewer_id === user?.id ||
+        latestApprovedResearchVersion.reviewed_by === user?.id),
   );
   const assignmentTemplateParts = builderTemplates
     .filter(
@@ -1141,8 +1462,8 @@ export default function App() {
     )
     .flatMap((template) =>
       (template.sections || []).map((section) => ({
-        value: `${template.name} → ${section.title}`,
-        label: `${template.name} → ${section.title}`,
+        value: `${template.name} â†’ ${section.title}`,
+        label: `${template.name} â†’ ${section.title}`,
         templateId: template.id,
         sectionKey: section.key,
       })),
@@ -1158,6 +1479,8 @@ export default function App() {
   const [builderCreating, setBuilderCreating] = useState(false);
   const [builderDocument, setBuilderDocument] =
     useState<GeneratedDocument | null>(null);
+  const [assignmentReportPreviewMode, setAssignmentReportPreviewMode] =
+    useState(false);
   const [builderSection, setBuilderSection] =
     useState<GeneratedDocumentSection | null>(null);
   const [builderContent, setBuilderContent] = useState("");
@@ -1202,6 +1525,10 @@ export default function App() {
   const [researchReportGenerating, setResearchReportGenerating] =
     useState(false);
   const [researchDraftReviewerId, setResearchDraftReviewerId] = useState("");
+  const [eligibleResearchReviewerRows, setEligibleResearchReviewerRows] =
+    useState<ApiUser[]>([]);
+  const [eligibleResearchReviewersLoading, setEligibleResearchReviewersLoading] =
+    useState(false);
   const [researchSupportingDocumentIds, setResearchSupportingDocumentIds] =
     useState<string[]>([]);
 
@@ -1210,6 +1537,31 @@ export default function App() {
       setResearchSectionWorkspaceMode("edit");
     }
   }, [selectedResearch?.id, researchTab, selectedReportSection?.id]);
+  useEffect(() => {
+    if (
+      !selectedResearch ||
+      !["Report", "Review"].includes(researchTab)
+    ) {
+      if (!selectedResearch) setResearchReportVersions([]);
+      return;
+    }
+    void api
+      .researchReportVersions(token, selectedResearch.id)
+      .then(setResearchReportVersions)
+      .catch(() => setResearchReportVersions([]));
+  }, [selectedResearch?.id, researchTab, token]);
+  useEffect(() => {
+    if (!selectedResearch) {
+      setResearchReviewerDraft([]);
+      return;
+    }
+    setResearchReviewerDraft((selectedResearch.reviewers || []).map((item) => item.reviewer_id));
+    setResearchAssignmentDraft((current) => ({
+      ...current,
+      division: current.division || team.find((member) => member.id === selectedResearch.lead_id)?.division || "",
+      memberIds: current.memberIds.length ? current.memberIds : [selectedResearch.lead_id],
+    }));
+  }, [selectedResearch?.id]);
   const [researchForm, setResearchForm] = useState({
     title: "",
     summary: "",
@@ -1221,9 +1573,22 @@ export default function App() {
     leadId: "",
     assignmentId: "",
     collaboratorIds: [] as string[],
+    reviewerIds: [] as string[],
     knowledgeIds: [] as string[],
   });
   const [researchFormStep, setResearchFormStep] = useState<1 | 2 | 3>(1);
+  const [researchReviewerDraft, setResearchReviewerDraft] = useState<string[]>([]);
+  const [researchReviewerSaving, setResearchReviewerSaving] = useState(false);
+  const [researchAssignmentLinkId, setResearchAssignmentLinkId] = useState("");
+  const [researchAssignmentCreating, setResearchAssignmentCreating] = useState(false);
+  const [researchAssignmentDraft, setResearchAssignmentDraft] = useState<AssignmentInput>({
+    title: "",
+    description: "",
+    division: "",
+    dueDate: null,
+    priority: "Normal",
+    memberIds: [],
+  });
   const [documentRows, setDocumentRows] = useState<DocumentItem[]>([]);
   const [documentSearch, setDocumentSearch] = useState("");
   const [documentStatus, setDocumentStatus] = useState("All");
@@ -1332,6 +1697,62 @@ export default function App() {
   const [savingSettings, setSavingSettings] = useState(false);
   const isManager =
     user?.role === "Administrator" || user?.role === "Research Manager";
+  const assignedResearchReviewerIds = new Set(
+    (selectedResearch?.reviewers || []).map((reviewer) => reviewer.reviewer_id),
+  );
+  const isResearchReportBuilder = Boolean(
+    selectedResearch?.collaborators?.some(
+      (member) =>
+        member.id === user?.id &&
+        (member.role || "Researcher") !== "Reviewer",
+    ),
+  );
+  const canChooseResearchReviewer = Boolean(
+    selectedResearch &&
+      (isManager ||
+        selectedResearch.lead_id === user?.id ||
+        isResearchReportBuilder),
+  );
+  const eligibleResearchReviewers = eligibleResearchReviewerRows
+    .filter(
+      (candidate) =>
+        candidate.active &&
+        candidate.id !== selectedResearch?.lead_id,
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
+  useEffect(() => {
+    if (!selectedResearch || !canChooseResearchReviewer || !token) {
+      setEligibleResearchReviewerRows([]);
+      setEligibleResearchReviewersLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setEligibleResearchReviewersLoading(true);
+    void api
+      .eligibleResearchReviewers(token, selectedResearch.id)
+      .then((rows) => {
+        if (!cancelled) setEligibleResearchReviewerRows(rows);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setEligibleResearchReviewerRows([]);
+          setResearchWorkspaceNotice(
+            error instanceof Error
+              ? error.message
+              : "Eligible reviewers could not be loaded.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setEligibleResearchReviewersLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedResearch?.id, canChooseResearchReviewer, token]);
+  const canAdministerUsers = user?.role === "Administrator";
   const canReview = ["Administrator", "Research Manager", "Reviewer"].includes(
     user?.role || "",
   );
@@ -1415,6 +1836,19 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (!token || !selectedResearch?.id) {
+      setResearchRepositoryDocuments([]);
+      setResearchRepositoryLinkId("");
+      return () => { cancelled = true; };
+    }
+    api.researchRepositoryDocuments(token, selectedResearch.id)
+      .then((rows) => { if (!cancelled) setResearchRepositoryDocuments(rows); })
+      .catch(() => { if (!cancelled) setResearchRepositoryDocuments([]); });
+    return () => { cancelled = true; };
+  }, [token, selectedResearch?.id]);
+
+  useEffect(() => {
     if (active === "Documents" || active === "Knowledge Repository") {
       setActive("Document Repository");
       return;
@@ -1469,6 +1903,10 @@ export default function App() {
         .catch(() => setResearchRows([]));
   }, [active, token]);
   useEffect(() => {
+    if (active === "Research Repository" && token)
+      api.externalResearchImports(token).then(setExternalResearchRows).catch(() => setExternalResearchRows([]));
+  }, [active, token]);
+  useEffect(() => {
     if (active === "Dashboard" && token && canReview)
       api
         .documentReviews(token)
@@ -1508,6 +1946,41 @@ export default function App() {
       dashboardRequestRef.current = null;
     };
   }, [active, token]);
+  useEffect(() => {
+    if (active !== "Dashboard" || !token || !isManager) {
+      if (!isManager) {
+        setManagerCompletedWork({
+          assignments: [],
+          tasks: [],
+          research: [],
+        });
+      }
+      return;
+    }
+
+    let mounted = true;
+    const loadCompletedWork = async () => {
+      try {
+        const completed = await api.completedWork(token);
+        if (mounted) setManagerCompletedWork(completed);
+      } catch (error) {
+        if (mounted) {
+          setUserNotice(
+            error instanceof Error
+              ? `Completed Work could not be loaded: ${error.message}`
+              : "Completed Work could not be loaded.",
+          );
+        }
+      }
+    };
+
+    void loadCompletedWork();
+    const timer = window.setInterval(loadCompletedWork, 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, [active, token, isManager]);
   useEffect(() => {
     if (active === "AI Researcher" && token)
       Promise.all([api.aiResearchJobs(token), api.aiResearchEngine(token)])
@@ -1822,6 +2295,7 @@ export default function App() {
       .slice(0, 6)
       .toUpperCase()}`;
   const mapUser = (member: ApiUser): User => ({
+    id: member.id,
     name: member.name,
     email: member.email,
     role: member.role as Role,
@@ -1838,6 +2312,7 @@ export default function App() {
     status: member.status as TeamMember["status"],
   });
   const navigateTo = (destination: string) => {
+    setDashboardActionQueue(null);
     setActive(
       destination === "Documents" || destination === "Knowledge Repository"
         ? "Document Repository"
@@ -2100,6 +2575,19 @@ export default function App() {
     }
     setAlertText("");
   };
+  const refreshCompletedWork = async () => {
+    if (!token || !isManager) return;
+    try {
+      setManagerCompletedWork(await api.completedWork(token));
+    } catch (error) {
+      setUserNotice(
+        error instanceof Error
+          ? `Completed Work could not be loaded: ${error.message}`
+          : "Completed Work could not be loaded.",
+      );
+    }
+  };
+
   const refreshDashboard = async () => {
     if (!token || dashboardRequestRef.current) return;
     const controller = new AbortController();
@@ -2108,6 +2596,7 @@ export default function App() {
     try {
       setDashboardData(await api.dashboard(token, controller.signal));
       setDashboardRefreshState("idle");
+      void refreshCompletedWork();
     } catch {
       setDashboardRefreshState("failed");
     } finally {
@@ -2185,7 +2674,7 @@ export default function App() {
           setBuilderTemplates(templates);
           setWorkspaceDocuments(documents);
           const section =
-            report.find((row) => item.body.includes(`“${row.title}”`)) ||
+            report.find((row) => item.body.includes(`â€œ${row.title}â€`)) ||
             report.find((row) => row.status === "Ready for Review") ||
             report[0];
           setSelectedReportSection(section || null);
@@ -2198,6 +2687,77 @@ export default function App() {
         await openGeneratedDocument(item.entity_id);
         return;
       }
+      if (item.entity_type === "assignment_task_request" && item.entity_id) {
+        const assignments = assignmentRows.length ? assignmentRows : await api.assignments(token);
+        if (!assignmentRows.length) setAssignmentRows(assignments);
+        for (const assignment of assignments) {
+          try {
+            const requests = await api.assignmentTaskRequests(token, assignment.id);
+            const request = requests.find((row) => row.id === item.entity_id);
+            if (!request) continue;
+            setActive("Assignments");
+            await openAssignmentDetails(assignment);
+            setAssignmentTaskRequests(requests);
+            setAssignmentWorkspaceTab("Tasks");
+            if (request.status === "Pending" && isManager) openAssignmentTaskRequestReview(request);
+            await openNotification(item);
+            return;
+          } catch {
+            // Continue until an accessible assignment contains this request.
+          }
+        }
+        setActive("Assignments");
+        return;
+      }
+      if (item.entity_type === "document_deletion_request") {
+        setActive("Document Repository");
+        await openNotification(item);
+        return;
+      }
+      if (item.entity_type === "assignment_task" && item.entity_id) {
+        // First try the narrow contextual-review route. It succeeds only for the
+        // task's assigned reviewer (or a manager) and does not expose the rest
+        // of the assignment.
+        try {
+          await openContextualTaskReview(item.entity_id);
+          await openNotification(item);
+          return;
+        } catch {
+          // Not a contextual reviewer: preserve the existing owner/team fallback.
+        }
+
+        const assignedReview = (dashboardData?.myWork || []).find(
+          (row) => row.type === "Review" && row.id === item.entity_id,
+        );
+        if (assignedReview) {
+          await openDashboardWork(assignedReview);
+          await openNotification(item);
+          return;
+        }
+
+        const assignments = assignmentRows.length
+          ? assignmentRows
+          : await api.assignments(token);
+        if (!assignmentRows.length) setAssignmentRows(assignments);
+        for (const assignment of assignments) {
+          try {
+            const tasks = await api.assignmentTasks(token, assignment.id);
+            const task = tasks.find((row) => row.id === item.entity_id);
+            if (!task) continue;
+            setActive("Assignments");
+            await openAssignmentDetails(assignment);
+            setAssignmentTasks(tasks);
+            setAssignmentWorkspaceTab("Tasks");
+            await openAssignmentTaskWorkspace(task, true);
+            await openNotification(item);
+            return;
+          } catch {
+            // Continue until an accessible assignment contains the task.
+          }
+        }
+        setActive("Notifications");
+        return;
+      }
       if (item.entity_type?.startsWith("assignment") && item.entity_id) {
         setActive("Assignments");
         const rows = assignmentRows.length
@@ -2207,8 +2767,41 @@ export default function App() {
         const assignment = rows.find((row) => row.id === item.entity_id);
         if (assignment) {
           await openAssignmentDetails(assignment);
+
+          // Task-review notices must open the task report workflow, never the
+          // assignment-level Final Assignment Report review screen. Some older
+          // notifications used an assignment entity id even though the action
+          // required was a task report decision, so resolve the actionable task
+          // from the live assignment tasks before falling back to formal review.
+          const looksLikeReview = /review|approve|changes|correction/.test(text);
+          const looksLikeTaskReview = looksLikeReview && /task|contribution/.test(text);
+          if (looksLikeTaskReview) {
+            try {
+              const tasks = await api.assignmentTasks(token, assignment.id);
+              setAssignmentTasks(tasks);
+              const candidates = tasks.filter(
+                (task) =>
+                  task.reviewer_id === user?.id &&
+                  ["Ready for Integration", "Integrated"].includes(task.contribution_status),
+              );
+              const task =
+                candidates.find((candidate) =>
+                  text.includes(String(candidate.title || "").toLowerCase()),
+                ) || candidates[0];
+              if (task) {
+                setAssignmentWorkspaceTab("Tasks");
+                await openAssignmentTaskWorkspace(task, true);
+                await openNotification(item);
+                return;
+              }
+            } catch {
+              // If task resolution fails, keep the existing assignment routing
+              // rather than trapping the user in notifications.
+            }
+          }
+
           setAssignmentWorkspaceTab(
-            /review|approve|changes|correction/.test(text)
+            looksLikeReview
               ? "Review"
               : /task|work/.test(text)
                 ? "Tasks"
@@ -2218,23 +2811,36 @@ export default function App() {
                     ? "Team"
                     : "Overview",
           );
-          if (
-            /assigned|responsib/.test(text) &&
-            !/review|approve|changes|correction/.test(text)
-          )
+          if (/assigned|responsib/.test(text) && !looksLikeReview)
             await openNotification(item);
         }
         return;
       }
+      if (item.entity_type === "external_research_import" && item.entity_id) {
+        setActive("Research Repository");
+        setResearchRepositoryMode("Imported");
+        const imports = externalResearchRows.length ? externalResearchRows : await api.externalResearchImports(token);
+        if (!externalResearchRows.length) setExternalResearchRows(imports);
+        const target = imports.find((row) => row.id === item.entity_id) || await api.externalResearchImport(token, item.entity_id);
+        setSelectedExternalResearch(target);
+        await openNotification(item);
+        return;
+      }
       if (item.entity_type === "knowledge" || item.entity_type === "document") {
-        setActive("Documents");
+        setActive("Document Repository");
         if (item.entity_id) {
-          const target =
-            reviewRows.find((row) => row.id === item.entity_id) ||
-            documentRows.find((row) => row.id === item.entity_id);
-          if (target && /review|approve|correction|reject/.test(text))
-            setReviewDocument(target);
+          const [liveReviews, liveDocuments] = await Promise.all([
+            reviewRows.length ? Promise.resolve(reviewRows) : api.documentReviews(token),
+            documentRows.length ? Promise.resolve(documentRows) : api.documents(token),
+          ]);
+          if (!reviewRows.length) setReviewRows(liveReviews);
+          if (!documentRows.length) setDocumentRows(liveDocuments.map(normalizeDocument));
+          const reviewTarget = liveReviews.find((row) => row.id === item.entity_id);
+          const documentTarget = liveDocuments.find((row) => row.id === item.entity_id);
+          if (reviewTarget && /review|approve|correction|reject/.test(text)) setReviewDocument(reviewTarget);
+          else if (documentTarget) setReaderDocument(documentTarget);
         }
+        await openNotification(item);
         return;
       }
       if (item.entity_type === "notice") {
@@ -2399,6 +3005,21 @@ export default function App() {
     );
   };
 
+  const beginAssignmentCreation = (mode: "Internal" | "External") => {
+    setAssignmentSourceChoiceOpen(false);
+    setAssignmentCreationMode(mode);
+    setAssignmentNotice("");
+    setAssignmentEditor("new");
+    setAssignmentForm({
+      title: "",
+      description: "",
+      division: "",
+      dueDate: null,
+      priority: "Normal",
+      memberIds: [],
+    });
+  };
+
   const startAssignment = (assignment?: ApiAssignment) => {
     if (!isManager) {
       setAssignmentNotice(
@@ -2408,26 +3029,21 @@ export default function App() {
       return;
     }
     setAssignmentNotice("");
-    setAssignmentEditor(assignment || "new");
-    setAssignmentForm(
-      assignment
-        ? {
-            title: assignment.title,
-            description: assignment.description,
-            division: assignment.division,
-            dueDate: assignment.due_date,
-            priority: assignment.priority,
-            memberIds: assignment.members.map((member) => member.id),
-          }
-        : {
-            title: "",
-            description: "",
-            division: "",
-            dueDate: null,
-            priority: "Normal",
-            memberIds: [],
-          },
-    );
+    if (!assignment) {
+      setAssignmentSourceChoiceOpen(true);
+      setAssignmentEditor(null);
+      return;
+    }
+    setAssignmentCreationMode("Internal");
+    setAssignmentEditor(assignment);
+    setAssignmentForm({
+      title: assignment.title,
+      description: assignment.description,
+      division: assignment.division,
+      dueDate: assignment.due_date,
+      priority: assignment.priority,
+      memberIds: assignment.members.map((member) => member.id),
+    });
   };
 
   const saveAssignment = async (event: React.FormEvent) => {
@@ -2436,16 +3052,60 @@ export default function App() {
     setSavingAssignment(true);
     setAssignmentNotice("");
     try {
-      if (assignmentEditor === "new")
-        await api.createAssignment(token, assignmentForm);
-      else if (assignmentEditor) {
+      if (assignmentEditor === "new") {
+        const created = await api.createAssignment(
+          token,
+          assignmentCreationMode === "External"
+            ? { ...assignmentForm, memberIds: [] }
+            : assignmentForm,
+        );
+        await refreshAssignments();
+        setAssignmentEditor(null);
+
+        if (assignmentCreationMode === "External") {
+          await openAssignmentDetails(created);
+          setAssignmentWorkspaceTab("Reports");
+
+          const templates = await api.documentTemplates(token, "Assignment");
+          setBuilderTemplates(templates);
+          const finalTemplate = templates.find(
+            (item) =>
+              item.template_key === "assignment-final-report" &&
+              item.active &&
+              ["Approved", "Standard"].includes(item.governance_status),
+          );
+
+          if (!finalTemplate) {
+            setAssignmentNotice(
+              "External assignment registered without assignees or tasks. Open Reports after the approved Final Assignment Report template is available, then import the completed external report.",
+            );
+          } else {
+            const report = await api.createGeneratedDocument(token, {
+              templateId: finalTemplate.id,
+              context: "Assignment",
+              contextId: created.id,
+              title: `${created.title} â€” Final Assignment Report`,
+              classification: "Official",
+            });
+            setWorkspaceDocuments(
+              await api.generatedDocuments(token, "Assignment", created.id),
+            );
+            setAssignmentNotice(
+              "External assignment registered. No staff or tasks were assigned. Import the completed report, then App2 will close authoring and require a reviewer before finalisation.",
+            );
+            await openGeneratedDocument(report.id, false);
+          }
+        } else {
+          setAssignmentNotice("Assignment saved successfully.");
+        }
+      } else if (assignmentEditor) {
         await api.updateAssignment(token, assignmentEditor.id, assignmentForm);
         for (const memberId of assignmentForm.memberIds)
           await api.addMember(token, assignmentEditor.id, memberId);
+        await refreshAssignments();
+        setAssignmentEditor(null);
+        setAssignmentNotice("Assignment saved successfully.");
       }
-      await refreshAssignments();
-      setAssignmentEditor(null);
-      setAssignmentNotice("Assignment saved successfully.");
     } catch (error) {
       setAssignmentNotice(
         error instanceof Error
@@ -2572,20 +3232,61 @@ export default function App() {
   const selectedAssignmentRecord =
     assignmentRows.find((item) => item.id === selectedAssignmentId) || null;
   const latestAssignmentReview = assignmentReviews[0]?.decision || null;
-  const assignmentCompletion = assignmentTasks.length
-    ? Math.round(
-        assignmentTasks.reduce(
-          (sum, task) => sum + Number(task.progress || 0),
-          0,
-        ) / assignmentTasks.length,
-      )
-    : selectedAssignmentRecord?.status === "Completed"
+  const assignmentFinalReports = workspaceDocuments
+    .filter(
+      (item) =>
+        item.template_key === "assignment-final-report" ||
+        /Final Assignment Report/i.test(item.title || ""),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+    );
+  const latestFinalAssignmentReport = assignmentFinalReports[0] || null;
+  const acceptedTaskReportCount = assignmentTasks.filter(
+    (task) => task.contribution_status === "Accepted",
+  ).length;
+  const completedTaskCount = assignmentTasks.filter(
+    (task) => task.status === "Completed",
+  ).length;
+  const allTaskReportsAccepted =
+    assignmentTasks.length > 0 &&
+    acceptedTaskReportCount === assignmentTasks.length;
+  const finalAssignmentReportIsFinal = Boolean(
+    latestFinalAssignmentReport &&
+      (latestFinalAssignmentReport.status === "Final" ||
+        latestFinalAssignmentReport.repository_document_id),
+  );
+  const finalReportStagePercent = latestFinalAssignmentReport
+    ? latestFinalAssignmentReport.status === "Final" ||
+      latestFinalAssignmentReport.repository_document_id
       ? 100
-      : selectedAssignmentRecord?.status === "Ready for Review"
-        ? 80
-        : selectedAssignmentRecord?.status === "In Progress"
-          ? 35
-          : 0;
+      : latestFinalAssignmentReport.status === "Approved"
+        ? 96
+        : ["Submitted", "Under Review"].includes(
+              latestFinalAssignmentReport.status,
+            )
+          ? 92
+          : latestFinalAssignmentReport.status === "Changes Requested"
+            ? 88
+            : 84
+    : 0;
+  const taskExecutionPercent = assignmentTasks.length
+    ? Math.round((completedTaskCount / assignmentTasks.length) * 35)
+    : 0;
+  const taskReportPercent = assignmentTasks.length
+    ? Math.round((acceptedTaskReportCount / assignmentTasks.length) * 30)
+    : 0;
+  const assignmentCompletion = finalAssignmentReportIsFinal
+    ? 100
+    : latestFinalAssignmentReport
+      ? Math.max(70, finalReportStagePercent)
+      : Math.min(
+          80,
+          (assignmentTasks.length ? 15 : 5) +
+            taskExecutionPercent +
+            taskReportPercent,
+        );
   const assignmentDays = selectedAssignmentRecord?.due_date
     ? Math.ceil(
         (new Date(selectedAssignmentRecord.due_date).getTime() - Date.now()) /
@@ -2596,35 +3297,75 @@ export default function App() {
     selectedAssignmentRecord?.members.find(
       (member) => member.role === "Lead",
     ) || selectedAssignmentRecord?.members[0];
-  const isAssignmentLead = Boolean(
-    user?.name &&
-      selectedAssignmentRecord?.members.some(
-        (member) => member.name === user.name && member.role === "Lead",
-      ),
+  const hasExplicitAssignmentLead = Boolean(
+    selectedAssignmentRecord?.members.some((member) => member.role === "Lead"),
   );
-  const authorizedTaskReviewers = [
-    ...(selectedAssignmentRecord?.members || [])
-      .filter((member) => member.role === "Lead")
-      .map((member) => ({
+  const isAssignmentLead = Boolean(
+    user?.id &&
+      selectedAssignmentRecord &&
+      (selectedAssignmentRecord.members.some(
+        (member) => member.id === user.id && member.role === "Lead",
+      ) ||
+        (!hasExplicitAssignmentLead &&
+          selectedAssignmentRecord.created_by === user.id)),
+  );
+  const isSelectedTaskOwner = Boolean(
+    user?.id && selectedAssignmentTask?.owner_id === user.id,
+  );
+  const isSelectedTaskReviewer = Boolean(
+    user?.id && selectedAssignmentTask?.reviewer_id === user.id,
+  );
+  const canReviewSelectedTask = Boolean(
+    selectedAssignmentTask &&
+      !isSelectedTaskOwner &&
+      (isSelectedTaskReviewer ||
+        (selectedAssignmentTask.status === "Blocked" && (isAssignmentLead || isManager))),
+  );
+  const latestSelectedTaskReview = selectedAssignmentTask
+    ? assignmentHistory.find((item) => {
+        const taskId = String(item.details?.taskId || "");
+        return (
+          taskId === selectedAssignmentTask.id &&
+          ["TASK_REPORT_CHANGES_REQUESTED", "TASK_REPORT_REJECTED", "TASK_REPORT_REOPENED", "TASK_REPORT_APPROVED", "TASK_FINAL_REPORT_GENERATED"].includes(
+            item.action,
+          )
+        );
+      })
+    : undefined;
+  const assignedTaskReviewerAccount = selectedAssignmentTask?.reviewer_id
+    ? userRows.find((member) => member.id === selectedAssignmentTask.reviewer_id)
+    : undefined;
+  const authorizedTaskReviewers = selectedAssignmentTask?.reviewer_id &&
+    assignedTaskReviewerAccount?.active !== false
+    ? [
+        {
+          id: selectedAssignmentTask.reviewer_id,
+          name: selectedAssignmentTask.reviewer_name || assignedTaskReviewerAccount?.name || "Assigned reviewer",
+          role: assignedTaskReviewerAccount?.role || "Assigned reviewer",
+        },
+      ]
+    : [];
+  const assignmentReportReviewerCandidates = [
+    ...(selectedAssignmentRecord?.members || []).map((member) => {
+      const account = userRows.find((userRow) => userRow.id === member.id);
+      return {
         id: member.id,
         name: member.name,
-        role: "Team Lead",
-      })),
+        role: account?.role || (member.role === "Lead" ? "Assignment Lead" : "Researcher"),
+      };
+    }),
     ...userRows
       .filter(
         (member) =>
           member.active &&
           ["Administrator", "Research Manager"].includes(member.role),
       )
-      .map((member) => ({
-        id: member.id,
-        name: member.name,
-        role: member.role,
-      })),
+      .map((member) => ({ id: member.id, name: member.name, role: member.role })),
   ].filter(
     (person, index, people) =>
       people.findIndex((candidate) => candidate.id === person.id) === index,
   );
+
   const pendingAssignmentTaskRequests = assignmentTaskRequests.filter(
     (request) => request.status === "Pending",
   );
@@ -2638,7 +3379,7 @@ export default function App() {
     (task) => task.status !== "Completed",
   );
   const assignmentPendingContributions = assignmentTasks.filter(
-    (task) => !["Integrated", "Accepted"].includes(task.contribution_status),
+    (task) => task.contribution_status !== "Accepted",
   );
   const assignmentGeneratedReports = assignmentTasks.filter(
     (task) =>
@@ -2652,54 +3393,108 @@ export default function App() {
     status === "Draft"
       ? "Draft"
       : status === "Ready for Integration"
-        ? "Awaiting Review"
+        ? "Submitted for Review"
         : status === "Integrated"
-          ? "Reviewed"
-          : status;
+          ? "Approved Â· Final Report Pending"
+          : status === "Accepted"
+            ? "Final"
+            : status;
   const assignmentReviewReady =
     assignmentTasks.length > 0 &&
     !assignmentOpenTasks.length &&
     !assignmentPendingContributions.length;
   const assignmentNextAction = !assignmentTasks.length
     ? {
-        title: "Assign the first task",
-        label: "Assign Task",
+        title: "Create the assignment work plan",
+        label: "Open Tasks",
         tab: "Tasks" as const,
-        detail:
-          "Create a clear task brief, choose an owner and set the due date.",
+        detail: "Create the first task, assign an owner and set a due date.",
       }
     : assignmentNextTask
       ? {
-          title: assignmentNextTask.title,
-          label:
-            assignmentNextTask.status === "Not Started"
-              ? "Start Task"
-              : "Continue Task",
+          title: "Continue active task work",
+          label: "Open Tasks",
           tab: "Tasks" as const,
-          detail: `${assignmentNextTask.owner_name || "Unassigned"}  |  ${assignmentNextTask.due_date ? new Date(assignmentNextTask.due_date).toLocaleDateString("en-KE") : "No due date"}`,
+          detail: `${assignmentNextTask.title} · ${assignmentNextTask.owner_name || "Unassigned"}${assignmentNextTask.due_date ? ` · due ${new Date(assignmentNextTask.due_date).toLocaleDateString("en-KE")}` : ""}`,
         }
       : assignmentPendingContributions.length
         ? {
-            title: "Complete and review task reports",
-            label: "Open Task Reports",
-            tab: "Contributions" as const,
-            detail: `${assignmentPendingContributions.length} task report${assignmentPendingContributions.length === 1 ? "" : "s"} still require review or acceptance.`,
+            title: "Finish task-report review",
+            label: "Open Tasks",
+            tab: "Tasks" as const,
+            detail: `${assignmentPendingContributions.length} task report${assignmentPendingContributions.length === 1 ? "" : "s"} still need submission, review or final acceptance.`,
           }
-        : latestAssignmentReview === "Submitted"
+        : !latestFinalAssignmentReport
           ? {
-              title: "Review the submitted assignment",
-              label: "Start Review",
-              tab: "Review" as const,
+              title: "Create the Final Assignment Report",
+              label: "Open Reports",
+              tab: "Reports" as const,
               detail:
-                "The completed task reports are awaiting a formal decision.",
+                "All required task reports are accepted. Compile the Final Assignment Report from the approved task-report sources.",
             }
-          : {
-              title: "Complete formal review",
-              label: "Open Review",
-              tab: "Review" as const,
-              detail:
-                "All tasks and task reports are complete. Submit or finish the formal review.",
-            };
+          : latestFinalAssignmentReport.status === "Changes Requested"
+            ? {
+                title: "Revise the Final Assignment Report",
+                label: "Open Reports",
+                tab: "Reports" as const,
+                detail:
+                  "The reviewer requested changes. Update the report and resubmit it.",
+              }
+            : ["Submitted", "Under Review"].includes(
+                  latestFinalAssignmentReport.status,
+                )
+              ? {
+                  title: "Final Assignment Report is under review",
+                  label: "View Review",
+                  tab: "Review" as const,
+                  detail:
+                    "The final report has been submitted. Review progress and any decision from the formal reviewer.",
+                }
+              : latestFinalAssignmentReport.status === "Approved" &&
+                  !latestFinalAssignmentReport.repository_document_id
+                ? {
+                    title: "Publish the approved Final Assignment Report",
+                    label: "Open Reports",
+                    tab: "Reports" as const,
+                    detail:
+                      "The report is approved. Complete finalization and publish the controlled final copy.",
+                  }
+                : finalAssignmentReportIsFinal
+                  ? {
+                      title: "Assignment reporting is complete",
+                      label: "View Final Report",
+                      tab: "Reports" as const,
+                      detail:
+                        "The Final Assignment Report has been finalized and is available for reading.",
+                    }
+                  : {
+                      title: "Continue the Final Assignment Report",
+                      label: "Open Reports",
+                      tab: "Reports" as const,
+                      detail:
+                        "A Final Assignment Report draft exists and still needs to be completed and submitted.",
+                    };
+
+  const assignmentOperationalStatus = !assignmentTasks.length
+    ? "Planning"
+    : assignmentNextTask
+      ? "In Progress"
+      : assignmentPendingContributions.length
+        ? "Task Reporting"
+        : !latestFinalAssignmentReport
+          ? "Ready for Final Report"
+          : latestFinalAssignmentReport.status === "Changes Requested"
+            ? "Changes Requested"
+            : ["Submitted", "Under Review"].includes(
+                  latestFinalAssignmentReport.status,
+                )
+              ? "Final Report Review"
+              : latestFinalAssignmentReport.status === "Approved" &&
+                  !latestFinalAssignmentReport.repository_document_id
+                ? "Approved · Finalization Pending"
+                : finalAssignmentReportIsFinal
+                  ? "Completed"
+                  : "Final Report Draft";
   const assignmentWorkflowSteps = [
     { label: "Assign", help: "Create a task with an owner and due date." },
     { label: "Do Work", help: "Complete the assigned task." },
@@ -2730,11 +3525,24 @@ export default function App() {
       )
     : 0;
   const assignmentProgressPercent =
-    assignmentWorkflowIndex === 4
+    selectedAssignmentRecord?.status === "Completed"
       ? 100
       : assignmentTasks.length
         ? taskProgressPercent
-        : Math.round((assignmentWorkflowIndex / 5) * 100);
+        : 0;
+  const assignmentDocumentCount =
+    assignmentFiles.length +
+    workspaceDocuments.length +
+    knowledgeRows.filter((item) =>
+      item.assignments?.some(
+        (assignment) => assignment.id === selectedAssignmentId,
+      ),
+    ).length;
+  const assignmentNeedsAttention =
+    (assignmentDays !== null && assignmentDays < 0) ||
+    !assignmentTasks.length ||
+    !assignmentDocumentCount ||
+    assignmentPendingContributions.length > 0;
   const filteredAssignmentTasks = assignmentTasks.filter(
     (task) =>
       (assignmentTaskFilter === "All" ||
@@ -2801,6 +3609,38 @@ export default function App() {
           : task.status === "Completed"
             ? "View Completed"
             : "Open Workspace";
+  const taskHasReportDraft = (task: ApiAssignmentTask) =>
+    Boolean(
+      Number(task.contribution_report_version || 0) > 0 ||
+        taskReportPlainText(task.contribution_title) ||
+        taskReportPlainText(task.contribution_summary) ||
+        taskReportPlainText(task.evidence_reviewed) ||
+        taskReportPlainText(task.contribution_findings) ||
+        taskReportPlainText(task.contribution_recommendations) ||
+        taskReportPlainText(task.contribution_challenges) ||
+        taskReportPlainText(task.contribution_next_actions),
+    );
+  const taskReportOwnerActionLabel = (task: ApiAssignmentTask) =>
+    task.contribution_status === "Draft"
+      ? taskHasReportDraft(task)
+        ? "Continue Report"
+        : "Start Report"
+      : task.contribution_status === "Ready for Integration"
+        ? "View Submitted Report"
+        : task.contribution_status === "Integrated"
+          ? "View Approved Report"
+          : "View Final Report";
+  const focusTaskReportEditor = () => {
+    window.setTimeout(() => {
+      const report = document.getElementById("task-report-editor");
+      if (!report) return;
+      report.scrollIntoView({ behavior: "smooth", block: "start" });
+      const firstEditable = report.querySelector<HTMLElement>(
+        'input:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled])',
+      );
+      firstEditable?.focus({ preventScroll: true });
+    }, 80);
+  };
   const selectAssignmentWorkspaceTab = (
     tab:
       | "Overview"
@@ -2809,6 +3649,7 @@ export default function App() {
       | "Contributions"
       | "Team"
       | "Documents"
+      | "Reports"
       | "Discussion"
       | "Activity"
       | "Review",
@@ -2873,6 +3714,22 @@ export default function App() {
                   }),
                 })),
               );
+            }
+            break;
+          }
+
+          case "Reports": {
+            const [templates, documents, repository, tasks] = await Promise.all([
+              api.documentTemplates(token, "Assignment"),
+              api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+              api.knowledge(token),
+              api.assignmentTasks(token, selectedAssignmentId),
+            ]);
+            if (!cancelled) {
+              setBuilderTemplates(templates);
+              setWorkspaceDocuments(documents);
+              setKnowledgeRows(repository);
+              setAssignmentTasks(tasks);
             }
             break;
           }
@@ -3185,19 +4042,45 @@ export default function App() {
           (item) => item.id === selectedAssignmentId,
         );
         const lead = assignment?.members.find((member) => member.role === "Lead");
-        setAssignmentTaskForm((current) => ({
-          ...current,
-          ownerId: current.ownerId || lead?.id || assignment?.members[0]?.id || "",
-          reviewerId:
-            current.reviewerId ||
-            assignment?.members.find((member) =>
-              ["Lead", "Reviewer"].includes(member.role),
-            )?.id ||
-            users.find((member) =>
-              member.active && ["Research Manager", "Administrator"].includes(member.role),
-            )?.id ||
-            "",
-        }));
+        setAssignmentTaskForm((current) => {
+          const ownerId = current.ownerId || lead?.id || assignment?.members[0]?.id || "";
+          const assignmentMemberIds = new Set(
+            (assignment?.members || []).map((member) => member.id),
+          );
+          const preferredReviewer =
+            (assignment?.members || [])
+              .filter((member) => member.id !== ownerId)
+              .map((member) => users.find((user) => user.id === member.id))
+              .find(
+                (candidate) =>
+                  candidate?.active &&
+                  ["Research Officer", "Reviewer", "Research Manager"].includes(
+                    candidate.role,
+                  ),
+              ) ||
+            users.find(
+              (candidate) =>
+                candidate.active &&
+                candidate.role === "Research Manager" &&
+                candidate.id !== ownerId,
+            );
+          return {
+            ...current,
+            ownerId,
+            reviewerId:
+              current.reviewerId &&
+              current.reviewerId !== ownerId &&
+              (assignmentMemberIds.has(current.reviewerId) ||
+                users.some(
+                  (candidate) =>
+                    candidate.id === current.reviewerId &&
+                    candidate.active &&
+                    candidate.role === "Research Manager",
+                ))
+                ? current.reviewerId
+                : preferredReviewer?.id || "",
+          };
+        });
       } catch (error) {
         setAssignmentTaskDialogNotice(
           error instanceof Error
@@ -3230,21 +4113,24 @@ export default function App() {
   const createAssignmentTask = async (event?: React.FormEvent) => {
     event?.preventDefault();
     if (
-      !assignmentTaskForm.taskPurpose.trim() ||
+      !assignmentTaskForm.title.trim() ||
+      !assignmentTaskForm.ownerId ||
+      !assignmentTaskForm.dueDate ||
       !assignmentTaskForm.specificInstructions.trim() ||
       !assignmentTaskForm.reviewerId
     ) {
       setAssignmentTaskDialogNotice(
-        "Complete Purpose, Specific instructions and Task report reviewer before assigning the task.",
+        "Complete Task title, Assignee, Due date, Instructions and Reviewer before creating the task.",
       );
       return;
     }
-    if (
-      !selectedAssignmentId ||
-      !assignmentTaskForm.title.trim() ||
-      assignmentTaskSaving
-    )
+    if (assignmentTaskForm.ownerId === assignmentTaskForm.reviewerId) {
+      setAssignmentTaskDialogNotice(
+        "The assignee cannot review their own task. Choose a different reviewer.",
+      );
       return;
+    }
+    if (!selectedAssignmentId || assignmentTaskSaving) return;
     setAssignmentTaskSaving(true);
     setAssignmentNotice("");
     setAssignmentTaskDialogNotice("");
@@ -3262,7 +4148,8 @@ export default function App() {
         expectedContribution: assignmentTaskForm.expectedContribution.trim(),
         assignmentPart: assignmentTaskForm.assignmentPart.trim(),
         assignmentSectionId: assignmentTaskForm.assignmentSectionId || null,
-        taskPurpose: assignmentTaskForm.taskPurpose.trim(),
+        taskPurpose:
+          assignmentTaskForm.taskPurpose.trim() || assignmentTaskForm.title.trim(),
         specificInstructions: assignmentTaskForm.specificInstructions.trim(),
         expectedFindings: assignmentTaskForm.expectedFindings.trim(),
         expectedOutput: assignmentTaskForm.expectedOutput,
@@ -3459,7 +4346,7 @@ export default function App() {
   };
   const openAssignmentTaskWorkspace = async (
     task: ApiAssignmentTask,
-    openReport = true,
+    openReport = false,
   ) => {
     setSelectedAssignmentTask(task);
     setAssignmentTaskWorkspaceForm({
@@ -3483,13 +4370,13 @@ export default function App() {
       expectedOutput: task.expected_output || "Task Report",
       evidenceRequired: task.evidence_required || "",
       reviewerId: task.reviewer_id || "",
-      contributionTitle: task.contribution_title || "",
-      contributionSummary: task.contribution_summary || "",
-      contributionFindings: task.contribution_findings || "",
-      contributionRecommendations: task.contribution_recommendations || "",
-      evidenceReviewed: task.evidence_reviewed || "",
-      contributionChallenges: task.contribution_challenges || "",
-      contributionNextActions: task.contribution_next_actions || "",
+      contributionTitle: taskReportPlainText(task.contribution_title),
+      contributionSummary: taskReportPlainText(task.contribution_summary),
+      contributionFindings: taskReportPlainText(task.contribution_findings),
+      contributionRecommendations: taskReportPlainText(task.contribution_recommendations),
+      evidenceReviewed: taskReportPlainText(task.evidence_reviewed),
+      contributionChallenges: taskReportPlainText(task.contribution_challenges),
+      contributionNextActions: taskReportPlainText(task.contribution_next_actions),
       contributionStatus: task.contribution_status || "Draft",
     });
     setAssignmentTaskTargetSections([]);
@@ -3508,16 +4395,93 @@ export default function App() {
         ? {
             key: "title",
             mode:
-              user?.name === task.owner_name ||
-              ["Research Manager", "Administrator"].includes(user?.role || "")
+              user?.id === task.owner_id && task.contribution_status === "Draft"
                 ? "edit"
                 : "review",
           }
         : null,
     );
+    setAssignmentTaskReviewComment("");
+    setAssignmentTaskReviewResult(null);
     setAssignmentTaskReportPreviewOpen(false);
     setAssignmentTaskReportPreviewHtml("");
-    setAssignmentNotice("");
+    setAssignmentNotice(
+      openReport && task.owner_id === user?.id && task.contribution_status === "Draft"
+        ? taskHasReportDraft(task)
+          ? "Continue your saved task report. Save Draft and Preview Report before submission."
+          : "Task report ready. Start writing, then Save Draft and Preview Report before submission."
+        : "",
+    );
+
+    if (
+      openReport &&
+      task.reviewer_id === user?.id &&
+      task.contribution_status === "Ready for Integration"
+    ) {
+      window.setTimeout(() => {
+        void openTaskReportPreviewForTask(task, true);
+      }, 0);
+      return;
+    }
+
+    if (openReport) focusTaskReportEditor();
+  };
+  const openAssignmentTaskReport = async (task: ApiAssignmentTask) => {
+    if (!selectedAssignmentId) return;
+    if (task.owner_id !== user?.id) {
+      await openAssignmentTaskWorkspace(task, true);
+      return;
+    }
+
+    let reportTask = task;
+    if (task.status === "Not Started") {
+      setAssignmentNotice("Starting task and opening your report...");
+      try {
+        const updated = await api.updateAssignmentTask(
+          token,
+          selectedAssignmentId,
+          task.id,
+          {
+            title: task.title,
+            description: task.description,
+            ownerId: task.owner_id,
+            priority: task.priority,
+            status: "In Progress",
+            progress: Number(task.progress || 0),
+            startDate: task.start_date || new Date().toISOString().slice(0, 10),
+            dueDate: task.due_date,
+            notes: task.notes || "",
+            expectedContribution: task.expected_contribution,
+            assignmentPart: task.assignment_part,
+            assignmentSectionId: task.assignment_section_id,
+            targetDocumentId: task.target_document_id,
+            targetSectionId: task.target_section_id,
+            taskPurpose: task.task_purpose,
+            specificInstructions: task.specific_instructions,
+            expectedFindings: task.expected_findings,
+            expectedOutput: task.expected_output,
+            evidenceRequired: task.evidence_required,
+            reviewerId: task.reviewer_id,
+          },
+        );
+        const [tasks, history] = await Promise.all([
+          api.assignmentTasks(token, selectedAssignmentId),
+          api.history(token, selectedAssignmentId),
+        ]);
+        setAssignmentTasks(tasks);
+        setAssignmentHistory(history);
+        reportTask = tasks.find((row) => row.id === task.id) || updated;
+      } catch (error) {
+        setAssignmentNotice(
+          error instanceof Error
+            ? error.message
+            : "The task could not be started before opening the report.",
+        );
+        return;
+      }
+    }
+
+    await openAssignmentTaskWorkspace(reportTask, true);
   };
   const saveAssignmentTaskWorkspace = async (
     action: "save" | "start" | "complete" = "save",
@@ -3638,14 +4602,14 @@ export default function App() {
           reviewerId: refreshed.reviewer_id || "",
           targetDocumentId: refreshed.target_document_id || "",
           targetSectionId: refreshed.target_section_id || "",
-          contributionTitle: refreshed.contribution_title || "",
-          contributionSummary: refreshed.contribution_summary || "",
-          contributionFindings: refreshed.contribution_findings || "",
+          contributionTitle: taskReportPlainText(refreshed.contribution_title),
+          contributionSummary: taskReportPlainText(refreshed.contribution_summary),
+          contributionFindings: taskReportPlainText(refreshed.contribution_findings),
           contributionRecommendations:
-            refreshed.contribution_recommendations || "",
-          evidenceReviewed: refreshed.evidence_reviewed || "",
-          contributionChallenges: refreshed.contribution_challenges || "",
-          contributionNextActions: refreshed.contribution_next_actions || "",
+            taskReportPlainText(refreshed.contribution_recommendations),
+          evidenceReviewed: taskReportPlainText(refreshed.evidence_reviewed),
+          contributionChallenges: taskReportPlainText(refreshed.contribution_challenges),
+          contributionNextActions: taskReportPlainText(refreshed.contribution_next_actions),
           contributionStatus: refreshed.contribution_status || "Draft",
         });
       setAssignmentNotice(
@@ -3799,13 +4763,13 @@ export default function App() {
     );
     setAssignmentTaskWorkspaceForm((current) => ({
       ...current,
-      contributionTitle: saved.contribution_title || "",
-      contributionSummary: saved.contribution_summary || "",
-      contributionFindings: saved.contribution_findings || "",
-      contributionRecommendations: saved.contribution_recommendations || "",
-      evidenceReviewed: saved.evidence_reviewed || "",
-      contributionChallenges: saved.contribution_challenges || "",
-      contributionNextActions: saved.contribution_next_actions || "",
+      contributionTitle: taskReportPlainText(saved.contribution_title),
+      contributionSummary: taskReportPlainText(saved.contribution_summary),
+      contributionFindings: taskReportPlainText(saved.contribution_findings),
+      contributionRecommendations: taskReportPlainText(saved.contribution_recommendations),
+      evidenceReviewed: taskReportPlainText(saved.evidence_reviewed),
+      contributionChallenges: taskReportPlainText(saved.contribution_challenges),
+      contributionNextActions: taskReportPlainText(saved.contribution_next_actions),
       contributionStatus: saved.contribution_status || "Draft",
     }));
   };
@@ -3829,8 +4793,8 @@ export default function App() {
       const status =
         statusOverride || assignmentTaskWorkspaceForm.contributionStatus;
       const contributionTitle =
-        assignmentTaskWorkspaceForm.contributionTitle.trim() ||
-        `${selectedAssignmentTask.title} — Contribution Report`;
+        taskReportPlainText(assignmentTaskWorkspaceForm.contributionTitle) ||
+        `${selectedAssignmentTask.title} â€” Contribution Report`;
       const saved = await api.updateAssignmentTaskContribution(
         token,
         selectedAssignmentId,
@@ -3838,16 +4802,16 @@ export default function App() {
         {
           contributionTitle,
           contributionSummary:
-            assignmentTaskWorkspaceForm.contributionSummary.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionSummary),
           contributionFindings:
-            assignmentTaskWorkspaceForm.contributionFindings.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionFindings),
           contributionRecommendations:
-            assignmentTaskWorkspaceForm.contributionRecommendations.trim(),
-          evidenceReviewed: assignmentTaskWorkspaceForm.evidenceReviewed.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionRecommendations),
+          evidenceReviewed: taskReportPlainText(assignmentTaskWorkspaceForm.evidenceReviewed),
           contributionChallenges:
-            assignmentTaskWorkspaceForm.contributionChallenges.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionChallenges),
           contributionNextActions:
-            assignmentTaskWorkspaceForm.contributionNextActions.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionNextActions),
           workNotes: assignmentTaskWorkspaceForm.notes.trim(),
           contributionStatus: status,
         },
@@ -3868,8 +4832,8 @@ export default function App() {
         status === "Draft"
           ? `Draft saved successfully at ${time}. Next step: Preview Report.`
           : status === "Ready for Integration"
-            ? "Contribution report sent for integration."
-            : `Contribution updated to ${status}.`,
+            ? `Task report submitted to ${saved.reviewer_name || selectedAssignmentTask.reviewer_name || "the assigned reviewer"}.`
+            : `Contribution updated to ${assignmentReportStatusLabel(status as ApiAssignmentTask["contribution_status"])}.`,
       );
       if (["Integrated", "Accepted"].includes(status))
         await resolveActionNotifications(
@@ -3939,33 +4903,409 @@ export default function App() {
     const status =
       selectedAssignmentTask?.contribution_section_statuses?.[sectionKey] ||
       "Draft";
+    const reportIsDraft =
+      selectedAssignmentTask?.contribution_status === "Draft";
+    const reportIsRejected = selectedAssignmentTask?.status === "Blocked";
+    const canEditSection = Boolean(
+      isSelectedTaskOwner && reportIsDraft && !reportIsRejected,
+    );
     return (
       <div className="task-report-section-actions">
         <b className={`section-${status.toLowerCase().replaceAll(" ", "-")}`}>
           {status}
         </b>
-        <button
-          type="button"
-          disabled={
-            Boolean(assignmentTaskSectionSaving) ||
-            (status === "Final" && user?.role !== "Reviewer")
-          }
-          onClick={() =>
-            setTaskReportSectionModal({ key: sectionKey, mode: "edit" })
-          }
-        >
-          Edit
-        </button>
-        <button
-          type="button"
-          disabled={Boolean(assignmentTaskSectionSaving)}
-          onClick={() =>
-            setTaskReportSectionModal({ key: sectionKey, mode: "review" })
-          }
-        >
-          Review
-        </button>
+        <small>
+          {canEditSection
+            ? "Edit directly in this Task Workspace"
+            : "Read-only for this workflow stage"}
+        </small>
       </div>
+    );
+  };
+
+  const renderTaskReportOwnerFeedback = () => {
+    if (
+      !isSelectedTaskOwner ||
+      latestSelectedTaskReview?.action !== "TASK_REPORT_CHANGES_REQUESTED"
+    )
+      return null;
+    return (
+      <section className="task-review-feedback-card">
+        <span className="workspace-eyebrow">REVIEW FEEDBACK</span>
+        <h4>Changes requested</h4>
+        <p>
+          {String(
+            latestSelectedTaskReview.details?.comments ||
+              "The reviewer returned this report for revision.",
+          )}
+        </p>
+        <small>Revise the draft and submit it again when ready.</small>
+      </section>
+    );
+  };
+
+  const renderTaskWorkflowAccessNotice = () => {
+    if (!selectedAssignmentTask) return null;
+    const status = assignmentTaskWorkspaceForm.contributionStatus;
+    const reviewerName = selectedAssignmentTask.reviewer_name || "the assigned reviewer";
+    const ownerName = selectedAssignmentTask.owner_name || "the task owner";
+    let title = "Task report status";
+    let detail = "";
+    let tone = "neutral";
+
+    if (selectedAssignmentTask.status === "Blocked") {
+      title = "Rejected Â· management action required";
+      detail = isSelectedTaskOwner
+        ? "This rejected version is locked. Wait for the assignment lead or manager to reopen it for revision."
+        : "The rejected version is preserved. An authorised manager or assignment lead must reopen it before the owner can revise it.";
+      tone = "danger";
+    } else if (status === "Draft") {
+      if (isSelectedTaskOwner) {
+        title = "Draft Â· your report";
+        detail = `Edit the report, save the draft and preview it before submitting it to ${reviewerName}.`;
+        tone = "owner";
+      } else if (isSelectedTaskReviewer) {
+        title = "Draft Â· not yet submitted";
+        detail = `You are the assigned reviewer. ${ownerName} is still preparing the report; review controls will appear automatically after submission.`;
+        tone = "waiting";
+      } else {
+        title = "Draft Â· management view";
+        detail = `${ownerName} owns this draft. It will be reviewed by ${reviewerName} after submission. Report content is read-only for you.`;
+        tone = "waiting";
+      }
+    } else if (status === "Ready for Integration") {
+      if (isSelectedTaskReviewer) {
+        title = "Submitted Â· your decision required";
+        detail = `Review the frozen submission from ${ownerName}, then approve it, request changes or reject it.`;
+        tone = "review";
+      } else if (isSelectedTaskOwner) {
+        title = "Submitted Â· locked for review";
+        detail = `Your submitted version is frozen while ${reviewerName} reviews it. You can preview it but cannot edit it.`;
+        tone = "waiting";
+      } else {
+        title = "Submitted Â· under review";
+        detail = `The frozen report is awaiting a decision from ${reviewerName}.`;
+        tone = "waiting";
+      }
+    } else if (status === "Integrated") {
+      title = "Approved Â· final report pending";
+      detail = isSelectedTaskReviewer
+        ? "The submission is approved. Generate the final task report and save it to the Document Repository to complete the task."
+        : `The report has been approved. ${reviewerName} or an authorised finaliser must generate the final repository report.`;
+      tone = "approved";
+    } else if (status === "Accepted") {
+      title = "Final Â· repository record created";
+      detail = "The approved final task report is complete, preserved in the Document Repository and now counts toward assignment progress.";
+      tone = "final";
+    }
+
+    return (
+      <div className={`task-report-access-notice ${tone}`}>
+        <strong>{title}</strong>
+        <span>{detail}</span>
+      </div>
+    );
+  };
+
+  const finalizeAssignmentTaskContribution = async () => {
+    if (!selectedAssignmentTask || assignmentTaskFinalizing) return;
+    const finalizationAssignmentId =
+      selectedAssignmentTask.assignment_id || selectedAssignmentId;
+    if (!finalizationAssignmentId) {
+      const message =
+        "This approved report is missing its assignment context. Reopen it from My Reviews and try again.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "error", message });
+      return;
+    }
+
+    setAssignmentTaskFinalizing(true);
+    setAssignmentNotice("");
+    setAssignmentTaskReviewResult({
+      tone: "info",
+      message:
+        "Generating the approved DOCX, publishing it to the Document Repository and completing the taskâ€¦",
+    });
+
+    try {
+      const updated = await api.finalizeAssignmentTaskContribution(
+        token,
+        finalizationAssignmentId,
+        selectedAssignmentTask.id,
+      );
+
+      if (updated.contribution_status !== "Accepted" || updated.status !== "Completed") {
+        throw new Error(
+          `Final report generation returned an unexpected state: ${assignmentReportStatusLabel(updated.contribution_status)} / ${updated.status}. Refresh the task and try again.`,
+        );
+      }
+
+      setSelectedAssignmentId(finalizationAssignmentId);
+      applySavedTaskContribution(updated);
+
+      const report = await api.assignmentTaskContributionReport(
+        token,
+        finalizationAssignmentId,
+        selectedAssignmentTask.id,
+      );
+
+      let refreshed = updated;
+      try {
+        const context = await api.taskReviewContext(token, updated.id);
+        refreshed = context.task;
+        setAssignmentRows((current) => {
+          const withoutCurrent = current.filter((item) => item.id !== context.assignment.id);
+          return [...withoutCurrent, context.assignment];
+        });
+        setAssignmentTasks([context.task]);
+      } catch {
+        setAssignmentTasks((current) => {
+          const withoutCurrent = current.filter((task) => task.id !== updated.id);
+          return [...withoutCurrent, updated];
+        });
+      }
+
+      setSelectedAssignmentTask(refreshed);
+      applySavedTaskContribution(refreshed);
+
+      const message = updated.repository_document_title
+        ? `Final approved task report generated and published to the Document Repository as "${updated.repository_document_title}". The task is complete and now counts toward assignment progress.`
+        : "Final approved task report generated and published to the Document Repository. The task is complete and now counts toward assignment progress.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "success", message });
+
+      setAssignmentTaskReportPreviewTitle(report.title);
+      setAssignmentTaskReportPreviewHtml(report.html);
+      setAssignmentTaskReportPreviewOpen(true);
+
+      await resolveActionNotifications(
+        "assignment_task",
+        selectedAssignmentTask.id,
+      ).catch(() => undefined);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "The final task report could not be generated.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "error", message });
+    } finally {
+      setAssignmentTaskFinalizing(false);
+    }
+  };
+
+  const renderTaskReviewDecision = () => {
+    if (!canReviewSelectedTask || !selectedAssignmentTask) return null;
+
+    const status = assignmentTaskWorkspaceForm.contributionStatus;
+
+    if (status === "Integrated") {
+      return (
+        <section className="task-review-decision-card task-review-approved-card">
+          <header>
+            <div>
+              <span className="workspace-eyebrow">REVIEW APPROVED</span>
+              <h3>Generate the final task report</h3>
+              <p>
+                The submitted report has been approved. Generate the immutable
+                final report to complete this task, publish the approved DOCX directly to the
+                Document Repository, and make it available to the assignment report.
+              </p>
+            </div>
+            <b>{selectedAssignmentTask.reviewer_name || "Assigned reviewer"}</b>
+          </header>
+          <button
+            type="button"
+            className="task-review-open-report"
+            disabled={assignmentTaskReportPreviewBusy}
+            onClick={openSavedAssignmentTaskContributionReport}
+          >
+            {assignmentTaskReportPreviewBusy
+              ? "Opening approved report..."
+              : "Preview approved submission"}
+          </button>
+          <footer>
+            <button
+              type="button"
+              className="task-review-accept"
+              disabled={assignmentTaskFinalizing}
+              onClick={() => void finalizeAssignmentTaskContribution()}
+            >
+              {assignmentTaskFinalizing
+                ? "Generating & Saving..."
+                : "Generate Final Report & Save to Repository"}
+            </button>
+          </footer>
+          {assignmentTaskReviewResult && (
+            <div
+              className={`task-review-result ${assignmentTaskReviewResult.tone}`}
+              role="status"
+            >
+              {assignmentTaskReviewResult.message}
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    if (selectedAssignmentTask.status === "Blocked") {
+      const rejectionReason =
+        latestSelectedTaskReview?.action === "TASK_REPORT_REJECTED"
+          ? String(latestSelectedTaskReview.details?.comments || "")
+          : "";
+      return (
+        <section className="task-review-rejected-card">
+          <header>
+            <div>
+              <span className="workspace-eyebrow">SUBMISSION REJECTED</span>
+              <h3>Management action required</h3>
+              <p>
+                This rejected version is preserved in history and cannot be
+                edited or finalized.
+              </p>
+            </div>
+            <b>Rejected</b>
+          </header>
+          {rejectionReason && (
+            <div className="task-review-rejection-reason">
+              <span>Reason</span>
+              <p>{rejectionReason}</p>
+            </div>
+          )}
+          {(isManager || isAssignmentLead) ? (
+            <footer>
+              <button
+                type="button"
+                className="task-review-reopen"
+                disabled={assignmentTaskReviewSaving}
+                onClick={async () => {
+                  if (!selectedAssignmentId || !selectedAssignmentTask) return;
+                  setAssignmentTaskReviewSaving(true);
+                  setAssignmentNotice("");
+                  try {
+                    const reopened = await api.reopenRejectedAssignmentTask(
+                      token,
+                      selectedAssignmentId,
+                      selectedAssignmentTask.id,
+                    );
+                    const [tasks, history] = await Promise.all([
+                      api.assignmentTasks(token, selectedAssignmentId),
+                      api.history(token, selectedAssignmentId),
+                    ]);
+                    setAssignmentTasks(tasks);
+                    setAssignmentHistory(history);
+                    const refreshed =
+                      tasks.find((task) => task.id === reopened.id) || reopened;
+                    setSelectedAssignmentTask(refreshed);
+                    applySavedTaskContribution(refreshed);
+                    setAssignmentTaskWorkspaceForm((current) => ({
+                      ...current,
+                      status: refreshed.status,
+                      progress: Number(refreshed.progress || 0),
+                      contributionStatus: refreshed.contribution_status,
+                    }));
+                    setAssignmentNotice(
+                      "Rejected task reopened for revision. The task owner can edit, preview and resubmit it.",
+                    );
+                  } catch (error) {
+                    setAssignmentNotice(
+                      error instanceof Error
+                        ? error.message
+                        : "The rejected task could not be reopened.",
+                    );
+                  } finally {
+                    setAssignmentTaskReviewSaving(false);
+                  }
+                }}
+              >
+                {assignmentTaskReviewSaving ? "Reopening..." : "Reopen for Revision"}
+              </button>
+            </footer>
+          ) : (
+            <p className="task-review-rejected-wait">
+              Wait for the assignment lead or manager to reopen or reassign this task.
+            </p>
+          )}
+        </section>
+      );
+    }
+
+    if (status !== "Ready for Integration") return null;
+
+    return (
+      <section className="task-review-decision-card">
+        <header>
+          <div>
+            <span className="workspace-eyebrow">REVIEW DECISION</span>
+            <h3>Review submitted task report</h3>
+            <p>
+              Read the frozen submitted report and supporting evidence before
+              recording a decision.
+            </p>
+          </div>
+          <b>{selectedAssignmentTask.reviewer_name || "Assigned reviewer"}</b>
+        </header>
+        <button
+          type="button"
+          className="task-review-open-report"
+          disabled={assignmentTaskReportPreviewBusy}
+          onClick={openSavedAssignmentTaskContributionReport}
+        >
+          {assignmentTaskReportPreviewBusy
+            ? "Opening report..."
+            : "Preview submitted report"}
+        </button>
+        <label>
+          <span>Reviewer comments</span>
+          <textarea
+            rows={4}
+            value={assignmentTaskReviewComment}
+            onChange={(event) =>
+              setAssignmentTaskReviewComment(event.target.value)
+            }
+            placeholder="Record corrections, evidence gaps or an approval note."
+          />
+        </label>
+        <footer>
+          <button
+            type="button"
+            className="task-review-changes"
+            disabled={
+              assignmentTaskReviewSaving ||
+              !assignmentTaskReviewComment.trim()
+            }
+            onClick={() =>
+              void reviewAssignmentTaskContribution("Changes Requested")
+            }
+          >
+            {assignmentTaskReviewSaving ? "Recording..." : "Request Changes"}
+          </button>
+          <button
+            type="button"
+            className="task-review-reject"
+            disabled={
+              assignmentTaskReviewSaving ||
+              !assignmentTaskReviewComment.trim()
+            }
+            onClick={() => void reviewAssignmentTaskContribution("Rejected")}
+          >
+            {assignmentTaskReviewSaving ? "Recording..." : "Reject Submission"}
+          </button>
+          <button
+            type="button"
+            className="task-review-accept"
+            disabled={assignmentTaskReviewSaving}
+            onClick={() => void reviewAssignmentTaskContribution("Approved")}
+          >
+            {assignmentTaskReviewSaving ? "Recording approval..." : "Approve Report"}
+          </button>
+        </footer>
+        {assignmentTaskReviewResult && (
+          <div className={`task-review-result ${assignmentTaskReviewResult.tone}`} role="status">
+            {assignmentTaskReviewResult.message}
+          </div>
+        )}
+      </section>
     );
   };
 
@@ -4018,8 +5358,8 @@ export default function App() {
     setAssignmentNotice("");
     try {
       const contributionTitle =
-        assignmentTaskWorkspaceForm.contributionTitle.trim() ||
-        `${selectedAssignmentTask.title} — Contribution Report`;
+        taskReportPlainText(assignmentTaskWorkspaceForm.contributionTitle) ||
+        `${selectedAssignmentTask.title} â€” Contribution Report`;
       const saved = await api.updateAssignmentTaskContribution(
         token,
         selectedAssignmentId,
@@ -4027,16 +5367,16 @@ export default function App() {
         {
           contributionTitle,
           contributionSummary:
-            assignmentTaskWorkspaceForm.contributionSummary.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionSummary),
           contributionFindings:
-            assignmentTaskWorkspaceForm.contributionFindings.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionFindings),
           contributionRecommendations:
-            assignmentTaskWorkspaceForm.contributionRecommendations.trim(),
-          evidenceReviewed: assignmentTaskWorkspaceForm.evidenceReviewed.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionRecommendations),
+          evidenceReviewed: taskReportPlainText(assignmentTaskWorkspaceForm.evidenceReviewed),
           contributionChallenges:
-            assignmentTaskWorkspaceForm.contributionChallenges.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionChallenges),
           contributionNextActions:
-            assignmentTaskWorkspaceForm.contributionNextActions.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionNextActions),
           workNotes: assignmentTaskWorkspaceForm.notes.trim(),
           contributionStatus: "Draft",
         },
@@ -4049,16 +5389,16 @@ export default function App() {
         {
           contributionTitle,
           contributionSummary:
-            assignmentTaskWorkspaceForm.contributionSummary.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionSummary),
           contributionFindings:
-            assignmentTaskWorkspaceForm.contributionFindings.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionFindings),
           contributionRecommendations:
-            assignmentTaskWorkspaceForm.contributionRecommendations.trim(),
-          evidenceReviewed: assignmentTaskWorkspaceForm.evidenceReviewed.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionRecommendations),
+          evidenceReviewed: taskReportPlainText(assignmentTaskWorkspaceForm.evidenceReviewed),
           contributionChallenges:
-            assignmentTaskWorkspaceForm.contributionChallenges.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionChallenges),
           contributionNextActions:
-            assignmentTaskWorkspaceForm.contributionNextActions.trim(),
+            taskReportPlainText(assignmentTaskWorkspaceForm.contributionNextActions),
           workNotes: assignmentTaskWorkspaceForm.notes.trim(),
         },
       );
@@ -4071,13 +5411,88 @@ export default function App() {
       });
       setAssignmentTaskContributionSavedAt(time);
       setAssignmentNotice(
-        "Draft saved. Review the generated report before sending it for integration.",
+        "Draft saved. Review the generated report before submitting it to the assigned reviewer.",
       );
     } catch (error) {
       setAssignmentNotice(
         error instanceof Error
           ? error.message
           : "Contribution report could not be prepared.",
+      );
+    } finally {
+      setAssignmentTaskReportPreviewBusy(false);
+    }
+  };
+
+  const openTaskReportPreviewForTask = async (
+    task: ApiAssignmentTask,
+    reviewMode = false,
+  ) => {
+    if (assignmentTaskReportPreviewBusy) return;
+    const assignmentId = task.assignment_id || selectedAssignmentId;
+    if (!assignmentId) {
+      setAssignmentNotice("This Task Report is missing its assignment context.");
+      return;
+    }
+
+    setSelectedAssignmentId(assignmentId);
+    setSelectedAssignmentTask(task);
+    setAssignmentTaskWorkspaceForm({
+      title: task.title,
+      description: task.description || "",
+      ownerId: task.owner_id || "",
+      priority: task.priority,
+      status: task.status,
+      progress: Number(task.progress || 0),
+      startDate: taskDateValue(task.start_date),
+      dueDate: taskDateValue(task.due_date),
+      notes: task.notes || "",
+      expectedContribution: task.expected_contribution || "",
+      assignmentPart: task.assignment_part || "",
+      assignmentSectionId: task.assignment_section_id || "",
+      targetDocumentId: task.target_document_id || "",
+      targetSectionId: task.target_section_id || "",
+      taskPurpose: task.task_purpose || "",
+      specificInstructions: task.specific_instructions || "",
+      expectedFindings: task.expected_findings || "",
+      expectedOutput: task.expected_output || "Task Report",
+      evidenceRequired: task.evidence_required || "",
+      reviewerId: task.reviewer_id || "",
+      contributionTitle: taskReportPlainText(task.contribution_title),
+      contributionSummary: taskReportPlainText(task.contribution_summary),
+      contributionFindings: taskReportPlainText(task.contribution_findings),
+      contributionRecommendations: taskReportPlainText(task.contribution_recommendations),
+      evidenceReviewed: taskReportPlainText(task.evidence_reviewed),
+      contributionChallenges: taskReportPlainText(task.contribution_challenges),
+      contributionNextActions: taskReportPlainText(task.contribution_next_actions),
+      contributionStatus: task.contribution_status || "Draft",
+    });
+    setTaskReportSectionModal(null);
+    setAssignmentTaskReviewComment("");
+    setAssignmentTaskReviewResult(null);
+    setAssignmentTaskReportPreviewBusy(true);
+    setAssignmentNotice("");
+
+    try {
+      const report = await api.assignmentTaskContributionReport(
+        token,
+        assignmentId,
+        task.id,
+      );
+      setAssignmentTaskReportPreviewTitle(report.title);
+      setAssignmentTaskReportPreviewHtml(report.html);
+      setAssignmentTaskReportPreviewOpen(true);
+
+      if (reviewMode && task.contribution_status === "Ready for Integration") {
+        setAssignmentNotice("Review the submitted Task Report in the preview and record your decision below it.");
+      } else if (task.contribution_status === "Accepted") {
+        setAssignmentNotice("This is the final approved Task Report. Its review decision has already been recorded.");
+      }
+    } catch (error) {
+      setAssignmentNotice(
+        error instanceof Error
+          ? error.message
+          : "The Task Report could not be opened.",
       );
     } finally {
       setAssignmentTaskReportPreviewBusy(false);
@@ -4127,13 +5542,13 @@ export default function App() {
         task.id,
         {
           contributionTitle:
-            task.contribution_title || `${task.title} — Contribution Report`,
-          contributionSummary: task.contribution_summary || "",
-          contributionFindings: task.contribution_findings || "",
-          contributionRecommendations: task.contribution_recommendations || "",
-          evidenceReviewed: task.evidence_reviewed || "",
-          contributionChallenges: task.contribution_challenges || "",
-          contributionNextActions: task.contribution_next_actions || "",
+            task.contribution_title || `${task.title} â€” Contribution Report`,
+          contributionSummary: taskReportPlainText(task.contribution_summary),
+          contributionFindings: taskReportPlainText(task.contribution_findings),
+          contributionRecommendations: taskReportPlainText(task.contribution_recommendations),
+          evidenceReviewed: taskReportPlainText(task.evidence_reviewed),
+          contributionChallenges: taskReportPlainText(task.contribution_challenges),
+          contributionNextActions: taskReportPlainText(task.contribution_next_actions),
           workNotes: task.notes || "",
         },
       );
@@ -4155,6 +5570,117 @@ export default function App() {
   const approveAndSendAssignmentTaskContribution = async () => {
     const ok = await saveAssignmentTaskContribution("Ready for Integration");
     if (ok) setAssignmentTaskReportPreviewOpen(false);
+  };
+
+  const reviewAssignmentTaskContribution = async (
+    decision: "Changes Requested" | "Rejected" | "Approved",
+  ) => {
+    if (!selectedAssignmentTask || assignmentTaskReviewSaving) return;
+    const reviewAssignmentId =
+      selectedAssignmentTask.assignment_id || selectedAssignmentId;
+    if (!reviewAssignmentId) {
+      setAssignmentTaskReviewResult({
+        tone: "error",
+        message: "This review is missing its assignment context. Close it and reopen the review from My Reviews.",
+      });
+      return;
+    }
+    if (!isSelectedTaskReviewer) {
+      setAssignmentTaskReviewResult({
+        tone: "error",
+        message: "Only the reviewer assigned to this task can record the formal decision.",
+      });
+      return;
+    }
+    if (
+      ["Changes Requested", "Rejected"].includes(decision) &&
+      !assignmentTaskReviewComment.trim()
+    ) {
+      const message =
+        decision === "Rejected"
+          ? "Add a clear reason before rejecting this submission."
+          : "Add clear reviewer comments before requesting changes.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "error", message });
+      return;
+    }
+    setAssignmentTaskReviewSaving(true);
+    setAssignmentTaskReviewResult({
+      tone: "info",
+      message:
+        decision === "Approved"
+          ? "Recording approvalâ€¦"
+          : "Recording reviewer decisionâ€¦",
+    });
+    setAssignmentNotice("");
+    try {
+      const updated = await api.reviewAssignmentTaskContribution(
+        token,
+        reviewAssignmentId,
+        selectedAssignmentTask.id,
+        {
+          decision,
+          comments: assignmentTaskReviewComment.trim(),
+        },
+      );
+      let refreshed = updated;
+      try {
+        const context = await api.taskReviewContext(token, updated.id);
+        refreshed = context.task;
+        setAssignmentRows((current) => {
+          const withoutCurrent = current.filter((item) => item.id !== context.assignment.id);
+          return [...withoutCurrent, context.assignment];
+        });
+        setAssignmentTasks([context.task]);
+      } catch {
+        // The decision response is already authoritative. Do not fail a valid
+        // review merely because assignment-wide data is intentionally restricted.
+        setAssignmentTasks((current) => {
+          const withoutCurrent = current.filter((task) => task.id !== updated.id);
+          return [...withoutCurrent, updated];
+        });
+      }
+
+      if (decision === "Approved" && refreshed.contribution_status !== "Integrated") {
+        throw new Error(
+          `Approval was not completed. The task is still ${assignmentReportStatusLabel(refreshed.contribution_status)}. Refresh and try again.`,
+        );
+      }
+
+      setSelectedAssignmentId(reviewAssignmentId);
+      setSelectedAssignmentTask(refreshed);
+      applySavedTaskContribution(refreshed);
+      setAssignmentTaskWorkspaceForm((current) => ({
+        ...current,
+        status: refreshed.status,
+        progress: Number(refreshed.progress || 0),
+        contributionStatus: refreshed.contribution_status,
+      }));
+      setAssignmentTaskReviewComment("");
+      setAssignmentTaskReportPreviewOpen(false);
+      const message =
+        decision === "Approved"
+          ? "Task report approved. It is now Approved Â· Final Report Pending. Generate the final report to complete the task."
+          : decision === "Rejected"
+            ? "Submission rejected. It is locked until the assignment lead or a manager reopens it for revision or reassignment."
+            : "Changes requested. The report has returned to the researcher as a draft for revision.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "success", message });
+      await resolveActionNotifications(
+        "assignment_task",
+        selectedAssignmentTask.id,
+      );
+      await refreshDashboard();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "The review decision could not be recorded.";
+      setAssignmentNotice(message);
+      setAssignmentTaskReviewResult({ tone: "error", message });
+    } finally {
+      setAssignmentTaskReviewSaving(false);
+    }
   };
 
   const addAssignmentMember = async () => {
@@ -4254,12 +5780,13 @@ export default function App() {
       assignmentTaskManagementBusy
     )
       return;
-    if (
-      !window.confirm(
-        `Delete "${selectedAssignmentTask.title}" permanently from active task records? Use Archive instead when the task should remain part of the assignment history.`,
-      )
-    )
+    const reason = assignmentTaskDeleteReason.trim();
+    if (reason.length < 10 || !assignmentTaskDeleteConfirmed) {
+      setAssignmentNotice(
+        "Enter a clear deletion reason (at least 10 characters) and confirm the deletion.",
+      );
       return;
+    }
     setAssignmentTaskManagementBusy(true);
     setAssignmentNotice("");
     try {
@@ -4267,6 +5794,7 @@ export default function App() {
         token,
         selectedAssignmentId,
         selectedAssignmentTask.id,
+        reason,
       );
       const [tasks, history] = await Promise.all([
         api.assignmentTasks(token, selectedAssignmentId),
@@ -4274,8 +5802,11 @@ export default function App() {
       ]);
       setAssignmentTasks(tasks);
       setAssignmentHistory(history);
+      setAssignmentTaskDeleteDialogOpen(false);
+      setAssignmentTaskDeleteReason("");
+      setAssignmentTaskDeleteConfirmed(false);
       setSelectedAssignmentTask(null);
-      setAssignmentNotice("Task deleted.");
+      setAssignmentNotice("Task deleted. The reason remains in the audit trail.");
     } catch (error) {
       setAssignmentNotice(
         error instanceof Error ? error.message : "Task could not be deleted.",
@@ -4285,13 +5816,14 @@ export default function App() {
     }
   };
 
-  const openGeneratedDocument = async (id: string) => {
+  const openGeneratedDocument = async (id: string, previewOnly = false) => {
     try {
       const [document, control] = await Promise.all([
         api.generatedDocument(token, id),
         api.generatedDocumentControl(token, id),
       ]);
       setBuilderDocument(document);
+      setAssignmentReportPreviewMode(previewOnly);
       setBuilderControl(control);
       setBuilderControlTab("Control");
       setBuilderFelixSuggestion("");
@@ -4440,52 +5972,140 @@ export default function App() {
     );
     await openGeneratedDocument(created.id);
   };
-  const compileAssignmentReport = async () => {
-    if (!selectedAssignmentId || !selectedAssignmentRecord) return;
-    const template = builderTemplates.find(
-      (item) =>
-        item.active &&
-        ["Approved", "Standard"].includes(item.governance_status),
-    );
-    if (!template) {
-      setAssignmentNotice(
-        "No approved Assignment report template is available.",
-      );
-      return;
+  const compileAssignmentReport = async (
+    reportType: "Progress" | "Final",
+    taskIds: string[],
+    knowledgeIds: string[],
+  ) => {
+    if (!selectedAssignmentId || !selectedAssignmentRecord) {
+      throw new Error("The assignment context is not loaded. Reopen the assignment and try again.");
     }
-    if (!assignmentCompileTaskIds.length) {
-      setAssignmentNotice("Select at least one approved task report.");
-      return;
+    if (!taskIds.length) {
+      throw new Error("At least one final approved Task Report is required.");
     }
+
     try {
       setAssignmentCompiling(true);
+      setAssignmentNotice("");
+
+      const currentTemplates = await api.documentTemplates(token, "Assignment");
+      setBuilderTemplates(currentTemplates);
+
+      const template =
+        reportType === "Final"
+          ? currentTemplates.find(
+              (item) =>
+                item.template_key === "assignment-final-report" &&
+                item.active &&
+                ["Approved", "Standard"].includes(item.governance_status),
+            )
+          : currentTemplates.find(
+              (item) =>
+                item.template_key === "progress-report" &&
+                item.active &&
+                ["Approved", "Standard"].includes(item.governance_status),
+            );
+
+      if (!template) {
+        throw new Error(
+          reportType === "Final"
+            ? "The controlled Final Assignment Report template is unavailable."
+            : "No approved Progress Report template is available.",
+        );
+      }
+
+      const title =
+        reportType === "Final"
+          ? `${selectedAssignmentRecord.title} â€” Final Assignment Report`
+          : `${selectedAssignmentRecord.title} â€” Progress Report â€” ${new Date().toLocaleDateString("en-KE", { month: "long", year: "numeric" })}`;
+
       const created = await api.compileAssignmentReport(
         token,
         selectedAssignmentId,
         {
           templateId: template.id,
-          title: `${selectedAssignmentRecord.title} — Draft Assignment Report`,
-          taskIds: assignmentCompileTaskIds,
-          knowledgeIds: assignmentCompileKnowledgeIds,
+          title,
+          taskIds,
+          knowledgeIds,
+          reportType,
         },
       );
-      setWorkspaceDocuments(
-        await api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+
+      const refreshedDocuments = await api.generatedDocuments(
+        token,
+        "Assignment",
+        selectedAssignmentId,
       );
+      setWorkspaceDocuments(refreshedDocuments);
+      setAssignmentWorkspaceTab("Reports");
       setAssignmentNotice(
-        "Draft assignment report compiled. Original task reports remain unchanged.",
+        `${reportType} assignment draft created. Continue editing, preview it, choose a reviewer and submit it for formal review.`,
       );
-      await openGeneratedDocument(created.id);
+
+      await openGeneratedDocument(created.id, false);
     } catch (error) {
-      setAssignmentNotice(
+      const message =
         error instanceof Error
           ? error.message
-          : "The assignment report could not be compiled.",
-      );
+          : "The assignment report could not be created.";
+      setAssignmentNotice(message);
+      throw error instanceof Error ? error : new Error(message);
     } finally {
       setAssignmentCompiling(false);
     }
   };
+  const submitAssignmentReportForReview = async (
+    documentId: string,
+    reviewerId: string,
+    comments: string,
+  ) => {
+    await api.submitAssignmentReport(token, documentId, {
+      reviewerId,
+      reviewDueDate: null,
+      comments,
+    });
+    if (selectedAssignmentId)
+      setWorkspaceDocuments(
+        await api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+      );
+    await refreshNotifications();
+    setAssignmentNotice("Assignment report submitted to the assigned reviewer.");
+  };
+  const reviewAssignmentReportDecision = async (
+    documentId: string,
+    decision: "Changes Requested" | "Rejected" | "Approved",
+    comments: string,
+  ) => {
+    await api.reviewAssignmentReport(token, documentId, decision, comments);
+    if (selectedAssignmentId)
+      setWorkspaceDocuments(
+        await api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+      );
+    await resolveActionNotifications("generated_document", documentId);
+    setAssignmentNotice(
+      decision === "Approved"
+        ? "Assignment report approved. The assigned reviewer can now generate the final repository copy."
+        : decision === "Rejected"
+          ? "Assignment report rejected. The rejected version remains in review history and cannot be finalized."
+          : "Changes requested. The report has been returned for revision.",
+    );
+  };
+  const finalizeAssignmentReport = async (documentId: string) => {
+    const result = await api.finalizeAssignmentReport(token, documentId);
+    if (selectedAssignmentId) {
+      const [documents, assignments] = await Promise.all([
+        api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+        api.assignments(token),
+      ]);
+      setWorkspaceDocuments(documents);
+      setAssignmentRows(assignments);
+    }
+    await refreshNotifications();
+    setAssignmentNotice(
+      `Final Assignment Report published to the Document Repository as â€œ${result.repository_document_title}â€.`,
+    );
+  };
+
   const saveBuilderSection = async (next = false) => {
     if (!builderDocument || !builderSection) return;
     try {
@@ -4632,8 +6252,9 @@ export default function App() {
         classification: "INTERNAL",
         felixEnabled: true,
       });
-      setKnowledgeRows(await api.knowledge(token));
-      const message = `Report “${file.name}” attached successfully.`;
+      const refreshedKnowledge = await api.knowledge(token);
+      setKnowledgeRows(refreshedKnowledge);
+      const message = `${sourceType === "Research" ? "Document" : "Report"} â€œ${file.name}â€ attached successfully.`;
       if (sourceType === "Research") setResearchWorkspaceNotice(message);
       else setAssignmentNotice(message);
     } catch (error) {
@@ -4750,6 +6371,14 @@ export default function App() {
   ];
 
   const dashboardNow = new Date();
+  const myActivityNotifications = notifications.filter(
+    (item) =>
+      !/completed|research completed|task completed|assignment completed/i.test(
+        `${item.title} ${item.body}`,
+      ) &&
+      item.entity_type !== "assignment_completed",
+  );
+
   const actionRequiredNotifications = notifications
     .filter((item) => {
       if (item.read_at) return false;
@@ -4773,6 +6402,15 @@ export default function App() {
             ),
         );
       if (item.entity_type === "assignment_status") return false;
+      if (item.entity_type === "assignment_task")
+        return Boolean(
+          item.entity_id &&
+            (dashboardData?.myWork || []).some(
+              (work) =>
+                work.id === item.entity_id &&
+                (work.type === "Review" || work.type === "Finalization"),
+            ),
+        );
       if (item.entity_type?.startsWith("assignment")) {
         const assignment =
           item.entity_id &&
@@ -4794,11 +6432,34 @@ export default function App() {
   const activeDashboardAssignments = assignmentRows.filter(
     (item) => item.status !== "Completed",
   );
+  const dashboardDaysUntilDue = (dateValue: string | null | undefined) => {
+    if (!dateValue) return null;
+    const dateOnly =
+      String(dateValue).match(/^\d{4}-\d{2}-\d{2}/)?.[0] || String(dateValue);
+    const due = new Date(`${dateOnly}T23:59:59`);
+    if (Number.isNaN(due.getTime())) return null;
+    return Math.ceil((due.getTime() - dashboardNow.getTime()) / 86400000);
+  };
+  const dashboardDeadlineText = (dateValue: string | null | undefined) => {
+    const days = dashboardDaysUntilDue(dateValue);
+    if (days === null) return "No deadline";
+    if (days < 0)
+      return `${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"} overdue`;
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
+    return `Due in ${days} days`;
+  };
   const dueSoonDashboardAssignments = activeDashboardAssignments.filter(
-    (item) => deadlineState(item.due_date, item.status) === "almost-due",
+    (item) => {
+      const days = dashboardDaysUntilDue(item.due_date);
+      return days !== null && days >= 0 && days <= 7;
+    },
   );
   const overdueDashboardAssignments = activeDashboardAssignments.filter(
-    (item) => deadlineState(item.due_date, item.status) === "overdue",
+    (item) => {
+      const days = dashboardDaysUntilDue(item.due_date);
+      return days !== null && days < 0;
+    },
   );
   const completedThisMonth = assignmentRows.filter((item) => {
     if (item.status !== "Completed" || !item.updated_at) return false;
@@ -4816,20 +6477,56 @@ export default function App() {
     (item) =>
       ["Critical", "High"].includes(item.priority) ||
       ["Blocked", "Overdue"].includes(item.status) ||
-      deadlineState(item.due_date, item.status) === "overdue",
+      overdueDashboardAssignments.some((overdue) => overdue.id === item.id),
   );
+  const managerAttentionAssignments = activeDashboardAssignments
+    .filter((item) => {
+      const days = dashboardDaysUntilDue(item.due_date);
+      return (
+        (days !== null && days < 0) ||
+        (days !== null && days >= 0 && days <= 7) ||
+        ["Critical", "High"].includes(item.priority) ||
+        ["Blocked", "Ready for Review"].includes(item.status)
+      );
+    })
+    .sort((left, right) => {
+      const leftDays = dashboardDaysUntilDue(left.due_date);
+      const rightDays = dashboardDaysUntilDue(right.due_date);
+      const leftRank =
+        leftDays !== null && leftDays < 0
+          ? 0
+          : leftDays !== null && leftDays <= 7
+            ? 1
+            : left.priority === "Critical"
+              ? 2
+              : left.priority === "High"
+                ? 3
+                : 4;
+      const rightRank =
+        rightDays !== null && rightDays < 0
+          ? 0
+          : rightDays !== null && rightDays <= 7
+            ? 1
+            : right.priority === "Critical"
+              ? 2
+              : right.priority === "High"
+                ? 3
+                : 4;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+      return (leftDays ?? 9999) - (rightDays ?? 9999);
+    });
+  const dashboardAttentionAssignments = isManager
+    ? managerAttentionAssignments
+    : myDashboardAssignments;
   const upcomingDashboardAssignments = activeDashboardAssignments
     .filter((item) => {
-      if (!item.due_date) return false;
-      const days = Math.ceil(
-        (new Date(`${item.due_date}T23:59:59`).getTime() -
-          dashboardNow.getTime()) /
-          86400000,
-      );
-      return days >= 0 && days <= 30;
+      const days = dashboardDaysUntilDue(item.due_date);
+      return days !== null && days >= 0 && days <= 30;
     })
-    .sort((left, right) =>
-      String(left.due_date).localeCompare(String(right.due_date)),
+    .sort(
+      (left, right) =>
+        (dashboardDaysUntilDue(left.due_date) ?? 9999) -
+        (dashboardDaysUntilDue(right.due_date) ?? 9999),
     );
   const dashboardWorkload = (
     team.length
@@ -4846,23 +6543,278 @@ export default function App() {
             completed: 0,
             status: "Available" as const,
           }))
-  ).reduce<Record<string, { name: string; division: string; active: number }>>(
+  ).reduce<
+    Record<
+      string,
+      {
+        name: string;
+        division: string;
+        active: number;
+        overdue: number;
+        dueSoon: number;
+      }
+    >
+  >(
     (result, member) => {
       if (!result[member.name])
         result[member.name] = {
           name: member.name,
           division: "division" in member ? member.division : "",
           active: 0,
+          overdue: 0,
+          dueSoon: 0,
         };
-      result[member.name].active = assignmentRows.filter(
-        (item) =>
-          item.status !== "Completed" &&
-          item.members.some((person) => person.name === member.name),
-      ).length;
+      const memberAssignments = activeDashboardAssignments.filter((item) =>
+        item.members.some((person) => person.name === member.name),
+      );
+      result[member.name].active = memberAssignments.length;
+      result[member.name].overdue = memberAssignments.filter((item) => {
+        const days = dashboardDaysUntilDue(item.due_date);
+        return days !== null && days < 0;
+      }).length;
+      result[member.name].dueSoon = memberAssignments.filter((item) => {
+        const days = dashboardDaysUntilDue(item.due_date);
+        return days !== null && days >= 0 && days <= 7;
+      }).length;
       return result;
     },
     {},
   );
+
+  const isResearcherDashboard = user?.role === "Research Officer";
+  const isReviewerDashboard = user?.role === "Reviewer";
+  const personalDashboardTasks = (dashboardData?.myWork || []).filter(
+    (item) => item.type === "Task",
+  );
+  const personalDashboardReviews = (dashboardData?.myWork || []).filter(
+    (item) => item.type === "Review",
+  );
+  const personalDashboardFinalizations = (dashboardData?.myWork || []).filter(
+    (item) => item.type === "Finalization",
+  );
+  const personalTaskDeadlines = (dashboardData?.deadlines || []).filter(
+    (item) => item.type === "Task",
+  );
+  const personalReviewDeadlines = (dashboardData?.deadlines || []).filter(
+    (item) => item.type === "Review",
+  );
+  const dashboardReviewNotifications = notifications.filter((item) =>
+    /(review|changes requested|approved|approval)/i.test(
+      `${item.title} ${item.body}`,
+    ),
+  );
+  const researcherDueSoonCount = personalTaskDeadlines.filter(
+    (item) => typeof item.days === "number" && item.days >= 0 && item.days <= 7,
+  ).length;
+  const researcherOverdueCount = personalTaskDeadlines.filter(
+    (item) => typeof item.days === "number" && item.days < 0,
+  ).length;
+  const researcherAwaitingReviewCount = personalDashboardTasks.filter(
+    (item) => item.status === "Ready for Review",
+  ).length;
+  const reviewerDueSoonCount = personalReviewDeadlines.filter(
+    (item) => typeof item.days === "number" && item.days >= 0 && item.days <= 7,
+  ).length;
+  const reviewerOverdueCount = personalReviewDeadlines.filter(
+    (item) => typeof item.days === "number" && item.days < 0,
+  ).length;
+  const reviewerInProgressCount = personalDashboardReviews.filter(
+    (item) => item.status === "Under Review",
+  ).length;
+  const researcherAttentionTasks = [...personalDashboardTasks].sort(
+    (left, right) => {
+      const leftDays = dashboardDaysUntilDue(left.dueDate);
+      const rightDays = dashboardDaysUntilDue(right.dueDate);
+      const leftRank =
+        left.status === "Changes Requested"
+          ? -2
+          : leftDays !== null && leftDays < 0
+            ? -1
+            : leftDays !== null && leftDays <= 7
+              ? 0
+              : 1;
+      const rightRank =
+        right.status === "Changes Requested"
+          ? -2
+          : rightDays !== null && rightDays < 0
+            ? -1
+            : rightDays !== null && rightDays <= 7
+              ? 0
+              : 1;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+      return (leftDays ?? 9999) - (rightDays ?? 9999);
+    },
+  );
+  const reviewerAttentionItems = [...personalDashboardReviews].sort(
+    (left, right) =>
+      (dashboardDaysUntilDue(left.dueDate) ?? 9999) -
+      (dashboardDaysUntilDue(right.dueDate) ?? 9999),
+  );
+  const openContextualTaskReview = async (taskId: string) => {
+    const context = await api.taskReviewContext(token, taskId);
+
+    setActive("Assignments");
+    setAssignmentRows((current) => {
+      const withoutCurrent = current.filter((item) => item.id !== context.assignment.id);
+      return [...withoutCurrent, context.assignment];
+    });
+    setSelectedAssignment(context.assignment.title);
+    setSelectedAssignmentId(context.assignment.id);
+    setBuilderCreate((current) => ({ ...current, title: context.assignment.title }));
+    setAssignmentWorkspaceTab("Tasks");
+
+    // A contextual task reviewer gets only the explicitly assigned review item.
+    // Do not load assignment-wide tasks, comments, history, attachments or reviews.
+    setAssignmentTasks([context.task]);
+    setAssignmentReviews([]);
+    setAssignmentTaskRequests([]);
+    setAssignmentSections([]);
+    setAssignmentFiles([]);
+    setAssignmentHistory([]);
+    setComments([]);
+    setWorkspaceDocuments([]);
+
+    if (context.task.contribution_status === "Ready for Integration") {
+      await openTaskReportPreviewForTask(context.task, true);
+      return;
+    }
+
+    if (context.task.contribution_status === "Integrated") {
+      await openAssignmentTaskWorkspace(context.task, true);
+      return;
+    }
+
+    if (context.task.contribution_status === "Accepted") {
+      await openTaskReportPreviewForTask(context.task, false);
+      return;
+    }
+
+    await openAssignmentTaskWorkspace(context.task, true);
+  };
+
+  const openDashboardWork = async (item: {
+    id: string;
+    type: string;
+    destination: string;
+    contextId: string;
+    reviewKind?: "Task Report" | "Generated Document" | "Knowledge" | null;
+  }) => {
+    if (
+      (item.type === "Review" || item.type === "Finalization") &&
+      item.reviewKind === "Task Report"
+    ) {
+      try {
+        await openContextualTaskReview(item.id);
+        return;
+      } catch (error) {
+        setAssignmentNotice(
+          error instanceof Error
+            ? error.message
+            : "Assigned Task Report action could not be opened.",
+        );
+        return;
+      }
+    }
+
+    // Preserve the existing modules for document/repository reviews.
+    navigateTo(item.destination);
+  };
+
+  const openDashboardMetric = (label: string, destination: string) => {
+    const key =
+      label === "Active Tasks"
+        ? "active-tasks"
+        : label === "Due Soon"
+          ? isResearcherDashboard
+            ? "task-due-soon"
+            : isReviewerDashboard
+              ? "review-due-soon"
+              : "assignment-due-soon"
+          : label === "Overdue"
+            ? isResearcherDashboard
+              ? "task-overdue"
+              : isReviewerDashboard
+                ? "review-overdue"
+                : "assignment-overdue"
+            : label === "Awaiting Review"
+              ? "task-awaiting-review"
+              : label === "My Reviews" || label === "Waiting for Review"
+                ? "my-reviews"
+                : label === "Final Reports"
+                  ? "my-finalizations"
+                : label === "In Review"
+                  ? "reviews-in-progress"
+                  : label === "Review Notices"
+                    ? "review-notices"
+                    : label === "Active Assignments"
+                      ? "active-assignments"
+                      : label === "Document Reviews"
+                        ? "document-reviews"
+                        : label === "Active Research"
+                          ? "active-research"
+                          : label === "Awaiting Publication"
+                            ? "awaiting-publication"
+                            : null;
+    if (key) setDashboardActionQueue(key);
+    else navigateTo(destination);
+  };
+
+  const dashboardQueueTitle = (() => {
+    switch (dashboardActionQueue) {
+      case "management-attention": return "Assignments needing attention";
+      case "active-assignments": return "Active assignments";
+      case "assignment-due-soon": return "Assignments due soon";
+      case "assignment-overdue": return "Overdue assignments";
+      case "active-tasks": return "My active tasks";
+      case "task-due-soon": return "My tasks due soon";
+      case "task-overdue": return "My overdue tasks";
+      case "task-awaiting-review": return "My work awaiting review";
+      case "my-reviews": return "My review queue";
+      case "my-finalizations": return "Approved reports awaiting final generation";
+      case "review-due-soon": return "Reviews due soon";
+      case "review-overdue": return "Overdue reviews";
+      case "reviews-in-progress": return "Reviews in progress";
+      case "review-notices": return "Review notifications";
+      case "document-reviews": return "Documents awaiting review";
+      case "active-research": return "Active research";
+      case "awaiting-publication": return "Documents awaiting publication";
+      default: return "Action queue";
+    }
+  })();
+
+  const dashboardQueueWorkItems = (() => {
+    if (dashboardActionQueue === "active-tasks") return personalDashboardTasks;
+    if (dashboardActionQueue === "task-due-soon") return personalTaskDeadlines.filter((item) => typeof item.days === "number" && item.days >= 0 && item.days <= 7);
+    if (dashboardActionQueue === "task-overdue") return personalTaskDeadlines.filter((item) => typeof item.days === "number" && item.days < 0);
+    if (dashboardActionQueue === "task-awaiting-review") return personalDashboardTasks.filter((item) => item.status === "Ready for Review");
+    if (dashboardActionQueue === "my-reviews") return personalDashboardReviews;
+    if (dashboardActionQueue === "my-finalizations") return personalDashboardFinalizations;
+    if (dashboardActionQueue === "review-due-soon") return personalReviewDeadlines.filter((item) => typeof item.days === "number" && item.days >= 0 && item.days <= 7);
+    if (dashboardActionQueue === "review-overdue") return personalReviewDeadlines.filter((item) => typeof item.days === "number" && item.days < 0);
+    if (dashboardActionQueue === "reviews-in-progress") return personalDashboardReviews.filter((item) => item.status === "Under Review");
+    return [];
+  })();
+
+  const dashboardQueueAssignments = (() => {
+    if (dashboardActionQueue === "management-attention") return dashboardAttentionAssignments;
+    if (dashboardActionQueue === "active-assignments") return activeDashboardAssignments;
+    if (dashboardActionQueue === "assignment-due-soon") return dueSoonDashboardAssignments;
+    if (dashboardActionQueue === "assignment-overdue") return overdueDashboardAssignments;
+    return [];
+  })();
+
+  const dashboardQueueDocumentReviews = dashboardActionQueue === "document-reviews" || dashboardActionQueue === "awaiting-publication"
+    ? reviewRows
+    : [];
+  const dashboardQueueResearch = dashboardActionQueue === "active-research"
+    ? researchRows.filter((item) => !["Completed", "Archived"].includes(item.status))
+    : [];
+  const dashboardQueueNotifications = dashboardActionQueue === "review-notices"
+    ? dashboardReviewNotifications
+    : [];
+
+  const assignmentDisplayStatus = (item: ApiAssignment) =>
+    item.workflow_status || item.status;
 
   const assignmentHealthFor = (
     item: ApiAssignment,
@@ -4992,6 +6944,52 @@ export default function App() {
       setKnowledgeUploading(false);
     }
   };
+  const openRepositoryDocumentReader = async (
+    itemOrId: KnowledgeItem | string,
+  ) => {
+    try {
+      let item =
+        typeof itemOrId === "string"
+          ? knowledgeRows.find((row) => row.id === itemOrId)
+          : itemOrId;
+
+      if (!item) {
+        const refreshed = await api.knowledge(token);
+        setKnowledgeRows(refreshed);
+        item =
+          typeof itemOrId === "string"
+            ? refreshed.find((row) => row.id === itemOrId)
+            : itemOrId;
+      }
+
+      if (!item) {
+        throw new Error("The repository document could not be found.");
+      }
+
+      const versions = await api.knowledgeVersions(token, item.id);
+      const latest = [...versions].sort(
+        (a, b) => Number(b.version_number || 0) - Number(a.version_number || 0),
+      )[0];
+
+      if (!latest) {
+        throw new Error("This repository document has no readable version.");
+      }
+
+      // Reading actions open the current stored version directly.
+      // Version management remains in the Repository module.
+      setReaderVersionId(latest.id);
+      setReaderDocument(item as DocumentItem);
+      setSelectedKnowledge(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "The document could not be opened in the reader.";
+      if (selectedResearch) setResearchWorkspaceNotice(message);
+      else setAssignmentNotice(message);
+    }
+  };
+
   const openKnowledge = async (item: KnowledgeItem) => {
     setSelectedKnowledge({
       ...item,
@@ -5077,6 +7075,7 @@ export default function App() {
       leadId: "",
       assignmentId: "",
       collaboratorIds: [],
+      reviewerIds: [],
       knowledgeIds: [],
     });
     setResearchFormStep(1);
@@ -5266,6 +7265,74 @@ export default function App() {
           .includes(documentSearch.toLowerCase()) &&
         (documentStatus === "All" || item.status === documentStatus),
     );
+  const openResearchRows = researchRows.filter(
+    (project) => !["Completed", "Archived"].includes(project.status),
+  );
+  const filteredResearchRows = researchRows.filter((project) => {
+    const haystack = `${project.title} ${project.summary || ""} ${project.research_question || ""} ${project.lead_name || ""} ${project.collaborators.map((person) => person.name).join(" ")}`.toLowerCase();
+    return (
+      haystack.includes(researchSearch.trim().toLowerCase()) &&
+      (researchStatusFilter === "All" ||
+        project.status === researchStatusFilter)
+    );
+  });
+  const filteredExternalResearchRows = externalResearchRows.filter((item) => {
+    const haystack = `${item.title} ${item.description || ""} ${item.author || ""} ${item.institution || ""} ${item.directorate || ""} ${item.research_type || ""}`.toLowerCase();
+    return haystack.includes(externalResearchSearch.trim().toLowerCase()) &&
+      (externalResearchStatusFilter === "All" || item.status === externalResearchStatusFilter);
+  });
+  const canEditResearchPlan = Boolean(selectedResearch && isManager);
+  const canManageResearchTeam = Boolean(
+    selectedResearch && (isManager || selectedResearch.lead_id === user?.id),
+  );
+  const researchAttachedDocuments = selectedResearch
+    ? knowledgeRows.filter(
+        (item) =>
+          item.origin_links?.some(
+            (link) =>
+              link.type === "research" && link.id === selectedResearch.id,
+          ) &&
+          !researchRepositoryDocuments.some((linked) => linked.id === item.id),
+      )
+    : [];
+  const researchNextAction = !selectedResearch
+    ? null
+    : selectedResearch.status === "Planning"
+      ? {
+          title: "Review the Research Brief",
+          detail: "Confirm the research question, objectives, methodology, team and timeline before work begins.",
+          label: "Preview Research Brief",
+          tab: "Overview" as const,
+        }
+      : selectedResearch.status === "Active" &&
+          !researchReport.some((section) => Boolean(section.content.trim()))
+        ? {
+            title: "Continue Research Work",
+            detail: "Complete the planned work and add the evidence needed for the report.",
+            label: "Continue Research Work",
+            tab: "Work" as const,
+          }
+        : selectedResearch.status === "Active"
+          ? {
+              title: "Build the Research Report",
+              detail: "Use approved evidence and completed research work to prepare the controlled report.",
+              label: "Open Report Builder",
+              tab: "Report" as const,
+            }
+          : selectedResearch.status === "Under Review"
+            ? {
+                title: "Review the Submitted Report",
+                detail: "The submitted version is locked while the assigned reviewer assesses it.",
+                label: "Open Review",
+                tab: "Review" as const,
+              }
+            : {
+                title: selectedResearch.status === "Archived" ? "Research archived" : "Research complete",
+                detail: "Read the approved output and review the institutional activity record.",
+                label: "View Activity",
+                tab: "Activity" as const,
+              };
+
   const refreshReviews = async () => {
     if (canReview)
       setReviewRows((await api.documentReviews(token)).map(normalizeDocument));
@@ -5460,12 +7527,28 @@ export default function App() {
     }
   };
   const resetMemberPassword = async (member: ApiUser) => {
+    if (!canAdministerUsers) {
+      setUserNotice(
+        "Administrator access only: password resets change account credentials and end existing sessions.",
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Reset password for ${member.name}?\n\nThis will create a new temporary password and immediately end all existing sessions for this account.`,
+    );
+
+    if (!confirmed) return;
+
     try {
+      setTemporaryCredential("");
+      setUserNotice(`Resetting ${member.name}'s password...`);
       const result = await api.resetUserPassword(token, member.id);
       setTemporaryCredential(result.temporaryPassword);
       setUserNotice(
-        `${member.name}'s sessions were ended. Share the temporary password securely.`,
+        `${member.name}'s password was reset. Existing sessions were ended and the user must change the temporary password after signing in.`,
       );
+      setUserRows(await api.users(token));
     } catch (error) {
       setUserNotice(
         error instanceof Error ? error.message : "Password could not be reset.",
@@ -5640,10 +7723,10 @@ export default function App() {
       setNotifications(await api.notifications(token));
       setResearchWorkspaceNotice(
         status === "Approved"
-          ? `“${selectedReportSection.title}” approved.`
+          ? `â€œ${selectedReportSection.title}â€ approved.`
           : status === "Ready for Review"
-            ? `“${selectedReportSection.title}” sent to ${selectedReportSection.reviewer_name || "the assigned reviewer"} with an action notification.`
-            : `“${selectedReportSection.title}” returned to ${status}.`,
+            ? `â€œ${selectedReportSection.title}â€ sent to ${selectedReportSection.reviewer_name || "the assigned reviewer"} with an action notification.`
+            : `â€œ${selectedReportSection.title}â€ returned to ${status}.`,
       );
     } catch (error) {
       setResearchWorkspaceNotice(
@@ -5655,11 +7738,13 @@ export default function App() {
       setReportSaving(false);
     }
   };
-  const saveResearchSectionDraft = async () => {
+  const saveResearchSectionDraft = async (contentOverride?: string) => {
     if (!selectedResearch || !selectedReportSection) return false;
+    const contentToSave =
+      typeof contentOverride === "string" ? contentOverride : reportContent;
     try {
       setReportSaving(true);
-      const draftStatus: ResearchReportSection["status"] = reportContent.trim()
+      const draftStatus: ResearchReportSection["status"] = contentToSave.trim()
         ? "In Progress"
         : "Draft";
       await api.updateResearchReportSection(
@@ -5667,7 +7752,7 @@ export default function App() {
         selectedResearch.id,
         selectedReportSection.id,
         {
-          content: reportContent,
+          content: contentToSave,
           status: draftStatus,
           ownerId: selectedReportSection.owner_id,
           reviewerId: selectedReportSection.reviewer_id,
@@ -5686,7 +7771,7 @@ export default function App() {
         await api.researchActivity(token, selectedResearch.id),
       );
       setResearchWorkspaceNotice(
-        `Draft saved for “${selectedReportSection.title}”. It has not been submitted for review.`,
+        `Draft saved for â€œ${selectedReportSection.title}â€. It has not been submitted for review.`,
       );
       return true;
     } catch (error) {
@@ -5698,6 +7783,113 @@ export default function App() {
       return false;
     } finally {
       setReportSaving(false);
+    }
+  };
+
+  const submitCompleteResearchReport = async () => {
+    if (!selectedResearch || !researchDraftReviewerId) return;
+    try {
+      setResearchReportSubmitting(true);
+
+      if (
+        canChooseResearchReviewer &&
+        !assignedResearchReviewerIds.has(researchDraftReviewerId)
+      ) {
+        const nextReviewerIds = [
+          ...new Set([
+            ...(selectedResearch.reviewers || []).map(
+              (reviewer) => reviewer.reviewer_id,
+            ),
+            researchDraftReviewerId,
+          ]),
+        ];
+        await api.updateResearchReviewers(
+          token,
+          selectedResearch.id,
+          nextReviewerIds,
+        );
+        const refreshedProjects = await api.research(token);
+        setResearchRows(refreshedProjects);
+        setSelectedResearch(
+          refreshedProjects.find(
+            (item) => item.id === selectedResearch.id,
+          ) || selectedResearch,
+        );
+      }
+
+      await api.submitResearchReport(token, selectedResearch.id, {
+        title: `${selectedResearch.title} â€” Research Report`,
+        reviewerId: researchDraftReviewerId,
+      });
+      setResearchReportVersions(await api.researchReportVersions(token, selectedResearch.id));
+      setResearchReport(await api.researchReport(token, selectedResearch.id));
+      const projects = await api.research(token);
+      setResearchRows(projects);
+      setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+      setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+      setNotifications(await api.notifications(token));
+      setResearchWorkspaceNotice("Research report submitted as a locked version. The project is now Under Review and awaits the assigned reviewerâ€™s decision.");
+    } catch (error) {
+      setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research report could not be submitted.");
+    } finally {
+      setResearchReportSubmitting(false);
+    }
+  };
+
+  const decideCompleteResearchReport = async (decision: "Approved" | "Changes Requested" | "Rejected") => {
+    if (!selectedResearch || !researchReportVersions[0]) return;
+    try {
+      setResearchReportSubmitting(true);
+      await api.decideResearchReport(token, selectedResearch.id, researchReportVersions[0].id, {
+        decision,
+        comments: researchReportReviewComments.trim(),
+      });
+      setResearchReportReviewComments("");
+      setResearchReportVersions(await api.researchReportVersions(token, selectedResearch.id));
+      const refreshed = await api.researchReport(token, selectedResearch.id);
+      setResearchReport(refreshed);
+      if (selectedReportSection) {
+        const current = refreshed.find((row) => row.id === selectedReportSection.id);
+        if (current) { setSelectedReportSection(current); setReportContent(current.content || ""); }
+      }
+      const refreshedProjects = await api.research(token);
+      setResearchRows(refreshedProjects);
+      setSelectedResearch(
+        refreshedProjects.find((item) => item.id === selectedResearch.id) ||
+          selectedResearch,
+      );
+      setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+      setNotifications(await api.notifications(token));
+      setResearchWorkspaceNotice(
+        decision === "Approved"
+          ? "Research report approved. Final controlled report can now be generated."
+          : decision === "Changes Requested"
+            ? "Changes requested. The submitted version remains locked and a new editable revision is open."
+            : "Research report rejected. The rejected version remains preserved in history.",
+      );
+    } catch (error) {
+      setResearchWorkspaceNotice(error instanceof Error ? error.message : "Reviewer decision could not be recorded.");
+    } finally {
+      setResearchReportSubmitting(false);
+    }
+  };
+
+  const markResearchCompleted = async () => {
+    if (!selectedResearch) return;
+    try {
+      setResearchReportSubmitting(true);
+      await api.updateResearchStatus(token, selectedResearch.id, "Completed");
+      const projects = await api.research(token);
+      setResearchRows(projects);
+      const refreshed = projects.find((item) => item.id === selectedResearch.id) || selectedResearch;
+      setSelectedResearch(refreshed);
+      setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+      setNotifications(await api.notifications(token));
+      setResearchWorkspaceNotice("Research marked completed. The approved report, linked work, evidence and activity history remain retained as the governed research record.");
+    } catch (error) {
+      setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research could not be marked completed.");
+    } finally {
+      setResearchReportSubmitting(false);
     }
   };
 
@@ -5957,7 +8149,7 @@ export default function App() {
                       onClick={() => navigateTo(label)}
                     >
                       <Icon name={icon} />
-                      <span>{label}</span>
+                      <span>{navigationDisplayLabel(label)}</span>
                       {label === "Notifications" &&
                         notifications.filter((item) => !item.read_at).length >
                           0 && (
@@ -6049,7 +8241,7 @@ export default function App() {
             <div className="title">
               {active === "Dashboard" ? <>
                 <h1>Good {now.getHours() < 12 ? "morning" : now.getHours() < 17 ? "afternoon" : "evening"}, {user.name.split(" ")[0]}</h1>
-                <p>{now.toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · {user.role}</p>
+                <p>{now.toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} Â· {user.role}</p>
               </> : <>
                 <h1>RESEARCH DEPARTMENT</h1>
                 <p>ASSIGNMENT & KNOWLEDGE MANAGEMENT SYSTEM</p>
@@ -6108,13 +8300,13 @@ export default function App() {
                   <strong>{user.name}</strong>
                   <small>{user.role}</small>
                 </div>
-                <span>⌄</span>
+                <span>âŒ„</span>
               </button>
             </div>
           </header>
 
           <div
-            className={`dashboard-content ${active === "Assignments" ? "assignments-active" : active === "Document Repository" || active === "Documents" ? "documents-active" : active === "Research Repository" ? "research-active" : active === "AI Researcher" ? "ai-research-active" : active === "Felix Administration" ? "felix-admin-active" : active === "Notifications" ? "notifications-active" : active === "Notice Board" ? "notice-board-active" : active === "Calendar" ? "calendar-active" : active === "Reports & Analytics" ? "reports-active" : active === "Team & Users" ? "users-active" : active === "Audit Logs" ? "audit-active" : active === "Settings" ? "settings-active" : ""}`}
+            className={`dashboard-content ${active === "Dashboard" ? "dashboard-active" : active === "Assignments" ? "assignments-active" : active === "Document Repository" || active === "Documents" ? "documents-active" : active === "Research Repository" ? "research-active" : active === "AI Researcher" ? "ai-research-active" : active === "Felix Administration" ? "felix-admin-active" : active === "Notifications" ? "notifications-active" : active === "Notice Board" ? "notice-board-active" : active === "Calendar" ? "calendar-active" : active === "Reports & Analytics" ? "reports-active" : active === "Team & Users" ? "users-active" : active === "Audit Logs" ? "audit-active" : active === "Settings" ? "settings-active" : ""}`}
           >
             {active !== "Profile" && active !== "Dashboard" && (
               <WorkspaceHeader
@@ -6558,7 +8750,7 @@ export default function App() {
                       <h4>Colour theme</h4>
                       <div className="theme-options">
                         {(
-                          ["Dark", "Light", "System", "Gold Grey"] as const
+                          ["Dark", "Light", "System", "Gold Grey", "Navy Blue"] as const
                         ).map((theme) => (
                           <button
                             type="button"
@@ -6580,9 +8772,11 @@ export default function App() {
                             />
                             <strong>{theme}</strong>
                             <small>
-                              {theme === "System"
-                                ? "Follow this device"
-                                : `${theme} dashboard`}
+                              {theme === "Navy Blue"
+                                ? "Low-contrast, eye-friendly navy"
+                                : theme === "System"
+                                  ? "Follow this device"
+                                  : `${theme} dashboard`}
                             </small>
                           </button>
                         ))}
@@ -7071,19 +9265,24 @@ export default function App() {
                     secure access.
                   </span>
                 </div>
-                {isManager && (
+                {canAdministerUsers ? (
                   <button onClick={() => openUserEditor()}>
                     + Create account
                   </button>
-                )}
+                ) : isManager ? (
+                  <span className="user-admin-access-note">
+                    Administrator access only
+                  </span>
+                ) : null}
               </div>
               {!isManager ? (
                 <div className="assignment-empty">
                   <Icon name="team" />
                   <h3>Staff directory access only</h3>
                   <p>
-                    Account and role management is restricted to administrators
-                    and research managers.
+                    Staff directory access is available here. Account creation,
+                    role changes, activation and password resets are restricted
+                    to administrators.
                   </p>
                 </div>
               ) : (
@@ -7115,17 +9314,25 @@ export default function App() {
                     </select>
                     <span>{filteredUsers.length} people</span>
                   </div>
+                  {isManager && !canAdministerUsers && (
+                    <div className="session-message">
+                      <strong>Directory & workload view.</strong>{" "}
+                      Account credentials, roles, activation and password resets
+                      require an Administrator.
+                    </div>
+                  )}
                   {userNotice && (
                     <div className="session-message">{userNotice}</div>
                   )}
                   {temporaryCredential && (
                     <div className="temporary-credential">
                       <div>
-                        <strong>Temporary password</strong>
+                        <strong>Temporary password â€” copy now</strong>
                         <span>{temporaryCredential}</span>
                         <small>
-                          Copy it now and share it through an approved secure
-                          channel. It is not stored in readable form.
+                          Existing sessions have been ended. Share this password
+                          through an approved secure channel. The user must change
+                          it after signing in. It is not stored in readable form.
                         </small>
                       </div>
                       <button
@@ -7156,6 +9363,13 @@ export default function App() {
                           <span>
                             <strong>{member.name}</strong>
                             <small>{member.email}</small>
+                            {member.email
+                              .toLowerCase()
+                              .endsWith("@publicservic.go.ke") && (
+                              <small className="user-email-warning">
+                                Check email: did you mean @publicservice.go.ke?
+                              </small>
+                            )}
                           </span>
                         </div>
                         <div>
@@ -7181,23 +9395,29 @@ export default function App() {
                           {member.active ? "Active" : "Disabled"}
                         </b>
                         <div className="user-actions">
-                          {user?.role === "Administrator" || member.role !== "Administrator" ? (
+                          {canAdministerUsers ? (
                             <>
                               <button
                                 data-tooltip="Edit the member's identity, role, division, availability and account status."
                                 onClick={() => openUserEditor(member)}
                               >
-                                Edit
+                                Edit account
                               </button>
                               <button
-                                data-tooltip="Create a temporary password and immediately end all existing sessions for this account."
+                                className="user-reset-password-action"
+                                data-tooltip="Create a new temporary password and immediately end all existing sessions for this account."
                                 onClick={() => resetMemberPassword(member)}
                               >
                                 Reset password
                               </button>
                             </>
                           ) : (
-                            <span>View only</span>
+                            <span
+                              className="user-view-only"
+                              title="Only an Administrator can change account credentials or access."
+                            >
+                              View only
+                            </span>
                           )}
                         </div>
                       </article>
@@ -7222,12 +9442,12 @@ export default function App() {
                         <b>Research Officer</b>
                       </div>
                       {[
-                        ["Manage accounts", "✓", "✓", "-", "-"],
-                        ["Create assignments", "✓", "✓", "-", "-"],
-                        ["Approve documents", "✓", "✓", "✓", "-"],
-                        ["Manage research", "✓", "✓", "Review", "Assigned"],
-                        ["Reports & analytics", "✓", "✓", "-", "-"],
-                        ["Audit logs", "✓", "-", "-", "-"],
+                        ["Manage accounts", "âœ“", "âœ“", "-", "-"],
+                        ["Create assignments", "âœ“", "âœ“", "-", "-"],
+                        ["Approve documents", "âœ“", "âœ“", "âœ“", "-"],
+                        ["Manage research", "âœ“", "âœ“", "Review", "Assigned"],
+                        ["Reports & analytics", "âœ“", "âœ“", "-", "-"],
+                        ["Audit logs", "âœ“", "-", "-", "-"],
                       ].map((row) => (
                         <div key={row[0]}>
                           {row.map((cell, index) => (
@@ -7241,7 +9461,7 @@ export default function App() {
               )}
             </section>
             <Suspense
-              fallback={<div className="report-loading">Loading reports…</div>}
+              fallback={<div className="report-loading">Loading reportsâ€¦</div>}
             >
               <ReportsModule
                 token={token}
@@ -7829,19 +10049,19 @@ export default function App() {
                   </span>
                 </div>
                 <b>
-                  {notifications.filter((item) => !item.read_at).length} unread
+                  {myActivityNotifications.filter((item) => !item.read_at).length} unread
                 </b>
               </div>
               <NotificationCenter
-                items={notifications}
+                items={myActivityNotifications}
                 loading={notificationsLoading}
                 onOpen={openNotification}
                 onNavigate={navigateNotification}
                 onMarkAll={markAllNotificationsRead}
                 onRefresh={refreshNotifications}
               />
-              <div className="notification-list">
-                {notifications.map((item) => (
+              <div className="notification-list legacy-notification-list">
+                {myActivityNotifications.map((item) => (
                   <button
                     className={item.read_at ? "read" : "unread"}
                     key={item.id}
@@ -7863,7 +10083,7 @@ export default function App() {
                     </span>
                   </button>
                 ))}
-                {!notifications.length && (
+                {!myActivityNotifications.length && (
                   <div className="assignment-empty">
                     <Icon name="notifications" />
                     <h3>No notifications yet</h3>
@@ -7993,7 +10213,7 @@ export default function App() {
                         <div>
                           <strong>{item.knowledge_title}</strong>
                           <small>
-                            Requested by {item.requested_by_name} ·{" "}
+                            Requested by {item.requested_by_name} Â·{" "}
                             {new Date(item.created_at).toLocaleDateString(
                               "en-KE",
                             )}
@@ -8104,7 +10324,7 @@ export default function App() {
                       <span>
                         <strong>{item.title}</strong>
                         <small>
-                          {item.category} · uploaded by {item.created_by_name}
+                          {item.category} Â· uploaded by {item.created_by_name}
                         </small>
                         <div
                           className={`felix-link-status ${felixLinkState(item).state}`}
@@ -8228,7 +10448,7 @@ export default function App() {
                         <span>
                           <strong>{item.title}</strong>
                           <small>
-                            {item.status} · {item.source_type || "App2 Upload"}
+                            {item.status} Â· {item.source_type || "App2 Upload"}
                           </small>
                         </span>
                         <button
@@ -8264,53 +10484,56 @@ export default function App() {
               )}
             </section>
             <section className="research-management-view">
-              <div className="assignment-page-head">
-                <div>
-                  <p>RESEARCH REPOSITORY</p>
-                  <h2>Research project portfolio</h2>
-                  <span>
-                    Questions, objectives, methods, collaborators, evidence and
-                    milestones.
-                  </span>
+              <div className="assignment-page-head research-repository-head">
+                <div><p>RESEARCH WORKSPACE</p><h2>Research portfolio</h2><span>Manage active research, evidence, reviews and completed external research from one governed workspace.</span></div>
+                <div className="research-repository-actions">
+                  {user?.role !== "Reviewer" && <button className="research-import-action" onClick={() => setExternalResearchOpen(true)}>Import external research</button>}
+                  {isManager && <button className="research-primary-action" onClick={() => setResearchSourceChoiceOpen(true)}><span aria-hidden="true">+</span> Create research</button>}
                 </div>
-
-                {isManager && (
-                  <button onClick={() => setResearchOpen(true)}>
-                    + New research project
-                  </button>
-                )}
               </div>
-
-              <div className="research-portfolio-toolbar">
-                <div
-                  className="assignment-view-switch"
-                  role="tablist"
-                  aria-label="Research portfolio views"
-                >
-                  {(["List", "Cards"] as const).map((view) => (
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={researchPortfolioView === view}
-                      className={researchPortfolioView === view ? "active" : ""}
-                      key={view}
-                      onClick={() => {
-                        setResearchPortfolioView(view);
-                        sessionStorage.setItem("app2-research-view", view);
-                      }}
+              <div className="research-portfolio-summary" aria-label="Research portfolio summary">
+                {[
+                  ["Research workspaces", researchRows.length],
+                  ["Imported research", externalResearchRows.length],
+                  ["Awaiting review", externalResearchRows.filter((item) => ["Pending Review","Resubmitted","Under Review"].includes(item.status)).length + researchRows.filter((item) => item.status === "Under Review").length],
+                  ["Completed", externalResearchRows.filter((item) => item.status === "Published").length + researchRows.filter((item) => item.status === "Completed").length],
+                ].map(([label, value]) => <article key={String(label)}><small>{label}</small><strong>{value}</strong></article>)}
+              </div>
+              <div className="research-repository-mode" role="tablist" aria-label="Research record type">
+                <button type="button" role="tab" aria-selected={researchRepositoryMode === "Workspace"} className={researchRepositoryMode === "Workspace" ? "active" : ""} onClick={() => setResearchRepositoryMode("Workspace")}>Research Workspaces <b>{researchRows.length}</b></button>
+                <button type="button" role="tab" aria-selected={researchRepositoryMode === "Imported"} className={researchRepositoryMode === "Imported" ? "active" : ""} onClick={() => setResearchRepositoryMode("Imported")}>Imported Research <b>{externalResearchRows.length}</b></button>
+              </div>
+              {researchRepositoryMode === "Workspace" ? <>
+                <div className="research-portfolio-toolbar">
+                  <label className="research-search-field"><span>Search research</span><input value={researchSearch} onChange={(event) => setResearchSearch(event.target.value)} placeholder="Search by title, question, researcher or keyword"/></label>
+                  <label className="research-status-filter">
+                    <span>Status</span>
+                    <select
+                      value={researchStatusFilter}
+                      onChange={(event) =>
+                        setResearchStatusFilter(event.target.value)
+                      }
                     >
-                      {view}
-                    </button>
-                  ))}
+                      <option value="All">All research</option>
+                      {[
+                        "Planning",
+                        "Active",
+                        "Under Review",
+                        "Completed",
+                        "Archived",
+                      ].map((value) => (
+                        <option key={value}>{value}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="assignment-view-switch" role="tablist" aria-label="Research portfolio views">{(["List", "Cards"] as const).map((view) => <button type="button" role="tab" aria-selected={researchPortfolioView === view} className={researchPortfolioView === view ? "active" : ""} key={view} onClick={() => { setResearchPortfolioView(view); sessionStorage.setItem("app2-research-view", view); }}>{view}</button>)}</div>
+                  <strong>{filteredResearchRows.length} of {researchRows.length}</strong>
                 </div>
-                <strong>{researchRows.length} research projects</strong>
-              </div>
-
               <div
                 className={`research-grid ${researchPortfolioView === "List" ? "list-view" : "card-view"}`}
                 aria-label="Research project portfolio"
               >
-                {researchRows.map((project) => (
+                {filteredResearchRows.map((project) => (
                   <article key={project.id}>
                     <span
                       className={`research-status status-${project.status.toLowerCase().replaceAll(" ", "-")}`}
@@ -8334,7 +10557,7 @@ export default function App() {
                           {project.start_date
                             ? formatResearchDate(project.start_date)
                             : "Not set"}{" "}
-                          – {formatResearchDate(project.end_date)}
+                          â€“ {formatResearchDate(project.end_date)}
                         </dd>
                       </div>
                     </dl>
@@ -8353,33 +10576,6 @@ export default function App() {
                     </div>
 
                     <div className="research-card-actions">
-                      <label>
-                        <span>Status</span>
-                        <select
-                          aria-label={`Status for ${project.title}`}
-                          value={project.status}
-                          onChange={async (event) => {
-                            await api.updateResearchStatus(
-                              token,
-                              project.id,
-                              event.target.value,
-                            );
-
-                            setResearchRows(await api.research(token));
-                          }}
-                        >
-                          {[
-                            "Planning",
-                            "Active",
-                            "Under Review",
-                            "Completed",
-                            "Archived",
-                          ].map((value) => (
-                            <option key={value}>{value}</option>
-                          ))}
-                        </select>
-                      </label>
-
                       <button
                         className="research-open-workspace"
                         type="button"
@@ -8463,13 +10659,38 @@ export default function App() {
                         }
                         }}
                       >
-                        Open workspace <span aria-hidden="true">→</span>
+                        Open workspace <span aria-hidden="true">â†’</span>
                       </button>
                     </div>
                   </article>
                 ))}
+                {!filteredResearchRows.length && (
+                  <div className="assignment-empty research-empty-state">
+                    <Icon name="research" />
+                    <h3>No research matches these filters</h3>
+                    <p>Clear the search or choose a broader status.</p>
+                  </div>
+                )}
               </div>
-            </section>{" "}
+
+              </> : <>
+                <div className="research-portfolio-toolbar">
+                  <label className="research-search-field"><span>Search imported research</span><input value={externalResearchSearch} onChange={(event) => setExternalResearchSearch(event.target.value)} placeholder="Title, author, institution or topic"/></label>
+                  <label className="research-status-filter"><span>Review status</span><select value={externalResearchStatusFilter} onChange={(event) => setExternalResearchStatusFilter(event.target.value)}>{["All","Pending Review","Under Review","Revision Requested","Resubmitted","Published","Rejected"].map((value) => <option key={value}>{value}</option>)}</select></label>
+                  <strong>{filteredExternalResearchRows.length} of {externalResearchRows.length}</strong>
+                </div>
+                <div className="external-research-list" aria-label="Imported research records">
+                  {filteredExternalResearchRows.map((item) => <article className="external-research-row" key={item.id}>
+                    <div><span className="external-origin-badge">IMPORTED Â· READER ONLY</span><h3>{item.title}</h3><p>{item.description || item.research_type}</p></div>
+                    <dl><dt>Submitted by</dt><dd>{item.submitted_by_name}</dd></dl>
+                    <dl className="external-hide-tablet"><dt>Reviewer(s)</dt><dd>{item.reviewers?.map((reviewer) => reviewer.name).join(", ") || "Not assigned"}</dd></dl>
+                    <dl><dt>Status</dt><dd>{item.status}</dd></dl>
+                    <button type="button" onClick={() => setSelectedExternalResearch(item)}>{item.can_review && ["Pending Review","Resubmitted","Under Review"].includes(item.status) ? "Review" : item.status === "Revision Requested" && item.can_upload_revision ? "Open revision" : "Open reader"} â†’</button>
+                  </article>)}
+                  {!filteredExternalResearchRows.length && <div className="assignment-empty research-empty-state"><Icon name="research"/><h3>No imported research matches these filters</h3><p>Import completed research or adjust the search and review status.</p></div>}
+                </div>
+              </>}
+            </section>
             <section className="ai-research-management-view">
               <div className="assignment-page-head">
                 <div>
@@ -8919,7 +11140,7 @@ export default function App() {
                           >
                             {item.priority}
                           </b>
-                          <span>{item.status}</span>
+                          <span>{assignmentDisplayStatus(item)}</span>
                           <span>
                             <strong>
                               {item.due_date
@@ -8997,14 +11218,14 @@ export default function App() {
                           </button>
                           <p>{item.description || "No description provided."}</p>
                           <dl>
-                            <div><dt>Status</dt><dd>{item.status}</dd></div>
+                            <div><dt>Status</dt><dd>{assignmentDisplayStatus(item)}</dd></div>
                             <div><dt>Health</dt><dd>{assignmentHealthFor(item)}</dd></div>
                             <div><dt>Lead</dt><dd>{lead?.name || "Unassigned"}</dd></div>
                             <div><dt>Due</dt><dd>{item.due_date ? formatResearchDate(item.due_date) : "Not set"}</dd></div>
                           </dl>
                           <footer>
                             <span>
-                              {item.division} · {item.members.length} team member
+                              {item.division} Â· {item.members.length} team member
                               {item.members.length === 1 ? "" : "s"}
                             </span>
                             <div className="assignment-row-actions">
@@ -9394,7 +11615,7 @@ export default function App() {
                       month: "long",
                       year: "numeric",
                     })}{" "}
-                    · {user.role}
+                    Â· {user.role}
                   </span>
                 </div>
                 <div className="command-live">
@@ -9403,7 +11624,7 @@ export default function App() {
                       dashboardRefreshState === "failed" ? "failed" : "live"
                     }
                   >
-                    ●{" "}
+                    â—{" "}
                     {dashboardRefreshState === "failed"
                       ? "Refresh failed"
                       : "Live"}
@@ -9411,14 +11632,14 @@ export default function App() {
                   <small>
                     {dashboardData
                       ? `Last updated: ${new Date(dashboardData.generatedAt).toLocaleTimeString("en-KE")}`
-                      : "Loading live data…"}
+                      : "Loading live dataâ€¦"}
                   </small>
                   <button
                     onClick={refreshDashboard}
                     disabled={dashboardRefreshState === "refreshing"}
                   >
                     {dashboardRefreshState === "refreshing"
-                      ? "Refreshing…"
+                      ? "Refreshingâ€¦"
                       : "Refresh"}
                   </button>
                 </div>
@@ -9439,12 +11660,12 @@ export default function App() {
                     return <section className="executive-overview" aria-label="Management executive overview">
                       <header><div><p>EXECUTIVE OVERVIEW</p><h2>Overall operational status</h2><span>A current organisation-wide view for management decisions.</span></div><div className={`executive-state ${overallState.tone}`}><i aria-hidden="true"/><span><strong>{overallState.label}</strong><small>{overallState.detail}</small></span></div></header>
                       <div className="executive-metrics">
-                        <button onClick={() => navigateTo("Assignments")}><span>DELIVERY HEALTH</span><strong>{deliveryHealth}%</strong><small>{activeAssignments} active · {overdueAssignments} overdue</small><i style={{"--metric-progress":`${deliveryHealth}%`} as CSSProperties}/></button>
+                        <button onClick={() => navigateTo("Assignments")}><span>DELIVERY HEALTH</span><strong>{deliveryHealth}%</strong><small>{activeAssignments} active Â· {overdueAssignments} overdue</small><i style={{"--metric-progress":`${deliveryHealth}%`} as CSSProperties}/></button>
                         <button onClick={() => navigateTo("Team & Users")}><span>TEAM COVERAGE</span><strong>{management.team.total}</strong><small>{Object.keys(management.team.roles).length} active role groups</small><i style={{"--metric-progress":"100%"} as CSSProperties}/></button>
                         <button onClick={() => navigateTo("Research Repository")}><span>RESEARCH PIPELINE</span><strong>{management.research.active}</strong><small>Active research initiatives</small><i style={{"--metric-progress":management.research.active ? "72%" : "0%"} as CSSProperties}/></button>
                         <button onClick={() => navigateTo("Document Repository")}><span>KNOWLEDGE PIPELINE</span><strong>{management.repository.published}</strong><small>{management.repository.awaitingPublication} awaiting publication</small><i style={{"--metric-progress":`${management.repository.published + management.repository.awaitingPublication ? Math.round((management.repository.published / (management.repository.published + management.repository.awaitingPublication)) * 100) : 100}%`} as CSSProperties}/></button>
                       </div>
-                      <footer><span><b>{dashboardData.attention.reviews}</b> reviews open</span><span><b>{dashboardData.attention.almostDue}</b> deadlines approaching</span><span><b>{dashboardData.attention.notifications}</b> unread notifications</span><button onClick={() => navigateTo("Reports & Analytics")}>Open detailed analytics →</button></footer>
+                      <footer><span><b>{dashboardData.attention.reviews}</b> reviews open</span><span><b>{dashboardData.attention.almostDue}</b> deadlines approaching</span><span><b>{dashboardData.attention.notifications}</b> unread notifications</span><button onClick={() => navigateTo("Reports & Analytics")}>Open detailed analytics â†’</button></footer>
                     </section>;
                   })()}
                   <section className="command-attention">
@@ -9493,7 +11714,7 @@ export default function App() {
                           }}
                         >
                           <strong>{value}</strong>
-                          <span>{label}</span>
+                          <span>{navigationDisplayLabel(label)}</span>
                           <small>
                             {value ? "Open queue" : "No action needed"}
                           </small>
@@ -9531,11 +11752,11 @@ export default function App() {
                               <small>
                                 {item.status}
                                 {item.dueDate
-                                  ? ` · Due ${new Date(item.dueDate).toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}`
+                                  ? ` Â· Due ${new Date(item.dueDate).toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}`
                                   : ""}
                               </small>
                             </span>
-                            <b>{item.nextAction} →</b>
+                            <b>{item.nextAction} â†’</b>
                           </button>
                         ))}
                         {!dashboardData.myWork.length && (
@@ -9688,20 +11909,32 @@ export default function App() {
                         awaiting publication
                       </span>
                       <button onClick={() => navigateTo("Reports & Analytics")}>
-                        Open analytics →
+                        Open analytics â†’
                       </button>
                     </section>
                   )}
                 </>
               ) : (
                 <div className="command-loading">
-                  Loading your operational dashboard…
+                  Loading your operational dashboardâ€¦
                 </div>
               )}
             </section>
             <section
-              className="operational-dashboard"
-              aria-label="Operational Dashboard"
+              className={`operational-dashboard ${
+                isResearcherDashboard
+                  ? "researcher-dashboard-mode"
+                  : isReviewerDashboard
+                    ? "reviewer-dashboard-mode"
+                    : "management-dashboard-mode"
+              }`}
+              aria-label={
+                isResearcherDashboard
+                  ? "Researcher Dashboard"
+                  : isReviewerDashboard
+                    ? "Review Dashboard"
+                    : "Management Dashboard"
+              }
             >
               {actionRequiredNotifications.length > 0 && (
                 <section
@@ -9743,105 +11976,167 @@ export default function App() {
                             minute: "2-digit",
                           })}
                         </time>
-                        <b>Open action →</b>
+                        <b>Open action â†’</b>
                       </button>
                     ))}
                   </div>
                 </section>
               )}
+              {(isResearcherDashboard || isReviewerDashboard) && (
+                <section className="role-dashboard-intro">
+                  <div>
+                    <p>{isResearcherDashboard ? "MY WORKSPACE" : "MY REVIEW QUEUE"}</p>
+                    <h2>
+                      {isResearcherDashboard
+                        ? "Researcher dashboard"
+                        : "Reviewer dashboard"}
+                    </h2>
+                    <span>
+                      {isResearcherDashboard
+                        ? "Only tasks assigned directly to you are shown. Review work appears only when it is specifically assigned to you."
+                        : "Only review items specifically assigned to you are shown. Other teams and unrelated work remain outside your view."}
+                    </span>
+                  </div>
+                  <b>{isResearcherDashboard ? "OWN WORK ONLY" : "ASSIGNED REVIEWS ONLY"}</b>
+                </section>
+              )}
+
               <div className="dashboard-kpis">
                 {(
-                  [
-                    [
-                      "Active Assignments",
-                      activeDashboardAssignments.length,
-                      "Work currently open",
-                      "Assignments",
-                    ],
-                    [
-                      "Due Soon",
-                      dueSoonDashboardAssignments.length,
-                      "Due within seven days",
-                      "Assignments",
-                    ],
-                    [
-                      "Overdue",
-                      overdueDashboardAssignments.length,
-                      "Past the recorded deadline",
-                      "Assignments",
-                    ],
-                    [
-                      "Completed This Month",
-                      completedThisMonth.length,
-                      "Completed from recorded update dates",
-                      "Assignments",
-                    ],
-                    [
-                      "Pending Reviews",
-                      reviewRows.length,
-                      canReview
-                        ? "Documents awaiting a decision"
-                        : "Visible review work",
-                      "Documents",
-                    ],
-                  ] as [string, number, string, string][]
+                  isResearcherDashboard
+                    ? ([
+                        ["Active Tasks", personalDashboardTasks.length, "Tasks assigned directly to you", "Assignments"],
+                        ["Due Soon", researcherDueSoonCount, "Your tasks due within seven days", "Assignments"],
+                        ["Overdue", researcherOverdueCount, "Your tasks past their deadline", "Assignments"],
+                        ["Awaiting Review", researcherAwaitingReviewCount, "Your submitted work awaiting a decision", "Assignments"],
+                        ["My Reviews", personalDashboardReviews.length, "Review decisions specifically assigned to you", personalDashboardReviews[0]?.destination || "Documents"],
+                        ["Final Reports", personalDashboardFinalizations.length, "Approved Task Reports awaiting your final generation", "Assignments"],
+                      ] as [string, number, string, string][])
+                    : isReviewerDashboard
+                      ? ([
+                          ["Waiting for Review", personalDashboardReviews.length, "Items specifically awaiting your decision", personalDashboardReviews[0]?.destination || "Documents"],
+                          ["Final Reports", personalDashboardFinalizations.length, "Approved Task Reports awaiting final generation", "Assignments"],
+                          ["Due Soon", reviewerDueSoonCount, "Reviews due within seven days", "Calendar"],
+                          ["Overdue", reviewerOverdueCount, "Assigned reviews past deadline", "Calendar"],
+                          ["In Review", reviewerInProgressCount, "Reviews currently being assessed", personalDashboardReviews[0]?.destination || "Documents"],
+                          ["Review Notices", dashboardReviewNotifications.filter((item) => !item.read_at).length, "Unread review and decision notices", "Notifications"],
+                        ] as [string, number, string, string][])
+                      : isManager && dashboardData?.management
+                        ? ([
+                            ["Active Assignments", activeDashboardAssignments.length, "Work currently open", "Assignments"],
+                            ["Due Soon", dueSoonDashboardAssignments.length, "Due within seven days", "Assignments"],
+                            ["Overdue", overdueDashboardAssignments.length, "Past the recorded deadline", "Assignments"],
+                            ["My Reviews", personalDashboardReviews.length, "Work specifically assigned to you for review", personalDashboardReviews[0]?.destination || "Assignments"],
+                            ["Document Reviews", reviewRows.length, "Documents awaiting a governance decision", "Document Repository"],
+                            ["Active Research", dashboardData.management.research.active, "Current research initiatives", "Research Repository"],
+                            ["Awaiting Publication", dashboardData.management.repository.awaitingPublication, "Approved knowledge awaiting publication", "Document Repository"],
+                          ] as [string, number, string, string][])
+                        : []
                 ).map(([label, value, detail, destination]) => (
                   <button
                     className={`dashboard-kpi ${label === "Overdue" && value ? "danger" : ""}`}
                     key={label}
-                    onClick={() => navigateTo(destination)}
+                    onClick={() => openDashboardMetric(label, destination)}
                   >
-                    <span>{label}</span>
+                    <span>{navigationDisplayLabel(label)}</span>
                     <strong>{value}</strong>
                     <small>{detail}</small>
                   </button>
                 ))}
               </div>
 
+              {dashboardActionQueue && (
+                <div className="dashboard-action-queue-backdrop" role="presentation" onClick={() => setDashboardActionQueue(null)}>
+                  <section className="dashboard-action-queue" role="dialog" aria-modal="true" aria-label={dashboardQueueTitle} onClick={(event) => event.stopPropagation()}>
+                    <header>
+                      <div><p>MY ACTIONS</p><h2>{dashboardQueueTitle}</h2><span>Only the records behind the selected total are shown.</span></div>
+                      <button type="button" onClick={() => setDashboardActionQueue(null)} aria-label="Close action queue">Ã—</button>
+                    </header>
+                    <div className="dashboard-action-queue-list">
+                      {dashboardQueueAssignments.map((item) => (
+                        <button key={item.id} type="button" onClick={() => { setDashboardActionQueue(null); setActive("Assignments"); void openAssignmentDetails(item); }}>
+                          <span><strong>{item.title}</strong><small>{item.status}</small></span>
+                          <span><b>{dashboardDeadlineText(item.due_date)}</b><small>Open assignment</small></span>
+                        </button>
+                      ))}
+                      {dashboardQueueWorkItems.map((item) => (
+                        <button key={`${item.type}-${item.id}`} type="button" onClick={() => { setDashboardActionQueue(null); void openDashboardWork(item); }}>
+                          <span><strong>{item.title}</strong><small>{item.type === "Review" ? `${item.ownerName ? `Submitted by ${item.ownerName}` : "Assigned review"}${item.contextTitle ? ` Â· ${item.contextTitle}` : ""}` : item.contextTitle || item.status}</small></span>
+                          <span><b>{item.type === "Review" ? (item.status === "Integrated" ? "Final report" : "Review") : dashboardDeadlineText(item.dueDate)}</b><small>{item.status}</small></span>
+                        </button>
+                      ))}
+                      {dashboardQueueDocumentReviews.map((item) => (
+                        <button key={item.id} type="button" onClick={() => { setDashboardActionQueue(null); setActive("Document Repository"); setReviewDocument(item); }}>
+                          <span><strong>{item.title}</strong><small>{item.created_by_name || "Document submission"}</small></span>
+                          <span><b>Review</b><small>{item.status}</small></span>
+                        </button>
+                      ))}
+                      {dashboardQueueResearch.map((item) => (
+                        <button key={item.id} type="button" onClick={() => { setDashboardActionQueue(null); setActive("Research Repository"); setSelectedResearch(item); setResearchTab("Overview"); }}>
+                          <span><strong>{item.title}</strong><small>{item.lead_name ? `Lead: ${item.lead_name}` : "Research project"}</small></span>
+                          <span><b>Open</b><small>{item.status}</small></span>
+                        </button>
+                      ))}
+                      {dashboardQueueNotifications.map((item) => (
+                        <button key={item.id} type="button" onClick={() => { setDashboardActionQueue(null); void openNotification(item); void navigateNotification(item); }}>
+                          <span><strong>{item.title}</strong><small>{item.body}</small></span>
+                          <span><b>Open action</b><small>{new Date(item.created_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}</small></span>
+                        </button>
+                      ))}
+                      {!dashboardQueueAssignments.length && !dashboardQueueWorkItems.length && !dashboardQueueDocumentReviews.length && !dashboardQueueResearch.length && !dashboardQueueNotifications.length && (
+                        <div className="dashboard-action-queue-empty"><strong>No records in this queue</strong><span>There is currently nothing requiring action under this total.</span></div>
+                      )}
+                    </div>
+                  </section>
+                </div>
+              )}
+
               <div className="dashboard-operations-grid">
                 <article className="dashboard-ops-card my-work-card">
                   <header>
                     <div>
-                      <p>MY WORK</p>
-                      <h2>Assignments requiring attention</h2>
+                      <p>{isResearcherDashboard ? "MY TASKS" : isReviewerDashboard ? "MY REVIEWS" : "MANAGEMENT ATTENTION"}</p>
+                      <h2>{isResearcherDashboard ? "Needs my attention" : isReviewerDashboard ? "Waiting for my review" : "Needs attention now"}</h2>
                     </div>
-                    <button onClick={() => navigateTo("Assignments")}>
-                      View assignments
+                    <button onClick={() => {
+                      if (isResearcherDashboard) setDashboardActionQueue("active-tasks");
+                      else if (isReviewerDashboard) setDashboardActionQueue("my-reviews");
+                      else setDashboardActionQueue("management-attention");
+                    }}>
+                      {isResearcherDashboard ? "View my tasks" : isReviewerDashboard ? "Open review queue" : "Open action queue"}
                     </button>
                   </header>
                   <div className="dashboard-work-list">
-                    {myDashboardAssignments.slice(0, 6).map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => openAssignmentDetails(item)}
-                      >
-                        <span
-                          className={`risk-dot ${deadlineState(item.due_date, item.status)}`}
-                        />
-                        <div>
-                          <strong>{item.title}</strong>
-                          <small>
-                            {assignmentRef(item.id)} | {item.division}
-                          </small>
-                        </div>
-                        <span>
-                          <b>{item.status}</b>
-                          <small>
-                            {item.due_date
-                              ? new Date(item.due_date).toLocaleDateString(
-                                  "en-KE",
-                                )
-                              : "No deadline"}
-                          </small>
-                        </span>
+                    {isResearcherDashboard && researcherAttentionTasks.slice(0, 6).map((item) => (
+                      <button key={`${item.type}-${item.id}`} onClick={() => openDashboardWork(item)}>
+                        <span className={`risk-dot ${(item.days ?? dashboardDaysUntilDue(item.dueDate) ?? 30) < 0 ? "overdue" : (item.days ?? dashboardDaysUntilDue(item.dueDate) ?? 30) <= 7 ? "almost-due" : "new"}`} />
+                        <div><strong>{item.title}</strong><small>{item.contextTitle || "Assigned task"}</small></div>
+                        <span><b>{dashboardDeadlineText(item.dueDate)}</b><small>{item.status}</small></span>
                       </button>
                     ))}
-                    {!myDashboardAssignments.length && (
+                    {isReviewerDashboard && reviewerAttentionItems.slice(0, 6).map((item) => (
+                      <button key={`${item.type}-${item.id}`} onClick={() => openDashboardWork(item)}>
+                        <span className={`risk-dot ${(item.days ?? dashboardDaysUntilDue(item.dueDate) ?? 30) < 0 ? "overdue" : (item.days ?? dashboardDaysUntilDue(item.dueDate) ?? 30) <= 7 ? "almost-due" : "new"}`} />
+                        <div>
+                          <strong>{item.title}</strong>
+                          <small>{item.ownerName ? `Submitted by ${item.ownerName}` : "Assigned review"}{item.contextTitle ? ` Â· ${item.contextTitle}` : ""}</small>
+                        </div>
+                        <span><b>{dashboardDeadlineText(item.dueDate)}</b><small>{item.status}</small></span>
+                      </button>
+                    ))}
+                    {!isResearcherDashboard && !isReviewerDashboard && dashboardAttentionAssignments.slice(0, 6).map((item) => {
+                      return (
+                        <button key={item.id} onClick={() => openAssignmentDetails(item)}>
+                          <span className={`risk-dot ${deadlineState(item.due_date, item.status)}`} />
+                          <div><strong>{item.title}</strong></div>
+                          <span><b>{dashboardDeadlineText(item.due_date)}</b><small>{item.status}</small></span>
+                        </button>
+                      );
+                    })}
+                    {((isResearcherDashboard && !researcherAttentionTasks.length) || (isReviewerDashboard && !reviewerAttentionItems.length) || (!isResearcherDashboard && !isReviewerDashboard && !dashboardAttentionAssignments.length)) && (
                       <div className="dashboard-empty">
-                        <strong>No assigned work</strong>
-                        <span>
-                          Assignments allocated to you will appear here.
-                        </span>
+                        <strong>{isResearcherDashboard ? "No active tasks assigned to you" : isReviewerDashboard ? "Your review queue is clear" : "No assignments need intervention"}</strong>
+                        <span>{isResearcherDashboard ? "Only tasks assigned directly to you appear on this dashboard." : isReviewerDashboard ? "A review appears here only when it is specifically assigned to you." : "No overdue, due-soon, blocked or high-priority assignments are currently visible."}</span>
                       </div>
                     )}
                   </div>
@@ -9889,119 +12184,439 @@ export default function App() {
 
                 <article className="dashboard-ops-card deadlines-card">
                   <header>
-                    <div>
-                      <p>UPCOMING DEADLINES</p>
-                      <h2>Next 30 days</h2>
-                    </div>
-                    <button onClick={() => navigateTo("Calendar")}>
-                      Open calendar
-                    </button>
+                    <div><p>UPCOMING DEADLINES</p><h2>{isResearcherDashboard ? "My task deadlines" : isReviewerDashboard ? "My review deadlines" : "Next 30 days"}</h2></div>
+                    <button onClick={() => navigateTo("Calendar")}>Open calendar</button>
                   </header>
-                  <div className="deadline-window-legend">
-                    <span>
-                      7 days{" "}
-                      <b>
-                        {
-                          upcomingDashboardAssignments.filter(
-                            (item) =>
-                              (new Date(`${item.due_date}T23:59:59`).getTime() -
-                                dashboardNow.getTime()) /
-                                86400000 <=
-                              7,
-                          ).length
-                        }
-                      </b>
-                    </span>
-                    <span>
-                      14 days{" "}
-                      <b>
-                        {
-                          upcomingDashboardAssignments.filter(
-                            (item) =>
-                              (new Date(`${item.due_date}T23:59:59`).getTime() -
-                                dashboardNow.getTime()) /
-                                86400000 <=
-                              14,
-                          ).length
-                        }
-                      </b>
-                    </span>
-                    <span>
-                      30 days <b>{upcomingDashboardAssignments.length}</b>
-                    </span>
-                  </div>
-                  {upcomingDashboardAssignments.slice(0, 6).map((item) => (
-                    <button
-                      className="deadline-item"
-                      key={item.id}
-                      onClick={() => openAssignmentDetails(item)}
-                    >
-                      <time>
-                        {new Date(String(item.due_date)).toLocaleDateString(
-                          "en-KE",
-                          { day: "2-digit", month: "short" },
-                        )}
-                      </time>
-                      <span>
-                        <strong>{item.title}</strong>
-                        <small>{item.division}</small>
-                      </span>
-                    </button>
-                  ))}
-                  {!upcomingDashboardAssignments.length && (
-                    <div className="dashboard-empty">
-                      <strong>No upcoming deadlines</strong>
-                      <span>
-                        No visible assignment is due in the next 30 days.
-                      </span>
-                    </div>
+                  {(isResearcherDashboard || isReviewerDashboard) ? (
+                    <>
+                      <div className="deadline-window-legend">
+                        <span>Overdue <b>{(isResearcherDashboard ? personalTaskDeadlines : personalReviewDeadlines).filter((item) => typeof item.days === "number" && item.days < 0).length}</b></span>
+                        <span>7 days <b>{(isResearcherDashboard ? personalTaskDeadlines : personalReviewDeadlines).filter((item) => typeof item.days === "number" && item.days >= 0 && item.days <= 7).length}</b></span>
+                        <span>Total <b>{(isResearcherDashboard ? personalTaskDeadlines : personalReviewDeadlines).length}</b></span>
+                      </div>
+                      {(isResearcherDashboard ? personalTaskDeadlines : personalReviewDeadlines).slice(0, 6).map((item) => (
+                        <button className="deadline-item" key={`${item.type}-${item.id}`} onClick={() => openDashboardWork(item)}>
+                          <time>{item.dueDate ? new Date(`${item.dueDate}T00:00:00`).toLocaleDateString("en-KE", { day: "2-digit", month: "short" }) : "â€”"}</time>
+                          <span><strong>{item.title}</strong><small>{item.contextTitle || item.status}</small></span>
+                        </button>
+                      ))}
+                      {!(isResearcherDashboard ? personalTaskDeadlines : personalReviewDeadlines).length && (
+                        <div className="dashboard-empty"><strong>No upcoming deadlines</strong><span>{isResearcherDashboard ? "None of your assigned tasks currently has an active deadline." : "None of your assigned reviews currently has an active deadline."}</span></div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="deadline-window-legend">
+                        <span>7 days <b>{upcomingDashboardAssignments.filter((item) => (new Date(`${item.due_date}T23:59:59`).getTime() - dashboardNow.getTime()) / 86400000 <= 7).length}</b></span>
+                        <span>14 days <b>{upcomingDashboardAssignments.filter((item) => (new Date(`${item.due_date}T23:59:59`).getTime() - dashboardNow.getTime()) / 86400000 <= 14).length}</b></span>
+                        <span>30 days <b>{upcomingDashboardAssignments.length}</b></span>
+                      </div>
+                      {upcomingDashboardAssignments.slice(0, 6).map((item) => (
+                        <button className="deadline-item" key={item.id} onClick={() => openAssignmentDetails(item)}>
+                          <time>{new Date(String(item.due_date)).toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}</time>
+                          <span><strong>{item.title}</strong><small>{item.division}</small></span>
+                        </button>
+                      ))}
+                      {!upcomingDashboardAssignments.length && <div className="dashboard-empty"><strong>No upcoming deadlines</strong><span>No visible assignment is due in the next 30 days.</span></div>}
+                    </>
                   )}
                 </article>
+
+                {isManager && personalDashboardReviews.length > 0 && (
+                  <article className="dashboard-ops-card manager-personal-reviews-card">
+                    <header>
+                      <div>
+                        <p>MY REVIEWS</p>
+                        <h2>Waiting for my decision</h2>
+                      </div>
+                      <button type="button" onClick={() => setDashboardActionQueue("my-reviews")}>Open review queue</button>
+                    </header>
+                    <div className="dashboard-work-list compact-review-list">
+                      {reviewerAttentionItems.slice(0, 6).map((item) => (
+                        <button
+                          key={`${item.type}-${item.id}`}
+                          onClick={() => openDashboardWork(item)}
+                        >
+                          <span
+                            className={`risk-dot ${
+                              (item.days ?? dashboardDaysUntilDue(item.dueDate) ?? 30) < 0
+                                ? "overdue"
+                                : "almost-due"
+                            }`}
+                          />
+                          <div>
+                            <strong>{item.title}</strong>
+                            <small>
+                              {item.ownerName ? `Submitted by ${item.ownerName}` : "Assigned review"}
+                              {item.contextTitle ? ` Â· ${item.contextTitle}` : ""}
+                            </small>
+                          </div>
+                          <span>
+                            <b>{item.status === "Integrated" ? "Final report pending" : "Review now"}</b>
+                            <small>{dashboardDeadlineText(item.dueDate)}</small>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </article>
+                )}
 
                 <article className="dashboard-ops-card workload-card">
                   <header>
                     <div>
-                      <p>TEAM WORKLOAD</p>
-                      <h2>Active work by officer</h2>
+                      <p>{isResearcherDashboard ? "MY REVIEWS" : isReviewerDashboard ? "REVIEW ACTIVITY" : "TEAM WORKLOAD"}</p>
+                      <h2>{isResearcherDashboard ? "Review work assigned to me" : isReviewerDashboard ? "Recent review updates" : "Responsibility and capacity"}</h2>
                     </div>
-                    {isManager && (
-                      <button onClick={() => navigateTo("Team & Users")}>
-                        Open team
-                      </button>
-                    )}
+                    {isManager && <button onClick={() => navigateTo("Team & Users")}>Open team</button>}
                   </header>
-                  <div className="workload-list">
-                    {Object.values(dashboardWorkload)
-                      .sort((a, b) => b.active - a.active)
-                      .slice(0, 8)
-                      .map((member) => (
-                        <div key={member.name}>
-                          <span>
-                            <strong>{member.name}</strong>
-                            <small>
-                              {member.division || "Division not recorded"}
-                            </small>
-                          </span>
-                          <i>
-                            <b
-                              style={{
-                                width: `${Math.min(100, member.active * 20)}%`,
-                              }}
-                            />
-                          </i>
-                          <em>{member.active}</em>
-                        </div>
+                  {isResearcherDashboard ? (
+                    <div className="dashboard-work-list compact-review-list">
+                      {reviewerAttentionItems.slice(0, 5).map((item) => (
+                        <button key={`${item.type}-${item.id}`} onClick={() => openDashboardWork(item)}>
+                          <span className="risk-dot almost-due" />
+                          <div><strong>{item.title}</strong><small>{item.ownerName ? `Submitted by ${item.ownerName}` : "Assigned review"}{item.contextTitle ? ` Â· ${item.contextTitle}` : ""}</small></div>
+                          <span><b>{dashboardDeadlineText(item.dueDate)}</b><small>{item.status}</small></span>
+                        </button>
                       ))}
-                    {!Object.keys(dashboardWorkload).length && (
-                      <div className="dashboard-empty">
-                        <strong>No workload data</strong>
+                      {!reviewerAttentionItems.length && <div className="dashboard-empty"><strong>No reviews assigned</strong><span>If you are selected as a reviewer, that review appears here without exposing the other person's team or unrelated work.</span></div>}
+                    </div>
+                  ) : isReviewerDashboard ? (
+                    <div className="dashboard-activity-list review-activity-list">
+                      {dashboardReviewNotifications.slice(0, 6).map((item) => (
+                        <button key={item.id} onClick={() => { openNotification(item); navigateNotification(item); }}>
+                          <span className={item.read_at ? "read" : "unread"} />
+                          <div><strong>{item.title}</strong><small>{item.body}</small></div>
+                          <time>{new Date(item.created_at).toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}</time>
+                        </button>
+                      ))}
+                      {!dashboardReviewNotifications.length && <div className="dashboard-empty"><strong>No recent review updates</strong><span>New submissions, changes and decisions will appear here.</span></div>}
+                    </div>
+                  ) : (
+                    <div className="workload-list manager-workload-list">
+                      {(Object.values(dashboardWorkload) as { name: string; division: string; active: number; overdue: number; dueSoon: number; }[]).sort((a, b) => b.overdue - a.overdue || b.dueSoon - a.dueSoon || b.active - a.active).slice(0, 8).map((member) => {
+                        const health = member.overdue ? `${member.overdue} overdue` : member.dueSoon ? `${member.dueSoon} due soon` : member.active ? "On track" : "Available";
+                        return (
+                          <div key={member.name} className="manager-workload-row">
+                            <span><strong>{member.name}</strong><small>{member.division || "Division not recorded"}</small></span>
+                            <span className="manager-workload-count"><strong>{member.active}</strong><small>active</small></span>
+                            <b className={`manager-workload-health ${member.overdue ? "risk" : member.dueSoon ? "watch" : member.active ? "healthy" : "available"}`}>{health}</b>
+                          </div>
+                        );
+                      })}
+                      {!Object.keys(dashboardWorkload).length && <div className="dashboard-empty"><strong>No workload data</strong><span>Workload appears after assignments have team members.</span></div>}
+                    </div>
+                  )}
+                </article>
+
+                {isManager && dashboardData?.management && (
+                  <article className="dashboard-ops-card manager-completed-work-card">
+                    <header>
+                      <div>
+                        <p>COMPLETED WORK</p>
+                        <h2>Completed assignments, tasks and research</h2>
                         <span>
-                          Workload appears after assignments have team members.
+                          Completed work leaves My Activity but remains available here. Select any completed item to open its workspace and review the retained work.
                         </span>
                       </div>
-                    )}
-                  </div>
-                </article>
+                      <strong>
+                        {managerCompletedWork.assignments.length +
+                          managerCompletedWork.tasks.length +
+                          managerCompletedWork.research.length}{" "}
+                        completed
+                      </strong>
+                    </header>
+
+                    <div className="manager-completed-work-grid">
+                      <section>
+                        <header>
+                          <span>Assignments</span>
+                          <b>{managerCompletedWork.assignments.length}</b>
+                        </header>
+                        <div className="manager-completed-work-list">
+                          {managerCompletedWork.assignments.map(
+                            (item: CompletedWorkResponse["assignments"][number]) => (
+                              <button
+                                key={`completed-assignment-${item.id}`}
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    let assignment = assignmentRows.find(
+                                      (row) => row.id === item.id,
+                                    );
+                                    if (!assignment) {
+                                      const rows = await api.assignments(token);
+                                      setAssignmentRows(rows);
+                                      assignment =
+                                        rows.find((row) => row.id === item.id) ||
+                                        undefined;
+                                    }
+                                    if (!assignment) {
+                                      throw new Error(
+                                        "Completed assignment could not be loaded.",
+                                      );
+                                    }
+                                    setActive("Assignments");
+                                    await openAssignmentDetails(assignment);
+                                  } catch (error) {
+                                    setUserNotice(
+                                      error instanceof Error
+                                        ? error.message
+                                        : "Completed assignment workspace could not be opened.",
+                                    );
+                                  }
+                                }}
+                              >
+                                <span>
+                                  <strong>{item.title}</strong>
+                                  <small>
+                                    {item.lead_name
+                                      ? `Lead: ${item.lead_name}`
+                                      : "Completed assignment"}
+                                  </small>
+                                </span>
+                                <span className="manager-completed-work-open">
+                                  <time>
+                                    {new Date(item.completed_at).toLocaleDateString(
+                                      "en-KE",
+                                      { day: "2-digit", month: "short", year: "numeric" },
+                                    )}
+                                  </time>
+                                  <b>Open workspace</b>
+                                </span>
+                              </button>
+                            ),
+                          )}
+                          {!managerCompletedWork.assignments.length && (
+                            <div className="dashboard-empty">
+                              <strong>No completed assignments</strong>
+                            </div>
+                          )}
+                        </div>
+                      </section>
+
+                      <section>
+                        <header>
+                          <span>Tasks</span>
+                          <b>{managerCompletedWork.tasks.length}</b>
+                        </header>
+                        <div className="manager-completed-work-list">
+                          {managerCompletedWork.tasks.map((item: CompletedWorkResponse["tasks"][number]) => (
+                            <button
+                              key={`completed-task-${item.id}`}
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  let assignment = assignmentRows.find(
+                                    (row) => row.id === item.assignment_id,
+                                  );
+                                  if (!assignment) {
+                                    const rows = await api.assignments(token);
+                                    setAssignmentRows(rows);
+                                    assignment =
+                                      rows.find(
+                                        (row) =>
+                                          row.id === item.assignment_id,
+                                      ) || undefined;
+                                  }
+                                  if (!assignment) {
+                                    throw new Error(
+                                      "The parent assignment for this completed task could not be loaded.",
+                                    );
+                                  }
+
+                                  setActive("Assignments");
+                                  await openAssignmentDetails(assignment);
+
+                                  const tasks = await api.assignmentTasks(
+                                    token,
+                                    assignment.id,
+                                  );
+                                  setAssignmentTasks(tasks);
+                                  const task =
+                                    tasks.find((row) => row.id === item.id) ||
+                                    null;
+                                  if (!task) {
+                                    throw new Error(
+                                      "Completed task workspace could not be loaded.",
+                                    );
+                                  }
+
+                                  setAssignmentWorkspaceTab("Tasks");
+                                  await openAssignmentTaskWorkspace(task, true);
+                                } catch (error) {
+                                  setUserNotice(
+                                    error instanceof Error
+                                      ? error.message
+                                      : "Completed task workspace could not be opened.",
+                                  );
+                                }
+                              }}
+                            >
+                              <span>
+                                <strong>{item.title}</strong>
+                                <small>
+                                  {item.assignment_title}
+                                  {item.owner_name
+                                    ? ` · ${item.owner_name}`
+                                    : ""}
+                                </small>
+                              </span>
+                              <span className="manager-completed-work-open">
+                                <time>
+                                  {new Date(item.completed_at).toLocaleDateString(
+                                    "en-KE",
+                                    { day: "2-digit", month: "short", year: "numeric" },
+                                  )}
+                                </time>
+                                <b>Open task workspace</b>
+                              </span>
+                            </button>
+                          ))}
+                          {!managerCompletedWork.tasks.length && (
+                            <div className="dashboard-empty">
+                              <strong>No completed tasks</strong>
+                            </div>
+                          )}
+                        </div>
+                      </section>
+
+                      <section>
+                        <header>
+                          <span>Research</span>
+                          <b>{managerCompletedWork.research.length}</b>
+                        </header>
+                        <div className="manager-completed-work-list">
+                          {managerCompletedWork.research.map(
+                            (item: CompletedWorkResponse["research"][number]) => (
+                              <button
+                                key={`completed-research-${item.id}`}
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    let project = researchRows.find(
+                                      (row) => row.id === item.id,
+                                    );
+                                    if (!project) {
+                                      const projects = await api.research(token);
+                                      setResearchRows(projects);
+                                      project =
+                                        projects.find(
+                                          (row) => row.id === item.id,
+                                        ) || undefined;
+                                    }
+                                    if (!project) {
+                                      throw new Error(
+                                        "Completed research workspace could not be loaded.",
+                                      );
+                                    }
+
+                                    setActive("Research Repository");
+                                    setSelectedResearch(project);
+                                    setResearchPlanDraft({
+                                      summary: project.summary || "",
+                                      researchQuestion:
+                                        project.research_question || "",
+                                      objectives: project.objectives || "",
+                                      methodology: project.methodology || "",
+                                      startDate: project.start_date || "",
+                                      endDate: project.end_date || "",
+                                    });
+                                    setResearchTeamDraft({
+                                      leadId: project.lead_id,
+                                      collaborators:
+                                        project.collaborators.map((person) => ({
+                                          userId: person.id,
+                                          role: [
+                                            "Researcher",
+                                            "Analyst",
+                                            "Reviewer",
+                                            "Subject Matter Expert",
+                                          ].includes(person.role)
+                                            ? person.role
+                                            : "Researcher",
+                                        })),
+                                    });
+                                    setResearchTab("Overview");
+                                    setSelectedReportSection(null);
+                                    setReportContent("");
+
+                                    const [
+                                      comments,
+                                      report,
+                                      sources,
+                                      activityRows,
+                                      templates,
+                                      documents,
+                                    ] = await Promise.all([
+                                      api.researchComments(token, project.id),
+                                      api.researchReport(token, project.id),
+                                      api.researchSources(token, project.id),
+                                      api.researchActivity(token, project.id),
+                                      api.documentTemplates(token, "Research"),
+                                      api.generatedDocuments(
+                                        token,
+                                        "Research",
+                                        project.id,
+                                      ),
+                                    ]);
+
+                                    setResearchComments(comments);
+                                    setResearchReport(report);
+                                    setResearchSources(sources);
+                                    setResearchActivity(activityRows);
+                                    setBuilderTemplates(templates);
+                                    setWorkspaceDocuments(documents);
+                                    setBuilderCreate({
+                                      templateId: templates[0]?.id || "",
+                                      title: "",
+                                      classification: "Official",
+                                    });
+
+                                    if (report.length) {
+                                      setSelectedReportSection(report[0]);
+                                      setReportContent(
+                                        report[0].content || "",
+                                      );
+                                    }
+                                  } catch (error) {
+                                    setUserNotice(
+                                      error instanceof Error
+                                        ? error.message
+                                        : "Completed research workspace could not be opened.",
+                                    );
+                                  }
+                                }}
+                              >
+                                <span>
+                                  <strong>{item.title}</strong>
+                                  <small>
+                                    {item.lead_name
+                                      ? `Lead: ${item.lead_name}`
+                                      : "Completed research"}
+                                  </small>
+                                </span>
+                                <span className="manager-completed-work-open">
+                                  <time>
+                                    {new Date(item.completed_at).toLocaleDateString(
+                                      "en-KE",
+                                      { day: "2-digit", month: "short", year: "numeric" },
+                                    )}
+                                  </time>
+                                  <b>Open workspace</b>
+                                </span>
+                              </button>
+                            ),
+                          )}
+                          {!managerCompletedWork.research.length && (
+                            <div className="dashboard-empty">
+                              <strong>No completed research</strong>
+                            </div>
+                          )}
+                        </div>
+                      </section>
+                    </div>
+                  </article>
+                )}
 
                 <article className="dashboard-ops-card activity-card">
                   <header>
@@ -10014,7 +12629,7 @@ export default function App() {
                     </button>
                   </header>
                   <div className="dashboard-activity-list">
-                    {notifications.slice(0, 7).map((item) => (
+                    {myActivityNotifications.slice(0, 5).map((item) => (
                       <button
                         key={item.id}
                         onClick={() => {
@@ -10035,7 +12650,7 @@ export default function App() {
                         </time>
                       </button>
                     ))}
-                    {!notifications.length && (
+                    {!myActivityNotifications.length && (
                       <div className="dashboard-empty">
                         <strong>No recent activity</strong>
                         <span>
@@ -10048,75 +12663,24 @@ export default function App() {
                 </article>
 
                 <article className="dashboard-ops-card quick-actions-card">
-                  <header>
-                    <div>
-                      <p>QUICK ACTIONS</p>
-                      <h2>Start common work</h2>
-                    </div>
-                  </header>
-                  <div className="operational-quick-actions">
-                    {isManager && (
-                      <button
-                        onClick={() => {
-                          navigateTo("Assignments");
-                          startAssignment();
-                        }}
-                      >
-                        <Icon name="plus" />
-                        <span>New Assignment</span>
-                      </button>
-                    )}
-                    {roleNavigation[user.role].includes(
-                      "Research Repository",
-                    ) && (
-                      <button
-                        onClick={() => {
-                          navigateTo("Research Repository");
-                          setResearchOpen(true);
-                        }}
-                      >
-                        <Icon name="research" />
-                        <span>New Research</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        navigateTo("Knowledge Repository");
-                        openKnowledgeUpload();
-                      }}
-                    >
-                      <Icon name="upload" />
-                      <span>Upload Knowledge</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigateTo("Documents");
-                        openKnowledgeUpload();
-                      }}
-                    >
-                      <Icon name="documents" />
-                      <span>Create Document</span>
-                    </button>
-                    <button onClick={() => navigateTo("Calendar")}>
-                      <Icon name="calendar" />
-                      <span>Open Calendar</span>
-                    </button>
-                    {isManager && (
-                      <button onClick={() => navigateTo("Reports & Analytics")}>
-                        <Icon name="reports" />
-                        <span>Generate Report</span>
-                      </button>
+                  <header><div><p>QUICK ACTIONS</p><h2>{isResearcherDashboard ? "Open my workspaces" : isReviewerDashboard ? "Open review tools" : "Start common work"}</h2></div></header>
+                  <div className="operational-quick-actions management-quick-actions">
+                    {isManager ? (
+                      <>
+                        <button onClick={() => { navigateTo("Assignments"); startAssignment(); }}><Icon name="plus" /><span>New Assignment</span></button>
+                        <button onClick={() => { navigateTo("Research Repository"); setResearchOpen(true); }}><Icon name="research" /><span>New Research</span></button>
+                        <button onClick={() => { navigateTo("Document Repository"); openKnowledgeUpload(); }}><Icon name="upload" /><span>Upload Document</span></button>
+                        <button onClick={() => navigateTo("Documents")}><Icon name="check" /><span>Review Queue</span></button>
+                      </>
+                    ) : (
+                      (dashboardData?.quickActions || []).map((action) => (
+                        <button key={action.label} onClick={() => navigateTo(action.destination)}>
+                          <Icon name={/review/i.test(action.label) ? "check" : /research/i.test(action.label) ? "research" : /evidence|document/i.test(action.label) ? "documents" : /notification/i.test(action.label) ? "notifications" : /deadline|calendar/i.test(action.label) ? "calendar" : "assignments"} />
+                          <span>{action.label}</span>
+                        </button>
+                      ))
                     )}
                   </div>
-                  {systemAlerts.slice(0, 2).map((notice, index) => (
-                    <div
-                      className="dashboard-notice"
-                      key={`${notice}-${index}`}
-                    >
-                      <Icon name="announce" />
-                      <span>{notice}</span>
-                    </div>
-                  ))}
                 </article>
               </div>
             </section>
@@ -10129,7 +12693,7 @@ export default function App() {
                   >
                     <Icon name={icon} />
                     <div>
-                      <span>{label}</span>
+                      <span>{navigationDisplayLabel(label)}</span>
                       <strong>{value}</strong>
                       <small>
                         {tone === "deadline-green"
@@ -10422,7 +12986,7 @@ export default function App() {
                             {deadlineLabel(item.dueDate, item.status)}
                           </em>
                         </div>
-                        <span className="more">⋮</span>
+                        <span className="more">â‹®</span>
                       </button>
                     );
                   })}
@@ -10697,7 +13261,7 @@ export default function App() {
                         onClick={() => navigateTo(label)}
                       >
                         <Icon name={icon} />
-                        <span>{label}</span>
+                        <span>{navigationDisplayLabel(label)}</span>
                         {label === "Notifications" && (
                           <b>
                             {
@@ -10742,7 +13306,7 @@ export default function App() {
             </section>
             <footer>
               <span>
-                © 2026 Public Service Commission, Kenya. All rights reserved.
+                Â© 2026 Public Service Commission, Kenya. All rights reserved.
               </span>
               <div>
                 <a href="#">Privacy Policy</a>
@@ -10849,6 +13413,44 @@ export default function App() {
             </section>
           </div>
         )}
+        {assignmentSourceChoiceOpen && (
+          <div className="research-source-choice-backdrop" onClick={() => setAssignmentSourceChoiceOpen(false)}>
+            <section className="research-source-choice" onClick={(event) => event.stopPropagation()} aria-label="Choose assignment source">
+              <header>
+                <div>
+                  <small>ASSIGNMENT SOURCE</small>
+                  <h2>How will this assignment be completed?</h2>
+                  <p>Choose this before App2 allocates staff or creates tasks. External completed work should go directly to controlled report import and review.</p>
+                </div>
+                <button type="button" aria-label="Close" onClick={() => setAssignmentSourceChoiceOpen(false)}>Ã—</button>
+              </header>
+              <div className="research-source-choice-options">
+                <button type="button" className="research-source-option" onClick={() => beginAssignmentCreation("Internal")}>
+                  <span className="research-source-option-icon">IN</span>
+                  <span>
+                    <strong>Internal assignment</strong>
+                    <small>Work will be completed by App2 staff through the assignment workspace.</small>
+                    <em>Assign members, create tasks, collect evidence, prepare the report and send it for review.</em>
+                  </span>
+                  <b>â†’</b>
+                </button>
+                <button type="button" className="research-source-option external" onClick={() => beginAssignmentCreation("External")}>
+                  <span className="research-source-option-icon">EX</span>
+                  <span>
+                    <strong>External completed work</strong>
+                    <small>A report or deliverable already exists outside App2.</small>
+                    <em>Do not allocate members or tasks. Register the assignment, import the report and select a reviewer before a final report can be generated.</em>
+                  </span>
+                  <b>â†’</b>
+                </button>
+              </div>
+              <footer>
+                <span>You can still import an external report later from an internal assignment's Reports workspace.</span>
+                <button type="button" onClick={() => setAssignmentSourceChoiceOpen(false)}>Cancel</button>
+              </footer>
+            </section>
+          </div>
+        )}
         {assignmentEditor && (
           <div
             className="modal-backdrop"
@@ -10866,9 +13468,16 @@ export default function App() {
               </button>
               <h2>
                 {assignmentEditor === "new"
-                  ? "Create assignment"
+                  ? assignmentCreationMode === "External"
+                    ? "Register external assignment"
+                    : "Create assignment"
                   : "Edit assignment"}
               </h2>
+              {assignmentEditor === "new" && assignmentCreationMode === "External" && (
+                <div className="session-message" role="note">
+                  <strong>External completed work:</strong> App2 will create only the governed assignment record. No members or tasks will be assigned. After saving, you will go directly to the Final Assignment Report import and reviewer handoff.
+                </div>
+              )}
               <form onSubmit={saveAssignment}>
                 <label>
                   Title
@@ -10941,33 +13550,39 @@ export default function App() {
                     <option>Critical</option>
                   </select>
                 </label>
-                <fieldset>
-                  <legend>Assign members</legend>
-                  {team
-                    .filter((member) => member.role !== "Administrator")
-                    .map((member) => (
-                      <label key={member.id}>
-                        <input
-                          type="checkbox"
-                          checked={assignmentForm.memberIds.includes(member.id)}
-                          onChange={(event) =>
-                            setAssignmentForm({
-                              ...assignmentForm,
-                              memberIds: event.target.checked
-                                ? [...assignmentForm.memberIds, member.id]
-                                : assignmentForm.memberIds.filter(
-                                    (id) => id !== member.id,
-                                  ),
-                            })
-                          }
-                        />
-                        {member.name}
-                        <small>{member.role}</small>
-                      </label>
-                    ))}
-                </fieldset>
+                {(assignmentEditor !== "new" || assignmentCreationMode === "Internal") && (
+                  <fieldset>
+                    <legend>Assign members</legend>
+                    {team
+                      .filter((member) => member.role !== "Administrator")
+                      .map((member) => (
+                        <label key={member.id}>
+                          <input
+                            type="checkbox"
+                            checked={assignmentForm.memberIds.includes(member.id)}
+                            onChange={(event) =>
+                              setAssignmentForm({
+                                ...assignmentForm,
+                                memberIds: event.target.checked
+                                  ? [...assignmentForm.memberIds, member.id]
+                                  : assignmentForm.memberIds.filter(
+                                      (id) => id !== member.id,
+                                    ),
+                              })
+                            }
+                          />
+                          {member.name}
+                          <small>{member.role}</small>
+                        </label>
+                      ))}
+                  </fieldset>
+                )}
                 <button className="sign-in" disabled={savingAssignment}>
-                  {savingAssignment ? "Saving..." : "Save assignment"}
+                  {savingAssignment
+                    ? "Saving..."
+                    : assignmentEditor === "new" && assignmentCreationMode === "External"
+                      ? "Continue to external report"
+                      : "Save assignment"}
                 </button>
               </form>
             </section>
@@ -11029,7 +13644,7 @@ export default function App() {
               aria-modal="true"
               aria-labelledby="account-success-title"
             >
-              <div className="success-mark">✓</div>
+              <div className="success-mark">âœ“</div>
               <p>ACCOUNT CREATED</p>
               <h2 id="account-success-title">
                 User account created successfully
@@ -11268,7 +13883,7 @@ export default function App() {
                 disabled={knowledgeUploading}
                 onClick={() => setKnowledgeUploadOpen(false)}
               >
-                ×
+                Ã—
               </button>
               <p>DOCUMENT PROVENANCE</p>
               <h2>Add repository document</h2>
@@ -11579,6 +14194,44 @@ export default function App() {
             </section>
           </div>
         )}
+        {researchSourceChoiceOpen && (
+          <div className="research-source-choice-backdrop" role="presentation" onClick={() => setResearchSourceChoiceOpen(false)}>
+            <section className="research-source-choice" role="dialog" aria-modal="true" aria-labelledby="research-source-choice-title" onClick={(event) => event.stopPropagation()}>
+              <header>
+                <div>
+                  <small>NEW RESEARCH</small>
+                  <h2 id="research-source-choice-title">How will this research be produced?</h2>
+                  <p>Choose this before App2 creates a workspace so external research is not given unnecessary assignments.</p>
+                </div>
+                <button type="button" aria-label="Close" onClick={() => setResearchSourceChoiceOpen(false)}>Ã—</button>
+              </header>
+              <div className="research-source-choice-options">
+                <button type="button" className="research-source-option" onClick={() => { setResearchSourceChoiceOpen(false); setResearchFormStep(1); setResearchOpen(true); }}>
+                  <span className="research-source-option-icon" aria-hidden="true">I</span>
+                  <span>
+                    <strong>Internal research</strong>
+                    <small>Research will be planned and carried out inside App2.</small>
+                    <em>Creates a research workspace with linked assignments, resources, report drafting and review.</em>
+                  </span>
+                  <b aria-hidden="true">â†’</b>
+                </button>
+                <button type="button" className="research-source-option external" onClick={() => { setResearchSourceChoiceOpen(false); setSelectedResearch(null); setResearchRepositoryMode("Imported"); setExternalResearchOpen(true); }}>
+                  <span className="research-source-option-icon" aria-hidden="true">E</span>
+                  <span>
+                    <strong>External research</strong>
+                    <small>A completed or substantially completed report already exists outside App2.</small>
+                    <em>Skips assignment creation. Import the report, select a reviewer and send it directly through controlled review.</em>
+                  </span>
+                  <b aria-hidden="true">â†’</b>
+                </button>
+              </div>
+              <footer>
+                <span>You can still import an external report later from an internal project's Work tab.</span>
+                <button type="button" onClick={() => setResearchSourceChoiceOpen(false)}>Cancel</button>
+              </footer>
+            </section>
+          </div>
+        )}
         {researchOpen && (
           <div
             className="research-wizard-shell"
@@ -11612,7 +14265,7 @@ export default function App() {
                   setResearchFormStep(1);
                 }}
               >
-                ×
+                Ã—
               </button>
             </header>
             <div className="research-wizard-body">
@@ -11648,7 +14301,7 @@ export default function App() {
                     }
                     onClick={() => setResearchFormStep(item.step)}
                   >
-                    <b>{researchFormStep > item.step ? "✓" : item.step}</b>
+                    <b>{researchFormStep > item.step ? "âœ“" : item.step}</b>
                     <span>
                       <strong>{item.title}</strong>
                       <small>{item.detail}</small>
@@ -11782,7 +14435,7 @@ export default function App() {
                           )
                           .map((member) => (
                             <option key={member.id} value={member.id}>
-                              {member.name} — {member.role}
+                              {member.name} â€” {member.role}
                             </option>
                           ))}
                       </select>
@@ -11800,7 +14453,6 @@ export default function App() {
                             [
                               "Research Officer",
                               "Research Manager",
-                              "Reviewer",
                             ].includes(member.role) &&
                             member.id !== researchForm.leadId,
                         )
@@ -11836,9 +14488,33 @@ export default function App() {
                             <span>
                               <strong>{member.name}</strong>
                               <small>
-                                {member.role} · {member.division}
+                                {member.role} Â· {member.division}
                               </small>
                             </span>
+                          </label>
+                        ))}
+                    </fieldset>
+                    <fieldset className="research-team-picker research-reviewer-picker-wizard">
+                      <legend>
+                        Formal reviewers <small>{researchForm.reviewerIds.length} selected</small>
+                      </legend>
+                      <p className="research-reviewer-help">Reviewer assignment is contextual to this research project. Reviewers are not added to the working team.</p>
+                      {team
+                        .filter((member) => member.active && ["Reviewer", "Research Manager", "Administrator"].includes(member.role) && member.id !== researchForm.leadId)
+                        .map((member) => (
+                          <label key={member.id}>
+                            <input
+                              type="checkbox"
+                              checked={researchForm.reviewerIds.includes(member.id)}
+                              onChange={(event) => setResearchForm({
+                                ...researchForm,
+                                reviewerIds: event.target.checked
+                                  ? [...researchForm.reviewerIds, member.id]
+                                  : researchForm.reviewerIds.filter((id) => id !== member.id),
+                              })}
+                            />
+                            <b>{member.name.split(" ").map((name) => name[0]).slice(0, 2).join("").toUpperCase()}</b>
+                            <span><strong>{member.name}</strong><small>{member.role} Â· {member.division}</small></span>
                           </label>
                         ))}
                     </fieldset>
@@ -11850,8 +14526,7 @@ export default function App() {
                       <small>STEP 3 OF 3</small>
                       <h2>Timeline and confirmation</h2>
                       <p>
-                        Set the delivery window and connect the research to its
-                        originating assignment.
+                        Set the delivery window and confirm the project. Related assignments are created or linked from the Work tab after creation.
                       </p>
                     </header>
                     <div className="research-wizard-two">
@@ -11884,25 +14559,6 @@ export default function App() {
                         />
                       </label>
                     </div>
-                    <label>
-                      Linked assignment
-                      <select
-                        value={researchForm.assignmentId}
-                        onChange={(event) =>
-                          setResearchForm({
-                            ...researchForm,
-                            assignmentId: event.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Independent research project</option>
-                        {assignmentRows.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {assignmentRef(item.id)} — {item.title}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
                     <div className="research-wizard-summary">
                       <div>
                         <small>PROJECT</small>
@@ -11922,14 +14578,13 @@ export default function App() {
                           )?.name || "Not selected"}
                         </strong>
                         <span>
-                          {researchForm.collaboratorIds.length} collaborator
-                          {researchForm.collaboratorIds.length === 1 ? "" : "s"}
+                          {researchForm.collaboratorIds.length} collaborator{researchForm.collaboratorIds.length === 1 ? "" : "s"} Â· {researchForm.reviewerIds.length} reviewer{researchForm.reviewerIds.length === 1 ? "" : "s"}
                         </span>
                       </div>
                       <div>
                         <small>DELIVERY WINDOW</small>
                         <strong>
-                          {researchForm.startDate || "Open start"} →{" "}
+                          {researchForm.startDate || "Open start"} â†’{" "}
                           {researchForm.endDate || "Open completion"}
                         </strong>
                         <span>Initial status: Planning</span>
@@ -12097,7 +14752,7 @@ export default function App() {
                 className="close"
                 onClick={() => setDeletionRequestDocument(null)}
               >
-                ×
+                Ã—
               </button>
               <p>CONTROLLED DELETION</p>
               <h2>Request document deletion</h2>
@@ -12142,7 +14797,7 @@ export default function App() {
                 className="close"
                 onClick={() => setDeletionDecision(null)}
               >
-                ×
+                Ã—
               </button>
               <p>MANAGER DECISION</p>
               <h2>Review deletion request</h2>
@@ -12366,7 +15021,7 @@ export default function App() {
                 <button
                   className="research-command-back"
                   type="button"
-                  title="Back to Research Repository"
+                  title="Back to Research Workspace"
                   onClick={() => {
                     setSelectedResearch(null);
                     setResearchComments([]);
@@ -12377,17 +15032,17 @@ export default function App() {
                     setActive("Research Repository");
                   }}
                 >
-                  <span aria-hidden="true">←</span>
+                  <span aria-hidden="true">â†</span>
                   <span>Back</span>
                 </button>
 
                 <div className="research-command-title">
-                  <p>RESEARCH PROJECT WORKSPACE</p>
+                  <p>RESEARCH WORKSPACE</p>
                   <h1>
                     {selectedResearch.title || "Untitled Research Project"}
                   </h1>
                   <div className="research-command-subtitle">
-                    Research collaboration, evidence and report workspace
+                    Manage the research brief, work, evidence, report and review from one clear workspace.
                   </div>
 
                   <div className="research-command-meta">
@@ -12399,7 +15054,7 @@ export default function App() {
                       <small>Timeline</small>
                       <strong>
                         {selectedResearch.start_date || "Not set"}
-                        {" → "}
+                        {" â†’ "}
                         {selectedResearch.end_date || "Open"}
                       </strong>
                     </span>
@@ -12426,7 +15081,7 @@ export default function App() {
                     setReportContent("");
                   }}
                 >
-                  ×
+                  Ã—
                 </button>
                 {isManager && (
                   <div className="research-record-actions" aria-label="Research record controls">
@@ -12500,10 +15155,10 @@ export default function App() {
               {(
                 [
                   "Overview",
-                  "Research Plan",
-                  "Team",
-                  "Discussion",
+                  "Work",
+                  "Resources",
                   "Report",
+                  "Review",
                   "Activity",
                 ] as const
               ).map((tab) => (
@@ -12516,10 +15171,31 @@ export default function App() {
                   onPointerDown={() => setResearchTab(tab)}
                   onClick={() => setResearchTab(tab)}
                 >
-                  {tab}
+                  {tab === "Resources" ? "Evidence" : tab}
                 </button>
               ))}
             </nav>
+
+            {researchNextAction && (
+              <div className="research-next-action">
+                <div>
+                  <small>NEXT STEP</small>
+                  <strong>{researchNextAction.title}</strong>
+                  <span>{researchNextAction.detail}</span>
+                </div>
+                <button type="button" onClick={() => {
+                    if (researchNextAction.label === "Preview Research Brief") {
+                      setResearchBriefOpen(true);
+                      setResearchBriefEditing(false);
+                      setResearchBriefRequestOpen(false);
+                    } else {
+                      setResearchTab(researchNextAction.tab);
+                    }
+                  }}>
+                  {researchNextAction.label}
+                </button>
+              </div>
+            )}
 
             {researchWorkspaceNotice && (
               <div className="research-workspace-notice" role="status">
@@ -12528,592 +15204,183 @@ export default function App() {
             )}
 
             <section className="research-overview-panel">
-              <h3>Project overview</h3>
-              <p>
-                {selectedResearch.summary ||
-                  "No project summary has been recorded."}
-              </p>
+              <header className="research-overview-simple-head">
+                <div>
+                  <small>OVERVIEW</small>
+                  <h3>Project at a glance</h3>
+                </div>
+              </header>
+
               <div className="research-overview-metrics">
                 <span>
                   <small>Reference</small>
                   <strong>{`RES-${selectedResearch.id.slice(0, 8).toUpperCase()}`}</strong>
                 </span>
                 <span>
-                  <small>Progress</small>
+                  <small>Milestones complete</small>
                   <strong>
                     {selectedResearch.milestones.length
-                      ? `${Math.round((100 * selectedResearch.milestones.filter((item) => item.status === "Completed").length) / selectedResearch.milestones.length)}%`
-                      : "0%"}
+                      ? `${selectedResearch.milestones.filter((item) => item.status === "Completed").length}/${selectedResearch.milestones.length}`
+                      : "0/0"}
                   </strong>
                 </span>
                 <span>
-                  <small>Linked assignment</small>
-                  <strong>
-                    {selectedResearch.assignment_id
-                      ? assignmentRef(selectedResearch.assignment_id)
-                      : "None"}
-                  </strong>
+                  <small>Related assignments</small>
+                  <strong>{selectedResearch.assignments?.length || 0}</strong>
                 </span>
               </div>
-              <div className="research-lifecycle">
-                <div>
-                  <span>PROJECT LIFECYCLE</span>
-                  <strong>{selectedResearch.status}</strong>
-                  <small>
-                    Transitions are validated against the project evidence and
-                    approval gates.
-                  </small>
-                </div>
-                <div className="research-lifecycle-actions">
-                  {selectedResearch.status === "Planning" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await api.updateResearchStatus(
-                              token,
-                              selectedResearch.id,
-                              "Under Review",
-                            );
-                            const projects = await api.research(token);
-                            setResearchRows(projects);
-                            setSelectedResearch(
-                              projects.find(
-                                (item) => item.id === selectedResearch.id,
-                              ) || selectedResearch,
-                            );
-                            setResearchWorkspaceNotice(
-                              "Research plan submitted for review.",
-                            );
-                          } catch (error) {
-                            setResearchWorkspaceNotice(
-                              error instanceof Error
-                                ? error.message
-                                : "Status could not be updated.",
-                            );
-                          }
-                        }}
-                      >
-                        Submit plan for review
-                      </button>
-                      <button
-                        className="approve"
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await api.updateResearchStatus(
-                              token,
-                              selectedResearch.id,
-                              "Active",
-                            );
-                            const projects = await api.research(token);
-                            setResearchRows(projects);
-                            setSelectedResearch(
-                              projects.find(
-                                (item) => item.id === selectedResearch.id,
-                              ) || selectedResearch,
-                            );
-                            setResearchWorkspaceNotice(
-                              "Research project activated.",
-                            );
-                          } catch (error) {
-                            setResearchWorkspaceNotice(
-                              error instanceof Error
-                                ? error.message
-                                : "Status could not be updated.",
-                            );
-                          }
-                        }}
-                      >
-                        Approve & activate
-                      </button>
-                    </>
-                  )}
-                  {selectedResearch.status === "Under Review" && (
-                    <button
-                      className="approve"
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await api.updateResearchStatus(
-                            token,
-                            selectedResearch.id,
-                            "Active",
-                          );
-                          const projects = await api.research(token);
-                          setResearchRows(projects);
-                          setSelectedResearch(
-                            projects.find(
-                              (item) => item.id === selectedResearch.id,
-                            ) || selectedResearch,
-                          );
-                          setResearchWorkspaceNotice(
-                            "Research project activated.",
-                          );
-                        } catch (error) {
-                          setResearchWorkspaceNotice(
-                            error instanceof Error
-                              ? error.message
-                              : "Status could not be updated.",
-                          );
-                        }
-                      }}
-                    >
-                      Approve & activate
-                    </button>
-                  )}
-                  {selectedResearch.status === "Active" && (
-                    <button
-                      className="approve"
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await api.updateResearchStatus(
-                            token,
-                            selectedResearch.id,
-                            "Completed",
-                          );
-                          const projects = await api.research(token);
-                          setResearchRows(projects);
-                          setSelectedResearch(
-                            projects.find(
-                              (item) => item.id === selectedResearch.id,
-                            ) || selectedResearch,
-                          );
-                          setResearchWorkspaceNotice(
-                            "Research project completed.",
-                          );
-                        } catch (error) {
-                          setResearchWorkspaceNotice(
-                            error instanceof Error
-                              ? error.message
-                              : "Completion requirements are not yet satisfied.",
-                          );
-                        }
-                      }}
-                    >
-                      Complete research
-                    </button>
-                  )}
-                </div>
-              </div>
+
               <div className="workspace-document-overview">
                 <header>
                   <div>
-                    <small>AVAILABLE DOCUMENTS</small>
-                    <h4>Project documents</h4>
+                    <small>DOCUMENTS</small>
+                    <h4>Available documents</h4>
                   </div>
                   <div className="workspace-document-actions">
-                    <strong>{researchSources.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)).length}</strong>
-                    <label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Research", selectedResearch.id); event.currentTarget.value = ""; }} /></label>
+                    <strong>
+                      {workspaceDocuments.length +
+                        researchAttachedDocuments.length +
+                        researchRepositoryDocuments.length}
+                    </strong>
+                    <label className="workspace-attach-report">
+                      {knowledgeUploading ? "Attachingâ€¦" : "+ Attach document"}
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt,.md"
+                        disabled={knowledgeUploading}
+                        onChange={(event) => {
+                          void attachWorkspaceReport(
+                            event.target.files?.[0],
+                            "Research",
+                            selectedResearch.id,
+                          );
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
                   </div>
                 </header>
+
                 <div className="workspace-document-overview-list">
                   {workspaceDocuments.map((item) => (
-                    <button type="button" key={`generated-${item.id}`} onClick={() => void openGeneratedDocument(item.id)}>
-                      <span><b>{item.title}</b><small>Generated report · {item.status}</small></span>
-                      <em>Open</em>
+                    <button
+                      type="button"
+                      key={`generated-${item.id}`}
+                      onClick={() => void openGeneratedDocument(item.id, true)}
+                      title={`Preview ${item.title}`}
+                    >
+                      <span>
+                        <b>{item.title}</b>
+                        <small>Generated research document Â· {item.status}</small>
+                      </span>
+                      <em>Preview</em>
                     </button>
                   ))}
-                  {researchSources.map((item) => (
-                    <article key={`source-${item.id}`}>
-                      <span><b>{item.title}</b><small>{item.source_type || "Research source"} · {item.quality}</small></span>
-                      {item.url ? <a href={item.url} target="_blank" rel="noreferrer">View</a> : <em>Available</em>}
-                    </article>
+
+                  {researchAttachedDocuments.map((item) => (
+                    <button
+                      type="button"
+                      key={`research-attached-${item.id}`}
+                      onClick={() => void openRepositoryDocumentReader(item)}
+                      title={`Preview ${item.title} in Document Reader`}
+                    >
+                      <span>
+                        <b>{item.title}</b>
+                        <small>
+                          Attached document Â· {item.status} Â· v{item.latest_version || item.current_version || 1}
+                        </small>
+                      </span>
+                      <em>Preview</em>
+                    </button>
                   ))}
-                  {knowledgeRows.filter((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)).map((item) => <button type="button" key={`research-report-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>Attached report · {item.status}</small></span><em>Preview</em></button>)}
-                  {!researchSources.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.origin_links?.some((link) => link.type === "research" && link.id === selectedResearch.id)) && <p>No documents are available for this research project yet.</p>}
+
+                  {researchRepositoryDocuments.map((item) => (
+                    <button
+                      type="button"
+                      key={`research-repository-${item.id}`}
+                      onClick={() => void openRepositoryDocumentReader(item.id)}
+                      title={`Preview ${item.title} in Document Reader`}
+                    >
+                      <span>
+                        <b>{item.title}</b>
+                        <small>
+                          Repository evidence Â· {item.status} Â· v{item.latest_version || item.current_version || 1}
+                        </small>
+                      </span>
+                      <em>Preview</em>
+                    </button>
+                  ))}
+
+                  {!workspaceDocuments.length &&
+                    !researchAttachedDocuments.length &&
+                    !researchRepositoryDocuments.length && (
+                      <p>No documents are attached to this research project yet.</p>
+                    )}
                 </div>
               </div>
             </section>
 
             <section className="research-team-panel">
               <header>
-                <div>
-                  <small>PROJECT ACCOUNTABILITY</small>
-                  <h3>Research team</h3>
-                  <p>
-                    Assign one accountable lead and define how each collaborator
-                    contributes to the project.
-                  </p>
-                </div>
-                <strong>
-                  {researchTeamDraft.collaborators.length + 1} team members
-                </strong>
+                <div><small>PROJECT TEAM</small><h3>Research team</h3><p>The lead and project members who can work in this Research Workspace.</p></div>
+                {canManageResearchTeam && <button type="button" className="research-team-edit-button" onClick={() => setResearchTeamEditing((open) => !open)}>{researchTeamEditing ? "Close Team Editor" : "Add Team Members"}</button>}
               </header>
-              <div className="research-team-lead-card">
-                <div>
-                  <span>LEAD RESEARCHER</span>
-                  <h3>
-                    {team.find(
-                      (member) => member.id === researchTeamDraft.leadId,
-                    )?.name || selectedResearch.lead_name}
-                  </h3>
-                  <p>
-                    The lead owns the plan, coordinates milestones and prepares
-                    the project for review.
-                  </p>
-                </div>
-                <label>
-                  Change accountable lead
-                  <select
-                    value={researchTeamDraft.leadId}
-                    onChange={(event) =>
-                      setResearchTeamDraft({
-                        leadId: event.target.value,
-                        collaborators: researchTeamDraft.collaborators.filter(
-                          (item) => item.userId !== event.target.value,
-                        ),
-                      })
-                    }
-                  >
-                    {team
-                      .filter(
-                        (member) =>
-                          member.active &&
-                          ["Research Officer", "Research Manager"].includes(
-                            member.role,
-                          ),
-                      )
-                      .map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {member.name} — {member.role}
-                        </option>
-                      ))}
-                  </select>
-                </label>
+              <div className="research-team-summary">
+                <div className="research-team-person"><b>{initialsFor(selectedResearch.lead_name)}</b><span><strong>{selectedResearch.lead_name}</strong><small>Lead researcher</small></span></div>
+                {selectedResearch.collaborators.map((person) => <div className="research-team-person" key={person.id}><b>{initialsFor(person.name)}</b><span><strong>{person.name}</strong><small>{person.role}</small></span></div>)}
               </div>
-              <div className="research-team-management">
-                <header>
-                  <div>
-                    <h3>Collaborators</h3>
-                    <p>Select project members and assign their working role.</p>
-                  </div>
-                  <small>
-                    {researchTeamDraft.collaborators.length} selected
-                  </small>
-                </header>
-                <div className="research-team-selector">
-                  {team
-                    .filter(
-                      (member) =>
-                        member.active &&
-                        [
-                          "Research Officer",
-                          "Research Manager",
-                          "Reviewer",
-                        ].includes(member.role) &&
-                        member.id !== researchTeamDraft.leadId,
-                    )
-                    .map((member) => {
-                      const selected = researchTeamDraft.collaborators.find(
-                        (item) => item.userId === member.id,
-                      );
-                      return (
-                        <article
-                          key={member.id}
-                          className={selected ? "selected" : ""}
-                        >
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={Boolean(selected)}
-                              onChange={(event) =>
-                                setResearchTeamDraft({
-                                  ...researchTeamDraft,
-                                  collaborators: event.target.checked
-                                    ? [
-                                        ...researchTeamDraft.collaborators,
-                                        {
-                                          userId: member.id,
-                                          role:
-                                            member.role === "Reviewer"
-                                              ? "Reviewer"
-                                              : "Researcher",
-                                        },
-                                      ]
-                                    : researchTeamDraft.collaborators.filter(
-                                        (item) => item.userId !== member.id,
-                                      ),
-                                })
-                              }
-                            />
-                            <b>
-                              {member.name
-                                .split(" ")
-                                .map((name) => name[0])
-                                .slice(0, 2)
-                                .join("")
-                                .toUpperCase()}
-                            </b>
-                            <span>
-                              <strong>{member.name}</strong>
-                              <small>
-                                {member.role} · {member.division}
-                              </small>
-                            </span>
-                          </label>
-                          {selected && (
-                            <select
-                              aria-label={`Project role for ${member.name}`}
-                              value={selected.role}
-                              onChange={(event) =>
-                                setResearchTeamDraft({
-                                  ...researchTeamDraft,
-                                  collaborators:
-                                    researchTeamDraft.collaborators.map(
-                                      (item) =>
-                                        item.userId === member.id
-                                          ? {
-                                              ...item,
-                                              role: event.target.value,
-                                            }
-                                          : item,
-                                    ),
-                                })
-                              }
-                            >
-                              <option>Researcher</option>
-                              <option>Analyst</option>
-                              <option>Reviewer</option>
-                              <option>Subject Matter Expert</option>
-                            </select>
-                          )}
-                        </article>
-                      );
-                    })}
+              <div className="research-team-management-wrap" hidden={!researchTeamEditing}>
+                <div className="research-team-lead-card"><div><span>LEAD RESEARCHER</span><h3>{team.find((member) => member.id === researchTeamDraft.leadId)?.name || selectedResearch.lead_name}</h3><p>Team leads may add or remove members. Only a manager may transfer the lead role.</p></div>
+                  {isManager && <label>Change accountable lead<select value={researchTeamDraft.leadId} onChange={(event) => setResearchTeamDraft({leadId:event.target.value,collaborators:researchTeamDraft.collaborators.filter((item) => item.userId !== event.target.value)})}>{team.filter((member) => member.active && ["Research Officer","Research Manager"].includes(member.role)).map((member) => <option key={member.id} value={member.id}>{member.name} — {member.role}</option>)}</select></label>}
                 </div>
+                <div className="research-team-management"><header><div><h3>Team members</h3><p>Select the users who need access to this research project.</p></div><small>{researchTeamDraft.collaborators.length} selected</small></header>
+                  <div className="research-team-selector">{team.filter((member) => member.active && ["Research Officer","Research Manager"].includes(member.role) && member.id !== researchTeamDraft.leadId).map((member) => {const selected=researchTeamDraft.collaborators.find((item) => item.userId === member.id);return <article key={member.id} className={selected ? "selected" : ""}><label><input type="checkbox" disabled={!canManageResearchTeam} checked={Boolean(selected)} onChange={(event) => setResearchTeamDraft({...researchTeamDraft,collaborators:event.target.checked?[...researchTeamDraft.collaborators,{userId:member.id,role:"Researcher"}]:researchTeamDraft.collaborators.filter((item) => item.userId !== member.id)})}/><b>{initialsFor(member.name)}</b><span><strong>{member.name}</strong><small>{member.role} · {member.division}</small></span></label>{selected && <select aria-label={`Project role for ${member.name}`} disabled={!canManageResearchTeam} value={selected.role} onChange={(event) => setResearchTeamDraft({...researchTeamDraft,collaborators:researchTeamDraft.collaborators.map((item) => item.userId === member.id ? {...item,role:event.target.value}:item)})}><option>Researcher</option><option>Analyst</option><option>Subject Matter Expert</option></select>}</article>;})}</div>
+                </div>
+                <footer><button type="button" disabled={!canManageResearchTeam || !researchTeamDraft.leadId || researchTeamSaving} onClick={async () => {try{setResearchTeamSaving(true);await api.updateResearchTeam(token,selectedResearch.id,researchTeamDraft);const projects=await api.research(token);const refreshed=projects.find((item)=>item.id===selectedResearch.id)||selectedResearch;setResearchRows(projects);setSelectedResearch(refreshed);setResearchTeamDraft({leadId:refreshed.lead_id,collaborators:refreshed.collaborators.map((person)=>({userId:person.id,role:person.role}))});setResearchActivity(await api.researchActivity(token,selectedResearch.id));setResearchTeamEditing(false);setResearchWorkspaceNotice("Research team updated and recorded.");}catch(error){setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research team could not be updated.");}finally{setResearchTeamSaving(false);}}}>{researchTeamSaving ? "Saving Team..." : "Save Team"}</button></footer>
               </div>
-              <footer>
-                <div>
-                  <strong>Controlled team changes</strong>
-                  <span>
-                    Saving updates access to this workspace and records the
-                    change in project activity.
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  disabled={!researchTeamDraft.leadId || researchTeamSaving}
-                  onClick={async () => {
-                    try {
-                      setResearchTeamSaving(true);
-                      await api.updateResearchTeam(
-                        token,
-                        selectedResearch.id,
-                        researchTeamDraft,
-                      );
-                      const projects = await api.research(token);
-                      const refreshed =
-                        projects.find(
-                          (item) => item.id === selectedResearch.id,
-                        ) || selectedResearch;
-                      setResearchRows(projects);
-                      setSelectedResearch(refreshed);
-                      setResearchTeamDraft({
-                        leadId: refreshed.lead_id,
-                        collaborators: refreshed.collaborators.map(
-                          (person) => ({
-                            userId: person.id,
-                            role: person.role,
-                          }),
-                        ),
-                      });
-                      setResearchActivity(
-                        await api.researchActivity(token, selectedResearch.id),
-                      );
-                      setResearchWorkspaceNotice(
-                        "Research team updated and recorded.",
-                      );
-                    } catch (error) {
-                      setResearchWorkspaceNotice(
-                        error instanceof Error
-                          ? error.message
-                          : "Research team could not be updated.",
-                      );
-                    } finally {
-                      setResearchTeamSaving(false);
-                    }
-                  }}
-                >
-                  {researchTeamSaving ? "Saving team..." : "Save project team"}
-                </button>
-              </footer>
             </section>
 
-            <section className="research-plan-panel research-plan-editor">
-              <header>
-                <div>
-                  <small>GUIDED RESEARCH PLAN</small>
-                  <h3>Define the research mandate</h3>
-                  <p>
-                    Complete these fields before submitting the plan for review.
-                    The lead researcher or manager can revise the plan.
-                  </p>
-                </div>
-                <strong>
-                  {
-                    [
-                      researchPlanDraft.researchQuestion,
-                      researchPlanDraft.objectives,
-                      researchPlanDraft.methodology,
-                    ].filter((value) => value.trim()).length
-                  }
-                  /3 core sections defined
-                </strong>
-              </header>
-              <div className="research-plan-guide">
-                <span>
-                  <b>1</b>
-                  <strong>Frame the question</strong>
-                  <small>Identify the decision and evidence gap.</small>
-                </span>
-                <span>
-                  <b>2</b>
-                  <strong>Set objectives</strong>
-                  <small>Describe measurable outcomes.</small>
-                </span>
-                <span>
-                  <b>3</b>
-                  <strong>Choose methodology</strong>
-                  <small>Explain collection and analysis.</small>
-                </span>
-                <span>
-                  <b>4</b>
-                  <strong>Plan delivery</strong>
-                  <small>Add owned milestones below.</small>
-                </span>
+            <section className="research-brief-card"><header><div><small>RESEARCH BRIEF</small><h3>Research mandate</h3><p>The summary, research question, objectives and methodology were defined when this research was created.</p></div><button type="button" onClick={() => {setResearchBriefOpen(true);setResearchBriefEditing(false);setResearchBriefRequestOpen(false);}}>Preview Research Brief</button></header></section>
+            {researchBriefOpen && <div className="research-brief-preview-backdrop" role="dialog" aria-modal="true" aria-label="Research Brief" onMouseDown={(event) => {if(event.target===event.currentTarget)setResearchBriefOpen(false);}}><div className="research-brief-preview"><header><div><small>RESEARCH BRIEF</small><h2>{selectedResearch.title}</h2></div><button type="button" className="brief-close" onClick={() => {setResearchBriefOpen(false);setResearchBriefEditing(false);setResearchBriefRequestOpen(false);}}>Close</button></header>
+              <div className="research-brief-paper"><div className="brief-meta"><span><small>Reference</small><strong>{`RES-${selectedResearch.id.slice(0, 8).toUpperCase()}`}</strong></span><span><small>Lead</small><strong>{selectedResearch.lead_name}</strong></span><span><small>Status</small><strong>{selectedResearch.status}</strong></span><span><small>Target date</small><strong>{selectedResearch.end_date ? new Date(selectedResearch.end_date).toLocaleDateString("en-KE") : "Not set"}</strong></span></div>
+              {researchBriefEditing ? <><label>Research summary<textarea value={researchPlanDraft.summary} onChange={(event) => setResearchPlanDraft({...researchPlanDraft,summary:event.target.value})}/></label><label>Primary research question<textarea value={researchPlanDraft.researchQuestion} onChange={(event) => setResearchPlanDraft({...researchPlanDraft,researchQuestion:event.target.value})}/></label><label>Objectives<textarea value={researchPlanDraft.objectives} onChange={(event) => setResearchPlanDraft({...researchPlanDraft,objectives:event.target.value})}/></label><label>Methodology<textarea value={researchPlanDraft.methodology} onChange={(event) => setResearchPlanDraft({...researchPlanDraft,methodology:event.target.value})}/></label><div className="research-plan-dates"><label>Start date<input type="date" value={researchPlanDraft.startDate} onChange={(event)=>setResearchPlanDraft({...researchPlanDraft,startDate:event.target.value})}/></label><label>Target completion<input type="date" min={researchPlanDraft.startDate||undefined} value={researchPlanDraft.endDate} onChange={(event)=>setResearchPlanDraft({...researchPlanDraft,endDate:event.target.value})}/></label></div></> : <><section><h3>Research summary</h3><p>{selectedResearch.summary || "No summary recorded."}</p></section><section><h3>Primary research question</h3><p>{selectedResearch.research_question || "No research question recorded."}</p></section><section><h3>Objectives</h3><p>{selectedResearch.objectives || "No objectives recorded."}</p></section><section><h3>Methodology</h3><p>{selectedResearch.methodology || "No methodology recorded."}</p></section></>}
               </div>
-              <label>
-                Project summary
-                <textarea
-                  value={researchPlanDraft.summary}
-                  onChange={(event) =>
-                    setResearchPlanDraft({
-                      ...researchPlanDraft,
-                      summary: event.target.value,
-                    })
-                  }
-                  placeholder="Policy need, scope and intended outcome"
-                />
-              </label>
-              <label>
-                Primary research question
-                <textarea
-                  value={researchPlanDraft.researchQuestion}
-                  onChange={(event) =>
-                    setResearchPlanDraft({
-                      ...researchPlanDraft,
-                      researchQuestion: event.target.value,
-                    })
-                  }
-                  placeholder="What decision or evidence gap must the research address?"
-                />
-              </label>
-              <div className="research-plan-fields">
-                <label>
-                  Objectives
-                  <textarea
-                    value={researchPlanDraft.objectives}
-                    onChange={(event) =>
-                      setResearchPlanDraft({
-                        ...researchPlanDraft,
-                        objectives: event.target.value,
-                      })
-                    }
-                    placeholder="List measurable research objectives"
-                  />
-                </label>
-                <label>
-                  Methodology
-                  <textarea
-                    value={researchPlanDraft.methodology}
-                    onChange={(event) =>
-                      setResearchPlanDraft({
-                        ...researchPlanDraft,
-                        methodology: event.target.value,
-                      })
-                    }
-                    placeholder="Describe sources, sampling, collection and analysis"
-                  />
-                </label>
+              {researchBriefRequestOpen && !isManager && <div className="research-brief-request-box"><strong>Request a brief change</strong><textarea value={researchBriefChangeReason} onChange={(event)=>setResearchBriefChangeReason(event.target.value)} placeholder="Explain what should change and why."/><button type="button" className="primary" disabled={researchBriefRequesting || !researchBriefChangeReason.trim()} onClick={async()=>{try{setResearchBriefRequesting(true);await api.requestResearchBriefChange(token,selectedResearch.id,researchBriefChangeReason.trim());setResearchActivity(await api.researchActivity(token,selectedResearch.id));setResearchBriefChangeReason("");setResearchBriefRequestOpen(false);setResearchWorkspaceNotice("Research Brief change request sent to the research managers.");}catch(error){setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research Brief change request could not be sent.");}finally{setResearchBriefRequesting(false);}}}>{researchBriefRequesting ? "Sending Request..." : "Send Change Request"}</button></div>}
+              <div className="research-brief-actions">{isManager && selectedResearch.status === "Planning" && !researchBriefEditing && <button type="button" className="primary" onClick={async()=>{try{await api.updateResearchStatus(token,selectedResearch.id,"Active");const projects=await api.research(token);setResearchRows(projects);setSelectedResearch(projects.find((item)=>item.id===selectedResearch.id)||selectedResearch);setResearchActivity(await api.researchActivity(token,selectedResearch.id));setResearchBriefOpen(false);setResearchWorkspaceNotice("Research started. The project is now active.");}catch(error){setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research could not be started.");}}}>Start Research</button>}{isManager && !researchBriefEditing && <button type="button" onClick={()=>setResearchBriefEditing(true)}>Edit Research Brief</button>}{!isManager && selectedResearch.lead_id===user?.id && !researchBriefRequestOpen && <button type="button" onClick={()=>setResearchBriefRequestOpen(true)}>Request Brief Change</button>}{isManager && researchBriefEditing && <><button type="button" onClick={()=>setResearchBriefEditing(false)}>Cancel</button><button type="button" className="primary" disabled={researchPlanSaving} onClick={async()=>{try{setResearchPlanSaving(true);const updated=await api.updateResearchPlan(token,selectedResearch.id,{...researchPlanDraft,startDate:researchPlanDraft.startDate||null,endDate:researchPlanDraft.endDate||null});const projects=await api.research(token);const refreshed=projects.find((item)=>item.id===updated.id)||{...selectedResearch,...updated};setResearchRows(projects);setSelectedResearch(refreshed);setResearchActivity(await api.researchActivity(token,selectedResearch.id));setResearchBriefEditing(false);setResearchWorkspaceNotice("Research Brief updated and recorded in project activity.");}catch(error){setResearchWorkspaceNotice(error instanceof Error ? error.message : "Research Brief could not be updated.");}finally{setResearchPlanSaving(false);}}}>{researchPlanSaving ? "Saving..." : "Save Brief"}</button></>}</div>
+            </div></div>}
+
+            <section className="research-external-import-callout" aria-label="External research option">
+              <div>
+                <small>EXTERNAL REPORT AVAILABLE?</small>
+                <h3>Do not create assignments for work already completed outside App2</h3>
+                <p>If this project already has an external report, leave this workspace and import that report instead. App2 will require a reviewer before it can become a controlled final report.</p>
               </div>
-              <div className="research-plan-dates">
-                <label>
-                  Start date
-                  <input
-                    type="date"
-                    value={researchPlanDraft.startDate}
-                    onChange={(event) =>
-                      setResearchPlanDraft({
-                        ...researchPlanDraft,
-                        startDate: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Target completion
-                  <input
-                    type="date"
-                    min={researchPlanDraft.startDate || undefined}
-                    value={researchPlanDraft.endDate}
-                    onChange={(event) =>
-                      setResearchPlanDraft({
-                        ...researchPlanDraft,
-                        endDate: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  disabled={researchPlanSaving}
-                  onClick={async () => {
-                    try {
-                      setResearchPlanSaving(true);
-                      const updated = await api.updateResearchPlan(
-                        token,
-                        selectedResearch.id,
-                        {
-                          ...researchPlanDraft,
-                          startDate: researchPlanDraft.startDate || null,
-                          endDate: researchPlanDraft.endDate || null,
-                        },
-                      );
-                      const projects = await api.research(token);
-                      setResearchRows(projects);
-                      setSelectedResearch(
-                        projects.find((item) => item.id === updated.id) || {
-                          ...selectedResearch,
-                          ...updated,
-                        },
-                      );
-                      setResearchActivity(
-                        await api.researchActivity(token, selectedResearch.id),
-                      );
-                      setResearchWorkspaceNotice(
-                        "Research plan saved and recorded in project activity.",
-                      );
-                    } catch (error) {
-                      setResearchWorkspaceNotice(
-                        error instanceof Error
-                          ? error.message
-                          : "Research plan could not be saved.",
-                      );
-                    } finally {
-                      setResearchPlanSaving(false);
-                    }
-                  }}
-                >
-                  {researchPlanSaving ? "Saving plan..." : "Save research plan"}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="research-import-action"
+                onClick={() => {
+                  setSelectedResearch(null);
+                  setResearchComments([]);
+                  setResearchComment("");
+                  setResearchReport([]);
+                  setSelectedReportSection(null);
+                  setReportContent("");
+                  setResearchRepositoryMode("Imported");
+                  setExternalResearchOpen(true);
+                }}
+              >
+                Import external report â†’
+              </button>
             </section>
 
             <section className="research-plan-panel research-milestones-panel">
-              <h3>Milestones</h3>
+              <header className="research-work-section-head">
+                <div>
+                  <small>WORK PLAN</small>
+                  <h3>Milestones</h3>
+                  <p>Track the key deliverables, owners and deadlines for this research project.</p>
+                </div>
+              </header>
 
               <div className="research-milestone-list">
                 {selectedResearch.milestones.map((milestone) => (
@@ -13301,16 +15568,176 @@ export default function App() {
               </div>
             </section>
 
+            <section className="research-work-panel">
+              <header>
+                <div>
+                  <small>RESEARCH WORK</small>
+                  <h3>Related assignments</h3>
+                  <p>Open linked assignments when research work is being carried out through the Assignments module.</p>
+                </div>
+                <div className="research-work-head-actions">
+                  <button
+                    type="button"
+                    className="research-import-action"
+                    onClick={() => {
+                      setSelectedResearch(null);
+                      setResearchComments([]);
+                      setResearchComment("");
+                      setResearchReport([]);
+                      setSelectedReportSection(null);
+                      setReportContent("");
+                      setResearchRepositoryMode("Imported");
+                      setExternalResearchOpen(true);
+                    }}
+                    title="Leave this workspace and import completed external research for formal reviewer approval."
+                  >
+                    Import external research
+                  </button>
+                  <strong>{selectedResearch.assignments?.length || 0} linked assignment{(selectedResearch.assignments?.length || 0) === 1 ? "" : "s"}</strong>
+                </div>
+              </header>
+
+              {isManager && (
+                <div className="research-assignment-controls">
+                  <div className="research-link-assignment">
+                    <label>
+                      Link existing assignment
+                      <select value={researchAssignmentLinkId} onChange={(event) => setResearchAssignmentLinkId(event.target.value)}>
+                        <option value="">Select assignment</option>
+                        {assignmentRows
+                          .filter((assignment) => !(selectedResearch.assignments || []).some((linked) => linked.id === assignment.id))
+                          .map((assignment) => (
+                            <option key={assignment.id} value={assignment.id}>
+                              {assignmentRef(assignment.id)} â€” {assignment.title}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      disabled={!researchAssignmentLinkId}
+                      onClick={async () => {
+                        try {
+                          await api.linkResearchAssignment(token, selectedResearch.id, researchAssignmentLinkId);
+                          const projects = await api.research(token);
+                          setResearchRows(projects);
+                          setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                          setResearchAssignmentLinkId("");
+                          setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                          setResearchWorkspaceNotice("Assignment linked to this research project.");
+                        } catch (error) {
+                          setResearchWorkspaceNotice(error instanceof Error ? error.message : "Assignment could not be linked.");
+                        }
+                      }}
+                    >
+                      Link assignment
+                    </button>
+                  </div>
+
+                  <details className="research-create-assignment">
+                    <summary>+ Create related assignment</summary>
+                    <div className="research-assignment-form">
+                      <label>Assignment title<input value={researchAssignmentDraft.title} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, title:event.target.value})} /></label>
+                      <label>Division<input value={researchAssignmentDraft.division} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, division:event.target.value})} /></label>
+                      <label className="wide">Description<textarea value={researchAssignmentDraft.description} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, description:event.target.value})} /></label>
+                      <label>Due date<input type="date" value={researchAssignmentDraft.dueDate || ""} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, dueDate:event.target.value || null})} /></label>
+                      <label>Priority<select value={researchAssignmentDraft.priority} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, priority:event.target.value})}><option>Low</option><option>Normal</option><option>High</option><option>Critical</option></select></label>
+                      <fieldset className="wide">
+                        <legend>Assignment members</legend>
+                        {[{id:selectedResearch.lead_id,name:selectedResearch.lead_name,role:"Lead researcher"},...selectedResearch.collaborators.map((person) => ({id:person.id,name:person.name,role:person.role}))].map((person) => (
+                          <label key={person.id}>
+                            <input type="checkbox" checked={researchAssignmentDraft.memberIds.includes(person.id)} onChange={(event) => setResearchAssignmentDraft({...researchAssignmentDraft, memberIds:event.target.checked?[...researchAssignmentDraft.memberIds,person.id]:researchAssignmentDraft.memberIds.filter((id) => id!==person.id)})} />
+                            <span>{person.name}<small>{person.role}</small></span>
+                          </label>
+                        ))}
+                      </fieldset>
+                      <button
+                        className="research-primary-action wide"
+                        type="button"
+                        disabled={researchAssignmentCreating || !researchAssignmentDraft.title.trim() || !researchAssignmentDraft.division.trim()}
+                        onClick={async () => {
+                          try {
+                            setResearchAssignmentCreating(true);
+                            await api.createResearchAssignment(token, selectedResearch.id, researchAssignmentDraft);
+                            const [projects, assignments] = await Promise.all([api.research(token), api.assignments(token)]);
+                            setResearchRows(projects);
+                            setAssignmentRows(assignments);
+                            setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                            setResearchAssignmentDraft({title:"",description:"",division:researchAssignmentDraft.division,dueDate:null,priority:"Normal",memberIds:[selectedResearch.lead_id]});
+                            setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                            setResearchWorkspaceNotice("Related assignment created and linked to this research project.");
+                          } catch (error) {
+                            setResearchWorkspaceNotice(error instanceof Error ? error.message : "Related assignment could not be created.");
+                          } finally {
+                            setResearchAssignmentCreating(false);
+                          }
+                        }}
+                      >
+                        {researchAssignmentCreating ? "Creating assignment..." : "Create & link assignment"}
+                      </button>
+                    </div>
+                  </details>
+                </div>
+              )}
+
+              <div className="research-assignment-list">
+                {(selectedResearch.assignments || []).map((assignment) => (
+                  <article key={assignment.id}>
+                    <div>
+                      <span>{assignmentRef(assignment.id)}</span>
+                      <strong>{assignment.title}</strong>
+                      <small>{assignment.division} Â· {assignment.relation_type || "Research Work"}</small>
+                    </div>
+                    <div>
+                      <b>{assignment.status}</b>
+                      <small>{assignment.due_date ? `Due ${new Date(assignment.due_date).toLocaleDateString("en-KE")}` : "No due date"}</small>
+                    </div>
+                    <ResearchAssignmentProgress token={token} assignmentId={assignment.id} />
+                    <div className="research-assignment-actions">
+                      <button type="button" onClick={async () => {
+                        const assignments = await api.assignments(token);
+                        setAssignmentRows(assignments);
+                        const full = assignments.find((item) => item.id === assignment.id);
+                        if (!full) { setResearchWorkspaceNotice("The linked assignment could not be opened."); return; }
+                        setSelectedResearch(null);
+                        setActive("Assignments");
+                        await openAssignmentDetails(full);
+                      }}>Open assignment</button>
+                      {isManager && <button className="unlink" type="button" onClick={async () => {
+                        if (!window.confirm(`Remove the link to â€œ${assignment.title}â€? The assignment itself will not be deleted.`)) return;
+                        try {
+                          await api.unlinkResearchAssignment(token, selectedResearch.id, assignment.id);
+                          const projects = await api.research(token);
+                          setResearchRows(projects);
+                          setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                          setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                          setResearchWorkspaceNotice("Assignment link removed. The assignment remains in App2.");
+                        } catch (error) {
+                          setResearchWorkspaceNotice(error instanceof Error ? error.message : "Assignment link could not be removed.");
+                        }
+                      }}>Unlink</button>}
+                    </div>
+                  </article>
+                ))}
+                {!(selectedResearch.assignments || []).length && (
+                  <div className="research-work-empty">
+                    <strong>No related assignments yet</strong>
+                    <p>Create the first assignment for literature review, data collection, analysis, drafting or another research workstream.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
             <section className="research-documents-placeholder">
-              <h3>Research documents</h3>
-              <p>Document collaboration will be added in the next step.</p>
+              <h3>Evidence</h3>
+              <p>Use the Evidence tab to link Repository documents and record other research sources.</p>
             </section>
 
             <section className="research-discussion-panel">
               <header className="research-discussion-head">
                 <div>
                   <small>PROJECT COLLABORATION</small>
-                  <h3>Team discussion</h3>
+                  <h3>Discussion</h3>
                   <p>
                     Record updates, questions, decisions and review notes in the
                     official project workspace.
@@ -13530,15 +15957,486 @@ export default function App() {
               </div>
             </section>
 
+            <section className="research-report-review-gate research-submit-review-section">
+              <div>
+                <p>REVIEW HANDOFF</p>
+                <h3>Submit the complete report for formal review</h3>
+                <span>Preview the complete draft, select the assigned reviewer, then submit. App2 freezes that numbered version while the reviewer assesses it.</span>
+              </div>
+              <div className={`research-review-status-card ${
+                researchReportVersions[0]?.status === "Approved"
+                  ? "approved"
+                  : researchReportVersions[0]?.status === "Submitted"
+                    ? "submitted"
+                    : ["Changes Requested", "Rejected"].includes(researchReportVersions[0]?.status || "")
+                      ? "action"
+                      : "draft"
+              }`}>
+                <div>
+                  <small>CURRENT STEP</small>
+                  <strong>
+                    {researchReportVersions[0]?.status === "Approved"
+                      ? "Review approved"
+                      : researchReportVersions[0]?.status === "Submitted"
+                        ? "Awaiting reviewer decision"
+                        : researchReportVersions[0]?.status === "Changes Requested"
+                          ? "Changes requested"
+                          : researchReportVersions[0]?.status === "Rejected"
+                            ? "Report rejected"
+                            : "Prepare and submit the report"}
+                  </strong>
+                  <span>
+                    {researchReportVersions[0]?.status === "Approved"
+                      ? "The approved version is locked. Generate the controlled final report below."
+                      : researchReportVersions[0]?.status === "Submitted"
+                        ? "The submitted version is locked while the assigned reviewer assesses it."
+                        : researchReportVersions[0]?.status === "Changes Requested"
+                          ? "Return to Report, revise the draft, preview it, and submit a new version."
+                          : researchReportVersions[0]?.status === "Rejected"
+                            ? "Return to Report and address the reviewer decision before preparing a new submission."
+                            : "Preview the complete draft, choose the formal reviewer and submit a locked version."}
+                  </span>
+                </div>
+                {["Changes Requested", "Rejected"].includes(researchReportVersions[0]?.status || "") && (
+                  <button type="button" onClick={() => setResearchTab("Report")}>Return to Report</button>
+                )}
+              </div>
+
+              <div className="research-report-review-summary">
+                <span><small>Latest version</small><strong>{researchReportVersions[0] ? `v${researchReportVersions[0].version_number}` : "Draft"}</strong></span>
+                <span>
+                  <small>Status</small>
+                  <strong>
+                    {researchReportVersions[0]?.status ||
+                      (researchTab === "Review" ? "Not submitted" : "Editing")}
+                  </strong>
+                </span>
+                <span><small>Reviewer</small><strong>{researchReportVersions[0]?.reviewer_name || "Not submitted"}</strong></span>
+              </div>
+              {researchReportVersions[0]?.review_comments && (
+                <div className="research-report-review-note"><strong>Reviewer comments</strong><p>{researchReportVersions[0].review_comments}</p></div>
+              )}
+              <div className="research-review-journey" aria-label="Research report review workflow">
+                <span className={!researchReportVersions[0] ? "current" : "done"}><b>1</b><strong>Preview</strong></span>
+                <span className={!researchReportVersions[0] ? "current" : "done"}><b>2</b><strong>Submit</strong></span>
+                <span className={researchReportVersions[0]?.status === "Submitted" ? "current" : researchReportVersions[0]?.status === "Approved" ? "done" : ""}><b>3</b><strong>Reviewer decision</strong></span>
+                <span className={researchReportVersions[0]?.status === "Approved" ? "current" : ""}><b>4</b><strong>Final report</strong></span>
+              </div>
+              <div className="research-report-review-actions">
+                <button type="button" onClick={() => setResearchReportPreviewOpen(true)} disabled={!researchReport.some((section) => section.content.trim())}>Preview Report</button>
+                {researchReportVersions[0]?.status !== "Submitted" && researchReportVersions[0]?.status !== "Approved" && (isManager || selectedResearch.lead_id === user?.id) && (
+                  <>
+                    <label className="research-formal-reviewer-select">
+                      <span>Formal reviewer</span>
+                      <select
+                        value={researchDraftReviewerId}
+                        disabled={eligibleResearchReviewersLoading}
+                        onChange={(event) =>
+                          setResearchDraftReviewerId(event.target.value)
+                        }
+                      >
+                        <option value="">
+                          {eligibleResearchReviewersLoading
+                            ? "Loading eligible reviewers..."
+                            : selectedResearch.reviewers?.length
+                              ? "Select assigned or eligible reviewer"
+                              : canChooseResearchReviewer
+                                ? "Select reviewer"
+                                : "No formal reviewer assigned"}
+                        </option>
+
+                        {(selectedResearch.reviewers || []).map((reviewer) => (
+                          <option
+                            key={`assigned-${reviewer.reviewer_id}`}
+                            value={reviewer.reviewer_id}
+                          >
+                            {reviewer.name || "Reviewer"} — assigned
+                          </option>
+                        ))}
+
+                        {canChooseResearchReviewer &&
+                          eligibleResearchReviewers
+                            .filter(
+                              (reviewer) =>
+                                !assignedResearchReviewerIds.has(reviewer.id),
+                            )
+                            .map((reviewer) => (
+                              <option
+                                key={`eligible-${reviewer.id}`}
+                                value={reviewer.id}
+                              >
+                                {reviewer.name} — {reviewer.role}
+                              </option>
+                            ))}
+                      </select>
+                      {!selectedResearch.reviewers?.length &&
+                        !canChooseResearchReviewer && (
+                          <small>
+                            No formal reviewer is assigned to this research project.
+                            The Research Lead, report builder, or an authorised Research Manager must assign one before submission.
+                          </small>
+                        )}
+                      {!selectedResearch.reviewers?.length &&
+                        canChooseResearchReviewer &&
+                        !eligibleResearchReviewersLoading &&
+                        eligibleResearchReviewers.length > 0 && (
+                          <small>
+                            No reviewer is assigned yet. Select an eligible reviewer here;
+                            App2 will formally assign that reviewer when the report is submitted.
+                          </small>
+                        )}
+                      {!eligibleResearchReviewersLoading &&
+                        canChooseResearchReviewer &&
+                        eligibleResearchReviewers.length === 0 &&
+                        !(selectedResearch.reviewers || []).length && (
+                          <small>
+                            No other active Research Officer, Reviewer, Research Manager, or Administrator
+                            account is currently available. Check Users and Roles.
+                          </small>
+                        )}
+                    </label>
+                    <button
+                      type="button"
+                      className="approve"
+                      disabled={
+                        researchReportSubmitting ||
+                        !researchDraftReviewerId ||
+                        !researchReport.some((section) =>
+                          section.content.trim(),
+                        )
+                      }
+                      onClick={submitCompleteResearchReport}
+                    >
+                      {researchReportSubmitting
+                        ? "Submitting..."
+                        : "Submit for Review"}
+                    </button>
+                  </>
+                )}
+                {researchReportVersions[0]?.status === "Submitted" && (isManager || researchReportVersions[0].reviewer_id === user?.id) && (
+                  <div className="research-report-decision-box">
+                    <header>
+                      <div>
+                        <small>REVIEWER DECISION</small>
+                        <strong>Assess submitted version v{researchReportVersions[0]?.version_number}</strong>
+                        <span>Preview the locked report before recording a formal decision.</span>
+                      </div>
+                      <button type="button" onClick={() => setResearchReportPreviewOpen(true)}>Preview Submitted Report</button>
+                    </header>
+                    <label>
+                      <span>Reviewer comments</span>
+                      <textarea
+                        value={researchReportReviewComments}
+                        onChange={(event) => setResearchReportReviewComments(event.target.value)}
+                        placeholder="Required when requesting changes or rejecting. Optional for approval."
+                      />
+                    </label>
+                    <div>
+                      <button type="button" className="approve" disabled={researchReportSubmitting} onClick={() => decideCompleteResearchReport("Approved")}>Approve Report</button>
+                      <button type="button" disabled={researchReportSubmitting || !researchReportReviewComments.trim()} onClick={() => decideCompleteResearchReport("Changes Requested")}>Request Changes</button>
+                      <button type="button" className="reject" disabled={researchReportSubmitting || !researchReportReviewComments.trim()} onClick={() => decideCompleteResearchReport("Rejected")}>Reject Report</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {researchReportVersions.length > 0 && <details className="research-report-version-history"><summary>Report version history ({researchReportVersions.length})</summary>{researchReportVersions.map((version) => <article key={version.id}><strong>v{version.version_number} Â· {version.status}</strong><span>{version.submitted_by_name || "Research team"} â†’ {version.reviewer_name || "Reviewer"}</span><small>{version.submitted_at ? new Date(version.submitted_at).toLocaleString("en-KE") : new Date(version.created_at as string).toLocaleString("en-KE")}</small></article>)}</details>}
+            </section>
+
+            <section className="research-final-report-card">
+              <header>
+                <div>
+                  <small>FINAL REPORT</small>
+                  <h3>Generate the approved final report</h3>
+                  <p>
+                    After approval, the assigned reviewer generates the final report. App2 publishes it directly to Documents and completes the research project.
+                  </p>
+                </div>
+              </header>
+              <div className="research-report-generate">
+                  <strong>
+                    {
+                      researchReport.filter(
+                        (section) =>
+                          section.content.trim() &&
+                          section.status === "Approved",
+                      ).length
+                    }{" "}
+                    / {
+                      researchReport.filter((section) =>
+                        section.content.trim(),
+                      ).length
+                    } authored sections approved
+                  </strong>
+                  <span className="research-report-final-hint">
+                    {latestApprovedResearchVersion
+                      ? `Approved version ${latestApprovedResearchVersion.version_number}. Appointed reviewer: ${
+                          latestApprovedResearchVersion.reviewer_name || "Reviewer"
+                        }. Decision recorded by: ${
+                          latestApprovedResearchVersion.reviewed_by_name || "reviewer"
+                        }.`
+                      : "Available after formal approval of the complete submitted report."}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={
+                      researchReportGenerating ||
+                      !researchReport.length ||
+                      !canGenerateApprovedResearchFinal ||
+                      researchReport.some(
+                        (section) =>
+                          section.content.trim() &&
+                          section.status !== "Approved",
+                      ) ||
+                      !latestApprovedResearchVersion ||
+                      !(researchSources.length || researchRepositoryDocuments.length)
+                    }
+                    title={
+                      !latestApprovedResearchVersion
+                        ? "Submit the complete report and obtain reviewer approval first."
+                        : !canGenerateApprovedResearchFinal
+                          ? "Only the appointed reviewer for this approved version, the reviewer who approved it, or an authorised manager can generate the final report."
+                          : researchReport.some(
+                              (section) =>
+                                section.content.trim() &&
+                                section.status !== "Approved",
+                            )
+                            ? "Approve every authored report section first. Blank template sections do not block finalisation."
+                            : !(researchSources.length || researchRepositoryDocuments.length)
+                              ? "Add controlled evidence first."
+                              : "Generate the approved final report, publish it to Documents, and complete the research project."
+                    }
+                    onClick={async () => {
+                      try {
+                        setResearchReportGenerating(true);
+                        const generated = await api.generateResearchReport(
+                          token,
+                          selectedResearch.id,
+                          {
+                            title: `${selectedResearch.title} â€” Final Research Report`,
+                            classification: "Official",
+                            templateId: builderCreate.templateId || null,
+                            mode: "Final",
+                            knowledgeIds: researchSupportingDocumentIds,
+                          },
+                        );
+                        const completedMessage =
+                          generated.repository_document_id
+                            ? `Final report ${generated.reference} published to Documents. Research completed successfully.`
+                            : `Final report ${generated.reference} generated. Research completed successfully.`;
+
+                        // The backend finalisation response is authoritative.
+                        // Do not keep the completed workspace open while secondary
+                        // dashboard/repository refresh calls are still running.
+                        setResearchWorkspaceNotice(completedMessage);
+                        setKnowledgeNotice(completedMessage);
+
+                        const completedProject = {
+                          ...selectedResearch,
+                          status: "Completed" as const,
+                        };
+                        setResearchRows((current) =>
+                          current.map((item) =>
+                            item.id === selectedResearch.id
+                              ? completedProject
+                              : item,
+                          ),
+                        );
+
+                        // Close the completed research workspace immediately and
+                        // hand the user to Documents, where the immutable final
+                        // report now lives.
+                        setSelectedResearch(null);
+                        setResearchComments([]);
+                        setResearchComment("");
+                        setResearchReport([]);
+                        setResearchReportVersions([]);
+                        setSelectedReportSection(null);
+                        setReportContent("");
+                        setResearchTab("Overview");
+                        setActive("Document Repository");
+
+                        // Refresh secondary views independently. A failure in one
+                        // non-critical refresh must never undo or visually freeze
+                        // a successful backend finalisation.
+                        const refreshResults = await Promise.allSettled([
+                          api.generatedDocuments(
+                            token,
+                            "Research",
+                            selectedResearch.id,
+                          ),
+                          api.researchActivity(
+                            token,
+                            selectedResearch.id,
+                          ),
+                          api.documents(token),
+                          api.knowledge(token),
+                          api.research(token),
+                          api.notifications(token),
+                        ]);
+
+                        const [
+                          generatedResult,
+                          activityResult,
+                          documentsResult,
+                          knowledgeResult,
+                          projectsResult,
+                          notificationsResult,
+                        ] = refreshResults;
+
+                        if (generatedResult.status === "fulfilled")
+                          setWorkspaceDocuments(generatedResult.value);
+                        if (activityResult.status === "fulfilled")
+                          setResearchActivity(activityResult.value);
+                        if (documentsResult.status === "fulfilled")
+                          setDocumentRows(documentsResult.value);
+                        if (knowledgeResult.status === "fulfilled")
+                          setKnowledgeRows(knowledgeResult.value);
+                        if (projectsResult.status === "fulfilled")
+                          setResearchRows(projectsResult.value);
+                        if (notificationsResult.status === "fulfilled")
+                          setNotifications(notificationsResult.value);
+                      } catch (error) {
+                        setResearchWorkspaceNotice(
+                          error instanceof Error
+                            ? error.message
+                            : "Controlled report could not be generated.",
+                        );
+                      } finally {
+                        setResearchReportGenerating(false);
+                      }
+                    }}
+                  >
+                    Generate Final Report & Complete
+                  </button>
+                </div>
+            </section>
+
+            <section className="research-auto-completion-note">
+              <div>
+                <p>FINALISATION</p>
+                <h3>Automatic completion after final report generation</h3>
+                <span>
+                  Once the approved reviewer generates the final report, App2 publishes the immutable report to Documents and marks this research project Completed automatically.
+                </span>
+              </div>
+              <strong className={selectedResearch.status === "Completed" ? "complete" : "pending"}>
+                {selectedResearch.status === "Completed" ? "COMPLETED" : "AWAITING FINAL REPORT"}
+              </strong>
+            </section>
+
             <section className="research-report-builder research-report-panel">
               <div className="report-builder-head">
                 <div>
-                  <p>REPORT COMPILATION</p>
-                  <h3>Research Report Builder</h3>
+                  <p>REPORT</p>
+                  <h3>Research Report</h3>
                   <span>
-                    Build the final research report section by section.
+                    Draft and refine the report here. Choose the report template from this builder; formal review and finalisation happen in Review.
                   </span>
                 </div>
+                <label className="research-builder-template-control">
+                  <span>Report template</span>
+                  <select
+                    value={researchTemplateDownloadId}
+                    disabled={researchTemplateApplying}
+                    onChange={async (event) => {
+                      const templateKey = event.target.value;
+                      setResearchTemplateDownloadId(templateKey);
+                      if (!templateKey) return;
+
+                      const template = researchTemplateLibrary.find(
+                        (item) => item.template_key === templateKey,
+                      );
+                      if (!template) {
+                        setResearchWorkspaceNotice("The selected research template could not be found.");
+                        setResearchTemplateDownloadId("");
+                        return;
+                      }
+
+                      const hasDraftContent = researchReport.some((section) =>
+                        Boolean(section.content.trim()),
+                      );
+                      if (
+                        hasDraftContent &&
+                        !window.confirm(
+                          `This report already contains drafted content. Applying "${template.name}" will replace the current Report Outline. Matching section content is preserved where possible. Continue?`,
+                        )
+                      ) {
+                        setResearchTemplateDownloadId("");
+                        return;
+                      }
+
+                      setResearchTemplateApplying(true);
+                      setResearchWorkspaceNotice(`Applying ${template.name} to the Report Outline...`);
+
+                      try {
+                        const result = await api.applyResearchReportTemplate(
+                          token,
+                          selectedResearch.id,
+                          {
+                            templateKey: template.template_key,
+                            replaceExisting: hasDraftContent,
+                          },
+                        );
+
+                        const refreshed = await api.researchReport(
+                          token,
+                          selectedResearch.id,
+                        );
+                        const nextSections = refreshed.length ? refreshed : result.sections;
+
+                        setResearchReport(nextSections);
+                        setSelectedReportSection(nextSections[0] || null);
+                        setReportContent(nextSections[0]?.content || "");
+                        setResearchWorkspaceNotice(
+                          `${result.template.name} applied. The Report Outline now has ${nextSections.length} section${nextSections.length === 1 ? "" : "s"}.`,
+                        );
+                      } catch (error) {
+                        setResearchWorkspaceNotice(
+                          error instanceof Error
+                            ? error.message
+                            : "The report template could not be applied.",
+                        );
+                      } finally {
+                        setResearchTemplateApplying(false);
+                        setResearchTemplateDownloadId("");
+                      }
+                    }}
+                  >
+                    <option value="">
+                      {researchTemplateApplying ? "Applying template..." : "Choose template"}
+                    </option>
+                    {researchTemplateLibrary.map((template) => (
+                      <option key={template.template_key} value={template.template_key}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small>{researchTemplateLibrary.length} built-in report structures</small>
+                </label>
+
+                <button
+                  type="button"
+                  className="research-report-preview-action"
+                  disabled={!researchReport.some((section) => section.content.trim())}
+                  onClick={() => setResearchReportPreviewOpen(true)}
+                >
+                  Preview Draft
+                </button>
+                <button
+                  type="button"
+                  className="research-report-review-action"
+                  disabled={!researchReport.some((section) => section.content.trim())}
+                  onClick={() => {
+                    setResearchTab("Review");
+                    setTimeout(() => {
+                      document
+                        .querySelector(".research-submit-review-section")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 80);
+                  }}
+                >
+                  Submit for Review
+                </button>
 
                 <details className="research-supporting-documents">
                   <summary>
@@ -13546,7 +16444,7 @@ export default function App() {
                     <b>{researchSupportingDocumentIds.length}</b>
                   </summary>
                   <div>
-                    {knowledgeRows.map((item) => (
+                    {knowledgeRows.filter((item) => researchRepositoryDocuments.some((linked) => linked.id === item.id)).map((item) => (
                       <label key={item.id}>
                         <input
                           type="checkbox"
@@ -13566,180 +16464,19 @@ export default function App() {
                         <span>
                           <strong>{item.title}</strong>
                           <small>
-                            {item.category} · {item.status} · v
+                            {item.category} Â· {item.status} Â· v
                             {item.latest_version}
                           </small>
                         </span>
                       </label>
                     ))}
-                    {!knowledgeRows.length && (
-                      <p>No Repository documents are available.</p>
+                    {!researchRepositoryDocuments.length && (
+                      <p>No linked Repository evidence is available. Add evidence from Evidence first.</p>
                     )}
                   </div>
                 </details>
 
-                <div className="research-report-generate">
-                  <strong>
-                    {
-                      researchReport.filter(
-                        (section) => section.status === "Approved",
-                      ).length
-                    }{" "}
-                    / {researchReport.length} approved
-                  </strong>
-                  <label>
-                    <span>Draft reviewer</span>
-                    <select
-                      value={researchDraftReviewerId}
-                      onChange={(event) =>
-                        setResearchDraftReviewerId(event.target.value)
-                      }
-                    >
-                      <option value="">Select authorised reviewer</option>
-                      {team
-                        .filter(
-                          (member) =>
-                            member.active &&
-                            [
-                              "Reviewer",
-                              "Research Manager",
-                              "Administrator",
-                            ].includes(member.role),
-                        )
-                        .map((member) => (
-                          <option key={member.id} value={member.id}>
-                            {member.name} — {member.role}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    disabled={
-                      researchReportGenerating ||
-                      !researchDraftReviewerId ||
-                      !researchReport.some((section) => section.content.trim())
-                    }
-                    title={
-                      !researchDraftReviewerId
-                        ? "Choose the person who will review this draft."
-                        : "Compile the saved sections and notify the selected reviewer."
-                    }
-                    onClick={async () => {
-                      try {
-                        setResearchReportGenerating(true);
-                        const generated = await api.generateResearchReport(
-                          token,
-                          selectedResearch.id,
-                          {
-                            title: `${selectedResearch.title} — Draft Research Report`,
-                            classification: "Internal",
-                            templateId: builderCreate.templateId || null,
-                            mode: "Draft",
-                            reviewerId: researchDraftReviewerId,
-                            knowledgeIds: researchSupportingDocumentIds,
-                          },
-                        );
-                        setWorkspaceDocuments(
-                          await api.generatedDocuments(
-                            token,
-                            "Research",
-                            selectedResearch.id,
-                          ),
-                        );
-                        setResearchActivity(
-                          await api.researchActivity(
-                            token,
-                            selectedResearch.id,
-                          ),
-                        );
-                        setNotifications(await api.notifications(token));
-                        const reviewer = team.find(
-                          (member) => member.id === researchDraftReviewerId,
-                        );
-                        setResearchWorkspaceNotice(
-                          `Draft report ${generated.reference} sent to ${reviewer?.name || "the selected reviewer"}.`,
-                        );
-                        await openGeneratedDocument(generated.id);
-                      } catch (error) {
-                        setResearchWorkspaceNotice(
-                          error instanceof Error
-                            ? error.message
-                            : "Draft report could not be generated.",
-                        );
-                      } finally {
-                        setResearchReportGenerating(false);
-                      }
-                    }}
-                  >
-                    {researchReportGenerating
-                      ? "Generating..."
-                      : "Generate & send draft"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={
-                      researchReportGenerating ||
-                      !researchReport.length ||
-                      researchReport.some(
-                        (section) => section.status !== "Approved",
-                      ) ||
-                      !researchSources.length
-                    }
-                    title={
-                      researchReport.some(
-                        (section) => section.status !== "Approved",
-                      )
-                        ? "Approve every report section first."
-                        : !researchSources.length
-                          ? "Add controlled evidence first."
-                          : "Generate the final controlled document."
-                    }
-                    onClick={async () => {
-                      try {
-                        setResearchReportGenerating(true);
-                        const generated = await api.generateResearchReport(
-                          token,
-                          selectedResearch.id,
-                          {
-                            title: `${selectedResearch.title} — Final Research Report`,
-                            classification: "Official",
-                            templateId: builderCreate.templateId || null,
-                            mode: "Final",
-                            knowledgeIds: researchSupportingDocumentIds,
-                          },
-                        );
-                        setWorkspaceDocuments(
-                          await api.generatedDocuments(
-                            token,
-                            "Research",
-                            selectedResearch.id,
-                          ),
-                        );
-                        setResearchActivity(
-                          await api.researchActivity(
-                            token,
-                            selectedResearch.id,
-                          ),
-                        );
-                        setResearchWorkspaceNotice(
-                          `Controlled report ${generated.reference} generated successfully.`,
-                        );
-                        await openGeneratedDocument(generated.id);
-                      } catch (error) {
-                        setResearchWorkspaceNotice(
-                          error instanceof Error
-                            ? error.message
-                            : "Controlled report could not be generated.",
-                        );
-                      } finally {
-                        setResearchReportGenerating(false);
-                      }
-                    }}
-                  >
-                    Generate final
-                  </button>
-                </div>
+                
               </div>
 
               <div className="research-report-readiness">
@@ -13775,7 +16512,7 @@ export default function App() {
                 </span>
                 <span>
                   <small>Controlled evidence</small>
-                  <strong>{researchSources.length}</strong>
+                  <strong>{researchSources.length + researchRepositoryDocuments.length}</strong>
                 </span>
                 <div>
                   <b
@@ -13800,7 +16537,10 @@ export default function App() {
 
               <div className="report-builder-layout">
                 <aside className="report-outline">
-                  <h4>Report outline</h4>
+                  <header className="report-outline-head">
+                    <small>REPORT OUTLINE</small>
+                    <strong>{researchReport.length} sections</strong>
+                  </header>
 
                   {researchReport.map((section) => (
                     <button
@@ -13823,8 +16563,8 @@ export default function App() {
                         <small>
                           {section.status}
                           {section.owner_name
-                            ? ` · ${section.owner_name}`
-                            : " · Unassigned"}
+                            ? ` Â· ${section.owner_name}`
+                            : " Â· Unassigned"}
                         </small>
                       </div>
                     </button>
@@ -13886,11 +16626,11 @@ export default function App() {
                         >
                           <option value="">Unassigned section</option>
                           <option value={selectedResearch.lead_id}>
-                            {selectedResearch.lead_name} — Lead
+                            {selectedResearch.lead_name} â€” Lead
                           </option>
                           {selectedResearch.collaborators.map((person) => (
                             <option key={person.id} value={person.id}>
-                              {person.name} — {person.role}
+                              {person.name} â€” {person.role}
                             </option>
                           ))}
                         </select>
@@ -13951,7 +16691,7 @@ export default function App() {
                                   )
                                   .map((member) => (
                                     <option key={member.id} value={member.id}>
-                                      {member.name} — {member.role}
+                                      {member.name} â€” {member.role}
                                     </option>
                                   ))}
                               </select>
@@ -13962,7 +16702,7 @@ export default function App() {
                               className="save-draft"
                               type="button"
                               disabled={reportSaving}
-                              onClick={saveResearchSectionDraft}
+                              onClick={() => void saveResearchSectionDraft()}
                             >
                               {reportSaving ? "Saving..." : "Save draft"}
                             </button>
@@ -13995,7 +16735,7 @@ export default function App() {
                                   saveResearchSectionStatus("Approved")
                                 }
                               >
-                                ✓ Approve section
+                                âœ“ Approve section
                               </button>
                             )}
                           {canReview &&
@@ -14072,7 +16812,7 @@ export default function App() {
                       >
                         <strong>{source.title}</strong>
                         <span>
-                          {source.source_type} · {source.quality} quality
+                          {source.source_type} Â· {source.quality} quality
                         </span>
                         <small>{source.relevance}</small>
                       </button>
@@ -14104,11 +16844,58 @@ export default function App() {
               </div>
             </section>
 
+                        {researchReportPreviewOpen && (
+              <div className="modal-backdrop" onClick={() => setResearchReportPreviewOpen(false)}>
+                <section className="research-report-preview-modal" onClick={(event) => event.stopPropagation()}>
+                  <header><div><p>REPORT READER</p><h2>{selectedResearch.title}</h2><span>Read the complete saved report, then return to editing or proceed to formal review.</span></div><button type="button" className="close" onClick={() => setResearchReportPreviewOpen(false)}>Ã—</button></header>
+                  <div className="research-report-preview-body research-report-reader-body">
+                    {researchReport.filter((section) => section.content.trim()).map((section) => (
+                      <section key={section.id} className="research-report-reader-section">
+                        <h3>{section.title}</h3>
+                        <div
+                          className="research-report-reader-content"
+                          dangerouslySetInnerHTML={{ __html: section.content }}
+                        />
+                      </section>
+                    ))}
+                  </div>
+                  <footer className="research-report-preview-footer">
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => {
+                        setResearchReportPreviewOpen(false);
+                        setResearchSectionWorkspaceMode("edit");
+                      }}
+                    >
+                      Back to Report
+                    </button>
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => {
+                        setResearchReportPreviewOpen(false);
+                        setResearchSectionWorkspaceMode(null);
+                        setResearchTab("Review");
+                        setTimeout(() => {
+                          document
+                            .querySelector(".research-submit-review-section")
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 80);
+                      }}
+                    >
+                      Proceed for Review
+                    </button>
+                  </footer>
+                </section>
+              </div>
+            )}
+
             {researchSectionWorkspaceMode && selectedReportSection && (
               <TaskSectionWorkspace
                 key={selectedReportSection.id}
                 title={selectedReportSection.title}
-                reportTitle={`${selectedResearch.title} — Research Report`}
+                reportTitle={`${selectedResearch.title} â€” Research Report`}
                 mode={researchSectionWorkspaceMode}
                 status={
                   selectedReportSection.status === "Approved"
@@ -14119,11 +16906,11 @@ export default function App() {
                 }
                 value={reportContent}
                 busy={reportSaving}
-                contextTitle={`${selectedResearch.title} — Research Report`}
+                contextTitle={`${selectedResearch.title} â€” Research Report`}
                 linkedWorkLabel="Attach assignment"
                 linkedWorkPlaceholder="Choose assignment"
                 linkedWorkActionLabel="Attach to"
-                linkedWorkItems={assignmentRows.map((assignment) => ({
+                linkedWorkItems={(selectedResearch.assignments || []).map((assignment) => ({
                   id: assignment.id,
                   title: assignment.title,
                   status: assignment.status,
@@ -14151,7 +16938,7 @@ export default function App() {
                     );
                   }
                   const full = await api.generatedDocument(token, source.id);
-                  const assignment = assignmentRows.find(
+                  const assignment = (selectedResearch.assignments || []).find(
                     (item) => item.id === assignmentId,
                   );
                   const imported = full.sections
@@ -14161,7 +16948,7 @@ export default function App() {
                         `<h3>${item.title}</h3>${item.content}`,
                     )
                     .join("<hr>");
-                  const updatedContent = `${reportContent}${reportContent ? "<hr>" : ""}<section data-assignment-report-id="${source.id}" data-assignment-id="${assignmentId}"><h2>Assignment contribution: ${assignment?.title || source.title}</h2><p><strong>Source report:</strong> ${source.reference} · ${source.status}</p>${imported}</section>`;
+                  const updatedContent = `${reportContent}${reportContent ? "<hr>" : ""}<section data-assignment-report-id="${source.id}" data-assignment-id="${assignmentId}"><h2>Assignment contribution: ${assignment?.title || source.title}</h2><p><strong>Source report:</strong> ${source.reference} Â· ${source.status}</p>${imported}</section>`;
                   await api.updateResearchReportSection(token, selectedResearch.id, selectedReportSection.id, {
                     content: updatedContent,
                     status: "In Progress",
@@ -14175,6 +16962,61 @@ export default function App() {
                   setReportContent(current?.content || updatedContent);
                   setResearchWorkspaceNotice(
                     `${assignment?.title || "Assignment"} linked and saved in ${selectedReportSection.title}.`,
+                  );
+                }}
+                reportTemplateOptions={researchTemplateLibrary.map((template) => ({
+                  key: template.template_key,
+                  name: template.name,
+                  description: template.description,
+                  sectionCount: template.section_count,
+                }))}
+                onApplyReportTemplate={async (templateKey) => {
+                  const template = researchTemplateLibrary.find(
+                    (item) => item.template_key === templateKey,
+                  );
+                  if (!template) {
+                    throw new Error("The selected research template could not be found.");
+                  }
+
+                  const saved = await saveResearchSectionDraft();
+                  if (!saved) {
+                    throw new Error("Save the current section before changing the report template.");
+                  }
+
+                  const hasDraftContent = researchReport.some((section) =>
+                    Boolean(section.content.trim()),
+                  );
+                  if (
+                    hasDraftContent &&
+                    !window.confirm(
+                      `Applying "${template.name}" will change the Report Outline. Matching section content is preserved where possible, but sections not in the new template will be removed. Continue?`,
+                    )
+                  ) {
+                    throw new Error("Template change cancelled.");
+                  }
+
+                  const result = await api.applyResearchReportTemplate(
+                    token,
+                    selectedResearch.id,
+                    {
+                      templateKey: template.template_key,
+                      replaceExisting: hasDraftContent,
+                    },
+                  );
+                  const refreshed = await api.researchReport(
+                    token,
+                    selectedResearch.id,
+                  );
+                  const nextSections = refreshed.length
+                    ? refreshed
+                    : result.sections;
+
+                  setResearchReport(nextSections);
+                  const nextSection = nextSections[0] || null;
+                  setSelectedReportSection(nextSection);
+                  setReportContent(nextSection?.content || "");
+                  setResearchWorkspaceNotice(
+                    `${result.template.name} applied. Report Outline updated to ${nextSections.length} section${nextSections.length === 1 ? "" : "s"}.`,
                   );
                 }}
                 templateOptions={researchDocumentTemplates
@@ -14211,14 +17053,59 @@ export default function App() {
                   researchReport.length - 1
                 }
                 onChange={setReportContent}
+                closeLabel="Return to Report"
+                saveLabel="Save Draft & Return to Report"
+                onPreviewReport={async (latestValue) => {
+                  const contentToPreview =
+                    typeof latestValue === "string" ? latestValue : reportContent;
+                  setReportContent(contentToPreview);
+                  const saved = await saveResearchSectionDraft(contentToPreview);
+                  if (!saved) {
+                    setResearchWorkspaceNotice(
+                      "The current report section could not be saved for preview.",
+                    );
+                    return;
+                  }
+                  const refreshed = await api.researchReport(
+                    token,
+                    selectedResearch.id,
+                  );
+                  setResearchReport(refreshed);
+                  setResearchSectionWorkspaceMode(null);
+                  setResearchReportPreviewOpen(true);
+                }}
+                onProceedForReview={async (latestValue) => {
+                  const contentToSubmit =
+                    typeof latestValue === "string" ? latestValue : reportContent;
+                  setReportContent(contentToSubmit);
+                  const saved = await saveResearchSectionDraft(contentToSubmit);
+                  if (!saved) {
+                    setResearchWorkspaceNotice(
+                      "Save the current report section before proceeding to review.",
+                    );
+                    return;
+                  }
+                  setResearchSectionWorkspaceMode(null);
+                  setResearchTab("Review");
+                  setTimeout(() => {
+                    document
+                      .querySelector(".research-submit-review-section")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 80);
+                }}
                 onClose={() => {
                   setResearchSectionWorkspaceMode(null);
-                  setResearchTab("Overview");
+                  setResearchTab("Report");
                 }}
                 onSave={async () => {
                   if (await saveResearchSectionDraft()) {
                     setResearchSectionWorkspaceMode(null);
-                    setResearchTab("Overview");
+                    setResearchTab("Report");
+                    setTimeout(() => {
+                      document
+                        .querySelector(".research-report-builder")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 80);
                   }
                 }}
                 onPrevious={async () => {
@@ -14265,14 +17152,78 @@ export default function App() {
               />
             )}
 
+            <section className="research-sources-panel research-repository-evidence-panel">
+              <header className="research-sources-head">
+                <div>
+                  <small>DOCUMENT EVIDENCE</small>
+                  <h3>Repository documents</h3>
+                  <p>Link published App2 documents that support this research. The original Repository file remains unchanged.</p>
+                </div>
+                <strong>{researchRepositoryDocuments.length} linked</strong>
+              </header>
+              <div className="research-source-form research-repository-link-form">
+                <select value={researchRepositoryLinkId} onChange={(event) => setResearchRepositoryLinkId(event.target.value)} aria-label="Published Repository document to link">
+                  <option value="">Choose a published document</option>
+                  {knowledgeRows
+                    .filter((item) => item.status === "Published" && !item.is_archived && !researchRepositoryDocuments.some((linked) => linked.id === item.id))
+                    .sort((a,b) => a.title.localeCompare(b.title))
+                    .map((item) => <option key={item.id} value={item.id}>{item.title} Â· {item.category}</option>)}
+                </select>
+                <button type="button" disabled={!researchRepositoryLinkId} onClick={async () => {
+                  if (!researchRepositoryLinkId) return;
+                  try {
+                    await api.linkResearchRepositoryDocument(token, selectedResearch.id, researchRepositoryLinkId);
+                    setResearchRepositoryLinkId("");
+                    setResearchRepositoryDocuments(await api.researchRepositoryDocuments(token, selectedResearch.id));
+                    setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                    setResearchWorkspaceNotice("Published Repository evidence linked. The original document was not copied or moved.");
+                  } catch (error) {
+                    setResearchWorkspaceNotice(error instanceof Error ? error.message : "Repository evidence could not be linked.");
+                  }
+                }}>Link Document</button>
+              </div>
+              <div className="research-source-list research-repository-evidence-list">
+                {researchRepositoryDocuments.map((item) => {
+                  return <article key={item.id}>
+                    <b>{item.category || "Document"}</b>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <small>{item.document_type || "Repository document"} Â· {item.status} Â· v{item.latest_version || item.current_version || 1}</small>
+                      <span className="research-source-badges"><em>Published Repository evidence</em><em>No duplicate file</em></span>
+                    </div>
+                    <div className="research-source-governance">
+                      <button
+                        type="button"
+                        onClick={() => void openRepositoryDocumentReader(item.id)}
+                        title={`Preview ${item.title} in Document Reader`}
+                      >
+                        Preview
+                      </button>
+                      <button type="button" onClick={async () => {
+                        if (!window.confirm(`Unlink â€œ${item.title}â€ from this research project? The Repository document itself will not be deleted.`)) return;
+                        try {
+                          await api.unlinkResearchRepositoryDocument(token, selectedResearch.id, item.id);
+                          setResearchRepositoryDocuments(await api.researchRepositoryDocuments(token, selectedResearch.id));
+                          setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                          setResearchWorkspaceNotice("Repository evidence unlinked. The original Repository document remains unchanged.");
+                        } catch (error) {
+                          setResearchWorkspaceNotice(error instanceof Error ? error.message : "Repository evidence could not be unlinked.");
+                        }
+                      }}>Unlink</button>
+                    </div>
+                  </article>;
+                })}
+                {!researchRepositoryDocuments.length && <p>No Repository evidence is linked yet. Choose a published document above to link it without creating another copy.</p>}
+              </div>
+            </section>
+
             <section className="research-sources-panel">
               <header className="research-sources-head">
                 <div>
-                  <small>CONTROLLED EVIDENCE REGISTER</small>
-                  <h3>Research sources</h3>
+                  <small>SOURCE REGISTER</small>
+                  <h3>Other research sources</h3>
                   <p>
-                    Capture, classify and govern the evidence supporting this
-                    project.
+                    Record citations, datasets, interviews, websites and field evidence that are not Repository documents.
                   </p>
                 </div>
                 <strong>{researchSources.length} sources</strong>
@@ -14331,7 +17282,7 @@ export default function App() {
                 className="research-source-add"
                 open={!researchSources.length}
               >
-                <summary>+ Add controlled source</summary>
+                <summary>+ Add Source</summary>
                 <div className="research-source-form">
                   <select
                     value={researchSourceForm.sourceType}
@@ -14546,7 +17497,7 @@ export default function App() {
                             source.identifier,
                           ]
                             .filter(Boolean)
-                            .join(" · ") || "Metadata not supplied"}
+                            .join(" Â· ") || "Metadata not supplied"}
                         </small>
                         <span className="research-source-badges">
                           <em>{source.provenance}</em>
@@ -14644,7 +17595,7 @@ export default function App() {
                           onClick={async () => {
                             if (
                               !window.confirm(
-                                `Remove “${source.title}” from this research project?`,
+                                `Remove â€œ${source.title}â€ from this research project?`,
                               )
                             )
                               return;
@@ -14689,334 +17640,7 @@ export default function App() {
               </div>
             </section>
 
-            <section className="research-builder-documents-panel">
-              <header className="research-documents-head">
-                <div>
-                  <small>CONTROLLED RESEARCH OUTPUTS</small>
-                  <h3>Documents and deliverables</h3>
-                  <p>
-                    Create structured outputs, continue drafting and move
-                    completed evidence through review.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResearchDocumentCreateOpen(true);
-                    window.requestAnimationFrame(() =>
-                      document
-                        .querySelector(".research-document-create")
-                        ?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "nearest",
-                        }),
-                    );
-                  }}
-                >
-                  + Create document
-                </button>
-              </header>
-              <div className="research-document-kpis">
-                <span>
-                  <small>Total outputs</small>
-                  <strong>{workspaceDocuments.length}</strong>
-                </span>
-                <span>
-                  <small>In drafting</small>
-                  <strong>
-                    {
-                      workspaceDocuments.filter((document) =>
-                        ["Draft", "Revised", "Changes Requested"].includes(
-                          document.status,
-                        ),
-                      ).length
-                    }
-                  </strong>
-                </span>
-                <span>
-                  <small>Awaiting review</small>
-                  <strong>
-                    {
-                      workspaceDocuments.filter((document) =>
-                        ["Submitted", "Under Review"].includes(document.status),
-                      ).length
-                    }
-                  </strong>
-                </span>
-                <span>
-                  <small>Approved / final</small>
-                  <strong>
-                    {
-                      workspaceDocuments.filter((document) =>
-                        ["Approved", "Final"].includes(document.status),
-                      ).length
-                    }
-                  </strong>
-                </span>
-              </div>
-              <div className="research-document-next">
-                <div>
-                  <small>NEXT DOCUMENT ACTION</small>
-                  <strong>
-                    {!workspaceDocuments.length
-                      ? "Create the first controlled research output"
-                      : workspaceDocuments.some(
-                            (document) =>
-                              document.status === "Changes Requested",
-                          )
-                        ? "Address requested document changes"
-                        : workspaceDocuments.some(
-                              (document) => document.status === "Draft",
-                            )
-                          ? "Continue the current research draft"
-                          : workspaceDocuments.some((document) =>
-                                ["Submitted", "Under Review"].includes(
-                                  document.status,
-                                ),
-                              )
-                            ? "Monitor the active document review"
-                            : "Create or revise a controlled output"}
-                  </strong>
-                  <span>
-                    {!workspaceDocuments.length
-                      ? "Choose an approved Research template to begin a governed document."
-                      : "Open the relevant document to continue its controlled workflow."}
-                  </span>
-                </div>
-                {workspaceDocuments.length ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openGeneratedDocument(
-                        (
-                          workspaceDocuments.find(
-                            (document) =>
-                              document.status === "Changes Requested",
-                          ) ||
-                          workspaceDocuments.find(
-                            (document) => document.status === "Draft",
-                          ) ||
-                          workspaceDocuments[0]
-                        ).id,
-                      )
-                    }
-                  >
-                    Open next document
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setResearchDocumentCreateOpen(true)}
-                  >
-                    Create first output
-                  </button>
-                )}
-              </div>
-              <details
-                className="research-document-create"
-                open={researchDocumentCreateOpen || !workspaceDocuments.length}
-                onToggle={(event) =>
-                  setResearchDocumentCreateOpen(event.currentTarget.open)
-                }
-              >
-                <summary>Create a new research document</summary>
-                <div className="research-document-create-guide">
-                  <b>1</b>
-                  <span>
-                    <strong>Choose a document type</strong>
-                    <small>
-                      The template creates the correct controlled sections.
-                    </small>
-                  </span>
-                  <b>2</b>
-                  <span>
-                    <strong>Name and classify it</strong>
-                    <small>
-                      You can edit and save the document before submitting it.
-                    </small>
-                  </span>
-                </div>
-                {researchDocumentTemplates.length ? (
-                  <div className="workspace-document-create">
-                    <label>
-                      Document type
-                      <select
-                        aria-label="Research document template"
-                        value={builderCreate.templateId}
-                        onChange={(event) =>
-                          setBuilderCreate({
-                            ...builderCreate,
-                            templateId: event.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select a Research template</option>
-                        {researchDocumentTemplates.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.name} — {item.governance_status} v
-                            {item.version}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Document title
-                      <input
-                        value={builderCreate.title}
-                        onChange={(event) =>
-                          setBuilderCreate({
-                            ...builderCreate,
-                            title: event.target.value,
-                          })
-                        }
-                        placeholder="e.g. Employee Experience Research Report"
-                      />
-                    </label>
-                    <label>
-                      Classification
-                      <select
-                        aria-label="Document classification"
-                        value={builderCreate.classification}
-                        onChange={(event) =>
-                          setBuilderCreate({
-                            ...builderCreate,
-                            classification: event.target.value,
-                          })
-                        }
-                      >
-                        <option>Official</option>
-                        <option>Internal</option>
-                        <option>Confidential</option>
-                        <option>Public</option>
-                      </select>
-                    </label>
-                    <button
-                      type="button"
-                      disabled={
-                        builderCreating ||
-                        !builderCreate.templateId ||
-                        !builderCreate.title.trim()
-                      }
-                      onClick={() =>
-                        createWorkspaceDocument("Research", selectedResearch.id)
-                      }
-                    >
-                      {builderCreating
-                        ? "Creating..."
-                        : "Create & open document"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="research-document-template-warning">
-                    <strong>No approved Research template is available</strong>
-                    <span>
-                      A Research Manager or Administrator must activate a
-                      Standard or Approved Research template before documents
-                      can be created.
-                    </span>
-                  </div>
-                )}
-              </details>
-              <div className="research-document-toolbar">
-                <input
-                  type="search"
-                  value={researchDocumentSearch}
-                  onChange={(event) =>
-                    setResearchDocumentSearch(event.target.value)
-                  }
-                  placeholder="Search documents or references"
-                />
-                <select
-                  value={researchDocumentStatus}
-                  onChange={(event) =>
-                    setResearchDocumentStatus(event.target.value)
-                  }
-                >
-                  <option>All</option>
-                  {[
-                    "Draft",
-                    "Submitted",
-                    "Under Review",
-                    "Changes Requested",
-                    "Revised",
-                    "Approved",
-                    "Final",
-                  ].map((status) => (
-                    <option key={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="research-document-list">
-                {workspaceDocuments
-                  .filter(
-                    (document) =>
-                      `${document.title} ${document.reference} ${document.template_name}`
-                        .toLowerCase()
-                        .includes(researchDocumentSearch.toLowerCase()) &&
-                      (researchDocumentStatus === "All" ||
-                        document.status === researchDocumentStatus),
-                  )
-                  .map((document) => (
-                    <article key={document.id}>
-                      <div className="research-document-icon">
-                        <Icon name="documents" />
-                      </div>
-                      <div>
-                        <strong>{document.title}</strong>
-                        <small>
-                          {document.reference} · {document.template_name} v
-                          {document.template_version}
-                        </small>
-                        <span>
-                          {document.classification} · Version {document.version}{" "}
-                          · Updated{" "}
-                          {new Date(document.updated_at).toLocaleDateString(
-                            "en-KE",
-                          )}
-                        </span>
-                      </div>
-                      <b
-                        className={`research-document-status status-${document.status.toLowerCase().replaceAll(" ", "-")}`}
-                      >
-                        {document.status}
-                      </b>
-                      <div className="research-document-actions">
-                        <button
-                          type="button"
-                          onClick={() => openGeneratedDocument(document.id)}
-                        >
-                          {["Approved", "Final"].includes(document.status)
-                            ? "View document"
-                            : "Open workspace"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            api.exportGeneratedDocument(
-                              token,
-                              document.id,
-                              document.title,
-                              "docx",
-                            )
-                          }
-                        >
-                          Export
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                {!workspaceDocuments.length && (
-                  <div className="research-documents-empty">
-                    <Icon name="documents" />
-                    <strong>No controlled research outputs yet</strong>
-                    <span>
-                      Create the first document from an approved Research
-                      template.
-                    </span>
-                  </div>
-                )}
-              </div>
-            </section>
+            
 
             <section className="research-activity-panel">
               <header className="research-activity-head">
@@ -15233,10 +17857,10 @@ export default function App() {
             </section>
           </div>
         )}
-        {builderDocument && (
+        {builderDocument && builderDocument.context !== "Assignment" && (
           <div className="structured-document-builder">
             <header>
-              <button onClick={() => setBuilderDocument(null)}>← Back</button>
+              <button onClick={() => setBuilderDocument(null)}>â† Back</button>
               <div>
                 <p>
                   {builderDocument.context} / {builderDocument.reference} /
@@ -15376,7 +18000,7 @@ export default function App() {
             </main>
           </div>
         )}
-        {builderDocument && (
+        {builderDocument && builderDocument.context !== "Assignment" && (
           <aside
             className="builder-control-overlay"
             aria-label="Document workflow controls"
@@ -15672,25 +18296,48 @@ export default function App() {
             )}
             members={selectedAssignmentRecord?.members || []}
             currentUserName={user.name}
+            currentUserId={user.id}
             assignmentTitle={selectedAssignmentRecord?.title || selectedAssignment || undefined}
             linkedTasks={assignmentTasks
               .filter(
                 (task) =>
-                  task.status === "Completed" ||
-                  task.progress === 100 ||
-                  task.contribution_status === "Accepted",
+                  task.contribution_status === "Accepted" &&
+                  Boolean(task.repository_document_id),
               )
               .map((task) => ({
                 id: task.id,
                 title: task.contribution_title || task.title,
-                status: `${task.status} · ${task.contribution_status}`,
+                status: "Final approved source",
               }))}
+            reviewers={assignmentReportReviewerCandidates}
             canReview={canReview}
+            onSubmitForReview={submitAssignmentReportForReview}
+            canEditAssignmentReport={Boolean(isManager || isAssignmentLead)}
+            initialPreview={assignmentReportPreviewMode}
             onClose={() => {
               setBuilderDocument(null);
-              setAssignmentWorkspaceTab("Overview");
+              setAssignmentReportPreviewMode(false);
+              setAssignmentWorkspaceTab("Reports");
+              if (selectedAssignmentId)
+                void api
+                  .generatedDocuments(token, "Assignment", selectedAssignmentId)
+                  .then(setWorkspaceDocuments)
+                  .catch(() => {});
             }}
             onRefresh={openGeneratedDocument}
+            onExternalImported={async () => {
+              setBuilderDocument(null);
+              setAssignmentReportPreviewMode(false);
+              setAssignmentWorkspaceTab("Reports");
+              if (selectedAssignmentId) {
+                setWorkspaceDocuments(
+                  await api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+                );
+              }
+              setAssignmentNotice(
+                "Imported report ready. Select a reviewer to submit it, or discard the import.",
+              );
+            }}
           />
         )}
         {selectedAssignment && (
@@ -15732,6 +18379,50 @@ export default function App() {
                     {selectedAssignmentRecord?.priority || "Priority not set"}
                   </span>
 
+                  {selectedAssignmentRecord?.research_id && (
+                    <button
+                      type="button"
+                      className="assignment-research-link"
+                      title="Open the parent research project"
+                      onClick={async () => {
+                        try {
+                          const projects = await api.research(token);
+                          const project = projects.find((item) => item.id === selectedAssignmentRecord.research_id);
+                          if (!project) { setAssignmentNotice("The related research project is not available to your account."); return; }
+                          setSelectedAssignment(null);
+                          setSelectedAssignmentId(null);
+                          setActive("Research Repository");
+                          setSelectedResearch(project);
+                          setResearchTab("Overview");
+                          setSelectedReportSection(null);
+                          setReportContent("");
+                          const [comments, report, sources, activityRows, templates, documents] = await Promise.all([
+                            api.researchComments(token, project.id),
+                            api.researchReport(token, project.id),
+                            api.researchSources(token, project.id),
+                            api.researchActivity(token, project.id),
+                            api.documentTemplates(token, "Research"),
+                            api.generatedDocuments(token, "Research", project.id),
+                          ]);
+                          setResearchComments(comments);
+                          setResearchReport(report);
+                          setResearchSources(sources);
+                          setResearchActivity(activityRows);
+                          setBuilderTemplates(templates);
+                          setWorkspaceDocuments(documents);
+                          if (report.length) {
+                            setSelectedReportSection(report[0]);
+                            setReportContent(report[0].content || "");
+                          }
+                        } catch (error) {
+                          setAssignmentNotice(error instanceof Error ? error.message : "Related research could not be opened.");
+                        }
+                      }}
+                    >
+                      Research: {selectedAssignmentRecord.research_title || "Open project"}
+                    </button>
+                  )}
+
                   <span>
                     {selectedAssignmentRecord?.due_date
                       ? `Due ${new Date(selectedAssignmentRecord.due_date).toLocaleDateString("en-KE")}`
@@ -15772,7 +18463,8 @@ export default function App() {
                   [
                     { tab: "Overview", label: "Overview" },
                     { tab: "Tasks", label: "Tasks" },
-                    { tab: "Documents", label: "Research & Documents" },
+                    { tab: "Documents", label: "Evidence" },
+                    { tab: "Reports", label: "Reports" },
                     { tab: "Activity", label: "Activity" },
                   ] as const
                 ).map(({ tab, label }) => (
@@ -15788,10 +18480,13 @@ export default function App() {
                       setAssignmentNotice("");
                     }}
                   >
-                    <span>{label}</span>
+                    <span>{navigationDisplayLabel(label)}</span>
 
                     {tab === "Tasks" && assignmentTasks.length > 0 && (
                       <b>{assignmentTasks.length}</b>
+                    )}
+                    {tab === "Reports" && workspaceDocuments.length > 0 && (
+                      <b>{workspaceDocuments.length}</b>
                     )}
 
                   </button>
@@ -15800,6 +18495,7 @@ export default function App() {
                   <button type="button" className="primary" onClick={() => setAssignmentAddOpen((open) => !open)}>+ Add</button>
                   {assignmentAddOpen && <div role="menu">
                     <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Tasks"); void openAssignmentTaskDialog(); }}>Task</button>
+                    <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Reports"); }}>Report</button>
                     <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Documents"); setComment("Research note: "); }}>Note</button>
                     <label>Document<input type="file" hidden onChange={(event) => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Documents"); void uploadAssignmentFile(event.target.files?.[0]); }} /></label>
                     <button type="button" onClick={() => { setAssignmentAddOpen(false); setAssignmentWorkspaceTab("Activity"); window.setTimeout(() => document.querySelector<HTMLTextAreaElement>(".assignment-activity-comment textarea")?.focus(), 0); }}>Comment</button>
@@ -15810,18 +18506,18 @@ export default function App() {
               {assignmentNotice && (
                 <div className="session-message assignment-dismissible-message" role="status">
                   <span>{assignmentNotice}</span>
-                  <button type="button" aria-label="Dismiss message" onClick={() => setAssignmentNotice("")}>×</button>
+                  <button type="button" aria-label="Dismiss message" onClick={() => setAssignmentNotice("")}>Ã—</button>
                 </div>
               )}
               <aside className="assignment-felix-context">
                 <header>
                   <button type="button" onClick={() => setAssignmentFelixOpen((open) => !open)}>{assignmentFelixOpen ? "Felix assignment assistant" : "Ask Felix about this assignment"}</button>
-                  {assignmentFelixOpen && <button type="button" className="assignment-felix-hide" onClick={() => setAssignmentFelixOpen(false)} aria-label="Hide Felix assignment assistant">Hide ×</button>}
+                  {assignmentFelixOpen && <button type="button" className="assignment-felix-hide" onClick={() => setAssignmentFelixOpen(false)} aria-label="Hide Felix assignment assistant">Hide Ã—</button>}
                 </header>
-                {assignmentFelixOpen && <div><div className="assignment-felix-prompts">{["Summarize this assignment", "What is overdue?", "What should I do next?", "Give me a progress update"].map((question) => <button type="button" key={question} onClick={() => setAssignmentFelixQuestion(question)}>{question}</button>)}</div><label>Question<input value={assignmentFelixQuestion} onChange={(event) => setAssignmentFelixQuestion(event.target.value)} placeholder="Find documents about…" /></label><button type="button" disabled={!assignmentFelixQuestion.trim() || assignmentFelixBusy} onClick={async () => { if (!selectedAssignmentId) return; setAssignmentFelixBusy(true); setAssignmentFelixAnswer(""); try { const response = await api.askFelix(token, `Assignment context: ID ${selectedAssignmentId}; title: ${selectedAssignmentRecord?.title || selectedAssignment || "Assignment"}. ${assignmentFelixQuestion}`, [], "Auto"); setAssignmentFelixAnswer(response.answer); } catch (error) { setAssignmentFelixAnswer(error instanceof Error ? error.message : "Felix could not answer."); } finally { setAssignmentFelixBusy(false); } }}>{assignmentFelixBusy ? "Thinking…" : "Ask Felix"}</button>{assignmentFelixAnswer && <p><span>{assignmentFelixAnswer}</span><button type="button" aria-label="Dismiss Felix response" onClick={() => setAssignmentFelixAnswer("")}>×</button></p>}</div>}
+                {assignmentFelixOpen && <div><div className="assignment-felix-prompts">{["Summarize this assignment", "What is overdue?", "What should I do next?", "Give me a progress update"].map((question) => <button type="button" key={question} onClick={() => setAssignmentFelixQuestion(question)}>{question}</button>)}</div><label>Question<input value={assignmentFelixQuestion} onChange={(event) => setAssignmentFelixQuestion(event.target.value)} placeholder="Find documents aboutâ€¦" /></label><button type="button" disabled={!assignmentFelixQuestion.trim() || assignmentFelixBusy} onClick={async () => { if (!selectedAssignmentId) return; setAssignmentFelixBusy(true); setAssignmentFelixAnswer(""); try { const response = await api.askFelix(token, `Assignment context: ID ${selectedAssignmentId}; title: ${selectedAssignmentRecord?.title || selectedAssignment || "Assignment"}. ${assignmentFelixQuestion}`, [], "Auto"); setAssignmentFelixAnswer(response.answer); } catch (error) { setAssignmentFelixAnswer(error instanceof Error ? error.message : "Felix could not answer."); } finally { setAssignmentFelixBusy(false); } }}>{assignmentFelixBusy ? "Thinkingâ€¦" : "Ask Felix"}</button>{assignmentFelixAnswer && <p><span>{assignmentFelixAnswer}</span><button type="button" aria-label="Dismiss Felix response" onClick={() => setAssignmentFelixAnswer("")}>Ã—</button></p>}</div>}
               </aside>
 
-              {assignmentWorkspaceTab === "Overview" && (
+              {assignmentWorkspaceTab === "Overview" && false && (
                 <section className="assignment-overview-minimal">
                   <p className="overview-minimal-brief">
                     {selectedAssignmentRecord?.description ||
@@ -15831,7 +18527,7 @@ export default function App() {
                   <dl>
                     <div>
                       <dt>Lead</dt>
-                      <dd>{assignmentLead?.name || "—"}</dd>
+                      <dd>{assignmentLead?.name || "â€”"}</dd>
                     </div>
                     <div>
                       <dt>Team</dt>
@@ -15864,12 +18560,12 @@ export default function App() {
                   <div className="workspace-document-overview">
                     <header>
                       <div><small>AVAILABLE DOCUMENTS</small><h4>Assignment documents</h4></div>
-                      <div className="workspace-document-actions"><strong>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).length}</strong><label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Assignment", selectedAssignmentId); event.currentTarget.value = ""; }} /></label></div>
+                      <div className="workspace-document-actions"><strong>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).length}</strong><label className="workspace-attach-report">{knowledgeUploading ? "Attachingâ€¦" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Assignment", selectedAssignmentId); event.currentTarget.value = ""; }} /></label></div>
                     </header>
                     <div className="workspace-document-overview-list">
-                      {workspaceDocuments.map((item) => <button type="button" key={`generated-${item.id}`} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>Generated report · {item.status}</small></span><em>Open</em></button>)}
-                      {assignmentFiles.map((file) => <button type="button" key={`upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded document · {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><em>Download</em></button>)}
-                      {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).map((item) => <button type="button" key={`repository-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>Repository document · {item.status}</small></span><em>Preview</em></button>)}
+                      {workspaceDocuments.map((item) => <button type="button" key={`generated-${item.id}`} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>Generated report Â· {item.status}</small></span><em>Open</em></button>)}
+                      {assignmentFiles.map((file) => <button type="button" key={`upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded document Â· {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><em>Download</em></button>)}
+                      {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)).map((item) => <button type="button" key={`repository-${item.id}`} onClick={() => void openRepositoryDocumentReader(item)}><span><b>{item.title}</b><small>Repository document Â· {item.status}</small></span><em>Preview</em></button>)}
                       {!assignmentFiles.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)) && <p>No documents are available for this assignment yet.</p>}
                     </div>
                   </div>
@@ -15891,366 +18587,136 @@ export default function App() {
                 </section>
               )}
 
-              {assignmentWorkspaceTab === "Overview" && false && (
-                <section className="assignment-command-centre">
-                  <section className="assignment-workflow-compact">
-                    <header>
+              {assignmentWorkspaceTab === "Overview" && (
+                <section className="assignment-overview-v4">
+                  <header className="assignment-overview-v4-hero">
+                    <div className="assignment-overview-v4-title">
+                      <small>ASSIGNMENT OVERVIEW</small>
+                      <h2>{selectedAssignmentRecord?.title || selectedAssignment}</h2>
+                      <p>
+                        {selectedAssignmentRecord?.description ||
+                          "No assignment description has been recorded. Add a clear objective and expected output so the team can work from one brief."}
+                      </p>
+                    </div>
+
+                    <dl className="assignment-overview-v4-details">
+                      <div><dt>Lead</dt><dd>{assignmentLead?.name || "Unassigned"}</dd></div>
+                      <div><dt>Directorate / Division</dt><dd>{selectedAssignmentRecord?.division || "Not set"}</dd></div>
                       <div>
-                        <span>ASSIGNMENT WORKFLOW</span>
-                        <strong>
-                          {
-                            assignmentWorkflowSteps[assignmentWorkflowIndex]
-                              .label
-                          }
-                        </strong>
-                        <small>
-                          {
-                            assignmentWorkflowSteps[assignmentWorkflowIndex]
-                              .help
-                          }
-                        </small>
+                        <dt>Due date</dt>
+                        <dd>{selectedAssignmentRecord?.due_date ? new Date(selectedAssignmentRecord.due_date).toLocaleDateString("en-KE") : "Not set"}</dd>
                       </div>
+                      <div><dt>Priority</dt><dd>{selectedAssignmentRecord?.priority || "Normal"}</dd></div>
+                    </dl>
+                  </header>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          selectAssignmentWorkspaceTab(assignmentNextAction.tab)
-                        }
-                      >
-                        {assignmentNextAction.label} {">"}
-                      </button>
-                    </header>
-
-                    <ol>
-                      {assignmentWorkflowSteps.map((step, index) => {
-                        const completed = index < assignmentWorkflowIndex;
-                        const current = index === assignmentWorkflowIndex;
-
-                        return (
-                          <li
-                            className={
-                              completed ? "done" : current ? "current" : ""
-                            }
-                            key={step.label}
-                          >
-                            <b>{completed ? "Done" : index + 1}</b>
-                            <span>{step.label}</span>
-                          </li>
-                        );
-                      })}
-                    </ol>
+                  <section className="assignment-overview-v4-next">
+                    <div>
+                      <small>NEXT STEP</small>
+                      <strong>{assignmentNextAction.title}</strong>
+                      <p>{assignmentNextAction.detail}</p>
+                    </div>
+                    <button type="button" onClick={() => selectAssignmentWorkspaceTab(assignmentNextAction.tab)}>
+                      {assignmentNextAction.label}
+                    </button>
                   </section>
 
-                  <button
-                    type="button"
-                    className={`assignment-overview-readiness ${assignmentReviewReady ? "ready" : "blocked"}`}
-                    onClick={() =>
-                      selectAssignmentWorkspaceTab(
-                        assignmentPendingContributions.length
-                          ? "Contributions"
-                          : assignmentOpenTasks.length
-                            ? "Tasks"
-                            : "Review",
-                      )
-                    }
-                  >
-                    <span>
-                      <small>FORMAL REVIEW READINESS</small>
-                      <strong>
-                        {assignmentReviewReady
-                          ? "Tasks and reports are ready"
-                          : "Complete the direct task workflow first"}
-                      </strong>
-                    </span>
-                    <em>
-                      {`${assignmentOpenTasks.length} open tasks · ${assignmentPendingContributions.length} reports awaiting acceptance`}{" "}
-                      →
-                    </em>
-                  </button>
-
-                  <section className="assignment-summary-strip">
-                    <div>
-                      <small>Status</small>
-                      <strong>
-                        {selectedAssignmentRecord?.status || "Loading"}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <small>Priority</small>
-                      <strong>
-                        {selectedAssignmentRecord?.priority || "-"}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <small>Progress</small>
+                  <section className="assignment-overview-v4-metrics" aria-label="Assignment metrics">
+                    <div><small>Status</small><strong>{assignmentOperationalStatus}</strong></div>
+                    <div><small>Tasks</small><strong>{completedTaskCount}/{assignmentTasks.length}</strong><span>completed</span></div>
+                    <div><small>Task reports</small><strong>{acceptedTaskReportCount}/{assignmentTasks.length}</strong><span>accepted</span></div>
+                    <div><small>Final report</small><strong>{latestFinalAssignmentReport?.status || "Not created"}</strong></div>
+                    <div className="assignment-overview-v4-progress">
+                      <small>Overall</small>
                       <strong>{assignmentCompletion}%</strong>
-                    </div>
-
-                    <div>
-                      <small>Due date</small>
-                      <strong>
-                        {selectedAssignmentRecord?.due_date
-                          ? new Date(
-                              String(selectedAssignmentRecord?.due_date),
-                            ).toLocaleDateString("en-KE")
-                          : "Not set"}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <small>Lead</small>
-                      <strong>{assignmentLead?.name || "Unassigned"}</strong>
-                    </div>
-
-                    <div>
-                      <small>Team</small>
-                      <strong>
-                        {selectedAssignmentRecord?.members?.length || 0} members
-                      </strong>
+                      <span>{finalAssignmentReportIsFinal ? "workflow complete" : "workflow progress"}</span>
                     </div>
                   </section>
 
-                  <div className="assignment-command-grid">
-                    <main className="assignment-command-main">
-                      <article className="command-card assignment-brief-card">
+                  <div className="assignment-overview-v4-grid">
+                    <main>
+                      <article className="assignment-overview-v4-card">
                         <header>
-                          <div>
-                            <span>ASSIGNMENT BRIEF</span>
-                            <h3>
-                              {selectedAssignmentRecord?.title ||
-                                selectedAssignment}
-                            </h3>
-                          </div>
+                          <div><small>WORK</small><h3>Current tasks</h3></div>
+                          <button type="button" className="assignment-overview-v4-link" onClick={() => selectAssignmentWorkspaceTab("Tasks")}>View all tasks</button>
                         </header>
-
-                        <div className="assignment-brief-content">
-                          <section>
-                            <small>OBJECTIVE / DESCRIPTION</small>
-                            <p>
-                              {selectedAssignmentRecord?.description ||
-                                "No assignment description has been recorded."}
-                            </p>
-                          </section>
-                        </div>
-                      </article>
-
-                      <article className="command-card current-tasks-card">
-                        <header>
-                          <div>
-                            <span>CURRENT TASKS</span>
-                            <h3>Active work</h3>
-                          </div>
-
-                          <div className="command-card-actions">
-                            {isManager && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setAssignmentNotice("");
-                                  setAssignmentWorkspaceTab(
-                                    assignmentNextAction.tab,
-                                  );
-
-                                  window.requestAnimationFrame(() => {
-                                    const workspace =
-                                      document.querySelector(
-                                        ".assignment-phase4",
-                                      );
-                                    workspace?.scrollTo({
-                                      top: 0,
-                                      behavior: "smooth",
-                                    });
-                                  });
-                                }}
-                              >
-                                + Add Task
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                selectAssignmentWorkspaceTab("Tasks")
-                              }
-                            >
-                              View all
-                            </button>
-                          </div>
-                        </header>
-
-                        {assignmentTasks.length > 0 ? (
-                          <div className="overview-task-table">
-                            <div className="overview-task-head">
-                              <span>Task</span>
-                              <span>Assignee</span>
-                              <span>Due</span>
-                              <span>Status</span>
-                            </div>
-
-                            {assignmentTasks.slice(0, 5).map((task) => (
-                              <button
-                                type="button"
-                                className="overview-task-row"
-                                key={task.id}
-                                onClick={() =>
-                                  selectAssignmentWorkspaceTab("Tasks")
-                                }
-                              >
+                        {assignmentTasks.length ? (
+                          <div className="assignment-overview-v4-tasklist">
+                            {assignmentTasks.slice(0,4).map((task) => (
+                              <button type="button" key={task.id} onClick={() => void openAssignmentTaskWorkspace(task)}>
                                 <span>
                                   <strong>{task.title}</strong>
-                                  <small>{task.priority}</small>
+                                  <small>{task.owner_name || "Unassigned"}{task.due_date ? ` · due ${new Date(task.due_date).toLocaleDateString("en-KE")}` : ""}</small>
                                 </span>
-
-                                <span>{task.owner_name || "Unassigned"}</span>
-
-                                <span>
-                                  {task.due_date
-                                    ? new Date(
-                                        task.due_date,
-                                      ).toLocaleDateString("en-KE")
-                                    : "-"}
-                                </span>
-
-                                <b>{task.status}</b>
+                                <em>{task.contribution_status === "Accepted" ? "Report accepted" : assignmentReportStatusLabel(task.contribution_status)}</em>
                               </button>
                             ))}
                           </div>
                         ) : (
-                          <div className="assignment-empty-state">
-                            <strong>No tasks have been created yet.</strong>
-                            <p>
-                              Break this assignment into manageable pieces of
-                              work.
-                            </p>
-
-                            {isManager && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  selectAssignmentWorkspaceTab("Tasks")
-                                }
-                              >
-                                Create first task
-                              </button>
-                            )}
+                          <div className="assignment-overview-v4-empty">
+                            <strong>No tasks yet</strong>
+                            <span>Create the first task to begin measurable work.</span>
+                            <button type="button" onClick={() => selectAssignmentWorkspaceTab("Tasks")}>Open Tasks</button>
                           </div>
                         )}
                       </article>
 
-                      <article className="command-card assignment-progress-card">
+                      <article className="assignment-overview-v4-card">
                         <header>
-                          <div>
-                            <span>PROGRESS</span>
-                            <h3>Assignment completion</h3>
-                          </div>
-                          <strong>{assignmentCompletion}%</strong>
+                          <div><small>FINAL OUTPUT</small><h3>Final Assignment Report</h3></div>
+                          <button type="button" className="assignment-overview-v4-link" onClick={() => selectAssignmentWorkspaceTab("Reports")}>Open Reports</button>
                         </header>
-
-                        <div className="command-progress">
-                          <i style={{ width: `${assignmentCompletion}%` }} />
-                        </div>
-
-                        <ol>
-                          {[
-                            "Assignment received",
-                            "Team constituted",
-                            "Work / research",
-                            "Draft output",
-                            "Review",
-                            "Completed",
-                          ].map((label, index) => {
-                            const thresholds = [0, 10, 25, 60, 80, 100];
-                            const reached =
-                              assignmentCompletion >= thresholds[index];
-
-                            return (
-                              <li
-                                className={reached ? "reached" : ""}
-                                key={label}
-                              >
-                                <b>{reached ? "Done" : index + 1}</b>
-                                <span>{label}</span>
-                              </li>
-                            );
-                          })}
-                        </ol>
+                        {latestFinalAssignmentReport ? (
+                          <div className="assignment-overview-v4-final-report">
+                            <span>
+                              <strong>{latestFinalAssignmentReport.title}</strong>
+                              <small>Status: {latestFinalAssignmentReport.status}{latestFinalAssignmentReport.reviewer_name ? ` · Reviewer: ${latestFinalAssignmentReport.reviewer_name}` : ""}</small>
+                            </span>
+                            <button type="button" onClick={() => void openGeneratedDocument(latestFinalAssignmentReport.id, finalAssignmentReportIsFinal)}>
+                              {finalAssignmentReportIsFinal ? "Read final report" : "Open report"}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="assignment-overview-v4-empty compact">
+                            <strong>Not created yet</strong>
+                            <span>{allTaskReportsAccepted ? "All task reports are accepted. The Final Assignment Report can now be created." : "The Final Assignment Report becomes the next output after required task reports are accepted."}</span>
+                          </div>
+                        )}
                       </article>
                     </main>
 
-                    <aside className="assignment-command-side">
-                      <article className="command-card next-action-card">
-                        <span>NEXT ACTION</span>
-                        <h3>{assignmentNextAction.title}</h3>
-                        <p>{assignmentNextAction.detail}</p>
-
-                        <button
-                          type="button"
-                          className="next-action-button"
-                          onClick={() =>
-                            selectAssignmentWorkspaceTab(
-                              assignmentNextAction.tab,
-                            )
-                          }
-                        >
-                          {assignmentNextAction.label} {">"}
-                        </button>
-                      </article>
-
-                      <article className="command-card overview-team-card">
-                        <header>
-                          <span>TEAM</span>
-                        </header>
-
-                        {selectedAssignmentRecord?.members
-                          ?.slice(0, 5)
-                          .map((member) => (
-                            <div
-                              className="overview-team-member"
-                              key={member.id}
-                            >
+                    <aside>
+                      <article className="assignment-overview-v4-card">
+                        <header><div><small>TEAM</small><h3>{selectedAssignmentRecord?.members?.length || 0} members</h3></div></header>
+                        <div className="assignment-overview-v4-team">
+                          {(selectedAssignmentRecord?.members || []).slice(0,6).map((member) => (
+                            <div key={member.id}>
                               <b>{initialsFor(member.name)}</b>
-                              <span>
-                                <strong>{member.name}</strong>
-                                <small>{member.role}</small>
-                              </span>
+                              <span><strong>{member.name}</strong><small>{member.role}</small></span>
                             </div>
                           ))}
-
-                        {!selectedAssignmentRecord?.members?.length && (
-                          <p className="phase4-empty">
-                            No team members assigned.
-                          </p>
-                        )}
+                        </div>
                       </article>
 
-                      <article className="command-card recent-activity-card">
+                      <article className="assignment-overview-v4-card">
                         <header>
-                          <span>RECENT ACTIVITY</span>
+                          <div><small>RECENT ACTIVITY</small><h3>Latest updates</h3></div>
+                          <button type="button" className="assignment-overview-v4-link" onClick={() => selectAssignmentWorkspaceTab("Activity")}>View activity</button>
                         </header>
-
-                        {assignmentHistory.slice(0, 4).map((item) => (
-                          <div className="recent-activity-item" key={item.id}>
-                            <b>{item.action.replaceAll("_", " ")}</b>
-                            <small>
-                              {item.user_name || "System"} |{" "}
-                              {new Date(item.created_at).toLocaleString(
-                                "en-KE",
-                              )}
-                            </small>
-                          </div>
-                        ))}
-
-                        {!assignmentHistory.length && (
-                          <p className="phase4-empty">No activity recorded.</p>
-                        )}
+                        <div className="assignment-overview-v4-activity">
+                          {assignmentHistory.slice(0,3).map((item) => (
+                            <div key={item.id}>
+                              <strong>{item.action.replaceAll("_"," ").toLowerCase().replace(/^./,(letter) => letter.toUpperCase())}</strong>
+                              <small>{item.user_name || "System"} · {new Date(item.created_at).toLocaleString("en-KE")}</small>
+                            </div>
+                          ))}
+                          {!assignmentHistory.length && <span>No activity recorded yet.</span>}
+                        </div>
                       </article>
                     </aside>
                   </div>
                 </section>
               )}
-
               {assignmentWorkspaceTab === "Structure & Plan" && (
                 <section className="assignment-structure-plan">
                   <header className="assignment-structure-head">
@@ -16400,7 +18866,7 @@ export default function App() {
                                     `${section.start_date}T00:00:00`,
                                   ).toLocaleDateString("en-KE")
                                 : "Not set"}{" "}
-                              <em>→</em>{" "}
+                              <em>â†’</em>{" "}
                               {section.due_date
                                 ? new Date(
                                     `${section.due_date}T00:00:00`,
@@ -16425,7 +18891,7 @@ export default function App() {
                                   task.assignment_section_id === section.id,
                               ).length
                             }{" "}
-                            linked tasks ·{" "}
+                            linked tasks Â·{" "}
                             {
                               assignmentTasks.filter(
                                 (task) =>
@@ -16433,7 +18899,7 @@ export default function App() {
                                   task.status === "Blocked",
                               ).length
                             }{" "}
-                            blocked · task roll-up{" "}
+                            blocked Â· task roll-up{" "}
                             {assignmentTasks.some(
                               (task) =>
                                 task.assignment_section_id === section.id,
@@ -16468,7 +18934,7 @@ export default function App() {
                               onClick={() => moveAssignmentSection(index, -1)}
                               aria-label={`Move ${section.title} up`}
                             >
-                              ↑
+                              â†‘
                             </button>
                             <button
                               type="button"
@@ -16476,7 +18942,7 @@ export default function App() {
                               onClick={() => moveAssignmentSection(index, 1)}
                               aria-label={`Move ${section.title} down`}
                             >
-                              ↓
+                              â†“
                             </button>
                             <button
                               type="button"
@@ -16507,7 +18973,7 @@ export default function App() {
                                 if (
                                   !selectedAssignmentId ||
                                   !window.confirm(
-                                    `Archive “${section.title}”? Existing linked tasks will be retained.`,
+                                    `Archive â€œ${section.title}â€? Existing linked tasks will be retained.`,
                                   )
                                 )
                                   return;
@@ -16648,8 +19114,8 @@ export default function App() {
                                 `${task.title} report`}
                             </strong>
                             <small>
-                              {task.owner_name || "Unassigned"} · Report v
-                              {task.contribution_report_version || 1} ·{" "}
+                              {task.owner_name || "Unassigned"} Â· Report v
+                              {task.contribution_report_version || 1} Â·{" "}
                               {task.contribution_updated_at
                                 ? new Date(
                                     task.contribution_updated_at,
@@ -16667,22 +19133,24 @@ export default function App() {
                           <button
                             type="button"
                             disabled={assignmentTaskReportPreviewBusy}
-                            onClick={() =>
-                              task.contribution_status === "Draft"
-                                ? generateAssignmentTaskReportFromList(task)
-                                : openAssignmentTaskWorkspace(task)
-                            }
+                            onClick={() => openAssignmentTaskWorkspace(task)}
                           >
                             {task.contribution_status ===
                               "Ready for Integration" &&
-                            (isManager || isAssignmentLead)
-                              ? "Review Task"
+                            (isManager ||
+                              isAssignmentLead ||
+                              task.reviewer_id === user?.id)
+                              ? "Review in Task Workspace"
                               : task.contribution_status === "Integrated" &&
-                                  (isManager || isAssignmentLead)
-                                ? "Approve Task"
+                                  (isManager ||
+                                    isAssignmentLead ||
+                                    task.reviewer_id === user?.id)
+                                ? "Review in Task Workspace"
                                 : task.contribution_status === "Draft"
-                                  ? "Generate Report"
-                                  : "Open Report"}
+                                  ? task.owner_id === user?.id
+                                    ? "Open Task Workspace"
+                                    : "View Task Workspace"
+                                  : "Open Task Workspace"}
                           </button>
                         </article>
                       ))}
@@ -16700,7 +19168,7 @@ export default function App() {
                         </strong>
                         <p>
                           {assignmentContributionFilter === "All"
-                            ? "Open a task, record the completed work, then select Generate Report."
+                            ? "Open the Task Workspace, save the draft, preview it, then submit it to the assigned reviewer."
                             : "Choose another report status to continue."}
                         </p>
                         {assignmentContributionFilter === "All" && (
@@ -16733,7 +19201,7 @@ export default function App() {
                   <header className="tasks-minimal-toolbar">
                     <p>
                       <strong>{assignmentTasks.length}</strong> task
-                      {assignmentTasks.length === 1 ? "" : "s"} <span>·</span>{" "}
+                      {assignmentTasks.length === 1 ? "" : "s"} <span>Â·</span>{" "}
                       {
                         assignmentTasks.filter(
                           (task) => task.status === "Completed",
@@ -16885,7 +19353,7 @@ export default function App() {
                                 <strong>{task.title}</strong>
                                 <small>
                                   {task.owner_name || "Unassigned"}{" "}
-                                  <span>·</span> Due{" "}
+                                  <span>Â·</span> Due{" "}
                                   {taskDateText(task.due_date)}
                                 </small>
                               </div>
@@ -16899,16 +19367,35 @@ export default function App() {
                               >
                                 {dueMeta.label}
                               </em>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openAssignmentTaskWorkspace(task)
-                                }
-                              >
-                                {isManager || task.owner_name === user?.name
-                                  ? taskOpenLabel(task)
-                                  : "View"}
-                              </button>
+                              <div className="task-minimal-actions">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openAssignmentTaskWorkspace(task)
+                                  }
+                                >
+                                  {task.reviewer_id === user?.id &&
+                                  ["Ready for Integration", "Integrated"].includes(
+                                    task.contribution_status,
+                                  )
+                                    ? "Review"
+                                    : isManager || task.owner_id === user?.id
+                                      ? taskOpenLabel(task)
+                                      : "View"}
+                                </button>
+                                {task.owner_id === user?.id &&
+                                  task.status !== "Blocked" && (
+                                    <button
+                                      type="button"
+                                      className="task-report-owner-action"
+                                      onClick={() =>
+                                        void openAssignmentTaskReport(task)
+                                      }
+                                    >
+                                      {taskReportOwnerActionLabel(task)}
+                                    </button>
+                                  )}
+                              </div>
                             </article>
                           );
                         })}
@@ -16957,44 +19444,180 @@ export default function App() {
                             }
                             onClick={() => setSelectedAssignmentTask(null)}
                           >
-                            ← Tasks
+                            â† Tasks
                           </button>
                           <div className="task-screen-title">
+                            <span className="workspace-eyebrow">TASK WORKSPACE</span>
                             <h2>{selectedAssignmentTask.title}</h2>
                             <p>
-                              {selectedAssignmentTask.status} ·{" "}
+                              {selectedAssignmentTask.status} Â·{" "}
                               {selectedAssignmentTask.owner_name ||
                                 "Unassigned"}{" "}
-                              · Due{" "}
+                              Â· Due{" "}
                               {taskDateText(selectedAssignmentTask.due_date)}
                             </p>
                           </div>
-                          {isManager && (
-                            <div className="task-management-actions">
-                              <button
-                                type="button"
-                                className="task-archive-button"
-                                disabled={
-                                  assignmentTaskManagementBusy ||
-                                  assignmentTaskWorkspaceSaving
-                                }
-                                onClick={archiveSelectedAssignmentTask}
-                              >
-                                Archive Task
-                              </button>
-                              <button
-                                type="button"
-                                className="task-delete-button"
-                                disabled={
-                                  assignmentTaskManagementBusy ||
-                                  assignmentTaskWorkspaceSaving
-                                }
-                                onClick={deleteSelectedAssignmentTask}
-                              >
-                                Delete Task
-                              </button>
-                            </div>
-                          )}
+                          <div className="task-header-tools">
+                            {isSelectedTaskOwner &&
+                              selectedAssignmentTask.status !== "Blocked" && (
+                                <button
+                                  type="button"
+                                  className="task-header-report-jump"
+                                  onClick={focusTaskReportEditor}
+                                >
+                                  {taskReportOwnerActionLabel(selectedAssignmentTask)}
+                                </button>
+                              )}
+                            <details className="task-header-work-update">
+                              <summary>
+                                Work
+                                <b>{assignmentTaskWorkspaceForm.progress}%</b>
+                              </summary>
+                              <div className="task-header-popover task-header-work-popover">
+                                <header>
+                                  <div>
+                                    <span className="workspace-eyebrow">WORK UPDATE</span>
+                                    <strong>{assignmentTaskWorkspaceForm.status}</strong>
+                                  </div>
+                                </header>
+                                <div className="task-header-work-form">
+                                  <label>
+                                    <span>Status</span>
+                                    <select
+                                      value={assignmentTaskWorkspaceForm.status}
+                                      onChange={(event) =>
+                                        setAssignmentTaskWorkspaceForm({
+                                          ...assignmentTaskWorkspaceForm,
+                                          status: event.target.value,
+                                        })
+                                      }
+                                    >
+                                      <option>Not Started</option>
+                                      <option>In Progress</option>
+                                      <option>Blocked</option>
+                                      {selectedAssignmentTask.status === "Completed" && (
+                                        <option>Completed</option>
+                                      )}
+                                    </select>
+                                  </label>
+                                  {!isManager && (
+                                    <label>
+                                      <span>Started on</span>
+                                      <input
+                                        type="date"
+                                        value={assignmentTaskWorkspaceForm.startDate}
+                                        onChange={(event) =>
+                                          setAssignmentTaskWorkspaceForm({
+                                            ...assignmentTaskWorkspaceForm,
+                                            startDate: event.target.value,
+                                          })
+                                        }
+                                      />
+                                    </label>
+                                  )}
+                                  <label>
+                                    <span>Progress</span>
+                                    <div className="task-header-progress-editor">
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="5"
+                                        value={assignmentTaskWorkspaceForm.progress}
+                                        onChange={(event) =>
+                                          setAssignmentTaskWorkspaceForm({
+                                            ...assignmentTaskWorkspaceForm,
+                                            progress: Number(event.target.value),
+                                          })
+                                        }
+                                      />
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={assignmentTaskWorkspaceForm.progress}
+                                        onChange={(event) =>
+                                          setAssignmentTaskWorkspaceForm({
+                                            ...assignmentTaskWorkspaceForm,
+                                            progress: Math.max(
+                                              0,
+                                              Math.min(100, Number(event.target.value) || 0),
+                                            ),
+                                          })
+                                        }
+                                      />
+                                      <span>%</span>
+                                    </div>
+                                  </label>
+                                  <small>Changes are saved using the normal Save Task action.</small>
+                                </div>
+                              </div>
+                            </details>
+                            <details className="task-header-documents">
+                              <summary>
+                                Documents
+                                <b>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).length}</b>
+                              </summary>
+                              <div className="task-header-popover task-header-documents-popover">
+                                <header>
+                                  <div>
+                                    <span className="workspace-eyebrow">SUPPORTING DOCUMENTS</span>
+                                    <strong>Task and assignment documents</strong>
+                                  </div>
+                                </header>
+                                <div className="task-header-document-list">
+                                  {workspaceDocuments.map((item) => <button type="button" key={`task-generated-${item.id}`} className={item.id === selectedAssignmentTask.target_document_id ? "is-linked" : ""} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>{item.id === selectedAssignmentTask.target_document_id ? "Linked task output" : "Generated report"} Â· {item.status}</small></span><em>Open</em></button>)}
+                                  {assignmentFiles.map((file) => <button type="button" key={`task-upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded assignment document</small></span><em>Download</em></button>)}
+                                  {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).map((item) => <button type="button" key={`task-repository-${item.id}`} onClick={() => void openRepositoryDocumentReader(item)}><span><b>{item.title}</b><small>{item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id) ? "Attached task report" : "Repository document"} Â· {item.status}</small></span><em>Preview</em></button>)}
+                                  {!assignmentFiles.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)) && <p>No supporting documents are attached yet.</p>}
+                                </div>
+                              </div>
+                            </details>
+                            <label className="task-header-attach">
+                              {knowledgeUploading ? "Attachingâ€¦" : "+ Attach report"}
+                              <input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Task", selectedAssignmentTask.id); event.currentTarget.value = ""; }} />
+                            </label>
+                            {isManager && (
+                              <details className="task-header-admin">
+                                <summary>Task Admin</summary>
+                                <div className="task-header-popover task-header-admin-popover">
+                                  <span className="workspace-eyebrow">TASK ADMINISTRATION</span>
+                                  <strong>Archive or delete this task</strong>
+                                  <small>Archive preserves the institutional record. Delete is only for tasks created in error before formal review.</small>
+                                  <div className="task-header-admin-actions">
+                                    <button
+                                      type="button"
+                                      className="task-archive-button"
+                                      disabled={assignmentTaskManagementBusy || assignmentTaskWorkspaceSaving}
+                                      onClick={archiveSelectedAssignmentTask}
+                                    >
+                                      Archive
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="task-delete-button"
+                                      disabled={
+                                        assignmentTaskManagementBusy ||
+                                        assignmentTaskWorkspaceSaving ||
+                                        selectedAssignmentTask.status === "Completed" ||
+                                        selectedAssignmentTask.contribution_status !== "Draft"
+                                      }
+                                      onClick={() => {
+                                        setAssignmentTaskDeleteReason("");
+                                        setAssignmentTaskDeleteConfirmed(false);
+                                        setAssignmentTaskDeleteDialogOpen(true);
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                  {(selectedAssignmentTask.status === "Completed" || selectedAssignmentTask.contribution_status !== "Draft") && (
+                                    <small className="task-delete-locked">Delete is locked because this task has entered the formal reporting record. Archive preserves report provenance.</small>
+                                  )}
+                                </div>
+                              </details>
+                            )}
+                          </div>
                         </header>
 
                         <div className="task-workspace-meta task-screen-meta">
@@ -17029,21 +19652,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="workspace-document-overview task-document-overview">
-                          <header>
-                            <div><small>AVAILABLE DOCUMENTS</small><h4>Task and assignment documents</h4></div>
-                            <div className="workspace-document-actions"><strong>{assignmentFiles.length + workspaceDocuments.length + knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).length}</strong><label className="workspace-attach-report">{knowledgeUploading ? "Attaching…" : "+ Attach report"}<input type="file" accept=".pdf,.doc,.docx,.txt,.md" disabled={knowledgeUploading} onChange={(event) => { void attachWorkspaceReport(event.target.files?.[0], "Task", selectedAssignmentTask.id); event.currentTarget.value = ""; }} /></label></div>
-                          </header>
-                          <div className="workspace-document-overview-list">
-                            {workspaceDocuments.map((item) => <button type="button" key={`task-generated-${item.id}`} className={item.id === selectedAssignmentTask.target_document_id ? "is-linked" : ""} onClick={() => void openGeneratedDocument(item.id)}><span><b>{item.title}</b><small>{item.id === selectedAssignmentTask.target_document_id ? "Linked task output" : "Generated report"} · {item.status}</small></span><em>Open</em></button>)}
-                            {assignmentFiles.map((file) => <button type="button" key={`task-upload-${file.id}`} onClick={() => api.downloadAttachment(token, file.id, file.original_name)}><span><b>{file.original_name}</b><small>Uploaded assignment document</small></span><em>Download</em></button>)}
-                            {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) || item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id)).map((item) => <button type="button" key={`task-repository-${item.id}`} onClick={() => void openKnowledge(item)}><span><b>{item.title}</b><small>{item.origin_links?.some((link) => link.type === "task" && link.id === selectedAssignmentTask.id) ? "Attached task report" : "Repository document"} · {item.status}</small></span><em>Preview</em></button>)}
-                            {!assignmentFiles.length && !workspaceDocuments.length && !knowledgeRows.some((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId)) && <p>No documents are available for this task yet.</p>}
-                          </div>
-                        </div>
-
-                        {isManager ||
-                        selectedAssignmentTask.owner_name === user?.name ? (
+                        {isManager || isSelectedTaskOwner || isSelectedTaskReviewer ? (
                           <div className="task-workspace-body task-screen-body">
                             {isManager && (
                               <details className="task-management-card task-management-compact">
@@ -17218,7 +19827,7 @@ export default function App() {
                                             value={member.id}
                                             key={member.id}
                                           >
-                                            {member.name} — {member.role}
+                                            {member.name} â€” {member.role}
                                           </option>
                                         ),
                                       )}
@@ -17315,7 +19924,7 @@ export default function App() {
                                     </small>
                                     <strong>
                                       {assignmentTaskWorkspaceForm.assignmentPart ||
-                                        "Not yet mapped — manager should select a template section"}
+                                        "Not yet mapped â€” manager should select a template section"}
                                     </strong>
                                   </div>
                                   <div>
@@ -17408,7 +20017,7 @@ export default function App() {
                                                 event.target.value,
                                             })
                                           }
-                                          placeholder="Objective → workstream → section / activity"
+                                          placeholder="Objective â†’ workstream â†’ section / activity"
                                         />
                                       )}
                                     </label>
@@ -17582,108 +20191,69 @@ export default function App() {
                               </section>
                             )}
 
-                            <section className="task-work-status-card">
-                              <header>
-                                <h3>Work update</h3>
-                                <b>{assignmentTaskWorkspaceForm.progress}%</b>
-                              </header>
-                              <div className="task-status-progress-grid">
-                                <label>
-                                  <span>Status</span>
-                                  <select
-                                    value={assignmentTaskWorkspaceForm.status}
-                                    onChange={(event) =>
-                                      setAssignmentTaskWorkspaceForm({
-                                        ...assignmentTaskWorkspaceForm,
-                                        status: event.target.value,
-                                      })
-                                    }
-                                  >
-                                    <option>Not Started</option>
-                                    <option>In Progress</option>
-                                    <option>Blocked</option>
-                                    <option>Completed</option>
-                                  </select>
-                                </label>
-                                {!isManager && (
-                                  <label>
-                                    <span>Started on</span>
-                                    <input
-                                      type="date"
-                                      value={
-                                        assignmentTaskWorkspaceForm.startDate
-                                      }
-                                      onChange={(event) =>
-                                        setAssignmentTaskWorkspaceForm({
-                                          ...assignmentTaskWorkspaceForm,
-                                          startDate: event.target.value,
-                                        })
-                                      }
-                                    />
-                                  </label>
-                                )}
-                                <label className="wide">
-                                  <span>Progress</span>
-                                  <div className="task-progress-editor">
-                                    <input
-                                      type="range"
-                                      min="0"
-                                      max="100"
-                                      step="5"
-                                      value={
-                                        assignmentTaskWorkspaceForm.progress
-                                      }
-                                      onChange={(event) =>
-                                        setAssignmentTaskWorkspaceForm({
-                                          ...assignmentTaskWorkspaceForm,
-                                          progress: Number(event.target.value),
-                                        })
-                                      }
-                                    />
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      value={
-                                        assignmentTaskWorkspaceForm.progress
-                                      }
-                                      onChange={(event) =>
-                                        setAssignmentTaskWorkspaceForm({
-                                          ...assignmentTaskWorkspaceForm,
-                                          progress: Math.max(
-                                            0,
-                                            Math.min(
-                                              100,
-                                              Number(event.target.value) || 0,
-                                            ),
-                                          ),
-                                        })
-                                      }
-                                    />
-                                    <span>%</span>
-                                  </div>
-                                </label>
-                              </div>
-                            </section>
+                            {renderTaskReportOwnerFeedback()}
+                            {renderTaskReviewDecision()}
 
-                            <section className="task-member-output-card">
+                            <section id="task-report-editor" className="task-member-output-card">
                               <header>
                                 <div>
                                   <h3>Task report</h3>
+                                  <p className="task-workspace-single-source">One workspace: edit â†’ save draft â†’ preview â†’ submit to reviewer.</p>
                                 </div>
-                                <span
-                                  className={`task-contribution-status ${assignmentTaskWorkspaceForm.contributionStatus.toLowerCase().replaceAll(" ", "-")}`}
-                                >
-                                  {
-                                    assignmentTaskWorkspaceForm.contributionStatus
-                                  }
-                                </span>
+                                <div className="task-report-header-controls">
+                                  <span
+                                    className={`task-contribution-status ${assignmentTaskWorkspaceForm.contributionStatus.toLowerCase().replaceAll(" ", "-")}`}
+                                  >
+                                    {assignmentReportStatusLabel(
+                                      assignmentTaskWorkspaceForm.contributionStatus as ApiAssignmentTask["contribution_status"],
+                                    )}
+                                  </span>
+                                  {isSelectedTaskOwner &&
+                                    assignmentTaskWorkspaceForm.contributionStatus === "Draft" &&
+                                    selectedAssignmentTask.status !== "Blocked" && (
+                                      <div className="task-report-header-actions">
+                                        <button
+                                          type="button"
+                                          className="task-contribution-save"
+                                          disabled={assignmentTaskContributionSaving}
+                                          onClick={() => saveAssignmentTaskContribution("Draft")}
+                                        >
+                                          {assignmentTaskContributionSaving ? "Saving..." : "Save Draft"}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="task-contribution-next-button"
+                                          disabled={assignmentTaskContributionSaving || assignmentTaskReportPreviewBusy}
+                                          onClick={previewAssignmentTaskContribution}
+                                        >
+                                          {assignmentTaskReportPreviewBusy ? "Preparing..." : "Preview Report"}
+                                        </button>
+                                      </div>
+                                    )}
+                                  {["Ready for Integration", "Integrated", "Accepted"].includes(
+                                    assignmentTaskWorkspaceForm.contributionStatus,
+                                  ) && (
+                                    <button
+                                      type="button"
+                                      className="task-contribution-view-report"
+                                      disabled={assignmentTaskReportPreviewBusy}
+                                      onClick={openSavedAssignmentTaskContributionReport}
+                                    >
+                                      Preview Submitted Report
+                                    </button>
+                                  )}
+                                </div>
                               </header>
+                              {renderTaskWorkflowAccessNotice()}
                               <div className="task-member-output-grid">
                                 <label className="wide">
                                   <span>Output title</span>
                                   <input
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     value={
                                       assignmentTaskWorkspaceForm.contributionTitle
                                     }
@@ -17700,7 +20270,11 @@ export default function App() {
                                 <label className="wide">
                                   <span>Work completed</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={4}
                                     value={
                                       assignmentTaskWorkspaceForm.contributionSummary
@@ -17718,7 +20292,11 @@ export default function App() {
                                 <label className="wide">
                                   <span>Evidence reviewed</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={4}
                                     value={
                                       assignmentTaskWorkspaceForm.evidenceReviewed
@@ -17736,7 +20314,11 @@ export default function App() {
                                 <label>
                                   <span>Key findings</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={6}
                                     value={
                                       assignmentTaskWorkspaceForm.contributionFindings
@@ -17755,7 +20337,11 @@ export default function App() {
                                 <label>
                                   <span>Recommendations</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={6}
                                     value={
                                       assignmentTaskWorkspaceForm.contributionRecommendations
@@ -17774,7 +20360,11 @@ export default function App() {
                                 <label>
                                   <span>Challenges or limitations</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={5}
                                     value={
                                       assignmentTaskWorkspaceForm.contributionChallenges
@@ -17793,7 +20383,11 @@ export default function App() {
                                 <label>
                                   <span>Next actions</span>
                                   <textarea
-                                    readOnly
+                                    readOnly={
+                                      !isSelectedTaskOwner ||
+                                      assignmentTaskWorkspaceForm.contributionStatus !== "Draft" ||
+                                      selectedAssignmentTask.status === "Blocked"
+                                    }
                                     rows={5}
                                     value={
                                       assignmentTaskWorkspaceForm.contributionNextActions
@@ -17862,373 +20456,68 @@ export default function App() {
                                   >
                                     <span>4</span>
                                     <div>
-                                      <strong>Review & Accept</strong>
+                                      <strong>Review & Finalise</strong>
                                       <small>
                                         The reviewer checks the evidence and
-                                        accepts the report.
+                                        approves the report, then generates the final version.
                                       </small>
                                     </div>
                                   </div>
                                 </div>
                               )}
 
-                              <footer>
-                                <button
-                                  type="button"
-                                  className="task-contribution-save"
-                                  disabled={assignmentTaskContributionSaving}
-                                  onClick={() =>
-                                    saveAssignmentTaskContribution("Draft")
-                                  }
-                                >
-                                  {assignmentTaskContributionSaving
-                                    ? "Saving..."
-                                    : "Save Report Draft"}
-                                </button>
-                                {assignmentTaskContributionSavedAt && (
-                                  <span className="task-contribution-saved-mark">
-                                    Saved {assignmentTaskContributionSavedAt}
-                                  </span>
-                                )}
-                                {assignmentTaskContributionSavedAt &&
-                                  assignmentTaskWorkspaceForm.contributionStatus ===
-                                    "Draft" && (
-                                    <button
-                                      type="button"
-                                      className="task-contribution-next-button"
-                                      disabled={
-                                        assignmentTaskContributionSaving ||
-                                        assignmentTaskReportPreviewBusy
-                                      }
-                                      onClick={
-                                        previewAssignmentTaskContribution
-                                      }
-                                    >
-                                      {assignmentTaskReportPreviewBusy
-                                        ? "Preparing Report..."
-                                        : "Next: Generate & Preview Report"}
-                                    </button>
+                              {(assignmentTaskContributionSavedAt ||
+                                assignmentTaskWorkspaceForm.contributionStatus === "Accepted") && (
+                                <footer className="task-report-status-footer">
+                                  {isSelectedTaskOwner &&
+                                    assignmentTaskWorkspaceForm.contributionStatus === "Draft" &&
+                                    assignmentTaskContributionSavedAt && (
+                                      <span className="task-contribution-saved-mark">
+                                        Draft saved {assignmentTaskContributionSavedAt}
+                                      </span>
+                                    )}
+                                  {assignmentTaskWorkspaceForm.contributionStatus === "Accepted" && (
+                                    <strong className="task-report-accepted-mark">
+                                      Final approved report Â· counts toward assignment progress
+                                    </strong>
                                   )}
-                                {!assignmentTaskContributionSavedAt &&
-                                  assignmentTaskWorkspaceForm.contributionStatus ===
-                                    "Draft" && (
-                                    <button
-                                      type="button"
-                                      className="task-contribution-ready"
-                                      disabled={
-                                        assignmentTaskContributionSaving ||
-                                        assignmentTaskReportPreviewBusy
-                                      }
-                                      onClick={
-                                        previewAssignmentTaskContribution
-                                      }
-                                    >
-                                      {assignmentTaskReportPreviewBusy
-                                        ? "Preparing Report..."
-                                        : "Generate Report"}
-                                    </button>
-                                  )}
-                                {[
-                                  "Ready for Integration",
-                                  "Integrated",
-                                  "Accepted",
-                                ].includes(
-                                  assignmentTaskWorkspaceForm.contributionStatus,
-                                ) && (
-                                  <button
-                                    type="button"
-                                    className="task-contribution-view-report"
-                                    disabled={assignmentTaskReportPreviewBusy}
-                                    onClick={
-                                      openSavedAssignmentTaskContributionReport
-                                    }
-                                  >
-                                    View Submitted Report
-                                  </button>
-                                )}
-                                {(isManager || isAssignmentLead) &&
-                                  assignmentTaskWorkspaceForm.contributionStatus ===
-                                    "Ready for Integration" && (
-                                    <button
-                                      type="button"
-                                      className="task-contribution-integrate"
-                                      disabled={
-                                        assignmentTaskContributionSaving
-                                      }
-                                      onClick={() =>
-                                        saveAssignmentTaskContribution(
-                                          "Integrated",
-                                        )
-                                      }
-                                    >
-                                      Review Task
-                                    </button>
-                                  )}
-                                {(isManager || isAssignmentLead) &&
-                                  assignmentTaskWorkspaceForm.contributionStatus ===
-                                    "Integrated" && (
-                                    <button
-                                      type="button"
-                                      className="task-contribution-accept"
-                                      disabled={
-                                        assignmentTaskContributionSaving
-                                      }
-                                      onClick={() =>
-                                        saveAssignmentTaskContribution(
-                                          "Accepted",
-                                        )
-                                      }
-                                    >
-                                      Approve Task
-                                    </button>
-                                  )}
-                              </footer>
+                                </footer>
+                              )}
                             </section>
                           </div>
                         ) : (
                           <div className="task-workspace-readonly task-screen-body">
-                            <strong>View only</strong>
+                            <strong>
+                              {isSelectedTaskReviewer
+                                ? "Review access"
+                                : "View only"}
+                            </strong>
                             <p>
-                              This task is assigned to{" "}
-                              {selectedAssignmentTask.owner_name ||
-                                "another team member"}
-                              . Only the task owner or a manager can save
-                              working updates.
+                              {isSelectedTaskReviewer
+                                ? `You are the assigned reviewer for ${selectedAssignmentTask.owner_name || "this researcher"}'s task report.`
+                                : `This task is assigned to ${selectedAssignmentTask.owner_name || "another team member"}.`}
                             </p>
                             <section>
-                              <span className="workspace-eyebrow">
-                                WORK NOTES
-                              </span>
+                              <span className="workspace-eyebrow">WORK NOTES</span>
                               <p>
                                 {selectedAssignmentTask.notes ||
                                   "No work notes have been saved yet."}
                               </p>
                             </section>
+                            {["Ready for Integration", "Integrated", "Accepted"].includes(
+                              assignmentTaskWorkspaceForm.contributionStatus,
+                            ) && (
+                              <button
+                                type="button"
+                                className="task-review-open-report"
+                                disabled={assignmentTaskReportPreviewBusy}
+                                onClick={openSavedAssignmentTaskContributionReport}
+                              >
+                                Open submitted report
+                              </button>
+                            )}
+                            {renderTaskReviewDecision()}
                           </div>
-                        )}
-
-                        {taskReportSectionModal && (
-                          <TaskSectionWorkspace
-                            key={`${selectedAssignmentTask.id}-${taskReportSectionModal.key}`}
-                            title={taskReportSectionName(
-                              taskReportSectionModal.key,
-                            )}
-                            reportTitle={
-                              selectedAssignmentTask.contribution_title ||
-                              `${selectedAssignmentTask.title} Task Report`
-                            }
-                            mode={taskReportSectionModal.mode}
-                            status={
-                              selectedAssignmentTask
-                                .contribution_section_statuses?.[
-                                taskReportSectionModal.key
-                              ] || "Draft"
-                            }
-                            value={taskReportSectionValue(
-                              taskReportSectionModal.key,
-                            )}
-                            busy={Boolean(assignmentTaskSectionSaving)}
-                            sectionNumber={
-                              [
-                                "title",
-                                "workCompleted",
-                                "evidence",
-                                "findings",
-                                "recommendations",
-                                "challenges",
-                                "nextActions",
-                              ].indexOf(taskReportSectionModal.key) + 1
-                            }
-                            sectionCount={7}
-                            currentSectionId={taskReportSectionModal.key}
-                            outlineSections={[
-                              "title",
-                              "workCompleted",
-                              "evidence",
-                              "findings",
-                              "recommendations",
-                              "challenges",
-                              "nextActions",
-                            ].map((key) => ({
-                              id: key,
-                              title: taskReportSectionName(key),
-                              status:
-                                selectedAssignmentTask
-                                  .contribution_section_statuses?.[key] ||
-                                "Draft",
-                            }))}
-                            canGoPrevious={
-                              [
-                                "title",
-                                "workCompleted",
-                                "evidence",
-                                "findings",
-                                "recommendations",
-                                "challenges",
-                                "nextActions",
-                              ].indexOf(taskReportSectionModal.key) > 0
-                            }
-                            canGoNext={
-                              [
-                                "title",
-                                "workCompleted",
-                                "evidence",
-                                "findings",
-                                "recommendations",
-                                "challenges",
-                                "nextActions",
-                              ].indexOf(taskReportSectionModal.key) < 6
-                            }
-                            canSendReview={
-                              user?.name === selectedAssignmentTask.owner_name
-                            }
-                            canMarkFinal={false}
-                            finalDocumentLabel="Generate task report"
-                            templateOptions={builderTemplates
-                              .filter(
-                                (template) =>
-                                  template.context === "Assignment" &&
-                                  template.template_key.startsWith("task-") &&
-                                  template.active &&
-                                  template.governance_status === "Approved",
-                              )
-                              .map((template) => ({
-                                id: template.id,
-                                name: template.name,
-                                description: template.description,
-                                sections: template.sections,
-                              }))}
-                            onChange={(value) =>
-                              setTaskReportSectionValue(
-                                taskReportSectionModal.key,
-                                value,
-                              )
-                            }
-                            onClose={() => {
-                              setTaskReportSectionModal(null);
-                              setSelectedAssignmentTask(null);
-                            }}
-                            onSave={async (latestValue) => {
-                              if (
-                                await updateTaskReportSection(
-                                  taskReportSectionModal.key,
-                                  "Draft",
-                                  latestValue,
-                                )
-                              )
-                                {
-                                  setTaskReportSectionModal(null);
-                                  setSelectedAssignmentTask(null);
-                                }
-                            }}
-                            onSelectSection={async (sectionId) => {
-                              if (
-                                taskReportSectionModal.mode === "review" ||
-                                (await updateTaskReportSection(
-                                  taskReportSectionModal.key,
-                                  "Draft",
-                                ))
-                              )
-                                setTaskReportSectionModal({
-                                  key: sectionId,
-                                  mode: taskReportSectionModal.mode,
-                                });
-                            }}
-                            onPrevious={async () => {
-                              const sections = [
-                                "title",
-                                "workCompleted",
-                                "evidence",
-                                "findings",
-                                "recommendations",
-                                "challenges",
-                                "nextActions",
-                              ];
-                              const previous =
-                                sections[
-                                  sections.indexOf(taskReportSectionModal.key) -
-                                    1
-                                ];
-                              if (
-                                previous &&
-                                (taskReportSectionModal.mode === "review" ||
-                                  (await updateTaskReportSection(
-                                    taskReportSectionModal.key,
-                                    "Draft",
-                                  )))
-                              )
-                                setTaskReportSectionModal({
-                                  key: previous,
-                                  mode: taskReportSectionModal.mode,
-                                });
-                            }}
-                            onNext={async () => {
-                              const sections = [
-                                "title",
-                                "workCompleted",
-                                "evidence",
-                                "findings",
-                                "recommendations",
-                                "challenges",
-                                "nextActions",
-                              ];
-                              const next =
-                                sections[
-                                  sections.indexOf(taskReportSectionModal.key) +
-                                    1
-                                ];
-                              if (
-                                next &&
-                                (taskReportSectionModal.mode === "review" ||
-                                  (await updateTaskReportSection(
-                                    taskReportSectionModal.key,
-                                    "Draft",
-                                  )))
-                              )
-                                setTaskReportSectionModal({
-                                  key: next,
-                                  mode: taskReportSectionModal.mode,
-                                });
-                            }}
-                            onSendReview={async () => {
-                              if (
-                                await updateTaskReportSection(
-                                  taskReportSectionModal.key,
-                                  "In Review",
-                                )
-                              )
-                                {
-                                  setTaskReportSectionModal(null);
-                                  setSelectedAssignmentTask(null);
-                                }
-                            }}
-                            onOpenFinalDocument={async (latestValue) => {
-                              const saved = await updateTaskReportSection(
-                                taskReportSectionModal.key,
-                                "Draft",
-                                latestValue,
-                              );
-                              if (!saved || !selectedAssignmentId || !selectedAssignmentTask) return;
-                              try {
-                                const report = await api.assignmentTaskContributionReport(
-                                  token,
-                                  selectedAssignmentId,
-                                  selectedAssignmentTask.id,
-                                );
-                                const url = URL.createObjectURL(
-                                  new Blob([report.html], { type: "application/msword" }),
-                                );
-                                const link = document.createElement("a");
-                                link.href = url;
-                                link.download = `${report.title || selectedAssignmentTask.title}.doc`.replace(/[^a-z0-9.-]+/gi, "-");
-                                link.click();
-                                URL.revokeObjectURL(url);
-                                setAssignmentNotice("Draft saved and task report generated. The workspace remains open.");
-                              } catch (error) {
-                                setAssignmentNotice(error instanceof Error ? error.message : "Task report could not be generated.");
-                              }
-                            }}
-                          />
                         )}
 
                         {assignmentTaskReportPreviewOpen && (
@@ -18259,7 +20548,7 @@ export default function App() {
                                     setAssignmentTaskReportPreviewOpen(false)
                                   }
                                 >
-                                  ✕ Close
+                                  âœ• Close
                                 </button>
                               </header>
                               <div className="task-contribution-report-frame">
@@ -18276,9 +20565,14 @@ export default function App() {
                                     setAssignmentTaskReportPreviewOpen(false)
                                   }
                                 >
-                                  Back to Edit
+                                  {isSelectedTaskOwner &&
+                                  assignmentTaskWorkspaceForm.contributionStatus ===
+                                    "Draft"
+                                    ? "Back to Edit"
+                                    : "Close Preview"}
                                 </button>
-                                {assignmentTaskWorkspaceForm.contributionStatus ===
+                                {isSelectedTaskOwner &&
+                                  assignmentTaskWorkspaceForm.contributionStatus ===
                                   "Draft" && (
                                   <>
                                     <div className="task-authorized-reviewers">
@@ -18288,15 +20582,15 @@ export default function App() {
                                           ? authorizedTaskReviewers
                                               .map((person) => person.name)
                                               .join(", ")
-                                          : "No team lead or manager is currently available"}
+                                          : "No active reviewer is currently assigned"}
                                       </strong>
                                       <span>
                                         {authorizedTaskReviewers
                                           .map(
                                             (person) =>
-                                              `${person.name} — ${person.role}`,
+                                              `${person.name} â€” ${person.role}`,
                                           )
-                                          .join(" · ")}
+                                          .join(" Â· ")}
                                       </span>
                                     </div>
                                     <button
@@ -18312,10 +20606,178 @@ export default function App() {
                                     >
                                       {assignmentTaskContributionSaving
                                         ? "Sending..."
-                                        : "Send for Review"}
+                                        : "Submit to Reviewer"}
                                     </button>
                                   </>
                                 )}
+
+                                {isSelectedTaskReviewer &&
+                                  selectedAssignmentTask?.contribution_status ===
+                                    "Ready for Integration" && (
+                                  <div className="task-preview-review-panel">
+                                    <div className="task-preview-review-heading">
+                                      <div>
+                                        <small>REVIEW DECISION</small>
+                                        <strong>Your review is required</strong>
+                                      </div>
+                                      <span>
+                                        Read the complete report above, then record your
+                                        formal decision here.
+                                      </span>
+                                    </div>
+
+                                    <label className="task-preview-review-comments">
+                                      <span>Reviewer comments</span>
+                                      <textarea
+                                        rows={3}
+                                        value={assignmentTaskReviewComment}
+                                        onChange={(event) =>
+                                          setAssignmentTaskReviewComment(
+                                            event.target.value,
+                                          )
+                                        }
+                                        placeholder="Add an approval note, or describe corrections required."
+                                      />
+                                    </label>
+
+                                    <div className="task-preview-review-actions">
+                                      <button
+                                        type="button"
+                                        className="task-review-changes"
+                                        disabled={
+                                          assignmentTaskReviewSaving ||
+                                          !assignmentTaskReviewComment.trim()
+                                        }
+                                        onClick={() =>
+                                          void reviewAssignmentTaskContribution(
+                                            "Changes Requested",
+                                          )
+                                        }
+                                      >
+                                        {assignmentTaskReviewSaving
+                                          ? "Recording..."
+                                          : "Request Changes"}
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="task-review-reject"
+                                        disabled={
+                                          assignmentTaskReviewSaving ||
+                                          !assignmentTaskReviewComment.trim()
+                                        }
+                                        onClick={() =>
+                                          void reviewAssignmentTaskContribution(
+                                            "Rejected",
+                                          )
+                                        }
+                                      >
+                                        {assignmentTaskReviewSaving
+                                          ? "Recording..."
+                                          : "Reject"}
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="task-review-accept"
+                                        disabled={assignmentTaskReviewSaving}
+                                        onClick={() =>
+                                          void reviewAssignmentTaskContribution(
+                                            "Approved",
+                                          )
+                                        }
+                                      >
+                                        {assignmentTaskReviewSaving
+                                          ? "Recording approval..."
+                                          : "Approve Report"}
+                                      </button>
+                                    </div>
+
+                                    {assignmentTaskReviewResult && (
+                                      <div
+                                        className={`task-review-result ${assignmentTaskReviewResult.tone}`}
+                                        role="status"
+                                      >
+                                        {assignmentTaskReviewResult.message}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {isSelectedTaskReviewer &&
+                                  selectedAssignmentTask?.contribution_status ===
+                                    "Accepted" && (
+                                  <div className="task-preview-final-state">
+                                    <div>
+                                      <small>FINAL TASK REPORT</small>
+                                      <strong>Review already completed</strong>
+                                    </div>
+                                    <span>
+                                      This version has already been approved and finalized.
+                                      It is available as a supporting source for the Assignment Report.
+                                    </span>
+                                  </div>
+                                )}
+                              </footer>
+                            </section>
+                          </div>
+                        )}
+
+                        {isManager && assignmentTaskDeleteDialogOpen && (
+                          <div className="task-delete-dialog-backdrop" role="presentation">
+                            <section className="task-delete-dialog" role="dialog" aria-modal="true" aria-label="Delete task">
+                              <header>
+                                <div>
+                                  <span className="workspace-eyebrow">DANGER ZONE</span>
+                                  <h3>Delete task permanently?</h3>
+                                  <p><strong>{selectedAssignmentTask.title}</strong> will be removed from active task records. The deletion event and reason remain in assignment history and audit logs.</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  disabled={assignmentTaskManagementBusy}
+                                  onClick={() => setAssignmentTaskDeleteDialogOpen(false)}
+                                >
+                                  âœ•
+                                </button>
+                              </header>
+                              <label>
+                                Reason for deletion *
+                                <textarea
+                                  value={assignmentTaskDeleteReason}
+                                  onChange={(event) => setAssignmentTaskDeleteReason(event.target.value)}
+                                  placeholder="Example: Duplicate task created in error."
+                                  rows={4}
+                                />
+                              </label>
+                              <label className="task-delete-confirm-row">
+                                <input
+                                  type="checkbox"
+                                  checked={assignmentTaskDeleteConfirmed}
+                                  onChange={(event) => setAssignmentTaskDeleteConfirmed(event.target.checked)}
+                                />
+                                <span>I understand that this removes the task from active task records and cannot be undone from this screen.</span>
+                              </label>
+                              <footer>
+                                <button
+                                  type="button"
+                                  className="task-modal-secondary"
+                                  disabled={assignmentTaskManagementBusy}
+                                  onClick={() => setAssignmentTaskDeleteDialogOpen(false)}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  className="task-delete-button"
+                                  disabled={
+                                    assignmentTaskManagementBusy ||
+                                    assignmentTaskDeleteReason.trim().length < 10 ||
+                                    !assignmentTaskDeleteConfirmed
+                                  }
+                                  onClick={deleteSelectedAssignmentTask}
+                                >
+                                  {assignmentTaskManagementBusy ? "Deleting..." : "Delete Task"}
+                                </button>
                               </footer>
                             </section>
                           </div>
@@ -18341,7 +20803,7 @@ export default function App() {
                                 >
                                   {assignmentTaskWorkspaceSaving
                                     ? "Saving..."
-                                    : "▶ Start Task"}
+                                    : "â–¶ Start Task"}
                                 </button>
                               )}
                               <button
@@ -18362,19 +20824,9 @@ export default function App() {
                               </button>
                               {selectedAssignmentTask.status !==
                                 "Completed" && (
-                                <button
-                                  type="button"
-                                  className="task-complete-button"
-                                  disabled={
-                                    assignmentTaskWorkspaceSaving ||
-                                    assignmentTaskManagementBusy
-                                  }
-                                  onClick={() =>
-                                    saveAssignmentTaskWorkspace("complete")
-                                  }
-                                >
-                                  ✓ Mark Completed
-                                </button>
+                                <span className="task-completion-rule">
+                                  Task completion is recorded automatically when the submitted report is accepted.
+                                </span>
                               )}
                             </div>
                           )}
@@ -18756,19 +21208,16 @@ export default function App() {
                       }}
                     >
                       <form
-                        className="task-assignment-modal"
+                        className="task-assignment-modal task-assignment-modal-simple"
                         onSubmit={createAssignmentTask}
-                        aria-label="Assign task"
+                        aria-label="Create task"
                       >
                         <header>
                           <div>
-                            <span className="workspace-eyebrow">
-                              TASK ASSIGNMENT
-                            </span>
-                            <h3>Assign a task</h3>
+                            <h3>Create task</h3>
                             <p>
-                              Define the work, choose an assignment team member
-                              and set the delivery expectations.
+                              {selectedAssignmentRecord?.title ||
+                                "Assignment workspace"}
                             </p>
                           </div>
                           <button
@@ -18776,13 +21225,13 @@ export default function App() {
                             className="task-modal-close"
                             disabled={assignmentTaskSaving}
                             onClick={() => setAssignmentTaskDialogOpen(false)}
-                            aria-label="Close task assignment"
+                            aria-label="Close task form"
                           >
-                            X
+                            Ã—
                           </button>
                         </header>
 
-                        <div className="task-assignment-grid">
+                        <div className="task-assignment-grid task-assignment-grid-simple">
                           <label className="task-field task-field-wide">
                             <span>Task title *</span>
                             <input
@@ -18795,203 +21244,28 @@ export default function App() {
                                   title: event.target.value,
                                 })
                               }
-                              placeholder="e.g. Review contact-centre email workflow"
+                              placeholder="What needs to be done?"
                             />
                           </label>
 
-                          <label className="task-field task-field-wide">
-                            <span>Description</span>
-                            <textarea
-                              rows={3}
-                              value={assignmentTaskForm.description}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  description: event.target.value,
-                                })
-                              }
-                              placeholder="Describe the expected work and outcome."
-                            />
-                          </label>
-
-                          <label className="task-field task-field-wide">
-                            <span>Assignment section / workstream</span>
-                            <select
-                              value={assignmentTaskForm.assignmentSectionId}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  assignmentSectionId: event.target.value,
-                                })
-                              }
-                            >
-                              <option value="">Unassigned to a section</option>
-                              {!assignmentSections.length && (
-                                <option value="" disabled>
-                                  No assignment workstreams have been created
-                                </option>
-                              )}
-                              {assignmentSections.map((section) => (
-                                <option key={section.id} value={section.id}>
-                                  {String(section.section_order).padStart(
-                                    2,
-                                    "0",
-                                  )}{" "}
-                                  — {section.title}
-                                </option>
-                              ))}
-                            </select>
-                            <small>
-                              Tasks linked here will roll up under the
-                              Assignment Structure and Contributions views.
-                            </small>
-                            {!assignmentSections.length && (
-                              <button
-                                type="button"
-                                className="task-create-workstreams"
-                                onClick={() => void createStarterWorkstreamsFromTaskDialog()}
-                              >
-                                Create standard assignment workstreams
-                              </button>
-                            )}
-                          </label>
-
-                          <div className="task-direct-instructions task-field-wide">
-                            <strong>Task instruction brief</strong>
-                            <small>
-                              Tell the assigned officer exactly why the task
-                              exists, what to do and what report to deliver.
-                            </small>
-                          </div>
-                          <label className="task-field task-field-wide">
-                            <span>Purpose *</span>
-                            <textarea
-                              rows={2}
-                              required
-                              value={assignmentTaskForm.taskPurpose}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  taskPurpose: event.target.value,
-                                })
-                              }
-                              placeholder="Why is this task required?"
-                            />
-                          </label>
-                          <label className="task-field task-field-wide">
-                            <span>Specific instructions *</span>
-                            <textarea
-                              rows={4}
-                              required
-                              value={assignmentTaskForm.specificInstructions}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  specificInstructions: event.target.value,
-                                })
-                              }
-                              placeholder="List the steps the officer should follow."
-                            />
-                          </label>
-                          <label className="task-field task-field-wide">
-                            <span>Expected findings</span>
-                            <textarea
-                              rows={2}
-                              value={assignmentTaskForm.expectedFindings}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  expectedFindings: event.target.value,
-                                })
-                              }
-                              placeholder="What questions should the completed work answer?"
-                            />
-                          </label>
                           <label className="task-field">
-                            <span>Expected output</span>
-                            <select
-                              value={assignmentTaskForm.expectedOutput}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  expectedOutput: event.target.value,
-                                })
-                              }
-                            >
-                              {[
-                                "Standard Task Report",
-                                "Technical Task Report",
-                                "Field Task Report",
-                                "Assessment",
-                                "Analysis",
-                                "Recommendations",
-                                "Data Summary",
-                                "Meeting Report",
-                                "Field Visit Report",
-                                "Policy Brief",
-                              ].map((output) => (
-                                <option key={output}>{output}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className="task-field task-field-wide">
-                            <span>Evidence required</span>
-                            <textarea
-                              rows={2}
-                              value={assignmentTaskForm.evidenceRequired}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  evidenceRequired: event.target.value,
-                                })
-                              }
-                              placeholder="Documents, interviews, data or observations required."
-                            />
-                          </label>
-                          <label className="task-field">
-                            <span>Task report reviewer *</span>
+                            <span>Assign to *</span>
                             <select
                               required
-                              value={assignmentTaskForm.reviewerId}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  reviewerId: event.target.value,
-                                })
-                              }
-                            >
-                              <option value="">Select reviewer</option>
-                              {[
-                                ...(selectedAssignmentRecord?.members || [])
-                                  .filter((member) => ["Lead", "Reviewer"].includes(member.role))
-                                  .map((member) => ({ ...member, labelRole: member.role })),
-                                ...userRows
-                                  .filter((member) =>
-                                    member.active && ["Research Manager", "Administrator"].includes(member.role),
-                                  )
-                                  .map((member) => ({ ...member, labelRole: member.role })),
-                              ]
-                                .filter((member, index, rows) => rows.findIndex((item) => item.id === member.id) === index)
-                                .map((member) => (
-                                  <option key={member.id} value={member.id}>
-                                    {member.name} — {member.labelRole}
-                                  </option>
-                                ))}
-                            </select>
-                          </label>
-
-                          <label className="task-field task-field-wide">
-                            <span>Assign to</span>
-                            <select
                               value={assignmentTaskForm.ownerId}
-                              onChange={(event) =>
+                              onChange={(event) => {
+                                const ownerId = event.target.value;
                                 setAssignmentTaskForm({
                                   ...assignmentTaskForm,
-                                  ownerId: event.target.value,
-                                })
-                              }
+                                  ownerId,
+                                  reviewerId:
+                                    assignmentTaskForm.reviewerId === ownerId
+                                      ? ""
+                                      : assignmentTaskForm.reviewerId,
+                                });
+                              }}
                             >
-                              <option value="">Unassigned</option>
+                              <option value="">Select team member</option>
                               {selectedAssignmentRecord?.members?.map(
                                 (member) => {
                                   const activeCount = assignmentTasks.filter(
@@ -19001,18 +21275,32 @@ export default function App() {
                                   ).length;
                                   return (
                                     <option key={member.id} value={member.id}>
-                                      {member.name} - {member.role} -{" "}
-                                      {activeCount} active task
-                                      {activeCount === 1 ? "" : "s"}
+                                      {member.name} â€” {activeCount} active
                                     </option>
                                   );
                                 },
                               )}
                             </select>
                             <small>
-                              Only members already attached to this assignment
-                              are shown.
+                              Only officers attached to this assignment are
+                              available.
                             </small>
+                          </label>
+
+                          <label className="task-field">
+                            <span>Due date *</span>
+                            <input
+                              required
+                              type="date"
+                              min={assignmentTaskForm.startDate || undefined}
+                              value={assignmentTaskForm.dueDate}
+                              onChange={(event) =>
+                                setAssignmentTaskForm({
+                                  ...assignmentTaskForm,
+                                  dueDate: event.target.value,
+                                })
+                              }
+                            />
                           </label>
 
                           <label className="task-field">
@@ -19034,338 +21322,188 @@ export default function App() {
                           </label>
 
                           <label className="task-field">
-                            <span>Status</span>
-                            <input value="Not Started" disabled />
-                          </label>
-
-                          <label className="task-field">
-                            <span>Start date</span>
-                            <input
-                              type="date"
-                              value={assignmentTaskForm.startDate}
+                            <span>Expected output</span>
+                            <select
+                              value={assignmentTaskForm.expectedOutput}
                               onChange={(event) =>
                                 setAssignmentTaskForm({
                                   ...assignmentTaskForm,
-                                  startDate: event.target.value,
+                                  expectedOutput: event.target.value,
                                 })
                               }
-                            />
+                            >
+                              {[
+                                "Standard Task Report",
+                                "Technical Task Report",
+                                "Assessment",
+                                "Analysis",
+                                "Recommendations",
+                                "Data Summary",
+                                "Meeting Report",
+                                "Field Visit Report",
+                                "Policy Brief",
+                              ].map((output) => (
+                                <option key={output}>{output}</option>
+                              ))}
+                            </select>
                           </label>
 
-                          <label className="task-field">
-                            <span>Due date</span>
-                            <input
-                              type="date"
-                              min={assignmentTaskForm.startDate || undefined}
-                              value={assignmentTaskForm.dueDate}
+                          <label className="task-field task-field-wide">
+                            <span>Instructions / expected result *</span>
+                            <textarea
+                              rows={4}
+                              required
+                              value={assignmentTaskForm.specificInstructions}
                               onChange={(event) =>
                                 setAssignmentTaskForm({
                                   ...assignmentTaskForm,
-                                  dueDate: event.target.value,
+                                  specificInstructions: event.target.value,
                                 })
                               }
+                              placeholder="State clearly what the officer should do and what a satisfactory result should contain."
                             />
                           </label>
 
-                          <section className="task-contribution-setup task-field-wide">
-                            <header>
-                              <div>
-                                <span className="workspace-eyebrow">
-                                  CONTRIBUTION MAPPING
-                                </span>
-                                <strong>
-                                  Show the assignee where this work contributes
-                                </strong>
-                              </div>
-                            </header>
-                            <label className="task-field task-field-wide">
-                              <span>Expected contribution</span>
-                              <textarea
-                                rows={3}
-                                value={assignmentTaskForm.expectedContribution}
-                                onChange={(event) =>
-                                  setAssignmentTaskForm({
-                                    ...assignmentTaskForm,
-                                    expectedContribution: event.target.value,
-                                  })
-                                }
-                                placeholder="e.g. Document the current scanning workflow, identify bottlenecks and provide recommendations."
-                              />
-                            </label>
-                            <label className="task-field task-field-wide task-assignment-part-field">
-                              <span>
-                                Exact part of assignment this task contributes
-                                to
-                              </span>
-                              {assignmentTemplateParts.length > 0 ? (
-                                <>
-                                  <select
-                                    value={assignmentTaskForm.assignmentPart}
-                                    onChange={(event) =>
-                                      setAssignmentTaskForm({
-                                        ...assignmentTaskForm,
-                                        assignmentPart: event.target.value,
-                                      })
-                                    }
-                                  >
-                                    <option value="">
-                                      Select assignment template section
+                          <label className="task-field task-field-wide">
+                            <span>Reviewer *</span>
+                            <select
+                              required
+                              value={assignmentTaskForm.reviewerId}
+                              onChange={(event) =>
+                                setAssignmentTaskForm({
+                                  ...assignmentTaskForm,
+                                  reviewerId: event.target.value,
+                                })
+                              }
+                            >
+                              <option value="">Select reviewer</option>
+                              {(() => {
+                                const assignmentMemberIds = new Set(
+                                  (selectedAssignmentRecord?.members || []).map(
+                                    (member) => member.id,
+                                  ),
+                                );
+                                return userRows
+                                  .filter(
+                                    (candidate) =>
+                                      candidate.active &&
+                                      candidate.id !== assignmentTaskForm.ownerId &&
+                                      candidate.role !== "Administrator" &&
+                                      [
+                                        "Research Officer",
+                                        "Reviewer",
+                                        "Research Manager",
+                                      ].includes(candidate.role) &&
+                                      (assignmentMemberIds.has(candidate.id) ||
+                                        candidate.role === "Research Manager"),
+                                  )
+                                  .sort((left, right) =>
+                                    left.name.localeCompare(right.name),
+                                  )
+                                  .map((candidate) => (
+                                    <option key={candidate.id} value={candidate.id}>
+                                      {candidate.name} â€” {candidate.role}
                                     </option>
-                                    {assignmentTemplateParts.map((part) => (
-                                      <option
-                                        key={`${part.templateId}-${part.sectionKey}`}
-                                        value={part.value}
-                                      >
-                                        {part.label}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </>
-                              ) : (
-                                <input
-                                  value={assignmentTaskForm.assignmentPart}
+                                  ));
+                              })()}
+                            </select>
+                            <small>
+                              Choose another assignment member or an active manager.
+                              Researchers may review colleagues' work, but nobody may
+                              review their own task.
+                            </small>
+                          </label>
+
+                          <details className="task-advanced-details task-field-wide">
+                            <summary>More details (optional)</summary>
+                            <div className="task-advanced-grid">
+                              <label className="task-field task-field-wide">
+                                <span>Description / background</span>
+                                <textarea
+                                  rows={3}
+                                  value={assignmentTaskForm.description}
                                   onChange={(event) =>
                                     setAssignmentTaskForm({
                                       ...assignmentTaskForm,
-                                      assignmentPart: event.target.value,
+                                      description: event.target.value,
                                     })
                                   }
-                                  placeholder="No active Assignment template sections found — enter the exact assignment part"
+                                  placeholder="Add context that helps the assignee understand the task."
                                 />
-                              )}
-                              <small>
-                                These options come from the active Assignment
-                                document templates. Select the section this task
-                                supports.
-                              </small>
-                            </label>
-                            <div className="task-contribution-target-grid">
+                              </label>
+
                               <label className="task-field">
-                                <span>Contributes to output</span>
+                                <span>Workstream</span>
                                 <select
-                                  value={assignmentTaskForm.targetDocumentId}
-                                  onChange={async (event) => {
-                                    const documentId = event.target.value;
+                                  value={assignmentTaskForm.assignmentSectionId}
+                                  onChange={(event) =>
                                     setAssignmentTaskForm({
                                       ...assignmentTaskForm,
-                                      targetDocumentId: documentId,
-                                      targetSectionId: "",
-                                    });
-                                    setAssignmentTaskTargetSections([]);
-                                    if (documentId) {
-                                      try {
-                                        const document =
-                                          await api.generatedDocument(
-                                            token,
-                                            documentId,
-                                          );
-                                        setAssignmentTaskTargetSections(
-                                          document.sections || [],
-                                        );
-                                      } catch {}
-                                    }
-                                  }}
+                                      assignmentSectionId: event.target.value,
+                                    })
+                                  }
                                 >
-                                  <option value="">
-                                    General Assignment Contribution
-                                  </option>
-                                  {workspaceDocuments.map((document) => (
-                                    <option
-                                      key={document.id}
-                                      value={document.id}
-                                    >
-                                      {document.title}
+                                  <option value="">No workstream</option>
+                                  {assignmentSections.map((section) => (
+                                    <option key={section.id} value={section.id}>
+                                      {section.title}
                                     </option>
                                   ))}
                                 </select>
-                                {!workspaceDocuments.length && (
-                                  <small>
-                                    No controlled output exists yet. You can
-                                    still assign this as a general contribution.
-                                  </small>
-                                )}
                               </label>
+
                               <label className="task-field">
-                                <span>Target section</span>
-                                <select
-                                  value={assignmentTaskForm.targetSectionId}
-                                  disabled={
-                                    !assignmentTaskForm.targetDocumentId
-                                  }
+                                <span>Start date</span>
+                                <input
+                                  type="date"
+                                  value={assignmentTaskForm.startDate}
                                   onChange={(event) =>
                                     setAssignmentTaskForm({
                                       ...assignmentTaskForm,
-                                      targetSectionId: event.target.value,
+                                      startDate: event.target.value,
                                     })
                                   }
-                                >
-                                  <option value="">
-                                    Not yet mapped / whole output
-                                  </option>
-                                  {assignmentTaskTargetSections.map(
-                                    (section) => (
-                                      <option
-                                        key={section.id}
-                                        value={section.id}
-                                      >
-                                        {section.title}
-                                      </option>
-                                    ),
-                                  )}
-                                </select>
+                                />
+                              </label>
+
+                              <label className="task-field task-field-wide">
+                                <span>Evidence required</span>
+                                <textarea
+                                  rows={2}
+                                  value={assignmentTaskForm.evidenceRequired}
+                                  onChange={(event) =>
+                                    setAssignmentTaskForm({
+                                      ...assignmentTaskForm,
+                                      evidenceRequired: event.target.value,
+                                    })
+                                  }
+                                  placeholder="Documents, data, interviews or other evidence expected."
+                                />
+                              </label>
+
+                              <label className="task-field task-field-wide">
+                                <span>Manager notes</span>
+                                <textarea
+                                  rows={2}
+                                  value={assignmentTaskForm.notes}
+                                  onChange={(event) =>
+                                    setAssignmentTaskForm({
+                                      ...assignmentTaskForm,
+                                      notes: event.target.value,
+                                    })
+                                  }
+                                  placeholder="Optional internal delivery notes."
+                                />
                               </label>
                             </div>
-                            <div className="task-contribution-output-actions">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setAssignmentTaskQuickOutputOpen(
-                                    (open) => !open,
-                                  );
-                                  setAssignmentTaskQuickOutputForm(
-                                    (current) => ({
-                                      ...current,
-                                      templateId:
-                                        current.templateId ||
-                                        builderTemplates[0]?.id ||
-                                        "",
-                                    }),
-                                  );
-                                }}
-                              >
-                                + Create Assignment Output
-                              </button>
-                              {!assignmentTaskForm.targetDocumentId && (
-                                <span>
-                                  Or leave this task as a General Assignment
-                                  Contribution and map it later.
-                                </span>
-                              )}
-                            </div>
-                            {assignmentTaskQuickOutputOpen && (
-                              <div className="task-quick-output-panel">
-                                <label>
-                                  <span>Output type</span>
-                                  <select
-                                    value={
-                                      assignmentTaskQuickOutputForm.templateId
-                                    }
-                                    onChange={(event) =>
-                                      setAssignmentTaskQuickOutputForm({
-                                        ...assignmentTaskQuickOutputForm,
-                                        templateId: event.target.value,
-                                      })
-                                    }
-                                  >
-                                    <option value="">Select output type</option>
-                                    {builderTemplates.map((template) => (
-                                      <option
-                                        key={template.id}
-                                        value={template.id}
-                                      >
-                                        {template.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                                <label className="wide">
-                                  <span>Output title</span>
-                                  <input
-                                    value={assignmentTaskQuickOutputForm.title}
-                                    onChange={(event) =>
-                                      setAssignmentTaskQuickOutputForm({
-                                        ...assignmentTaskQuickOutputForm,
-                                        title: event.target.value,
-                                      })
-                                    }
-                                    placeholder="e.g. Digital Records Assessment Report"
-                                  />
-                                </label>
-                                <button
-                                  type="button"
-                                  className="quick-output-create"
-                                  disabled={
-                                    assignmentTaskQuickOutputSaving ||
-                                    !assignmentTaskQuickOutputForm.templateId ||
-                                    !assignmentTaskQuickOutputForm.title.trim()
-                                  }
-                                  onClick={() =>
-                                    createTaskContributionOutput("create")
-                                  }
-                                >
-                                  {assignmentTaskQuickOutputSaving
-                                    ? "Creating..."
-                                    : "Create & Link Output"}
-                                </button>
-                              </div>
-                            )}
-                          </section>
-
-                          <label className="task-field task-field-wide">
-                            <span>Manager notes</span>
-                            <textarea
-                              rows={2}
-                              value={assignmentTaskForm.notes}
-                              onChange={(event) =>
-                                setAssignmentTaskForm({
-                                  ...assignmentTaskForm,
-                                  notes: event.target.value,
-                                })
-                              }
-                              placeholder="Optional instructions, references or delivery notes."
-                            />
-                          </label>
+                          </details>
                         </div>
 
-                        <section className="task-assignee-workload">
-                          <header>
-                            <strong>Assignment team workload</strong>
-                            <small>Active tasks in this assignment</small>
-                          </header>
-                          <div>
-                            {selectedAssignmentRecord?.members?.length ? (
-                              selectedAssignmentRecord.members.map((member) => {
-                                const activeCount = assignmentTasks.filter(
-                                  (task) =>
-                                    task.owner_id === member.id &&
-                                    task.status !== "Completed",
-                                ).length;
-                                return (
-                                  <button
-                                    type="button"
-                                    key={member.id}
-                                    className={
-                                      assignmentTaskForm.ownerId === member.id
-                                        ? "selected"
-                                        : ""
-                                    }
-                                    onClick={() =>
-                                      setAssignmentTaskForm({
-                                        ...assignmentTaskForm,
-                                        ownerId: member.id,
-                                      })
-                                    }
-                                  >
-                                    <b>{initialsFor(member.name)}</b>
-                                    <span>
-                                      <strong>{member.name}</strong>
-                                      <small>{member.role}</small>
-                                    </span>
-                                    <em>{activeCount} active</em>
-                                  </button>
-                                );
-                              })
-                            ) : (
-                              <p>
-                                Add team members before assigning ownership, or
-                                save the task as unassigned.
-                              </p>
-                            )}
-                          </div>
-                        </section>
-
                         {assignmentTaskDialogNotice && (
-                          <p className="task-assignment-dialog-notice" role="alert">
+                          <p
+                            className="task-assignment-dialog-notice"
+                            role="alert"
+                          >
                             {assignmentTaskDialogNotice}
                           </p>
                         )}
@@ -19384,15 +21522,16 @@ export default function App() {
                             className="task-modal-primary"
                             disabled={
                               !assignmentTaskForm.title.trim() ||
-                              !assignmentTaskForm.taskPurpose.trim() ||
+                              !assignmentTaskForm.ownerId ||
+                              !assignmentTaskForm.dueDate ||
                               !assignmentTaskForm.specificInstructions.trim() ||
                               !assignmentTaskForm.reviewerId ||
+                              assignmentTaskForm.ownerId ===
+                                assignmentTaskForm.reviewerId ||
                               assignmentTaskSaving
                             }
                           >
-                            {assignmentTaskSaving
-                              ? "Assigning..."
-                              : "Assign Task"}
+                            {assignmentTaskSaving ? "Creating..." : "Create task"}
                           </button>
                         </footer>
                       </form>
@@ -19441,9 +21580,9 @@ export default function App() {
                             setAssignmentMemberRole(event.target.value)
                           }
                         >
-                          <option value="Lead">Lead — coordinate this assignment</option>
-                          <option value="Contributor">Contributor — complete assigned work</option>
-                          <option value="Reviewer">Reviewer — review assignment outputs</option>
+                          <option value="Lead">Lead â€” coordinate this assignment</option>
+                          <option value="Contributor">Contributor â€” complete assigned work</option>
+                          <option value="Reviewer">Reviewer â€” review assignment outputs</option>
                         </select>
 
                         <button
@@ -19527,19 +21666,8 @@ export default function App() {
               {assignmentWorkspaceTab === "Documents" && (
                 <section className="assignment-resources-simple">
                   <header className="workspace-section-heading">
-                    <div><span className="workspace-eyebrow">RESEARCH &amp; DOCUMENTS</span><h3>Assignment resources and workspaces</h3><p>Open controlled documents for review or create an assignment report workspace for active drafting.</p></div>
+                    <div><span className="workspace-eyebrow">EVIDENCE</span><h3>Assignment evidence and research notes</h3><p>Keep supporting files, approved Repository evidence and research notes here. Assignment reports are managed separately in Reports.</p></div>
                   </header>
-                  {isManager && selectedAssignmentId && (
-                    <div className="assignment-document-workspace-create">
-                      <div><strong>Create report workspace</strong><small>Start a controlled assignment document with editable sections, review and approval.</small></div>
-                      <select value={builderCreate.templateId} onChange={(event) => setBuilderCreate({ ...builderCreate, templateId: event.target.value })} aria-label="Assignment report template">
-                        <option value="">Select a template</option>
-                        {builderTemplates.filter((template) => template.context === "Assignment" && template.active && ["Standard", "Approved"].includes(template.governance_status)).map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
-                      </select>
-                      <input value={selectedAssignmentRecord?.title || selectedAssignment || builderCreate.title} readOnly aria-label="Assignment report title" title="The report title follows the assignment title." />
-                      <button type="button" disabled={builderCreating || !builderCreate.templateId} onClick={() => void createWorkspaceDocument("Assignment", selectedAssignmentId)}>{builderCreating ? "Creating..." : "Create report workspace"}</button>
-                    </div>
-                  )}
                   <div className="assignment-resource-tools">
                     <input value={assignmentDocumentSearch} onChange={(event) => setAssignmentDocumentSearch(event.target.value)} placeholder="Search this assignment" aria-label="Search assignment documents and notes" />
                     {(["All", "Documents", "Research Notes"] as const).map((filter) => <button type="button" className={assignmentDocumentFilter === filter ? "active" : ""} key={filter} onClick={() => setAssignmentDocumentFilter(filter)}>{filter}</button>)}
@@ -19549,179 +21677,45 @@ export default function App() {
                     <button type="button" disabled={!assignmentRepositoryLinkId || !selectedAssignmentId} onClick={async () => { if (!selectedAssignmentId || !assignmentRepositoryLinkId) return; await api.linkKnowledgeToAssignment(token, assignmentRepositoryLinkId, selectedAssignmentId); setAssignmentRepositoryLinkId(""); setKnowledgeRows(await api.knowledge(token)); setAssignmentHistory(await api.history(token, selectedAssignmentId)); setAssignmentNotice("Repository document attached."); }}>Attach</button>
                   </div>
                   {(assignmentDocumentFilter === "All" || assignmentDocumentFilter === "Documents") && <div className="assignment-resource-list">
-                    {assignmentFiles.filter((item) => !assignmentDocumentSearch || item.original_name.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((file) => <article key={file.id}><span><strong>{file.original_name}</strong><small>Uploaded document · {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><button type="button" onClick={() => api.downloadAttachment(token, file.id, file.original_name)}>Download</button></article>)}
-                    {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) && (!assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase()))).map((item) => <article key={item.id}><span><strong>{item.title}</strong><small>Repository document · {item.status}</small></span><button type="button" onClick={() => void openKnowledge(item)}>Preview</button></article>)}
-                    {workspaceDocuments.filter((item) => !assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((item) => <article key={item.id}><span><strong>{item.title}</strong><small>Assignment report · {item.status}</small></span><button type="button" onClick={() => void openGeneratedDocument(item.id)}>Open</button></article>)}
+                    {assignmentFiles.filter((item) => !assignmentDocumentSearch || item.original_name.toLowerCase().includes(assignmentDocumentSearch.toLowerCase())).map((file) => <article key={file.id}><span><strong>{file.original_name}</strong><small>Uploaded document Â· {new Date(file.created_at).toLocaleDateString("en-KE")}</small></span><button type="button" onClick={() => api.downloadAttachment(token, file.id, file.original_name)}>Download</button></article>)}
+                    {knowledgeRows.filter((item) => item.assignments?.some((assignment) => assignment.id === selectedAssignmentId) && (!assignmentDocumentSearch || item.title.toLowerCase().includes(assignmentDocumentSearch.toLowerCase()))).map((item) => <article key={item.id}><span><strong>{item.title}</strong><small>Repository document Â· {item.status}</small></span><button type="button" onClick={() => void openRepositoryDocumentReader(item)}>Preview</button></article>)}
+                    
                   </div>}
                   {(assignmentDocumentFilter === "All" || assignmentDocumentFilter === "Research Notes") && <div className="assignment-note-composer"><textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Write a short research note" /><button type="button" disabled={!comment.trim() || !selectedAssignmentId} onClick={async () => { if (!selectedAssignmentId) return; const note = comment.trim().toLowerCase().startsWith("research note:") ? comment.trim() : `Research note: ${comment.trim()}`; await api.addComment(token, selectedAssignmentId, note); setComment(""); setComments((items) => [...items, { author: user?.name || "User", text: note, time: new Date().toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" }) }]); setAssignmentHistory(await api.history(token, selectedAssignmentId)); }}>Add note</button></div>}
                 </section>
               )}
 
-              {assignmentWorkspaceTab === "Documents" && false && (
-                <section className="phase4-documents">
-                  <header className="workspace-section-heading">
-                    <div>
-                      <span className="workspace-eyebrow">
-                        ASSIGNMENT REPORT
-                      </span>
-                      <h3>Assignment Report</h3>
-                      <p>
-                        Build one controlled report from approved work, then
-                        edit, review and finalise it.
-                      </p>
-                    </div>
-                  </header>
-
-                  {assignmentTasks.some(
-                    (task) => task.contribution_status === "Accepted",
-                  ) ? (
-                  <details className="assignment-report-compiler">
-                    <summary>
-                      <span>
-                        <small>COMPILE FROM TASKS</small>
-                        <strong>
-                          {assignmentTasks.filter(
-                            (task) => task.contribution_status === "Accepted",
-                          ).length
-                            ? `${assignmentTasks.filter((task) => task.contribution_status === "Accepted").length} approved task report${assignmentTasks.filter((task) => task.contribution_status === "Accepted").length === 1 ? "" : "s"} available`
-                            : "No approved task reports available"}
-                        </strong>
-                      </span>
-                      <b>{assignmentCompileTaskIds.length} selected</b>
-                    </summary>
-                    <div className="assignment-compile-task-list">
-                      {assignmentTasks
-                        .filter(
-                          (task) => task.contribution_status === "Accepted",
-                        )
-                        .map((task) => (
-                          <article key={task.id}>
-                            <label>
-                              <input
-                                type="checkbox"
-                                checked={assignmentCompileTaskIds.includes(
-                                  task.id,
-                                )}
-                                onChange={(event) =>
-                                  setAssignmentCompileTaskIds(
-                                    event.target.checked
-                                      ? [...assignmentCompileTaskIds, task.id]
-                                      : assignmentCompileTaskIds.filter(
-                                          (id) => id !== task.id,
-                                        ),
-                                  )
-                                }
-                              />
-                              <span>
-                                <strong>
-                                  {task.contribution_title ||
-                                    `${task.title} report`}
-                                </strong>
-                                <small>
-                                  {task.owner_name || "Unassigned"} · Maps to{" "}
-                                  {task.assignment_part ||
-                                    task.assignment_section_title ||
-                                    "General report section"}
-                                </small>
-                              </span>
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => openAssignmentTaskWorkspace(task)}
-                            >
-                              View
-                            </button>
-                          </article>
-                        ))}
-                    </div>
-                    <details className="assignment-compile-evidence">
-                      <summary>
-                        Supporting Repository documents{" "}
-                        <b>{assignmentCompileKnowledgeIds.length}</b>
-                      </summary>
-                      <div>
-                        {knowledgeRows.map((item) => (
-                          <label key={item.id}>
-                            <input
-                              type="checkbox"
-                              checked={assignmentCompileKnowledgeIds.includes(
-                                item.id,
-                              )}
-                              onChange={(event) =>
-                                setAssignmentCompileKnowledgeIds(
-                                  event.target.checked
-                                    ? [
-                                        ...assignmentCompileKnowledgeIds,
-                                        item.id,
-                                      ]
-                                    : assignmentCompileKnowledgeIds.filter(
-                                        (id) => id !== item.id,
-                                      ),
-                                )
-                              }
-                            />
-                            <span>
-                              <strong>{item.title}</strong>
-                              <small>
-                                {item.category} · {item.status} · v
-                                {item.latest_version}
-                              </small>
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </details>
-                    <footer>
-                      <span>
-                        The compiled draft remains fully editable in the
-                        Assignment Report Editor.
-                      </span>
-                      <button
-                        type="button"
-                        disabled={
-                          assignmentCompiling ||
-                          !assignmentCompileTaskIds.length ||
-                          !(isAssignmentLead || isManager)
-                        }
-                        onClick={compileAssignmentReport}
-                      >
-                        {assignmentCompiling
-                          ? "Compiling..."
-                          : "Compile Draft Report"}
-                      </button>
-                    </footer>
-                  </details>
-                  ) : (
-                    <div className="assignment-compile-empty">
-                      <span aria-hidden="true">&#10003;</span>
-                      <div>
-                        <strong>No approved task reports yet</strong>
-                        <small>
-                          Approved task reports will appear here automatically.
-                        </small>
-                      </div>
-                    </div>
-                  )}
-
+              {assignmentWorkspaceTab === "Reports" && (
+                <section className="phase4-documents assignment-reports-workspace">
                   <AssignmentReportsPanel
-                    templates={builderTemplates}
+                    assignmentTitle={selectedAssignmentRecord?.title || selectedAssignment}
+                    tasks={assignmentTasks}
                     documents={workspaceDocuments}
-                    attachments={assignmentFiles}
-                    onCreate={createAssignmentReport}
-                    onOpen={openGeneratedDocument}
-                    onDownloadTemplate={(template) =>
-                      selectedAssignmentId &&
-                      api.downloadDocumentTemplate(
-                        token,
-                        template.id,
-                        selectedAssignmentId,
-                        template.template_key,
-                      )
-                    }
-                    onUpload={uploadAssignmentFile}
-                    onDownloadAttachment={(file) =>
-                      api.downloadAttachment(token, file.id, file.original_name)
-                    }
+                    knowledge={knowledgeRows.filter((item) =>
+                      item.assignments?.some((assignment) => assignment.id === selectedAssignmentId),
+                    )}
+                    reviewers={assignmentReportReviewerCandidates}
+                    currentUserId={user?.id}
+                    canManage={Boolean(isAssignmentLead || isManager)}
+                    onCompile={compileAssignmentReport}
+                    onOpen={(id) => void openGeneratedDocument(id, false)}
+                    onPreview={(id) => void openGeneratedDocument(id, true)}
+                    onOpenTask={(task) => void openAssignmentTaskWorkspace(task)}
+                    onOpenRepository={(id) => {
+                      void openRepositoryDocumentReader(id);
+                    }}
+                    onSubmit={submitAssignmentReportForReview}
+                    onReview={reviewAssignmentReportDecision}
+                    onFinalize={finalizeAssignmentReport}
+                    onDiscardImport={async (id) => {
+                      await api.discardImportedAssignmentReport(token, id);
+                      if (selectedAssignmentId) {
+                        setWorkspaceDocuments(
+                          await api.generatedDocuments(token, "Assignment", selectedAssignmentId),
+                        );
+                      }
+                      setAssignmentNotice("Imported report discarded. You can continue editing inside App2 or import a replacement.");
+                    }}
                   />
                 </section>
               )}
@@ -19799,188 +21793,325 @@ export default function App() {
               )}
 
               {assignmentWorkspaceTab === "Review" && (
-                <section className="assignment-review-v2">
-                  <header>
-                    <div>
-                      <small>ASSIGNMENT REVIEW</small>
-                      <h2>
-                        {selectedAssignmentRecord?.title || selectedAssignment}
-                      </h2>
-                      <p>{latestAssignmentReview || "Not submitted"}</p>
-                    </div>
-                    <b className={assignmentReviewReady ? "ready" : "blocked"}>
-                      {assignmentReviewReady
-                        ? "READY FOR REVIEW"
-                        : `${assignmentPendingContributions.length} REPORTS PENDING`}
-                    </b>
-                  </header>
+                <section className="assignment-review-v3">
+                  {(() => {
+                    const finalReports = workspaceDocuments
+                      .filter(
+                        (document) =>
+                          document.template_key === "assignment-final-report" ||
+                          /Final Assignment Report/i.test(document.title || ""),
+                      )
+                      .sort(
+                        (a, b) =>
+                          new Date(b.updated_at).getTime() -
+                          new Date(a.updated_at).getTime(),
+                      );
+                    const report = finalReports[0] || null;
+                    const reviewerCanDecide = Boolean(
+                      report &&
+                        (isManager || report.reviewer_id === user?.id),
+                    );
+                    const awaitingDecision = Boolean(
+                      report &&
+                        ["Submitted", "Under Review"].includes(report.status),
+                    );
+                    const acceptedTasks = assignmentTasks.filter(
+                      (task) => task.contribution_status === "Accepted",
+                    );
+                    const pendingTaskReviews = assignmentTasks.filter(
+                      (task) =>
+                        task.reviewer_id === user?.id &&
+                        ["Ready for Integration", "Integrated"].includes(task.contribution_status),
+                    );
 
-                  <section className="review-v2-reports">
-                    <header>
-                      <div>
-                        <h3>TASK REPORTS</h3>
-                        <p>
-                          Every report must be accepted before the assignment
-                          can be submitted.
-                        </p>
-                      </div>
-                      <span>
-                        {
-                          assignmentTasks.filter(
-                            (task) => task.contribution_status === "Accepted",
-                          ).length
-                        }
-                        /{assignmentTasks.length} accepted
-                      </span>
-                    </header>
-                    <div>
-                      {assignmentTasks.map((task) => (
-                        <article key={task.id}>
-                          <span>
-                            <strong>
-                              {task.contribution_title ||
-                                `${task.title} report`}
-                            </strong>
-                            <small>{task.owner_name || "Unassigned"}</small>
-                          </span>
-                          <b
-                            className={`contribution-${task.contribution_status.toLowerCase().replaceAll(" ", "-")}`}
-                          >
-                            {assignmentReportStatusLabel(
-                              task.contribution_status,
-                            )}
-                          </b>
-                          <button
-                            type="button"
-                            onClick={() => openAssignmentTaskWorkspace(task)}
-                          >
-                            {task.contribution_status ===
-                              "Ready for Integration" && isManager
-                              ? "Review"
-                              : "View"}
-                          </button>
-                        </article>
-                      ))}
-                      {!assignmentTasks.length && (
-                        <p>No task reports are available.</p>
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="review-v2-decision">
-                    <div>
-                      <small>DECISION</small>
-                      <h3>
-                        {latestAssignmentReview === "Approved"
-                          ? "Assignment approved"
-                          : latestAssignmentReview === "Under Review"
-                            ? "Record the review decision"
-                            : latestAssignmentReview === "Submitted"
-                              ? "Submission awaiting reviewer"
-                              : assignmentReviewReady
-                                ? "Submit the completed assignment"
-                                : "Complete the pending reports first"}
-                      </h3>
-                      <p>
-                        {assignmentReviewReady
-                          ? "All task work and accepted reports form the review record."
-                          : "Open each pending report, review its evidence, and accept it before submission."}
-                      </p>
-                    </div>
-                    {latestAssignmentReview !== "Approved" && (
-                      <textarea
-                        value={assignmentReviewComment}
-                        onChange={(event) =>
-                          setAssignmentReviewComment(event.target.value)
-                        }
-                        placeholder={
-                          latestAssignmentReview === "Under Review"
-                            ? "Record corrections or an approval note"
-                            : "Add an optional submission note"
-                        }
-                      />
-                    )}
-                    <footer>
-                      {(!latestAssignmentReview ||
-                        latestAssignmentReview === "Changes Requested") && (
-                        <button
-                          disabled={
-                            assignmentReviewSaving || !assignmentReviewReady
-                          }
-                          onClick={() => recordAssignmentReview("Submitted")}
-                        >
-                          {assignmentReviewSaving
-                            ? "Recording..."
-                            : latestAssignmentReview === "Changes Requested"
-                              ? "Resubmit for review"
-                              : "Submit for review"}
-                        </button>
-                      )}
-                      {canReview && latestAssignmentReview === "Submitted" && (
-                        <button
-                          disabled={assignmentReviewSaving}
-                          onClick={() => recordAssignmentReview("Under Review")}
-                        >
-                          {assignmentReviewSaving
-                            ? "Starting..."
-                            : "Start review"}
-                        </button>
-                      )}
-                      {canReview &&
-                        latestAssignmentReview === "Under Review" && (
-                          <>
-                            <button
-                              className="changes"
-                              disabled={
-                                assignmentReviewSaving ||
-                                !assignmentReviewComment.trim()
-                              }
-                              onClick={() =>
-                                recordAssignmentReview("Changes Requested")
-                              }
-                            >
-                              Request changes
-                            </button>
-                            <button
-                              className="approve"
-                              disabled={assignmentReviewSaving}
-                              onClick={() => recordAssignmentReview("Approved")}
-                            >
-                              Approve assignment
-                            </button>
-                          </>
-                        )}
-                      {latestAssignmentReview === "Approved" && (
-                        <strong>Review complete</strong>
-                      )}
-                    </footer>
-                  </section>
-
-                  {assignmentReviews.length > 0 && (
-                    <details className="review-v2-history">
-                      <summary>
-                        Review history ({assignmentReviews.length})
-                      </summary>
-                      <div>
-                        {assignmentReviews.map((review) => (
-                          <article key={review.id}>
-                            <b>{review.decision}</b>
-                            <span>
-                              <strong>{review.reviewer_name}</strong>
-                              <small>
-                                {new Date(review.created_at).toLocaleString(
-                                  "en-KE",
-                                )}
-                              </small>
+                    // A task reviewer must never be blocked by the absence of the
+                    // assignment-level Final Assignment Report. Task review is an
+                    // earlier, independent workflow. If this Review route was
+                    // reached while task decisions are pending, present those
+                    // task reports first and send the reviewer into the existing
+                    // Task Report Review workspace.
+                    if (!report && pendingTaskReviews.length > 0) {
+                      return (
+                        <section className="task-review-routing-card">
+                          <header>
+                            <div>
+                              <small>TASK REPORT REVIEW</small>
+                              <h2>{selectedAssignmentRecord?.title || selectedAssignment}</h2>
                               <p>
-                                {review.comments || "No comments recorded."}
+                                Review only the task report assigned to you. The Final Assignment Report is created later, after required task reports have been accepted.
                               </p>
+                            </div>
+                            <b>{pendingTaskReviews.length} REVIEW{pendingTaskReviews.length === 1 ? "" : "S"} WAITING</b>
+                          </header>
+
+                          <div className="task-review-routing-list">
+                            {pendingTaskReviews.map((task) => (
+                              <article key={task.id}>
+                                <div>
+                                  <span className="workspace-eyebrow">TASK REPORT</span>
+                                  <h3>{task.contribution_title || `${task.title} â€” Contribution Report`}</h3>
+                                  <p>
+                                    Task: {task.title} Â· Submitted by {task.owner_name || "Task owner"}
+                                  </p>
+                                </div>
+                                <span className="task-review-routing-status">
+                                  {task.contribution_status === "Integrated" ? "Approved Â· finalisation pending" : "Submitted Â· decision required"}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="app-action-primary"
+                                  onClick={async () => {
+                                    setAssignmentWorkspaceTab("Tasks");
+                                    await openAssignmentTaskWorkspace(task, true);
+                                  }}
+                                >
+                                  {task.contribution_status === "Integrated" ? "Open approved task report" : "Open task review"}
+                                </button>
+                              </article>
+                            ))}
+                          </div>
+
+                          <aside className="task-review-routing-note">
+                            <strong>Assignment review is separate</strong>
+                            <span>
+                              You do not need a Final Assignment Report to review these task submissions. The assignment-level review begins only after the Assignment Lead compiles and submits that final report.
                             </span>
-                          </article>
-                        ))}
-                      </div>
-                    </details>
-                  )}
+                          </aside>
+                        </section>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <header className="assignment-review-v3-head">
+                          <div>
+                            <small>FORMAL ASSIGNMENT REVIEW</small>
+                            <h2>
+                              {selectedAssignmentRecord?.title || selectedAssignment}
+                            </h2>
+                            <p>
+                              Review the compiled Final Assignment Report. Final Task Reports below are supporting source records.
+                            </p>
+                          </div>
+                          <b className={report?.status === "Approved" || report?.status === "Final" ? "ready" : "blocked"}>
+                            {report?.status || "NO REPORT SUBMITTED"}
+                          </b>
+                        </header>
+
+                        <section className="assignment-formal-report-review">
+                          <header>
+                            <div>
+                              <small>DOCUMENT UNDER REVIEW</small>
+                              <h3>{report?.title || "No Final Assignment Report submitted"}</h3>
+                              {report && (
+                                <p>
+                                  {report.reference} Â· Version {report.version} Â· Reviewer: {report.reviewer_name || "Not assigned"}
+                                </p>
+                              )}
+                            </div>
+                            {report && <span className="assignment-review-status">{report.status}</span>}
+                          </header>
+
+                          {!report ? (
+                            <div className="assignment-review-empty">
+                              The Assignment Lead must complete the Final Assignment Report and submit it to a reviewer before a formal decision can be recorded.
+                            </div>
+                          ) : (
+                            <>
+                              <div className="assignment-review-primary-actions">
+                                <button
+                                  type="button"
+                                  className="app-action-primary"
+                                  onClick={() => void openGeneratedDocument(report.id, true)}
+                                >
+                                  View Report
+                                </button>
+                                {report.repository_document_id && report.status === "Final" && (
+                                  <button
+                                    type="button"
+                                    className="app-action-secondary"
+                                    onClick={() => void openGeneratedDocument(report.id, true)}
+                                  >
+                                    View Final Copy
+                                  </button>
+                                )}
+                              </div>
+
+                              {awaitingDecision && reviewerCanDecide && (
+                                <div className="assignment-review-decision-panel">
+                                  <label>
+                                    <span>Reviewer comments</span>
+                                    <textarea
+                                      rows={4}
+                                      value={assignmentReviewComment}
+                                      onChange={(event) => setAssignmentReviewComment(event.target.value)}
+                                      placeholder="Record evidence gaps, required corrections, rejection reasons, or an approval note."
+                                    />
+                                  </label>
+                                  <div className="assignment-review-decision-actions">
+                                    <button
+                                      type="button"
+                                      className="app-action-return"
+                                      disabled={assignmentReviewSaving || !assignmentReviewComment.trim()}
+                                      onClick={async () => {
+                                        try {
+                                          setAssignmentReviewSaving(true);
+                                          await reviewAssignmentReportDecision(report.id, "Changes Requested", assignmentReviewComment.trim());
+                                          setAssignmentReviewComment("");
+                                        } catch (error) {
+                                          setAssignmentNotice(error instanceof Error ? error.message : "The report could not be returned for changes.");
+                                        } finally {
+                                          setAssignmentReviewSaving(false);
+                                        }
+                                      }}
+                                    >
+                                      Return for Changes
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="app-action-danger"
+                                      disabled={assignmentReviewSaving || !assignmentReviewComment.trim()}
+                                      onClick={async () => {
+                                        try {
+                                          setAssignmentReviewSaving(true);
+                                          await reviewAssignmentReportDecision(report.id, "Rejected", assignmentReviewComment.trim());
+                                          setAssignmentReviewComment("");
+                                        } catch (error) {
+                                          setAssignmentNotice(error instanceof Error ? error.message : "The report could not be rejected.");
+                                        } finally {
+                                          setAssignmentReviewSaving(false);
+                                        }
+                                      }}
+                                    >
+                                      Reject Report
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="app-action-approve"
+                                      disabled={assignmentReviewSaving}
+                                      onClick={async () => {
+                                        try {
+                                          setAssignmentReviewSaving(true);
+                                          await reviewAssignmentReportDecision(report.id, "Approved", assignmentReviewComment.trim());
+                                          setAssignmentReviewComment("");
+                                        } catch (error) {
+                                          setAssignmentNotice(error instanceof Error ? error.message : "The report could not be approved.");
+                                        } finally {
+                                          setAssignmentReviewSaving(false);
+                                        }
+                                      }}
+                                    >
+                                      Approve Report
+                                    </button>
+                                  </div>
+                                  <small className="assignment-review-help">
+                                    Return for Changes reopens the report for revision. Reject preserves the rejected version as a terminal review decision. Approve unlocks final generation.
+                                  </small>
+                                </div>
+                              )}
+
+                              {awaitingDecision && !reviewerCanDecide && (
+                                <div className="assignment-review-readonly-note">
+                                  This report is awaiting a decision from {report.reviewer_name || "its assigned reviewer"}. You can view it but cannot record the formal decision.
+                                </div>
+                              )}
+
+                              {report.status === "Changes Requested" && (
+                                <div className="assignment-review-returned-note">
+                                  Returned for changes. The Assignment Lead must revise and resubmit the report.
+                                </div>
+                              )}
+
+                              {report.status === "Rejected" && (
+                                <div className="assignment-review-rejected-note">
+                                  Rejected. This version remains in the formal review record and cannot be finalized.
+                                </div>
+                              )}
+
+                              {report.status === "Approved" && reviewerCanDecide && (
+                                <div className="assignment-review-finalize-panel">
+                                  <strong>Approved Â· Final generation pending</strong>
+                                  <span>The approved report is locked. Generate the final Repository copy to complete the controlled workflow.</span>
+                                  <button
+                                    type="button"
+                                    className="app-action-approve"
+                                    disabled={assignmentReviewSaving}
+                                    onClick={async () => {
+                                      try {
+                                        setAssignmentReviewSaving(true);
+                                        await finalizeAssignmentReport(report.id);
+                                      } catch (error) {
+                                        setAssignmentNotice(error instanceof Error ? error.message : "The final Assignment Report could not be generated.");
+                                      } finally {
+                                        setAssignmentReviewSaving(false);
+                                      }
+                                    }}
+                                  >
+                                    Generate Final Report & Save to Repository
+                                  </button>
+                                </div>
+                              )}
+
+                              {report.status === "Final" && (
+                                <div className="assignment-review-final-note">
+                                  <strong>Final Assignment Report published</strong>
+                                  <span>{report.repository_document_title || "The approved final report is stored in the Document Repository."}</span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </section>
+
+                        <section className="review-v3-sources">
+                          <header>
+                            <div>
+                              <small>SUPPORTING SOURCES</small>
+                              <h3>Final Task Reports</h3>
+                              <p>These reports support the Assignment Report review. They were individually reviewed before becoming final sources.</p>
+                            </div>
+                            <span>{acceptedTasks.length}/{assignmentTasks.length} final</span>
+                          </header>
+                          <div className="review-v3-source-list">
+                            {assignmentTasks.map((task) => (
+                              <article key={task.id}>
+                                <span>
+                                  <strong>{task.contribution_title || `${task.title} report`}</strong>
+                                  <small>{task.owner_name || "Unassigned"} Â· Reviewer: {task.reviewer_name || "Not assigned"}</small>
+                                </span>
+                                <b>{assignmentReportStatusLabel(task.contribution_status)}</b>
+                                {task.contribution_status === "Accepted" ? (
+                                  <button
+                                    type="button"
+                                    className="app-action-secondary"
+                                    onClick={() => void openTaskReportPreviewForTask(task, false)}
+                                  >
+                                    View Supporting Task Report
+                                  </button>
+                                ) : task.contribution_status === "Ready for Integration" &&
+                                  task.reviewer_id === user?.id ? (
+                                  <button
+                                    type="button"
+                                    className="app-action-primary"
+                                    onClick={() => void openTaskReportPreviewForTask(task, true)}
+                                  >
+                                    Review Submitted Task Report
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="app-action-secondary"
+                                    onClick={() => void openAssignmentTaskWorkspace(task, true)}
+                                  >
+                                    Open Task Report
+                                  </button>
+                                )}
+                              </article>
+                            ))}
+                          </div>
+                        </section>
+                      </>
+                    );
+                  })()}
                 </section>
               )}
               {assignmentSectionEditor && (
@@ -20007,7 +22138,7 @@ export default function App() {
                         aria-label="Close section editor"
                         onClick={() => setAssignmentSectionEditor(null)}
                       >
-                        ×
+                        Ã—
                       </button>
                     </header>
                     <div className="assignment-section-form">
@@ -20055,7 +22186,7 @@ export default function App() {
                             <option value="">Unassigned</option>
                             {selectedAssignmentRecord?.members.map((member) => (
                               <option key={member.id} value={member.id}>
-                                {member.name} — {member.role}
+                                {member.name} â€” {member.role}
                               </option>
                             ))}
                           </select>
@@ -20220,11 +22351,18 @@ export default function App() {
           <small>Right-click actions are limited to App2.</small>
         </nav>}
 
+        {externalResearchOpen && (
+          <ExternalResearchImportModal token={token} users={team} onClose={() => setExternalResearchOpen(false)} onCreated={(created) => { setExternalResearchOpen(false); setSelectedResearch(null); setExternalResearchRows((current) => [created, ...current.filter((item) => item.id !== created.id)]); setResearchRepositoryMode("Imported"); setSelectedExternalResearch(created); }} />
+        )}
+        {selectedExternalResearch && (
+          <ExternalResearchReader token={token} item={selectedExternalResearch} onClose={() => setSelectedExternalResearch(null)} onUpdated={(updated) => { setSelectedExternalResearch(updated); setExternalResearchRows((current) => current.map((item) => item.id === updated.id ? updated : item)); }} onOpenRepository={(knowledgeId) => { setSelectedExternalResearch(null); setActive("Document Repository"); const target = documentRows.find((item) => item.id === knowledgeId); if (target) setReaderDocument(target); }} />
+        )}
+
         {readerDocument && (
           <Suspense
             fallback={
               <div className="document-reader-loading">
-                Opening secure reader…
+                Opening secure readerâ€¦
               </div>
             }
           >
@@ -20243,3 +22381,7 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+
+
+

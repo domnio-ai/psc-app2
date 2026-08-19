@@ -1,0 +1,381 @@
+/* ============================================================
+   APP2 RESEARCH REPOSITORY — THEME + SCROLL CORRECTION V3
+   Scope: Research Repository list, project workspace, wizard,
+   imported-research modal/reader and all research tabs.
+   This layer intentionally loads last.
+   ============================================================ */
+
+/* Bridge research legacy variables to the App2 theme system. */
+:is(
+  .research-management-view,
+  .research-workspace,
+  .research-wizard-shell,
+  .external-research-import-modal,
+  .external-research-reader-shell
+){
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-page:var(--app-background);
+  --text:var(--text-primary);
+  --muted:var(--text-secondary);
+  --border:var(--border-default);
+  --accent:var(--accent-primary);
+  --accent-contrast:var(--button-primary-text);
+  color:var(--text-primary)!important;
+  font-family:inherit!important;
+}
+
+:is(
+  .research-management-view,
+  .research-workspace,
+  .research-wizard-shell,
+  .external-research-import-modal,
+  .external-research-reader-shell
+) :is(button,input,select,textarea,label,p,span,small,strong,b,em,dt,dd,li,h1,h2,h3,h4,h5,h6){
+  font-family:inherit!important;
+}
+
+/* Research workspace: one reliable page scroll instead of competing
+   flex children. This is the key fix for Overview/Work/Resources/Report/Activity. */
+.research-workspace{
+  height:100dvh!important;
+  min-height:100dvh!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  background:var(--app-background)!important;
+  color:var(--text-primary)!important;
+}
+
+.research-workspace>.research-command-header{
+  flex:0 0 auto!important;
+  background:var(--surface-primary)!important;
+  border-color:var(--border-default)!important;
+}
+
+.research-workspace>.research-workspace-tabs{
+  position:sticky!important;
+  top:0!important;
+  z-index:30!important;
+  flex:0 0 auto!important;
+  background:color-mix(in srgb,var(--surface-primary) 94%,transparent)!important;
+  border-color:var(--border-default)!important;
+  backdrop-filter:blur(12px);
+}
+
+.research-workspace>.research-workspace-tabs button{
+  background:var(--surface-secondary)!important;
+  color:var(--text-secondary)!important;
+  border:1px solid var(--border-default)!important;
+}
+.research-workspace>.research-workspace-tabs button:hover{
+  background:var(--surface-elevated)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-strong)!important;
+}
+.research-workspace>.research-workspace-tabs button.active{
+  background:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+  border-color:var(--accent-primary)!important;
+}
+
+/* A visible tab may contain more than one section. Never make those
+   sections share the remaining viewport height. */
+.research-workspace>section{
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-height:auto!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+
+.research-workspace[data-tab="Overview"]>.research-overview-panel,
+.research-workspace[data-tab="Overview"]>.research-team-panel,
+.research-workspace[data-tab="Overview"]>.research-plan-editor,
+.research-workspace[data-tab="Work"]>.research-work-panel,
+.research-workspace[data-tab="Work"]>.research-milestones-panel,
+.research-workspace[data-tab="Work"]>.research-discussion-panel,
+.research-workspace[data-tab="Resources"]>.research-documents-placeholder,
+.research-workspace[data-tab="Resources"]>.research-sources-panel,
+.research-workspace[data-tab="Resources"]>.research-builder-documents-panel,
+.research-workspace[data-tab="Report"]>.research-report-builder,
+.research-workspace[data-tab="Activity"]>.research-activity-panel{
+  flex:0 0 auto!important;
+  min-height:auto!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+
+/* Keep controls readable in every theme and aligned with App2 sizing. */
+.research-management-view,
+.research-workspace,
+.research-wizard-shell,
+.external-research-import-modal,
+.external-research-reader-shell{
+  font-size:14px!important;
+  line-height:1.5;
+}
+:is(.research-management-view,.research-workspace,.research-wizard-shell,.external-research-import-modal,.external-research-reader-shell)
+:is(button,input,select,textarea,label,p,span,li,dt,dd){
+  font-size:max(12px,1em);
+}
+:is(.research-management-view,.research-workspace,.research-wizard-shell,.external-research-import-modal,.external-research-reader-shell) small{
+  font-size:12px!important;
+  line-height:1.45;
+}
+
+/* Replace Phase-5 hard-coded greys with live theme surfaces. */
+.research-command-back,
+.research-command-close,
+.research-command-meta>span,
+.research-team-person,
+.research-overview-metrics>span,
+.research-overview-grid>article,
+.research-plan-panel>p,
+.research-milestones-panel .history-list>div,
+.research-source-list article,
+.workspace-generated-documents>button,
+.research-supporting-documents>summary,
+.research-reviewer-management,
+.research-link-assignment,
+.research-create-assignment,
+.research-assignment-list>article,
+.research-work-empty{
+  background:var(--surface-secondary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+
+.research-command-back,
+.research-command-close{
+  color:var(--text-primary)!important;
+}
+
+.research-command-subtitle,
+.research-workspace :is(p,small,dt),
+.research-management-view :is(p,small,dt){
+  color:var(--text-secondary)!important;
+  opacity:1!important;
+}
+
+.research-command-title>p,
+.research-workspace :is(.research-team-label small,.research-overview-grid>article>span),
+.research-management-view .assignment-page-head>div>p{
+  color:var(--accent-primary)!important;
+}
+
+.research-supporting-documents[open]>div{
+  background:var(--surface-elevated)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.research-supporting-documents label{
+  border-color:var(--border-default)!important;
+}
+.research-supporting-documents label small,
+.research-supporting-documents p{
+  color:var(--text-secondary)!important;
+}
+
+/* Next action and workflow should follow the selected accent, not gold. */
+.research-workspace .research-next-action,
+.research-workspace .research-workflow-guide{
+  background:var(--surface-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.research-workspace .research-next-action>button,
+.research-workspace .research-milestone-add button,
+.research-workspace .research-source-form button,
+.research-workspace .comment-box button,
+.research-workspace .research-link-assignment button,
+.research-workspace .research-save-reviewers{
+  background:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+  border-color:var(--accent-primary)!important;
+}
+
+/* Report screen: allow the whole workspace to scroll, while long editor
+   areas remain independently usable where helpful. */
+.research-workspace[data-tab="Report"]>.research-report-builder{
+  overflow:visible!important;
+}
+.research-workspace[data-tab="Report"] .report-builder-layout{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.research-workspace[data-tab="Report"] .report-editor,
+.research-workspace[data-tab="Report"] .report-outline,
+.research-workspace[data-tab="Report"] .report-evidence{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+}
+.research-workspace[data-tab="Report"] .report-editor>footer{
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+}
+.research-workspace[data-tab="Report"] .research-section-document-summary{
+  max-height:42vh!important;
+  overflow:auto!important;
+}
+
+/* Repository list/cards inherit the active theme. */
+.research-management-view{
+  background:transparent!important;
+  color:var(--text-primary)!important;
+}
+.research-management-view :is(
+  .research-portfolio-summary article,
+  .research-portfolio-toolbar,
+  .research-grid>article,
+  .research-card-actions select,
+  .external-research-row
+){
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.research-management-view :is(input,select,textarea){
+  background:var(--input-background)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--input-border)!important;
+}
+.research-management-view .research-open-workspace,
+.research-management-view .research-primary-action{
+  background:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+  border-color:var(--accent-primary)!important;
+}
+
+/* Research creation wizard: modal stays within the viewport and every
+   step can scroll. */
+.research-wizard-shell{
+  max-height:94dvh!important;
+  overflow:hidden!important;
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.research-wizard-form{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.research-wizard-form>section{
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  background:var(--surface-primary)!important;
+}
+.research-wizard-form>footer,
+.research-wizard-header,
+.research-wizard-steps{
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+.research-wizard-form :is(input,select,textarea){
+  background:var(--input-background)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--input-border)!important;
+}
+.research-wizard-form>footer button.primary{
+  background:var(--accent-primary)!important;
+  border-color:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+}
+
+/* Imported research modal/reader: retain their own useful inner scrolls,
+   but use the same App2 theme palette and typography. */
+.external-research-import-modal{
+  max-height:92dvh!important;
+  overflow-y:auto!important;
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.external-research-import-modal>header,
+.external-research-import-modal>footer,
+.external-reviewer-picker,
+.external-reader-header,
+.external-reader-versions,
+.external-reader-review,
+.external-reader-review section{
+  background:var(--surface-secondary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+.external-research-import-modal :is(input,select,textarea),
+.external-reader-review :is(input,select,textarea){
+  background:var(--input-background)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--input-border)!important;
+}
+.external-primary{
+  background:var(--accent-primary)!important;
+  border-color:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+}
+.external-secondary,
+.external-reader-back,
+.external-close,
+.external-reader-close{
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  border-color:var(--border-default)!important;
+}
+
+/* Scrollbar follows the theme without becoming visually dominant. */
+.research-workspace,
+.research-wizard-form>section,
+.external-research-import-modal,
+.external-reader-versions,
+.external-reader-review,
+.external-reader-document{
+  scrollbar-width:thin;
+  scrollbar-color:var(--border-strong) var(--surface-secondary);
+}
+.research-workspace::-webkit-scrollbar,
+.research-wizard-form>section::-webkit-scrollbar,
+.external-research-import-modal::-webkit-scrollbar,
+.external-reader-versions::-webkit-scrollbar,
+.external-reader-review::-webkit-scrollbar,
+.external-reader-document::-webkit-scrollbar{width:10px;height:10px}
+.research-workspace::-webkit-scrollbar-track,
+.research-wizard-form>section::-webkit-scrollbar-track,
+.external-research-import-modal::-webkit-scrollbar-track,
+.external-reader-versions::-webkit-scrollbar-track,
+.external-reader-review::-webkit-scrollbar-track,
+.external-reader-document::-webkit-scrollbar-track{background:var(--surface-secondary)}
+.research-workspace::-webkit-scrollbar-thumb,
+.research-wizard-form>section::-webkit-scrollbar-thumb,
+.external-research-import-modal::-webkit-scrollbar-thumb,
+.external-reader-versions::-webkit-scrollbar-thumb,
+.external-reader-review::-webkit-scrollbar-thumb,
+.external-reader-document::-webkit-scrollbar-thumb{background:var(--border-strong);border:2px solid var(--surface-secondary);border-radius:999px}
+
+/* Narrow screens: no fixed panel widths and no horizontal clipping. */
+@media(max-width:850px){
+  .research-workspace{width:100%!important}
+  .research-workspace>.research-workspace-tabs{padding-inline:10px!important}
+  .research-workspace>section{padding-inline:14px!important}
+  .research-portfolio-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .research-portfolio-toolbar{grid-template-columns:1fr!important}
+  .research-grid.list-view>article{grid-template-columns:1fr!important;grid-template-areas:none!important}
+  .research-grid.list-view>article>*{grid-area:auto!important}
+}
+
+@media(max-width:560px){
+  .research-portfolio-summary{grid-template-columns:1fr!important}
+  .research-command-meta{gap:6px!important}
+  .research-next-action{align-items:stretch!important;flex-direction:column!important}
+  .research-next-action>button{width:100%!important}
+}

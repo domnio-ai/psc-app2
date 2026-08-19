@@ -1,0 +1,13 @@
+{
+  "manifest_version": 1,
+  "patch_id": "example-narrow-ui-fix-v1",
+  "purpose": "Describe one narrowly scoped change.",
+  "allowed_files": [
+    "src/example-module.css"
+  ],
+  "protected_shared_file_overrides": [],
+  "database_migrations": [],
+  "contracts_affected": [],
+  "requires_full_regression": true,
+  "notes": "Future App2 patches should ship an APP2_PATCH_MANIFEST.json based on this template."
+}

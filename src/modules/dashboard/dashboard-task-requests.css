@@ -1,0 +1,84 @@
+/* Task Request dashboard panel: intentionally independent of existing dashboard modules. */
+.dashboard-task-requests {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1.6fr);
+  gap: 14px;
+  align-items: center;
+  margin: 8px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+.dashboard-task-requests-copy > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.dashboard-task-requests-copy h2 {
+  margin: 3px 0;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+.dashboard-task-requests-copy p {
+  margin: 0;
+  color: var(--text-secondary, var(--text-muted));
+  font-size: 13px;
+}
+.dashboard-task-requests-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dashboard-task-request-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 9px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.dashboard-task-request-action > span {
+  font-size: 12px;
+  font-weight: 750;
+}
+.dashboard-task-request-action > strong {
+  grid-row: span 2;
+  font-size: 27px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-task-request-action > small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.dashboard-task-request-action:hover,
+.dashboard-task-request-action:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+@media (max-width: 820px) {
+  .dashboard-task-requests { grid-template-columns: 1fr; }
+  .dashboard-task-requests-actions { grid-template-columns: 1fr; }
+}
+
+/* dashboard-task-request-approval-card-style: distinct workflow card in Dashboard > Tasks. */
+.dashboard-drilldown-kpis .pulse-task-request-approval-card {
+  border-top-color: var(--drill-amber) !important;
+  background: var(--app2-amber-gradient, linear-gradient(145deg, #fffaf0, #f5e8c9)) !important;
+}
+.dashboard-drilldown-kpis .pulse-task-request-approval-card:focus-visible {
+  outline: 3px solid var(--accent-primary, var(--drill-blue));
+  outline-offset: 2px;
+}
+.dashboard-drilldown-kpis .pulse-task-request-approval-card .pulse-card-title {
+  line-height: 1.25;
+}

@@ -1,0 +1,57 @@
+/* App2 global visual language extracted from the stable Executive Command Centre. */
+:root {
+  --app2-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --app2-font-size-xs: 12px;
+  --app2-font-size-sm: 13px;
+  --app2-font-size-md: 14px;
+  --app2-font-size-lg: 19px;
+  --app2-font-size-xl: 27px;
+  --app2-label-spacing: .11em;
+  --app2-text-muted-opacity: .72;
+
+  --app2-gold: #b78823;
+  --app2-blue: #3567a4;
+  --app2-green: #2b975c;
+  --app2-amber: #da921d;
+  --app2-red: #bf3746;
+  --app2-violet: #7658a9;
+  --app2-teal: #2e8077;
+
+  --app2-gold-gradient: linear-gradient(145deg, rgba(255,252,244,.99), rgba(229,196,111,.22));
+  --app2-blue-gradient: linear-gradient(145deg, rgba(244,249,255,.99), rgba(74,124,188,.18));
+  --app2-green-gradient: linear-gradient(145deg, rgba(249,255,251,.99), rgba(232,247,238,.86));
+  --app2-amber-gradient: linear-gradient(145deg, rgba(255,250,235,.995), rgba(224,151,34,.24));
+  --app2-red-gradient: linear-gradient(145deg, rgba(255,244,245,.995), rgba(202,67,82,.23));
+  --app2-violet-gradient: linear-gradient(145deg, rgba(250,247,255,.995), rgba(120,88,172,.17));
+  --app2-neutral-gradient: linear-gradient(145deg, rgba(255,255,255,.985), rgba(250,247,239,.94));
+  --app2-panel-header-gradient: linear-gradient(180deg, rgba(255,255,255,.90), rgba(249,245,235,.56));
+
+  --app2-border-soft: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 62%, transparent);
+  --app2-border-card: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 88%, transparent);
+  --app2-shadow-card: 0 9px 25px rgba(50,39,15,.055);
+  --app2-shadow-hover: 0 10px 24px rgba(49,38,14,.08);
+  --app2-radius-card: 15px;
+  --app2-radius-panel: 16px;
+  --app2-radius-control: 10px;
+  --app2-radius-button: 11px;
+  --app2-radius-pill: 999px;
+  --app2-focus-ring: 3px solid color-mix(in srgb, var(--accent, #b78823) 55%, white);
+  --app2-section-gap: 14px;
+  --app2-card-padding: 14px;
+  --app2-panel-padding: 16px;
+  --app2-control-min-height: 40px;
+  --app2-transition: .16s ease;
+}
+
+[data-theme*="dark"] {
+  --app2-gold-gradient: linear-gradient(145deg, rgba(53,45,28,.98), rgba(138,106,39,.34));
+  --app2-blue-gradient: linear-gradient(145deg, rgba(29,41,61,.98), rgba(54,95,151,.35));
+  --app2-green-gradient: linear-gradient(145deg, rgba(25,51,38,.98), rgba(39,128,77,.31));
+  --app2-amber-gradient: linear-gradient(145deg, rgba(58,47,25,.98), rgba(190,123,26,.34));
+  --app2-red-gradient: linear-gradient(145deg, rgba(60,31,37,.98), rgba(167,48,63,.34));
+  --app2-violet-gradient: linear-gradient(145deg, rgba(43,34,57,.98), rgba(101,72,147,.34));
+  --app2-neutral-gradient: linear-gradient(145deg, rgba(37,39,43,.98), rgba(46,44,36,.94));
+  --app2-panel-header-gradient: linear-gradient(180deg, rgba(51,52,56,.96), rgba(43,42,37,.88));
+  --app2-shadow-card: 0 9px 25px rgba(0,0,0,.18);
+  --app2-shadow-hover: 0 12px 28px rgba(0,0,0,.26);
+}

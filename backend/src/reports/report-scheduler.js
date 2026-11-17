@@ -37,8 +37,8 @@ export async function runDueReportSchedules() {
           file = await renderReportExport(schedule.format, result.exportModel);
         await sendMail({
           to: schedule.recipient_emails.join(","),
-          subject: `App2 scheduled report: ${result.report.title}`,
-          text: `The scheduled report “${result.report.title}” is attached. It was generated from your permitted App2 data scope.`,
+          subject: `REDESY scheduled report: ${result.report.title}`,
+          text: `The scheduled report “${result.report.title}” is attached. It was generated from your permitted REDESY data scope.`,
           attachments: [
             {
               filename: `${schedule.report_key}.${file.extension}`,
@@ -58,14 +58,19 @@ export async function runDueReportSchedules() {
           "UPDATE report_schedules SET last_run_at=NOW(),last_status='Delivered',last_error=NULL,next_run_at=$1,updated_at=NOW() WHERE id=$2",
           [nextDate(schedule.frequency), schedule.id],
         );
+        await query(
+          "INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'REPORT_SCHEDULE_DELIVERED','report_schedule',$2,$3)",
+          [schedule.owner_id,schedule.id,JSON.stringify({reportKey:schedule.report_key,format:schedule.format,rowCount:result.rows.length,recipientCount:schedule.recipient_emails.length})],
+        );
       } catch (error) {
+        const errorMessage=String(error.message || error).slice(0,2000);
         await query(
           "UPDATE report_schedules SET last_run_at=NOW(),last_status='Failed',last_error=$1,next_run_at=$2,updated_at=NOW() WHERE id=$3",
-          [
-            String(error.message || error).slice(0, 2000),
-            nextDate(schedule.frequency),
-            schedule.id,
-          ],
+          [errorMessage,nextDate(schedule.frequency),schedule.id],
+        );
+        await query(
+          "INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'REPORT_SCHEDULE_FAILED','report_schedule',$2,$3)",
+          [schedule.owner_id,schedule.id,JSON.stringify({reportKey:schedule.report_key,format:schedule.format,error:errorMessage})],
         );
       }
     }

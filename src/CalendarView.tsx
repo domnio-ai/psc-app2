@@ -1,42 +1,72 @@
-import { useMemo, useState } from 'react'
-import type { CalendarItem } from './api'
+import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from 'react'
+import { api, type CalendarItem } from './api'
 
-const dateKey = (value: Date | string) => {
-  const date = value instanceof Date ? value : new Date(value)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-const monthValue = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}`
-const eventLabel=(item:CalendarItem)=>({assignment:'Assignment deadline',task:'Task deadline',research_milestone:'Research milestone',document_review:'Document review deadline',notice:item.is_dated_event?'Notice Board event':'Notice Board publication'}[item.type])
+const dateKey=(value:Date|string)=>{const date=value instanceof Date?value:new Date(value);return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
+const monthValue=(value:Date)=>`${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}`
+const localValue=(value?:string|null)=>value?`${dateKey(value)}T${new Date(value).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`:''
+const toIso=(value:string)=>new Date(value).toISOString()
+const formatDateTime=(value:string)=>new Date(value).toLocaleString('en-KE',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+const formatDate=(value:string)=>new Date(value).toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'})
 
-export default function CalendarView({ items }: { items: CalendarItem[] }) {
-  const today = new Date()
-  const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
-  const [selected, setSelected] = useState(() => dateKey(today))
-  const itemsByDate = useMemo(() => items.reduce<Record<string, CalendarItem[]>>((groups, item) => {
-    const key = dateKey(item.start_at)
-    groups[key] = [...(groups[key] || []), item]
-    return groups
-  }, {}), [items])
-  const gridStart = new Date(month.getFullYear(), month.getMonth(), 1)
-  gridStart.setDate(gridStart.getDate() - gridStart.getDay())
-  const days = Array.from({ length: 42 }, (_, index) => {
-    const day = new Date(gridStart)
-    day.setDate(gridStart.getDate() + index)
-    return day
-  })
-  const selectedItems = itemsByDate[selected] || []
-  const moveMonth = (offset: number) => setMonth(current => new Date(current.getFullYear(), current.getMonth() + offset, 1))
-  const jumpToToday = () => { setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); setSelected(dateKey(today)) }
+type CalendarDisplayItem=CalendarItem&{leave_type_name?:string;user_name?:string;working_days?:number;currently_on_leave?:boolean}
+type EventForm={title:string;description:string;startAt:string;endAt:string;eventType:string}
+type CalendarFilter='All'|'Delivery'|'Research'|'Reviews'|'Notices'|'Leave'|'Events'
 
-  return <div className="calendar-workspace">
-    <section className="calendar-month">
-      <header className="calendar-controls">
-        <div><strong>{month.toLocaleDateString('en-KE', { month: 'long', year: 'numeric' })}</strong><small>Select a day to view its schedule.</small></div>
-        <div><button type="button" onClick={() => moveMonth(-1)} aria-label="Previous month">‹</button><input aria-label="Choose calendar month" type="month" value={monthValue(month)} onChange={event => { const [year, value] = event.target.value.split('-').map(Number); if (year && value) setMonth(new Date(year, value - 1, 1)) }} /><button type="button" onClick={jumpToToday}>Today</button><button type="button" onClick={() => moveMonth(1)} aria-label="Next month">›</button></div>
-      </header>
-      <div className="calendar-weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => <span key={day}>{day}</span>)}</div>
-      <div className="calendar-grid">{days.map(day => { const key = dateKey(day); const dayItems = itemsByDate[key] || []; return <button type="button" key={key} className={`${day.getMonth() !== month.getMonth() ? 'outside ' : ''}${key === selected ? 'selected ' : ''}${key === dateKey(today) ? 'today' : ''}`} onClick={() => setSelected(key)}><span>{day.getDate()}</span>{dayItems.slice(0, 2).map(item => <small className={item.type} key={`${item.type}-${item.id}`}>{item.title}</small>)}{dayItems.length > 2 && <em>+{dayItems.length - 2} more</em>}</button> })}</div>
+const itemType=(item:CalendarItem)=>String(item.type)
+const eventLabel=(item:CalendarItem)=>({assignment:'Assignment deadline',task:'Task deadline',research_deadline:'Research deadline',research_milestone:'Research milestone',document_review:'Document review deadline',notice:item.is_dated_event?'Notice Board event':'Notice Board publication',notice_expiry:'Notice expiry',custom_event:'Organisation event',leave:'Approved leave'}[itemType(item)]||item.status||'Calendar item')
+const filterMatches=(item:CalendarItem,filter:CalendarFilter)=>{const type=itemType(item);if(filter==='All')return true;if(filter==='Delivery')return type==='assignment'||type==='task';if(filter==='Research')return type==='research_deadline'||type==='research_milestone';if(filter==='Reviews')return type==='document_review';if(filter==='Notices')return type==='notice'||type==='notice_expiry';if(filter==='Leave')return type==='leave';return type==='custom_event'}
+
+export default function CalendarView({items,token,onChange,onOpen}:{items:CalendarItem[];token:string;onChange:Dispatch<SetStateAction<CalendarItem[]>>;onOpen?:(item:CalendarItem)=>void}){
+  const today=new Date()
+  const [month,setMonth]=useState(()=>new Date(today.getFullYear(),today.getMonth(),1))
+  const [selected,setSelected]=useState(()=>dateKey(today))
+  const [filter,setFilter]=useState<CalendarFilter>('All')
+  const [search,setSearch]=useState('')
+  const [editing,setEditing]=useState<CalendarItem|null|undefined>(undefined)
+  const [form,setForm]=useState<EventForm>({title:'',description:'',startAt:'',endAt:'',eventType:'Meeting'})
+  const [formNotice,setFormNotice]=useState('')
+
+  const visibleItems=useMemo(()=>{const query=search.trim().toLowerCase();return items.filter(item=>filterMatches(item,filter)&&(!query||`${item.title} ${item.description||''} ${item.status||''}`.toLowerCase().includes(query)))},[items,filter,search])
+  const itemsByDate=useMemo(()=>visibleItems.reduce<Record<string,CalendarDisplayItem[]>>((groups,item)=>{const key=dateKey(item.start_at);groups[key]=[...(groups[key]||[]),item as CalendarDisplayItem];return groups},{}),[visibleItems])
+  const gridStart=new Date(month.getFullYear(),month.getMonth(),1);gridStart.setDate(gridStart.getDate()-gridStart.getDay())
+  const days=Array.from({length:42},(_,index)=>{const day=new Date(gridStart);day.setDate(gridStart.getDate()+index);return day})
+  const selectedItems=[...(itemsByDate[selected]||[])].sort((a,b)=>new Date(a.start_at).getTime()-new Date(b.start_at).getTime())
+  const monthItems=visibleItems.filter(item=>{const date=new Date(item.start_at);return date.getFullYear()===month.getFullYear()&&date.getMonth()===month.getMonth()})
+  const todayStart=new Date(today.getFullYear(),today.getMonth(),today.getDate()).getTime()
+  const nextSevenEnd=todayStart+7*24*60*60*1000
+  const nextSeven=visibleItems.filter(item=>{const value=new Date(item.start_at).getTime();return value>=todayStart&&value<nextSevenEnd})
+  const leaveItems=items.filter(item=>itemType(item)==='leave') as CalendarDisplayItem[]
+  const currentLeave=leaveItems.filter(item=>item.currently_on_leave===true||(new Date(item.start_at).getTime()<=todayStart&&new Date(item.end_at||item.start_at).getTime()>=todayStart))
+  const upcomingLeave=leaveItems.filter(item=>new Date(item.start_at).getTime()>todayStart)
+  const upcomingItems=visibleItems.filter(item=>new Date(item.start_at).getTime()>=todayStart).sort((a,b)=>new Date(a.start_at).getTime()-new Date(b.start_at).getTime())
+  const moveMonth=(offset:number)=>setMonth(current=>new Date(current.getFullYear(),current.getMonth()+offset,1))
+  const jumpToToday=()=>{setMonth(new Date(today.getFullYear(),today.getMonth(),1));setSelected(dateKey(today))}
+  const openCreate=()=>{setEditing(null);setForm({title:'',description:'',startAt:`${selected}T09:00`,endAt:`${selected}T10:00`,eventType:'Meeting'});setFormNotice('')}
+  const openEdit=(item:CalendarItem)=>{setEditing(item);setForm({title:item.title,description:item.description||'',startAt:localValue(item.start_at),endAt:localValue(item.end_at),eventType:item.status});setFormNotice('')}
+  const saveEvent=async(event:FormEvent)=>{event.preventDefault();try{setFormNotice('Saving...');const input={title:form.title,description:form.description,startAt:toIso(form.startAt),endAt:form.endAt?toIso(form.endAt):null,eventType:form.eventType};if(editing)await api.updateCalendarEvent(token,editing.id,input);else await api.createCalendarEvent(token,input);onChange(await api.calendar(token));setEditing(undefined)}catch(error){setFormNotice(error instanceof Error?error.message:'Event could not be saved.')}}
+  const deleteEvent=async()=>{if(!editing||!window.confirm(`Delete “${editing.title}”?`))return;try{await api.deleteCalendarEvent(token,editing.id);onChange(await api.calendar(token));setEditing(undefined)}catch(error){setFormNotice(error instanceof Error?error.message:'Event could not be deleted.')}}
+  const filters:CalendarFilter[]=['All','Delivery','Research','Reviews','Notices','Leave','Events']
+
+  return <div className="calendar-planning-shell">
+    <section className="calendar-planning-summary" aria-label="Calendar planning summary">
+      <button type="button" onClick={()=>setFilter('All')}><i>MONTH ACTIVITY</i><b>{monthItems.length}</b><small>Visible scheduled items</small></button>
+      <button type="button" onClick={()=>setFilter('All')}><i>NEXT 7 DAYS</i><b>{nextSeven.length}</b><small>Upcoming deadlines & events</small></button>
+      <button type="button" onClick={()=>setFilter('Leave')}><i>ON LEAVE NOW</i><b>{currentLeave.length}</b><small>Current authorised absences</small></button>
+      <button type="button" onClick={()=>setFilter('Leave')}><i>UPCOMING LEAVE</i><b>{upcomingLeave.length}</b><small>Future approved absences</small></button>
     </section>
-    <aside className="calendar-agenda"><header><small>SELECTED DATE</small><h3>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-KE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h3></header>{selectedItems.map(item => <article key={`${item.type}-${item.id}`}><b>{eventLabel(item)}</b><h4>{item.title}</h4><time>{new Date(item.start_at).toLocaleString('en-KE')}{item.end_at ? ` – ${new Date(item.end_at).toLocaleString('en-KE')}` : ''}</time><em>{item.status}</em></article>)}{!selectedItems.length && <div className="calendar-empty"><strong>No events on this date</strong><p>Select a highlighted date, or add a permitted assignment, task, milestone, review or notice date.</p></div>}</aside>
+    <section className="calendar-filter-bar" aria-label="Calendar filters">
+      <div className="calendar-filter-chips">{filters.map(value=><button type="button" className={filter===value?'active':''} key={value} onClick={()=>setFilter(value)}>{value}</button>)}</div>
+      <label className="calendar-search"><span>Search calendar</span><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Title, status or description"/></label>
+    </section>
+    <div className="calendar-workspace">
+      <section className="calendar-month"><header className="calendar-controls"><div className="calendar-heading"><span>ORGANISATION SCHEDULE</span><strong>{month.toLocaleDateString('en-KE',{month:'long',year:'numeric'})}</strong><small>Deadlines, reviews, milestones, approved leave and organisation events in one governed view.</small></div><div className="calendar-navigation"><button type="button" onClick={()=>moveMonth(-1)} aria-label="Previous month">&larr;</button><input aria-label="Choose calendar month" type="month" value={monthValue(month)} onChange={event=>{const [year,value]=event.target.value.split('-').map(Number);if(year&&value)setMonth(new Date(year,value-1,1))}}/><button className="calendar-today" type="button" onClick={jumpToToday}>Today</button><button type="button" onClick={()=>moveMonth(1)} aria-label="Next month">&rarr;</button><button className="calendar-add" type="button" onClick={openCreate}>+ Add event</button></div></header>
+        <div className="calendar-summary" aria-label="Filtered calendar summary"><span><i>Showing</i><b>{monthItems.length}</b><small>{filter} this month</small></span><span><i>Delivery</i><b>{monthItems.filter(item=>['assignment','task'].includes(itemType(item))).length}</b><small>Work deadlines</small></span><span><i>Leave</i><b>{monthItems.filter(item=>itemType(item)==='leave').length}</b><small>Approved absences</small></span><span><i>Next up</i><b>{upcomingItems.length}</b><small>Filtered upcoming</small></span></div>
+        <div className="calendar-legend" aria-label="Event types"><span className="assignment">Assignment</span><span className="task">Task</span><span className="research_milestone">Research</span><span className="document_review">Review</span><span className="notice">Notice</span><span className="leave">Leave</span><span className="custom_event">Event</span></div><div className="calendar-weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day=><span key={day}>{day}</span>)}</div>
+        <div className="calendar-grid">{days.map(day=>{const key=dateKey(day);const dayItems=itemsByDate[key]||[];return <button type="button" key={key} aria-label={`${day.toLocaleDateString('en-KE',{day:'numeric',month:'long'})}, ${dayItems.length} items`} className={`${day.getMonth()!==month.getMonth()?'outside ':''}${key===selected?'selected ':''}${key===dateKey(today)?'today':''}`} onClick={()=>setSelected(key)}><span>{day.getDate()}</span>{dayItems.slice(0,2).map(item=><small className={itemType(item)} key={`${itemType(item)}-${item.id}`}>{item.title}</small>)}{dayItems.length>2&&<em>+{dayItems.length-2} more</em>}</button>})}</div></section>
+      <aside className="calendar-agenda"><header><div className="calendar-date-tile"><b>{new Date(`${selected}T12:00:00`).getDate()}</b><span>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-KE',{month:'short'})}</span></div><div className="calendar-selected-heading"><small>SELECTED DATE</small><h3>{new Date(`${selected}T12:00:00`).toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3><span>{selectedItems.length} scheduled item{selectedItems.length===1?'':'s'}</span></div><button className="calendar-selected-add" type="button" onClick={openCreate}>+ Add event</button></header><div className="calendar-agenda-list">{selectedItems.map(item=>{const type=itemType(item);return <article className={type} key={`${type}-${item.id}`}><div className="agenda-type"><span/><b>{eventLabel(item)}</b></div><h4>{item.title}</h4>{item.description&&<p>{item.description}</p>}<time>{formatDateTime(item.start_at)}{item.end_at?` - ${formatDateTime(item.end_at)}`:''}</time>{type==='leave'&&<div className="calendar-leave-meta"><span>{item.leave_type_name||'Approved leave'}</span>{item.working_days!=null&&<span>{item.working_days} working day{item.working_days===1?'':'s'}</span>}{item.end_at&&<span>Ends {formatDate(item.end_at)}</span>}</div>}{item.created_by_name&&<small>Created by {item.created_by_name}</small>}<div className="agenda-actions"><em>{item.status}</em>{type!=='custom_event'&&type!=='leave'&&onOpen&&<button onClick={()=>onOpen(item)}>Open record</button>}{type==='custom_event'&&item.can_manage&&<button onClick={()=>openEdit(item)}>Edit event</button>}</div></article>})}{!selectedItems.length&&<div className="calendar-empty"><span aria-hidden="true">○</span><strong>No matching events on this date</strong><p>Choose another date, change the filters, or add an event.</p><button onClick={openCreate}>Add event</button></div>}</div>
+        <section className="calendar-upcoming-panel"><header><div><small>PLANNING AHEAD</small><strong>Next scheduled items</strong></div><span>{upcomingItems.length}</span></header>{upcomingItems.slice(0,5).map(item=><button type="button" key={`upcoming-${itemType(item)}-${item.id}`} onClick={()=>{const value=new Date(item.start_at);setMonth(new Date(value.getFullYear(),value.getMonth(),1));setSelected(dateKey(value))}}><b>{new Date(item.start_at).toLocaleDateString('en-KE',{day:'2-digit',month:'short'})}</b><span><strong>{item.title}</strong><small>{eventLabel(item)}</small></span></button>)}{!upcomingItems.length&&<p>No upcoming items match the current filter.</p>}</section>
+      </aside>
+    </div>
+    {editing!==undefined&&<div className="calendar-event-backdrop" onClick={()=>setEditing(undefined)}><form className="calendar-event-editor" onSubmit={saveEvent} onClick={event=>event.stopPropagation()}><header><div><span>{editing?'EDIT EVENT':'NEW EVENT'}</span><h2>{editing?'Update calendar event':'Add to organisation calendar'}</h2></div><button type="button" onClick={()=>setEditing(undefined)}>×</button></header><label>Event title<input value={form.title} onChange={event=>setForm({...form,title:event.target.value})} minLength={3} maxLength={200} required/></label><label>Description<textarea value={form.description} onChange={event=>setForm({...form,description:event.target.value})} maxLength={4000}/></label><div className="calendar-form-pair"><label>Starts<input type="datetime-local" value={form.startAt} onChange={event=>setForm({...form,startAt:event.target.value})} required/></label><label>Ends<input type="datetime-local" value={form.endAt} min={form.startAt} onChange={event=>setForm({...form,endAt:event.target.value})}/></label></div><label>Event type<select value={form.eventType} onChange={event=>setForm({...form,eventType:event.target.value})}>{['Meeting','Reminder','Deadline','Activity'].map(value=><option key={value}>{value}</option>)}</select></label>{formNotice&&<p className="calendar-form-notice">{formNotice}</p>}<footer>{editing&&<button className="danger" type="button" onClick={deleteEvent}>Delete event</button>}<span/><button type="button" onClick={()=>setEditing(undefined)}>Cancel</button><button className="primary" type="submit">{editing?'Save changes':'Add event'}</button></footer></form></div>}
   </div>
 }

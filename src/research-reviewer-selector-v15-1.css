@@ -1,0 +1,21 @@
+/* App2 Research Reviewer Selector V15.1 */
+.research-formal-reviewer-select{
+  display:grid!important;
+  gap:5px!important;
+  min-width:320px!important;
+}
+.research-formal-reviewer-select>span{
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.research-formal-reviewer-select select{
+  min-height:42px!important;
+  width:100%!important;
+  font-size:12px!important;
+}
+.research-formal-reviewer-select small{
+  max-width:640px!important;
+  color:var(--muted)!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+}

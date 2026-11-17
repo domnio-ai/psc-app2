@@ -1,0 +1,158 @@
+/* APP2 REPOSITORY RECORDS MANAGEMENT V2.5 - COMPACT OPERATIONAL QUEUES */
+
+.repository-operational-queues-compact{
+  border:1px solid var(--border-default);
+  border-radius:12px;
+  background:var(--surface-primary);
+  overflow:hidden;
+}
+.repository-operations-summary{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border-default);
+}
+.repository-operations-summary small,
+.repository-operations-summary strong,
+.repository-operations-summary span{
+  display:block;
+}
+.repository-operations-summary small{
+  color:var(--accent-primary);
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.07em;
+}
+.repository-operations-summary strong{
+  margin-top:2px;
+  font-size:11px;
+}
+.repository-operations-summary span{
+  margin-top:2px;
+  color:var(--text-secondary);
+  font-size:8.8px;
+}
+
+.repository-queue-accordion{
+  display:grid;
+}
+.repository-queue-dropdown{
+  border-bottom:1px solid var(--border-default);
+}
+.repository-queue-dropdown:last-child{
+  border-bottom:0;
+}
+.repository-queue-dropdown-trigger{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 12px;
+  border:0;
+  border-radius:0;
+  background:var(--surface-primary);
+  text-align:left;
+}
+.repository-queue-dropdown-trigger:hover,
+.repository-queue-dropdown.open>.repository-queue-dropdown-trigger,
+.repository-queue-dropdown.has-active-queue>.repository-queue-dropdown-trigger{
+  background:color-mix(in srgb,var(--accent-primary) 6%,var(--surface-primary));
+}
+.repository-queue-dropdown-trigger>div:first-child strong,
+.repository-queue-dropdown-trigger>div:first-child span{
+  display:block;
+}
+.repository-queue-dropdown-trigger>div:first-child strong{
+  font-size:10px;
+}
+.repository-queue-dropdown-trigger>div:first-child span{
+  margin-top:2px;
+  color:var(--text-secondary);
+  font-size:8.5px;
+}
+.repository-queue-dropdown-meta{
+  display:grid;
+  grid-template-columns:auto auto auto;
+  align-items:baseline;
+  gap:4px;
+  flex:0 0 auto;
+}
+.repository-queue-dropdown-meta b{
+  min-width:26px;
+  font-size:14px;
+  text-align:right;
+}
+.repository-queue-dropdown-meta small{
+  color:var(--text-secondary);
+  font-size:8px;
+}
+.repository-queue-dropdown-meta i{
+  width:16px;
+  margin-left:5px;
+  font-style:normal;
+  text-align:center;
+}
+
+.repository-queue-dropdown-body{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:6px;
+  padding:0 10px 10px;
+  background:color-mix(in srgb,var(--surface-secondary) 45%,var(--surface-primary));
+}
+.repository-queue-dropdown-body button{
+  min-height:62px;
+  padding:7px 8px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-primary);
+  text-align:left;
+}
+.repository-queue-dropdown-body button:hover,
+.repository-queue-dropdown-body button.active{
+  border-color:var(--accent-primary);
+  background:color-mix(in srgb,var(--accent-primary) 9%,var(--surface-primary));
+}
+.repository-queue-dropdown-body b,
+.repository-queue-dropdown-body span,
+.repository-queue-dropdown-body small{
+  display:block;
+}
+.repository-queue-dropdown-body b{
+  font-size:14px;
+  line-height:1;
+}
+.repository-queue-dropdown-body span{
+  margin-top:4px;
+  font-size:9px;
+  font-weight:800;
+}
+.repository-queue-dropdown-body small{
+  margin-top:2px;
+  color:var(--text-secondary);
+  font-size:7.8px;
+  line-height:1.25;
+}
+
+@media(max-width:1050px){
+  .repository-queue-dropdown-body{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  .repository-operations-summary{
+    flex-direction:column;
+  }
+  .repository-queue-dropdown-trigger{
+    align-items:flex-start;
+  }
+  .repository-queue-dropdown-trigger>div:first-child span{
+    display:none;
+  }
+  .repository-queue-dropdown-body{
+    grid-template-columns:1fr 1fr;
+  }
+}

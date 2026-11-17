@@ -1,0 +1,20 @@
+/* Keep Research Brief preview copy readable on its white paper surface. */
+.research-workspace .research-brief-preview .research-brief-paper .brief-meta small {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-brief-preview .research-brief-paper .brief-meta strong {
+  color: #172033 !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-brief-preview .research-brief-paper section h3 {
+  color: #173a63 !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-brief-preview .research-brief-paper section p {
+  color: #263548 !important;
+  opacity: 1 !important;
+}

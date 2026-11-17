@@ -1,13 +1,17 @@
 import { query, transaction } from "../db.js";
 import { audit } from "../audit.js";
+import { isManagementRole } from "../auth.js";
 import {
   getReportDefinition,
   reportCategories,
   reportRegistry,
 } from "./report-registry.js";
+import { researchLifecycleStatusSql } from "../research-status.js";
+
+export const REPORT_EXPORT_MAX_ROWS = 25_000;
 
 const rolePermissions = {
-  Administrator: [
+  "System Admin": [
     "VIEW_REPORTS",
     "VIEW_OPERATIONAL_REPORTS",
     "VIEW_EXECUTIVE_REPORTS",
@@ -19,7 +23,7 @@ const rolePermissions = {
     "MANAGE_REPORT_DEFINITIONS",
     "MANAGE_REPORT_ACCESS",
   ],
-  "Research Manager": [
+  "Deputy Director": [
     "VIEW_REPORTS",
     "VIEW_OPERATIONAL_REPORTS",
     "VIEW_EXECUTIVE_REPORTS",
@@ -28,30 +32,35 @@ const rolePermissions = {
     "GENERATE_REPORTS",
     "EXPORT_REPORTS",
   ],
-  Reviewer: ["VIEW_REPORTS", "VIEW_OPERATIONAL_REPORTS", "EXPORT_REPORTS"],
-  "Research Officer": [
+  "Researcher": [
     "VIEW_REPORTS",
     "VIEW_OPERATIONAL_REPORTS",
     "EXPORT_REPORTS",
   ],
 };
-export const reportPermissions = (user) => rolePermissions[user.role] || [];
+export const reportPermissions = (user) =>
+  rolePermissions[user.role] || (isManagementRole(user.role) ? rolePermissions["Deputy Director"] : []);
 export const canAccessReport = (user, definition) =>
   Boolean(
     definition?.enabled &&
       reportPermissions(user).includes(definition.permission),
   );
 export const reportScope = (user) =>
-  ["Administrator", "Research Manager"].includes(user.role)
+  ['System Admin','Director'].includes(user.role)
     ? { type: "ORGANISATION", division: null, userId: null }
-    : {
-        type: user.role === "Research Officer" ? "OWN" : "DIRECTORATE",
-        division: user.division,
-        userId: user.role === "Research Officer" ? user.id : null,
-      };
-const parseFilters = (input) => {
-  const page = Math.max(1, Number(input.page) || 1),
-    pageSize = Math.min(100, Math.max(10, Number(input.pageSize) || 25));
+    : ['Deputy Director','Assistant Director'].includes(user.role)
+      ? { type: "TEAM", division: user.division, userId: user.id }
+      : { type: "OWN", division: user.division, userId: user.id };
+const parseFilters = (input, { maxPageSize = 100 } = {}) => {
+  const allowedPageSize = Math.min(
+    REPORT_EXPORT_MAX_ROWS,
+    Math.max(10, Number(maxPageSize) || 100),
+  );
+  const page = Math.max(1, Number(input.page) || 1);
+  let pageSize = Math.min(100, Math.max(10, Number(input.pageSize) || 25));
+  if (maxPageSize > 100) {
+    pageSize = Math.min(allowedPageSize, Math.max(10, Number(input.pageSize) || 25));
+  }
   const from = String(input.from || ""),
     to = String(input.to || "");
   if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from))
@@ -77,15 +86,19 @@ const parseFilters = (input) => {
     pageSize,
   };
 };
+const teamUserIds = placeholder => `(WITH RECURSIVE managed AS(SELECT id FROM users WHERE id=${placeholder} AND active=TRUE UNION ALL SELECT u.id FROM users u JOIN managed m ON u.supervisor_id=m.id WHERE u.active=TRUE) SELECT id FROM managed)`;
+const userScopeSql=(scope,alias='u')=>scope.type==='ORGANISATION'?'TRUE':scope.type==='TEAM'?`${alias}.id IN ${teamUserIds('$1')}`:scope.type==='DIRECTORATE'?`${alias}.division=$1`:`${alias}.id=$1`;
 const scopeSql = (scope, alias = "a", memberAlias = "am") =>
   scope.type === "ORGANISATION"
     ? { sql: "TRUE", values: [] }
     : scope.type === "DIRECTORATE"
       ? { sql: `${alias}.division=$SCOPE1`, values: [scope.division] }
-      : {
-          sql: `EXISTS(SELECT 1 FROM assignment_members ${memberAlias} WHERE ${memberAlias}.assignment_id=${alias}.id AND ${memberAlias}.user_id=$SCOPE1)`,
-          values: [scope.userId],
-        };
+      : scope.type === "TEAM"
+        ? { sql: `(${alias}.created_by IN ${teamUserIds('$SCOPE1')} OR EXISTS(SELECT 1 FROM assignment_members ${memberAlias} WHERE ${memberAlias}.assignment_id=${alias}.id AND ${memberAlias}.user_id IN ${teamUserIds('$SCOPE1')}))`, values: [scope.userId] }
+        : {
+            sql: `EXISTS(SELECT 1 FROM assignment_members ${memberAlias} WHERE ${memberAlias}.assignment_id=${alias}.id AND ${memberAlias}.user_id=$SCOPE1)`,
+            values: [scope.userId],
+          };
 const renumber = (sql, start) => {
   let index = start;
   return sql.replaceAll("$SCOPE1", () => `$${index++}`);
@@ -107,7 +120,7 @@ const assignmentWhere = (
   if (filters.from) add(`${alias}.${periodField}::date>=?`, filters.from);
   if (filters.to) add(`${alias}.${periodField}::date<=?`, filters.to);
   if (filters.division) {
-    if (scope.type !== "ORGANISATION" && filters.division !== scope.division)
+    if (scope.type === "DIRECTORATE" && filters.division !== scope.division)
       throw Object.assign(
         new Error("Requested directorate is outside your permitted scope."),
         { status: 403 },
@@ -247,7 +260,7 @@ async function workloadDistribution(filters, scope) {
   }
   const rows = (
     await query(
-      `SELECT u.id,u.name,u.division,COUNT(DISTINCT a.id)FILTER(WHERE a.status<>'Completed')::int active,COUNT(DISTINCT a.id)FILTER(WHERE a.status='Completed')::int completed,COUNT(DISTINCT a.id)FILTER(WHERE a.status<>'Completed' AND a.due_date<CURRENT_DATE)::int overdue FROM users u LEFT JOIN assignment_members am ON am.user_id=u.id LEFT JOIN assignments a ON a.id=am.assignment_id AND ${w.sql} WHERE u.active=TRUE ${officer} GROUP BY u.id ORDER BY active DESC,u.name`,
+      `SELECT u.id,u.name,u.division,COUNT(DISTINCT a.id)FILTER(WHERE a.status<>'Completed')::int active,COUNT(DISTINCT a.id)FILTER(WHERE a.status='Completed')::int completed,COUNT(DISTINCT a.id)FILTER(WHERE a.status<>'Completed' AND a.due_date<CURRENT_DATE)::int overdue FROM users u LEFT JOIN assignment_members am ON am.user_id=u.id LEFT JOIN assignments a ON a.id=am.assignment_id AND ${w.sql} WHERE u.active=TRUE AND ${userScopeSql(scope)} ${officer} GROUP BY u.id ORDER BY active DESC,u.name`,
       values,
     )
   ).rows;
@@ -370,8 +383,8 @@ async function executiveOverview(filters, scope) {
       w.values,
     ),
     query(
-      "SELECT COUNT(DISTINCT assignment_id)::int total FROM assignment_reviews WHERE decision IN('Submitted','Under Review')",
-      [],
+      `SELECT COUNT(DISTINCT ar.assignment_id)::int total FROM assignment_reviews ar JOIN assignments a ON a.id=ar.assignment_id WHERE ar.decision IN('Submitted','Under Review') AND ${w.sql}`,
+      w.values,
     ),
   ]);
   const total = base.kpis.find((x) => x.key === "total").value,
@@ -410,7 +423,7 @@ async function executiveOverview(filters, scope) {
         key: "decisions",
         title: "Management decisions required",
         rows: [],
-        message: "No structured management-decision records exist in App2.",
+        message: "No structured management-decision records exist in REDESY.",
       },
     ],
     columns: [
@@ -437,6 +450,11 @@ async function researchOutputs(filters, scope) {
     values.push(scope.userId);
     where += ` AND(p.lead_id=$${values.length} OR EXISTS(SELECT 1 FROM research_collaborators rc WHERE rc.project_id=p.id AND rc.user_id=$${values.length}))`;
   }
+  if (scope.type === "TEAM") {
+    values.push(scope.userId);
+    const n=values.length;
+    where += ` AND(p.lead_id IN ${teamUserIds(`$${n}`)} OR EXISTS(SELECT 1 FROM research_collaborators rc WHERE rc.project_id=p.id AND rc.user_id IN ${teamUserIds(`$${n}`)}) OR EXISTS(SELECT 1 FROM research_reviewers rr WHERE rr.project_id=p.id AND rr.reviewer_id IN ${teamUserIds(`$${n}`)} AND rr.active=TRUE))`;
+  }
   if (filters.from) {
     values.push(filters.from);
     where += ` AND p.created_at::date>=$${values.length}`;
@@ -447,11 +465,11 @@ async function researchOutputs(filters, scope) {
   }
   if (filters.status) {
     values.push(filters.status);
-    where += ` AND p.status=$${values.length}`;
+    where += ` AND ${researchLifecycleStatusSql('p')}=$${values.length}`;
   }
   const [status, trend, rows] = await Promise.all([
     query(
-      `SELECT status label,COUNT(*)::int value FROM research_projects p WHERE ${where} GROUP BY status ORDER BY status`,
+      `SELECT ${researchLifecycleStatusSql('p')} label,COUNT(*)::int value FROM research_projects p WHERE ${where} GROUP BY 1 ORDER BY 1`,
       values,
     ),
     query(
@@ -459,7 +477,7 @@ async function researchOutputs(filters, scope) {
       values,
     ),
     query(
-      `SELECT p.id,p.title,p.status,p.start_date,p.end_date,u.name lead_name FROM research_projects p JOIN users u ON u.id=p.lead_id WHERE ${where} ORDER BY p.updated_at DESC`,
+      `SELECT p.id,p.title,${researchLifecycleStatusSql('p')} status,p.start_date,p.end_date,u.name lead_name FROM research_projects p JOIN users u ON u.id=p.lead_id WHERE ${where} ORDER BY p.updated_at DESC`,
       values,
     ),
   ]);
@@ -492,9 +510,11 @@ async function documentActivity(filters, scope) {
       ? "TRUE"
       : scope.type === "DIRECTORATE"
         ? "k.directorate=$1"
-        : "k.created_by=$1";
+        : scope.type === "TEAM"
+          ? `(k.created_by IN ${teamUserIds('$1')} OR k.reviewer_id IN ${teamUserIds('$1')} OR k.approved_by IN ${teamUserIds('$1')} OR EXISTS(SELECT 1 FROM repository_entity_links rel WHERE rel.knowledge_id=k.id AND((rel.entity_type='assignment' AND EXISTS(SELECT 1 FROM assignment_members ram WHERE ram.assignment_id=rel.entity_id AND ram.user_id IN ${teamUserIds('$1')}))OR(rel.entity_type='task' AND EXISTS(SELECT 1 FROM assignment_tasks rt WHERE rt.id=rel.entity_id AND(rt.owner_id IN ${teamUserIds('$1')} OR rt.reviewer_id IN ${teamUserIds('$1')})))OR(rel.entity_type='research' AND EXISTS(SELECT 1 FROM research_projects rp WHERE rp.id=rel.entity_id AND(rp.lead_id IN ${teamUserIds('$1')} OR EXISTS(SELECT 1 FROM research_collaborators rrc WHERE rrc.project_id=rp.id AND rrc.user_id IN ${teamUserIds('$1')})))))) )`
+          : "k.created_by=$1";
   if (scope.type === "DIRECTORATE") values.push(scope.division);
-  if (scope.type === "OWN") values.push(scope.userId);
+  if (scope.type === "TEAM" || scope.type === "OWN") values.push(scope.userId);
   if (filters.from) {
     values.push(filters.from);
     where += ` AND k.created_at::date>=$${values.length}`;
@@ -729,7 +749,9 @@ const taskWhere = (filters, scope, periodField = "created_at") => {
       ? "TRUE"
       : scope.type === "DIRECTORATE"
         ? `a.division=$1`
-        : `(t.owner_id=$1 OR EXISTS(SELECT 1 FROM assignment_members tam WHERE tam.assignment_id=t.assignment_id AND tam.user_id=$1))`;
+        : scope.type === "TEAM"
+          ? `(a.created_by IN ${teamUserIds('$1')} OR t.owner_id IN ${teamUserIds('$1')} OR t.reviewer_id IN ${teamUserIds('$1')} OR EXISTS(SELECT 1 FROM assignment_members tam WHERE tam.assignment_id=t.assignment_id AND tam.user_id IN ${teamUserIds('$1')}))`
+          : `(t.owner_id=$1 OR EXISTS(SELECT 1 FROM assignment_members tam WHERE tam.assignment_id=t.assignment_id AND tam.user_id=$1))`;
   if (scope.type !== "ORGANISATION")
     values.push(scope.type === "DIRECTORATE" ? scope.division : scope.userId);
   const add = (clause, value) => {
@@ -739,7 +761,7 @@ const taskWhere = (filters, scope, periodField = "created_at") => {
   if (filters.from) add(`t.${periodField}::date>=?`, filters.from);
   if (filters.to) add(`t.${periodField}::date<=?`, filters.to);
   if (filters.division) {
-    if (scope.type !== "ORGANISATION" && filters.division !== scope.division)
+    if (scope.type === "DIRECTORATE" && filters.division !== scope.division)
       throw Object.assign(
         new Error("Requested directorate is outside your permitted scope."),
         { status: 403 },
@@ -934,7 +956,7 @@ async function allWorkload(filters, scope) {
     tw = taskWhere(filters, scope);
   const tasks = (
       await query(
-        `SELECT u.id,u.name,u.division,COUNT(t.id)FILTER(WHERE t.status<>'Completed')::int active,COUNT(t.id)FILTER(WHERE t.status='Completed')::int completed,COUNT(t.id)FILTER(WHERE t.status<>'Completed' AND t.due_date<CURRENT_DATE)::int overdue FROM users u LEFT JOIN assignment_tasks t ON t.owner_id=u.id LEFT JOIN assignments a ON a.id=t.assignment_id WHERE u.active=TRUE AND(${tw.sql.replaceAll("t.archived_at IS NULL", "(t.archived_at IS NULL OR t.id IS NULL)")}) GROUP BY u.id ORDER BY u.name`,
+        `SELECT u.id,u.name,u.division,COUNT(t.id)FILTER(WHERE t.status<>'Completed')::int active,COUNT(t.id)FILTER(WHERE t.status='Completed')::int completed,COUNT(t.id)FILTER(WHERE t.status<>'Completed' AND t.due_date<CURRENT_DATE)::int overdue FROM users u LEFT JOIN assignment_tasks t ON t.owner_id=u.id LEFT JOIN assignments a ON a.id=t.assignment_id WHERE u.active=TRUE AND ${userScopeSql(scope)} AND(${tw.sql.replaceAll("t.archived_at IS NULL", "(t.archived_at IS NULL OR t.id IS NULL)")}) GROUP BY u.id ORDER BY u.name`,
         tw.values,
       )
     ).rows,
@@ -1145,7 +1167,7 @@ export async function reportCatalogue(user) {
     .filter((def) => def.enabled && permissions.includes(def.permission));
 }
 export async function reportSummary(user) {
-  if (!["Administrator", "Research Manager"].includes(user.role))
+  if (!isManagementRole(user.role))
     throw Object.assign(
       new Error(
         "The organisation-wide report summary is available only to managers.",
@@ -1194,7 +1216,7 @@ export async function reportSummary(user) {
     generatedAt: new Date().toISOString(),
   };
 }
-export async function reportData(user, key, input) {
+export async function reportData(user, key, input, options = {}) {
   const definition = getReportDefinition(key);
   if (!definition)
     throw Object.assign(new Error("Report not found."), { status: 404 });
@@ -1229,7 +1251,7 @@ export async function reportData(user, key, input) {
       available: false,
       notices: [definition.unavailableReason],
     };
-  const filters = parseFilters(input),
+  const filters = parseFilters(input, options),
     scope = reportScope(user),
     result = await providers[definition.provider](filters, scope);
   return {
@@ -1243,8 +1265,13 @@ export async function reportData(user, key, input) {
     exportModel: {
       title: definition.title,
       period: { from: filters.from || null, to: filters.to || null },
+      generatedAt: new Date().toISOString(),
+      scope,
+      recordCount: result.pagination?.total ?? result.rows.length,
       kpis: result.kpis,
       charts: result.charts,
+      sections: result.sections || [],
+      notices: result.notices || [],
       columns: result.columns,
       rows: result.rows,
     },
@@ -1309,22 +1336,27 @@ export async function saveReportView(
         "UPDATE user_report_views SET is_default=FALSE WHERE user_id=$1 AND report_key=$2",
         [user.id, key],
       );
-    return (
+    const row=(
       await client.query(
         `INSERT INTO user_report_views(user_id,report_key,name,filters,is_default)VALUES($1,$2,$3,$4,$5)ON CONFLICT(user_id,report_key,name)DO UPDATE SET filters=EXCLUDED.filters,is_default=EXCLUDED.is_default,updated_at=NOW() RETURNING id,name,filters,is_default,created_at,updated_at`,
         [user.id, key, name.trim(), filters || {}, Boolean(isDefault)],
       )
     ).rows[0];
+    await audit(client,user.id,"REPORT_VIEW_SAVED","report_view",row.id,{reportKey:key,name:row.name,isDefault:row.is_default,filterKeys:Object.keys(filters||{})});
+    return row;
   });
 }
 export async function deleteReportView(user, key, id) {
-  const removed = await query(
-    "DELETE FROM user_report_views WHERE id=$1 AND user_id=$2 AND report_key=$3 RETURNING id",
-    [id, user.id, key],
-  );
-  if (!removed.rowCount)
-    throw Object.assign(new Error("Saved view not found."), { status: 404 });
-  return { id };
+  return transaction(async(client)=>{
+    const removed=await client.query(
+      "DELETE FROM user_report_views WHERE id=$1 AND user_id=$2 AND report_key=$3 RETURNING id,name",
+      [id,user.id,key],
+    );
+    if(!removed.rowCount)
+      throw Object.assign(new Error("Saved view not found."),{status:404});
+    await audit(client,user.id,"REPORT_VIEW_DELETED","report_view",id,{reportKey:key,name:removed.rows[0].name});
+    return {id};
+  });
 }
 export async function recordReportExport(user, key, format, filters, rowCount) {
   await transaction(async (client) => {

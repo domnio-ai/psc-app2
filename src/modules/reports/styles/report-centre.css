@@ -1,0 +1,18 @@
+.report-centre{margin-top:16px}
+.report-centre>header{padding:20px 22px;background:#f3ead0;border:1px solid #cfb568;border-radius:12px}
+.report-centre>header small,.report-centre-view-heading small{color:#17365d;font-weight:800;letter-spacing:.08em}
+.report-centre>header h3{margin:6px 0;color:#17365d;font-size:1.25rem}
+.report-centre>header p{margin:0;color:#4e5966}
+.report-centre-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;padding:8px;background:#f4f5f6;border:1px solid #d9dfe5;border-radius:12px}
+.report-centre-tabs button{padding:9px 13px;border:1px solid transparent;border-radius:8px;background:transparent;color:#17365d;font-weight:650;cursor:pointer}
+.report-centre-tabs button.active{background:#17365d;border-color:#17365d;color:#fff}
+.report-centre-context{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 16px;color:#59636f;font-size:.9rem}
+.report-centre-context strong{color:#17365d}
+.report-centre-context button{margin-left:auto;padding:7px 10px;border:1px solid #cfb568;border-radius:7px;background:#fff;color:#17365d;cursor:pointer}
+.report-centre-view-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0}
+.report-centre-view-heading h3{margin:5px 0;color:#17365d}
+.report-centre-view-heading p{margin:0;color:#58636f}
+.report-centre .report-catalogue-tools{margin-top:15px}
+.report-studio-pack-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.report-centre-export-status{padding:11px 14px;border:1px solid #cfb568;border-radius:8px;background:#fff8e8;color:#17365d}
+@media(max-width:700px){.report-centre-view-heading{align-items:flex-start;flex-direction:column}.report-centre-tabs button{flex:1 1 145px}.report-centre-context button{margin-left:0}}

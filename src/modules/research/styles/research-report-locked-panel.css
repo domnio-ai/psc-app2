@@ -1,0 +1,100 @@
+.research-report-locked-panel{
+  display:grid;
+  gap:18px;
+  margin:18px 12px;
+  padding:22px;
+  border:1px solid #c59a33;
+  border-radius:12px;
+  background:#ffffff;
+  color:#24282d;
+  box-shadow:0 8px 22px rgba(55,45,20,.10);
+}
+.research-report-locked-panel>header{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding-bottom:16px;
+  border-bottom:1px solid #dfc77f;
+}
+.research-report-lock-icon{
+  display:grid;
+  place-items:center;
+  width:46px;
+  height:46px;
+  border:1px solid #ba8c26;
+  border-radius:50%;
+  background:#f5df9c;
+  font-size:22px;
+}
+.research-report-locked-panel small,
+.research-report-locked-panel span{
+  font-size:12px;
+}
+.research-report-locked-panel>header small{
+  display:block;
+  color:#7f5b0a;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.research-report-locked-panel h2{
+  margin:3px 0 4px;
+  font-size:24px;
+}
+.research-report-locked-panel p{
+  margin:0;
+  line-height:1.5;
+}
+.research-report-lock-facts{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+.research-report-lock-facts>div{
+  display:grid;
+  gap:4px;
+  min-height:76px;
+  padding:12px;
+  border:1px solid #d6dce2;
+  border-radius:8px;
+  background:#f7f9fb;
+}
+.research-report-lock-facts span{
+  color:#59636d;
+  font-weight:700;
+}
+.research-report-lock-message{
+  padding:14px 16px;
+  border:1px solid #d1ad51;
+  border-radius:8px;
+  background:#fff4cf;
+}
+.research-report-lock-message strong{
+  display:block;
+  margin-bottom:4px;
+}
+.research-report-locked-panel>footer{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+.research-report-locked-panel>footer button{
+  min-height:40px;
+  padding:8px 16px;
+  border:1px solid #9c7621;
+  border-radius:7px;
+  background:#ffffff;
+  color:#2b2b2b;
+  font-weight:800;
+  cursor:pointer;
+}
+.research-report-locked-panel>footer button.primary{
+  background:#ad7d12;
+  color:#ffffff;
+}
+@media(max-width:900px){
+  .research-report-lock-facts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:620px){
+  .research-report-lock-facts{grid-template-columns:1fr}
+  .research-report-locked-panel>footer{flex-direction:column}
+}

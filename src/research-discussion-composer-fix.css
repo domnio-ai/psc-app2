@@ -1,0 +1,71 @@
+/* Keep the research discussion composer usable across themes and narrow screens. */
+.research-workspace .research-comment-composer {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.research-workspace .research-comment-composer > header strong {
+  color:var(--text-primary, var(--text-primary)) !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-comment-composer > header small {
+  color:var(--text-secondary, var(--text-primary)) !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-comment-composer select {
+  color:var(--text-primary, var(--text-primary)) !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-comment-composer textarea {
+  box-sizing: border-box !important;
+  display: block !important;
+  max-width: 100% !important;
+  margin-top: 12px !important;
+  border-color:var(--input-border, #526579) !important;
+  background:var(--input-background, #152231) !important;
+  color:var(--text-primary, var(--text-primary)) !important;
+  caret-color:var(--text-primary, var(--text-primary)) !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-comment-composer textarea::placeholder {
+  color:var(--text-secondary, var(--text-primary)) !important;
+  opacity: 1 !important;
+}
+
+.research-workspace .research-comment-actions > button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  color:var(--button-primary-text, var(--button-primary-text)) !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+}
+
+.research-workspace .research-comment-actions > button:disabled {
+  color:var(--text-primary, var(--button-primary-text)) !important;
+  opacity: 0.55 !important;
+}
+
+.research-workspace .research-comment-actions > .research-comment-next {
+  background:var(--accent-primary, #dcb837) !important;
+  color:var(--button-primary-text, var(--button-primary-text)) !important;
+}
+
+@media (max-width: 700px) {
+  .research-workspace .research-comment-composer > header {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .research-workspace .research-comment-composer select,
+  .research-workspace .research-comment-actions > button {
+    width: 100% !important;
+  }
+}

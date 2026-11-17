@@ -1,0 +1,189 @@
+/* APP2 Assignment Activity V5 — authoritative screen stylesheet */
+
+.assignment-activity-clean {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.assignment-activity-clean-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 76px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default, #d8dce3);
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, #3f78b8 5%, var(--surface-card, #fff)),
+      var(--surface-card, #fff)
+    );
+  box-shadow: 0 4px 16px rgba(27,31,36,.045);
+}
+
+.assignment-activity-clean-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.assignment-activity-clean-head small {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  opacity: .68;
+}
+
+.assignment-activity-clean-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.assignment-activity-clean-head p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: .72;
+}
+
+.assignment-activity-clean-count {
+  display: grid;
+  min-width: 76px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-default, #d8dce3);
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+  font-size: 10px;
+  opacity: .76;
+}
+
+.assignment-activity-clean-count strong {
+  font-size: 16px;
+  opacity: 1;
+}
+
+.assignment-activity-clean-history {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.assignment-activity-clean-history article {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default, #d8dce3);
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+}
+
+.assignment-activity-clean-marker {
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--assignment-accent, #b8860b);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--assignment-accent, #b8860b) 12%, transparent);
+}
+
+.assignment-activity-clean-history article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.assignment-activity-clean-history article p {
+  margin: 5px 0 0;
+  color: #34465a;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.assignment-activity-clean-history article strong {
+  font-size: 12px;
+}
+
+.assignment-activity-clean-history article small {
+  font-size: 10px;
+  opacity: .68;
+}
+
+.assignment-activity-clean-empty {
+  display: grid;
+  gap: 3px;
+  min-height: 74px;
+  padding: 12px;
+  border: 1px dashed var(--border-default, #d8dce3);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 94%, #eef2f7);
+}
+
+.assignment-activity-clean-empty strong {
+  font-size: 13px;
+}
+
+.assignment-activity-clean-empty span {
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: .7;
+}
+
+.assignment-activity-clean-comment {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+  padding: 9px 10px;
+  border: 1px solid var(--border-default, #d8dce3);
+  border-radius: 10px;
+  background: var(--surface-card, #fff);
+}
+
+.assignment-activity-clean-comment textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.assignment-activity-clean-comment button {
+  min-width: 108px;
+  min-height: 40px;
+}
+
+/* Collapsed Felix remains a utility, not another Activity row. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)),
+.assignment-workspace .assignment-workspace-felix:not(:has(> div)) {
+  width: fit-content !important;
+  max-width: max-content !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 700px) {
+  .assignment-activity-clean-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-activity-clean-count {
+    width: fit-content;
+  }
+
+  .assignment-activity-clean-comment {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-activity-clean-comment button {
+    width: 100%;
+  }
+}

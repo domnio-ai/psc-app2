@@ -1,0 +1,262 @@
+/* Canonical Research Workspace screen controller.
+   This is the only late-loaded layer allowed to decide which top-level
+   research panels are visible. Older feature styles may decorate panels but
+   must not decide navigation state. */
+
+.research-workspace-frame {
+  box-sizing: border-box !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 120 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  background: var(--surface-primary);
+}
+
+.research-workspace-frame > .research-workspace {
+  --research-page-gutter: clamp(8px, 1.25vw, 24px);
+  --research-block-gap: 10px;
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 var(--research-page-gutter) 18px !important;
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  overscroll-behavior-y: contain !important;
+  scrollbar-gutter: stable !important;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive layout contract:
+   the controller owns horizontal page gutters; Research modules own only
+   their internal padding and vertical spacing. */
+.research-workspace > :is(
+  .research-command-header,
+  .research-workflow-strip,
+  .workspace-primary-tabs,
+  .workspace-screen-navigation,
+  .workspace-next-action,
+  .workspace-notice,
+  .research-reference-panel,
+  .research-work-overview,
+  .research-work-primary-grid,
+  .research-work-collaboration,
+  .research-sources-panel,
+  .research-milestones-panel,
+  .research-related-work-panel,
+  section
+) {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.research-workspace > :is(
+  .research-workflow-strip,
+  .workspace-primary-tabs,
+  .workspace-next-action,
+  .workspace-notice,
+  .research-reference-panel,
+  .research-work-primary-grid,
+  .research-work-collaboration
+) {
+  align-self: stretch !important;
+}
+
+.research-workspace > :is(
+  .research-overview-panel,
+  .research-overview-home,
+  .research-team-panel,
+  .research-brief-card,
+  .research-external-import-callout,
+  .research-milestones-panel,
+  .research-work-panel,
+  .research-discussion-panel,
+  .research-documents-placeholder,
+  .research-sources-panel,
+  .research-builder-documents-panel,
+  .research-report-builder,
+  .research-report-review-gate,
+  .research-final-report-card,
+  .research-auto-completion-note,
+  .research-activity-panel
+) {
+  display: none !important;
+}
+
+.research-workspace[data-tab="Overview"] > :is(
+  .research-overview-panel,
+  .research-overview-home,
+  .research-team-panel,
+  .research-brief-card
+),
+.research-workspace[data-tab="Work"] > :is(
+  .research-external-import-callout,
+  .research-milestones-panel,
+  .research-work-panel,
+  .research-discussion-panel
+),
+.research-workspace[data-tab="Resources"] > .research-sources-panel,
+
+.research-workspace[data-tab="Report"] > :is(
+  .research-report-builder,
+  .research-builder-documents-panel
+),
+.research-workspace[data-tab="Review"] > :is(
+  .research-report-review-gate,
+  .research-final-report-card,
+  .research-auto-completion-note
+),
+.research-workspace[data-tab="Activity"] > .research-activity-panel {
+  display: block !important;
+}
+
+.research-workspace > .workspace-primary-tabs,
+.research-workspace > .workspace-screen-navigation,
+.research-workspace > .workspace-next-action {
+  isolation: isolate;
+  pointer-events: auto !important;
+}
+
+.research-workspace > .research-workspace-tabs.research-workspace-stepper {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+.research-workspace > .research-workspace-tabs.research-workspace-stepper > button {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: center !important;
+}
+
+@media (max-width: 760px) {
+  .research-workspace-frame > .research-workspace {
+    --research-page-gutter: 8px;
+  }
+
+  .research-workspace > .research-workspace-tabs.research-workspace-stepper {
+    grid-template-columns: repeat(6, minmax(112px, 1fr)) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  .research-workspace > .research-workspace-tabs.research-workspace-stepper > button {
+    justify-content: flex-start !important;
+  }
+}
+
+.research-workspace::-webkit-scrollbar,
+.section-document-stage::-webkit-scrollbar,
+.workspace-section-outline::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+.research-workspace::-webkit-scrollbar-thumb,
+.section-document-stage::-webkit-scrollbar-thumb,
+.workspace-section-outline::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 72%, transparent);
+  background-clip: padding-box;
+}
+
+.research-workspace::-webkit-scrollbar-track,
+.section-document-stage::-webkit-scrollbar-track,
+.workspace-section-outline::-webkit-scrollbar-track {
+  background: var(--surface-secondary);
+}
+
+.research-workspace > .workspace-primary-tabs > button,
+.research-workspace > .workspace-screen-navigation > button,
+.research-workspace > .workspace-next-action button {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+
+/* Research Workspace Visual V2
+   Structural tab isolation for the governed content boundary.
+   Presentation only: this controls what is visible for each tab and does not
+   change API calls, workflow state, permissions, persistence or review logic. */
+
+.research-workspace > .research-workspace-content-boundary > :is(
+  .research-reference-panel,
+  .research-work-primary-grid,
+  .research-work-collaboration,
+  .research-documents-placeholder,
+  .research-sources-panel,
+  .research-builder-documents-panel,
+  .research-report-builder,
+  .research-report-review-gate,
+  .research-final-report-card,
+  .research-auto-completion-note,
+  .research-report-locked-panel,
+  .research-activity-panel
+) {
+  display: none !important;
+}
+
+.research-workspace[data-tab="Work"] > .research-workspace-content-boundary > :is(
+  .research-work-primary-grid,
+  .research-work-collaboration
+) {
+  display: block !important;
+}
+
+.research-workspace[data-tab="Resources"] > .research-workspace-content-boundary > .research-sources-panel {
+  display: block !important;
+}
+
+.research-workspace[data-tab="Report"] > .research-workspace-content-boundary > :is(
+  .research-report-builder,
+  .research-builder-documents-panel,
+  .research-report-locked-panel
+) {
+  display: block !important;
+}
+
+.research-workspace[data-tab="Review"] > .research-workspace-content-boundary > :is(
+  .research-report-review-gate,
+  .research-final-report-card,
+  .research-auto-completion-note
+) {
+  display: block !important;
+}
+
+.research-workspace[data-tab="Activity"] > .research-workspace-content-boundary > .research-activity-panel {
+  display: block !important;
+}
+
+/* The former generic reference and "use the Evidence tab" placeholder repeated
+   information already available in the active screen and navigation. */
+.research-workspace > .research-workspace-content-boundary > :is(
+  .research-reference-panel,
+  .research-documents-placeholder
+) {
+  display: none !important;
+}

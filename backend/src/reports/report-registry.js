@@ -297,7 +297,7 @@ export const reportRegistry = new Map([
       category,
       level,
       description:
-        "Report definition prepared; the required source fields are not yet available in App2.",
+        "Report definition prepared; the required source fields are not yet available in REDESY.",
       permission:
         category === "Audit & Compliance"
           ? "VIEW_AUDIT_REPORTS"

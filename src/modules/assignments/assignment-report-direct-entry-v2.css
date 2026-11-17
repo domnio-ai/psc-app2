@@ -1,0 +1,18 @@
+/*
+  App2 Assignment Report Direct Entry V2
+  Presentation/navigation only. Report lifecycle, review, API, RBAC and repository rules are unchanged.
+*/
+
+.assignment-reports-direct-entry {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+}
+
+.assignment-reports-direct-entry .report-loading {
+  border: 1px solid color-mix(in srgb, var(--app2-accent, #b78a1f) 35%, transparent);
+  border-radius: 14px;
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--app2-surface, #fff) 96%, transparent);
+  font-weight: 700;
+}

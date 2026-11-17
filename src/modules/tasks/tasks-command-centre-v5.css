@@ -1,0 +1,190 @@
+/* APP2 Tasks Screen 1 V5 — Command Centre / main screen consolidation */
+
+.tasks-control-centre {
+  display: grid;
+  gap: 10px;
+}
+
+/* Replace the old second full-page banner with one compact identity/governance strip. */
+.tasks-control-centre .tasks-context-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 7px 11px;
+  border: 1px solid var(--ts-border, var(--border-default, #d8dce3));
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--ts-blue, #2c67aa) 5%, var(--ts-card, #fff)),
+      var(--ts-card, #fff)
+    );
+}
+
+.tasks-control-centre .tasks-context-strip > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tasks-control-centre .tasks-context-strip small {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .075em;
+  opacity: .72;
+}
+
+.tasks-control-centre .tasks-context-strip > div:first-child span {
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: .72;
+}
+
+.tasks-control-centre .tasks-context-strip .tasks-user-context {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--app2-gold-gradient);
+}
+
+.tasks-control-centre .tasks-context-strip .tasks-user-context strong {
+  font-size: 11px;
+}
+
+.tasks-control-centre .tasks-context-strip .tasks-user-context span {
+  font-size: 10px;
+  opacity: .72;
+}
+
+/* Command centre becomes the sole primary header. */
+.tasks-control-centre .tasks-command-centre {
+  display: grid;
+  gap: 10px;
+}
+
+.tasks-control-centre .tasks-command-centre .module-command-centre-head {
+  min-height: 82px;
+  padding: 11px 13px;
+}
+
+.tasks-control-centre .tasks-command-centre .module-command-centre-head h3 {
+  margin: 2px 0;
+}
+
+.tasks-control-centre .tasks-command-centre .module-command-nav {
+  gap: 7px;
+}
+
+.tasks-control-centre .tasks-command-centre .module-kpi-strip {
+  gap: 8px;
+}
+
+.tasks-control-centre .tasks-command-centre .module-kpi-strip > button {
+  min-height: 92px;
+}
+
+/* Action Centre remains top five; make the rows operational rather than oversized. */
+.tasks-control-centre .tasks-command-centre .command-action-list {
+  gap: 7px;
+}
+
+.tasks-control-centre .tasks-command-centre .command-action-list > article {
+  min-height: 0;
+  padding: 9px 10px;
+}
+
+.tasks-control-centre .tasks-command-centre .command-action-copy {
+  gap: 2px;
+}
+
+.tasks-control-centre .tasks-command-centre .command-action-copy strong {
+  font-size: 12px;
+}
+
+.tasks-control-centre .tasks-command-centre .command-action-copy small,
+.tasks-control-centre .tasks-command-centre .command-action-copy span,
+.tasks-control-centre .tasks-command-centre .command-action-copy em {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Tabs and guidance sit close to the command centre. */
+.tasks-control-centre .tasks-view-tabs {
+  margin: 0;
+  padding: 6px;
+}
+
+.tasks-control-centre .tasks-view-tabs > button {
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.tasks-control-centre .tasks-view-guide-compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .8fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 0;
+  padding: 8px 10px;
+}
+
+.tasks-control-centre .tasks-view-guide-compact .tasks-view-guide-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.tasks-control-centre .tasks-view-guide-compact .tasks-view-guide-copy p {
+  margin: 1px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: .75;
+}
+
+.tasks-control-centre .tasks-view-next {
+  padding: 6px 8px;
+  border-left: 3px solid var(--ts-blue, #2c67aa);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ts-blue, #2c67aa) 6%, var(--ts-card, #fff));
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Generic task state messages should not consume a full card-height band. */
+.tasks-control-centre .tasks-message {
+  min-height: 0;
+  margin: 0;
+  padding: 7px 9px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.tasks-control-centre .tasks-filters {
+  margin: 0;
+  padding: 8px 10px;
+}
+
+/* No workflow, API or authority behavior is encoded here. */
+
+@media (max-width: 760px) {
+  .tasks-control-centre .tasks-context-strip,
+  .tasks-control-centre .tasks-view-guide-compact {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tasks-control-centre .tasks-context-strip .tasks-user-context {
+    width: fit-content;
+  }
+
+  .tasks-control-centre .tasks-view-next {
+    border-left-width: 0;
+    border-top: 3px solid var(--ts-blue, #2c67aa);
+  }
+}

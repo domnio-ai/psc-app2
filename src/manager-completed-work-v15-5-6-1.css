@@ -1,0 +1,13 @@
+
+/* V15.5.6.1: completed records are actionable workspace links */
+.manager-completed-work-list>button{
+  position:relative!important;
+}
+.manager-completed-work-list>button::after{
+  content:"Open workspace";
+  flex:0 0 auto;
+  font-size:12px;
+  font-weight:800;
+  text-decoration:underline;
+  text-underline-offset:2px;
+}

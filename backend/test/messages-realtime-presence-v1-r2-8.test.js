@@ -1,0 +1,18 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const backend=readFileSync("backend/src/app.js","utf8");
+const realtime=readFileSync("backend/src/messages/realtime.js","utf8");
+const migration=readFileSync("backend/migrations/042_message_realtime_receipts.sql","utf8");
+const api=readFileSync("src/api.ts","utf8");
+const manager=readFileSync("src/modules/messages/messageRealtime.ts","utf8");
+const app=readFileSync("src/App.tsx","utf8");
+const ui=readFileSync("src/modules/messages/MessagesWorkspace.tsx","utf8");
+const floating=readFileSync("src/modules/messages/FloatingChatWindow.tsx","utf8");
+test("real-time transport is modular and authenticated",()=>{assert.match(realtime,/registerMessageRealtimeClient/);assert.match(backend,/\/api\/messages\/realtime/);assert.match(manager,/Authorization:`Bearer \$\{token\}`/)});
+test("reconnect plus fallback polling",()=>{assert.match(manager,/setTimeout\(\(\)=>void connect\(token\),2500\)/);assert.match(app,/startMessageRealtime\(token\)/);assert.match(app,/setInterval\(refresh,30000\)/);assert.match(ui,/30000/);assert.match(floating,/30000/)});
+test("presence supports online away offline",()=>{assert.match(realtime,/Online/);assert.match(realtime,/Away/);assert.match(realtime,/Offline/);assert.match(backend,/\/api\/messages\/presence/);assert.match(ui,/messages-presence-dot/)});
+test("typing is transient",()=>{assert.match(backend,/\/api\/messages\/conversations\/:id\/typing/);assert.match(ui,/setConversationTyping/);assert.match(floating,/setConversationTyping/);assert.doesNotMatch(migration,/typing/i)});
+test("receipts persist per recipient",()=>{assert.match(migration,/CREATE TABLE IF NOT EXISTS message_receipts/);assert.match(migration,/PRIMARY KEY\(message_id,user_id\)/);assert.match(backend,/INSERT INTO message_receipts/);assert.match(backend,/read_at=NOW\(\)/);assert.match(ui,/Read by/);assert.match(ui,/Delivered to/)});
+test("messages and delivery state push immediately",()=>{assert.match(backend,/emitMessageEventToUsers\(message\.recipientIds,'message'/);assert.match(backend,/emitMessageEventToUser\(receipt\.sender_id,'delivered'/);assert.match(app,/detail\.type==="message"/)});
+test("api exposes presence typing controls",()=>{assert.match(api,/messagePresence/);assert.match(api,/setMessagePresence/);assert.match(api,/setConversationTyping/);assert.match(api,/MessagePresence/)});

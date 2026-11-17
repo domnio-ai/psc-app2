@@ -1,0 +1,170 @@
+/* Shared Research Reference component.
+   This is a component stylesheet, not an override layer. */
+
+.research-reference-panel {
+  --rr-border: var(--border-default, var(--border));
+  --rr-surface: var(--surface-primary);
+  --rr-secondary: var(--surface-secondary, color-mix(in srgb, var(--text-primary) 3%, transparent));
+  --rr-accent: var(--accent-primary, var(--rw-primary, var(--accent)));
+  width: 100%;
+  max-width: none;
+  margin: 0 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--rr-border);
+  border-radius: 9px;
+  background: var(--rr-surface);
+}
+
+.research-workspace:not([data-tab="Work"]) .research-reference-work,
+.research-workspace:not([data-tab="Resources"]) .research-reference-resources,
+.research-workspace:not([data-tab="Report"]) .research-reference-report {
+  display: none;
+}
+
+.research-reference-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 52px;
+  padding: 9px 12px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--rr-secondary);
+}
+
+.research-reference-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.research-reference-panel > summary > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.research-reference-panel > summary small {
+  color: var(--rr-accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .07em;
+}
+
+.research-reference-panel > summary strong {
+  font-size: 12px;
+}
+
+.research-reference-panel > summary em {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.research-reference-panel > summary > b {
+  flex: 0 0 auto;
+  min-width: max-content;
+  padding: 4px 8px;
+  border: 1px solid var(--rr-border);
+  border-radius: 999px;
+  background: var(--rr-surface);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.research-reference-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--rr-border);
+}
+
+.research-reference-body article {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 150px;
+  padding: 10px;
+  border: 1px solid var(--rr-border);
+  border-radius: 7px;
+  background: var(--rr-surface);
+}
+
+.research-reference-body article > small {
+  color: var(--rr-accent);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.research-reference-body article > strong {
+  font-size: 11px;
+}
+
+.research-reference-body article > p,
+.research-reference-body article > ol {
+  margin: 2px 0;
+  color: var(--text-primary);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.research-reference-body article > ol {
+  display: grid;
+  gap: 3px;
+  padding-left: 18px;
+}
+
+.research-reference-body article > span {
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px solid var(--rr-border);
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.research-reference-panel > footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rr-border);
+  background: color-mix(in srgb, var(--rr-accent) 4%, var(--rr-surface));
+}
+
+.research-reference-panel > footer b {
+  flex: 0 0 auto;
+  font-size: 10px;
+}
+
+.research-reference-panel > footer span {
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .research-reference-body {
+    grid-template-columns: 1fr;
+  }
+
+  .research-reference-body article {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .research-reference-panel {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .research-reference-panel > summary,
+  .research-reference-panel > footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

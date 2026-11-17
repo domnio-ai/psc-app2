@@ -1,0 +1,188 @@
+/* APP2 Assignment Workspace V6 — authoritative shared shell stylesheet */
+
+.assignment-workspace {
+  --assignment-shell-header-height: 84px;
+}
+
+/* The workspace owns the viewport; content starts immediately below the header. */
+.assignment-workspace.collab-drawer.governed-workspace {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1100 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--surface-page, #f7f8fb) !important;
+  box-shadow: none !important;
+}
+
+/* Compact sticky assignment header. */
+.assignment-workspace .assignment-workspace-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 8px 14px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.assignment-workspace .assignment-workspace-title {
+  min-width: 0;
+  gap: 4px !important;
+}
+
+.assignment-workspace .assignment-workspace-title h2,
+.assignment-workspace .assignment-workspace-title h1 {
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.assignment-workspace .assignment-title-meta {
+  gap: 6px !important;
+}
+
+.assignment-workspace .assignment-title-meta > span,
+.assignment-workspace .assignment-title-meta > button {
+  min-height: 26px !important;
+  padding: 4px 8px !important;
+}
+
+/* Remove the legacy blank spacer before the tab/content region. */
+.assignment-workspace .assignment-phase4,
+.assignment-workspace .assignment-workspace-body,
+.assignment-workspace .assignment-workspace-content {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  min-height: 0 !important;
+}
+
+.assignment-workspace .assignment-phase4 {
+  width: 100% !important;
+  max-width: 1600px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Tabs sit directly under the header. */
+.assignment-workspace .assignment-workspace-tabs {
+  position: sticky !important;
+  top: var(--assignment-shell-header-height) !important;
+  z-index: 45 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* Keep the section tabs docked below the assignment header while the workspace scrolls. */
+.assignment-workspace.collab-drawer.governed-workspace .assignment-workspace-tabs {
+  position: sticky !important;
+  top: var(--assignment-shell-header-height, 84px) !important;
+  z-index: 60 !important;
+  align-self: stretch;
+  background: var(--app2-neutral-gradient, var(--surface-card, #fff)) !important;
+}
+
+.assignment-workspace .assignment-workspace-tabs button {
+  min-height: 38px !important;
+  padding: 6px 10px !important;
+}
+
+/* Guide/content should begin immediately after tabs. */
+.assignment-workspace .assignment-workspace-tabpanel {
+  display: grid !important;
+  gap: 10px !important;
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Collapsed Felix becomes a small utility button aligned with content. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)),
+.assignment-workspace .assignment-workspace-felix:not(:has(> div)),
+.assignment-workspace .assignment-workspace-tabpanel > .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-workspace-tabpanel > .assignment-felix-utility:not(:has(> div)) {
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: max-content !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) > header,
+.assignment-workspace .assignment-felix-utility:not(:has(> div)) > header {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) button,
+.assignment-workspace .assignment-felix-utility:not(:has(> div)) button {
+  min-height: 32px !important;
+  padding: 5px 9px !important;
+  border-radius: 8px !important;
+}
+
+/* Generic success/info notices must stay compact. */
+.assignment-workspace :where(
+  .assignment-notice,
+  .assignment-workspace-notice,
+  .assignment-report-notice,
+  .notice,
+  .alert
+) {
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 8px 10px !important;
+  margin: 0 !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+/* Do not allow legacy min-heights to create blank bands. */
+.assignment-workspace :where(
+  .assignment-workspace-context-strip,
+  .assignment-workspace-attention,
+  .assignment-overview-summary,
+  .assignment-review-panel,
+  .assignment-reports-panel
+) {
+  min-height: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace {
+    --assignment-shell-header-height: 0px;
+  }
+
+  .assignment-workspace .assignment-workspace-head {
+    position: static !important;
+  }
+
+  .assignment-workspace.collab-drawer.governed-workspace .assignment-workspace-tabs {
+    position: sticky !important;
+    top: 0 !important;
+  }
+
+  .assignment-workspace .assignment-phase4 {
+    padding-inline: 8px !important;
+  }
+}

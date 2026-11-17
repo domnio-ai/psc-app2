@@ -1,0 +1,280 @@
+/* App2 v12 - task reviewer routing clarity */
+.task-review-routing-card {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  min-width: 0;
+  color:var(--text-primary, inherit);
+  font-family: inherit;
+}
+
+.task-review-routing-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border:1px solid var(--border, rgba(148, 163, 184, .28));
+  border-radius:14px;
+  background:var(--surface, rgba(15, 23, 42, .55));
+}
+
+.task-review-routing-card > header small,
+.task-review-routing-card .workspace-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color:var(--accent, #d7ad2f);
+}
+
+.task-review-routing-card > header h2,
+.task-review-routing-list h3 {
+  margin: 0;
+  color:var(--text-primary, inherit);
+}
+
+.task-review-routing-card > header p,
+.task-review-routing-list p,
+.task-review-routing-note span {
+  margin: 7px 0 0;
+  font-size: max(12px, .95rem);
+  line-height: 1.5;
+  color:var(--text-secondary, var(--text-primary));
+}
+
+.task-review-routing-card > header > b,
+.task-review-routing-status {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border:1px solid var(--accent, #d7ad2f);
+  border-radius:999px;
+  font-size: 12px;
+  color:var(--accent, #d7ad2f);
+  background:color-mix(in srgb, var(--accent, #d7ad2f) 9%, transparent);
+}
+
+.task-review-routing-list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-review-routing-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border:1px solid var(--border, rgba(148, 163, 184, .28));
+  border-radius:14px;
+  background:var(--surface, rgba(15, 23, 42, .42));
+}
+
+.task-review-routing-note {
+  display: grid;
+  gap: 4px;
+  padding: 15px 17px;
+  border-left:3px solid var(--accent, #d7ad2f);
+  border-radius:8px;
+  background:var(--surface-muted, rgba(30, 41, 59, .5));
+}
+
+.task-review-routing-note strong {
+  font-size: max(12px, .9rem);
+}
+
+@media (max-width: 900px) {
+  .task-review-routing-card > header,
+  .task-review-routing-list article {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .task-review-routing-card > header > b,
+  .task-review-routing-status {
+    justify-self: start;
+  }
+
+  .task-review-routing-list article button {
+    width: 100%;
+  }
+}
+
+
+/* Task Report preview: responsive document and reviewer layout */
+.task-contribution-report-modal {
+  max-height: 94vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.task-contribution-report-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.task-contribution-report-body.has-reviewer-panel {
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.85fr);
+  align-items: stretch;
+}
+
+.task-contribution-report-frame {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+}
+
+.task-contribution-report-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border: 0;
+}
+
+.task-contribution-report-body .task-preview-review-panel {
+  display: grid;
+  align-content: start;
+  align-self: stretch;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 14px;
+  overflow-y: auto;
+  border: 1px solid var(--border, rgba(148,163,184,.28));
+  border-top: 2px solid var(--accent, #d7ad2f);
+  border-radius: 12px;
+  background: var(--surface-muted, rgba(30,41,59,.48));
+  color: var(--text-primary, inherit);
+  font-family: inherit;
+}
+
+.task-preview-review-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.task-preview-review-heading small,
+.task-preview-review-comments > span {
+  font-weight: 700;
+}
+
+.task-preview-review-heading span {
+  color: var(--text-secondary, inherit);
+  line-height: 1.45;
+}
+
+.task-preview-review-comments {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.task-preview-review-comments textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 104px;
+  resize: vertical;
+  box-sizing: border-box;
+  border: 1px solid var(--border, rgba(148,163,184,.35));
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface, transparent);
+  color: var(--text-primary, inherit);
+  font: inherit;
+  font-size: max(12px, .95rem);
+  line-height: 1.45;
+}
+
+.task-preview-review-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.task-preview-review-actions button {
+  min-height: 42px;
+  width: 100%;
+  font: inherit;
+  font-size: max(12px, .92rem);
+}
+
+.task-contribution-report-modal > footer {
+  max-height: 34vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 3;
+}
+
+.task-preview-final-state {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border, rgba(148,163,184,.28));
+  border-radius: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary, inherit);
+}
+
+@media (max-width: 800px) {
+  .task-contribution-report-modal {
+    max-height: 96vh;
+  }
+
+  .task-contribution-report-modal > header {
+    gap: 10px;
+  }
+
+  .task-contribution-report-header-actions {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .task-contribution-report-header-actions .task-report-reader-sizing {
+    flex: 1 1 auto;
+  }
+
+  .task-contribution-report-header-actions .task-report-reader-maximize {
+    margin-left: auto;
+  }
+
+  .task-contribution-report-body,
+  .task-contribution-report-body.has-reviewer-panel {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+
+  .task-contribution-report-frame {
+    overflow: visible;
+  }
+
+  .task-contribution-report-frame iframe {
+    height: 62vh;
+    min-height: 360px;
+  }
+
+  .task-contribution-report-body .task-preview-review-panel {
+    max-height: none;
+  }
+
+  .task-contribution-report-modal > footer {
+    max-height: 34vh;
+  }
+
+  .task-preview-final-state {
+    display: grid;
+  }
+}
+

@@ -1,0 +1,105 @@
+/* Canonical App2 button presentation.
+   Feature modules own action placement and meaning; this final layer owns the
+   shared visual language so legacy feature rules cannot reintroduce heavy,
+   gradient-filled buttons. */
+
+button:not(#app2-button-legacy-override),
+[role="button"]:not(#app2-button-legacy-override),
+a.app-action:not(#app2-button-legacy-override),
+a.button:not(#app2-button-legacy-override) {
+  background-image: none !important;
+  font-family: "Segoe UI", Arial, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  text-shadow: none !important;
+}
+
+button:not(#app2-button-legacy-override) :is(strong, b),
+[role="button"]:not(#app2-button-legacy-override) :is(strong, b),
+a.app-action:not(#app2-button-legacy-override) :is(strong, b),
+a.button:not(#app2-button-legacy-override) :is(strong, b) {
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+}
+
+button:not(#app2-button-legacy-override):not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not(#app2-button-legacy-override):not([aria-disabled="true"]),
+a.app-action:not(#app2-button-legacy-override):not([aria-disabled="true"]),
+a.button:not(#app2-button-legacy-override):not([aria-disabled="true"]) {
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 12%, transparent) !important;
+}
+
+button:not(#app2-button-legacy-override):hover:not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not(#app2-button-legacy-override):hover:not([aria-disabled="true"]),
+a.app-action:not(#app2-button-legacy-override):hover:not([aria-disabled="true"]),
+a.button:not(#app2-button-legacy-override):hover:not([aria-disabled="true"]) {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-primary) 24%, transparent),
+    0 3px 8px color-mix(in srgb, var(--text-primary) 14%, transparent) !important;
+}
+
+button:not(#app2-button-legacy-override):is(
+  .primary,
+  .app-action-primary,
+  .sign-in,
+  .create-button,
+  .save-button,
+  [class*="create-"],
+  [class*="save-"]
+):not(:disabled),
+.workspace-next-action button:not(#app2-button-legacy-override):not(:disabled),
+.research-next-action button:not(#app2-button-legacy-override):not(:disabled) {
+  border-color: var(--button-primary-bg, var(--accent-primary)) !important;
+  background: var(--button-primary-bg, var(--accent-primary)) !important;
+  background-image: none !important;
+  color: var(--button-primary-text, #ffffff) !important;
+  font-weight: 500 !important;
+}
+
+button:not(#app2-button-legacy-override):is(
+  .primary,
+  .app-action-primary,
+  .sign-in,
+  .create-button,
+  .save-button,
+  [class*="create-"],
+  [class*="save-"]
+):hover:not(:disabled),
+.workspace-next-action button:not(#app2-button-legacy-override):hover:not(:disabled),
+.research-next-action button:not(#app2-button-legacy-override):hover:not(:disabled) {
+  border-color: var(--primary-hover, var(--button-primary-bg, var(--accent-primary))) !important;
+  background: var(--primary-hover, var(--button-primary-bg, var(--accent-primary))) !important;
+  color: var(--button-primary-text, var(--text-primary)) !important;
+  background-image: none !important;
+}
+
+button:not(#app2-button-legacy-override):is(
+  .success,
+  .final,
+  .approve,
+  [class*="complete-"],
+  [class*="approve-"],
+  [class*="finalize-"]
+):not(:disabled) {
+  background-image: none !important;
+  font-weight: 500 !important;
+}
+
+button:not(#app2-button-legacy-override):disabled,
+[role="button"]:not(#app2-button-legacy-override)[aria-disabled="true"] {
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+/* Ribbon and compact navigation controls remain visually light. */
+:where(
+  .ribbon-tabs button,
+  .section-word-toolbar button,
+  .workspace-primary-tabs button,
+  .assignment-workspace-tabs button,
+  .research-workspace-tabs button,
+  .tabs button
+) {
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}

@@ -1,0 +1,580 @@
+/*
+  App2 Assignment + Notifications + Dashboard Refinement V1.
+  Presentation-only dashboard changes. No RBAC or workflow behavior.
+*/
+
+.assignment-workspace .assignment-workspace-context-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default, rgba(120, 134, 154, 0.28));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 92%, transparent);
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.assignment-workspace .assignment-workspace-context-strip small {
+  font-size: 12px;
+  opacity: 0.68;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.assignment-workspace .assignment-workspace-context-strip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-workspace .assignment-deadline-badge {
+  font-weight: 750;
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+
+.assignment-workspace .assignment-deadline-danger {
+  background: rgba(176, 30, 45, 0.12);
+  color: var(--danger-text, #9f1d2f);
+}
+
+.assignment-workspace .assignment-deadline-warning {
+  background: rgba(190, 112, 0, 0.14);
+  color: var(--warning-text, #8c5700);
+}
+
+.assignment-workspace .assignment-deadline-healthy {
+  background: rgba(30, 126, 79, 0.12);
+  color: var(--success-text, #176d45);
+}
+
+.assignment-workspace .assignment-deadline-neutral {
+  background: rgba(96, 108, 126, 0.10);
+}
+
+.actionable-notification-centre .notification-time-group {
+  display: grid;
+  gap: 8px;
+}
+
+.actionable-notification-centre .notification-time-group + .notification-time-group {
+  margin-top: 16px;
+}
+
+.actionable-notification-centre .notification-time-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px 5px;
+  border-bottom: 1px solid var(--border-default, rgba(120, 134, 154, 0.22));
+}
+
+.actionable-notification-centre .notification-time-group > header strong {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.actionable-notification-centre .notification-time-group > header span {
+  min-width: 24px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 750;
+  background: rgba(110, 124, 145, 0.12);
+}
+
+.actionable-notification-centre .notification-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.actionable-notification-centre .notification-badges b {
+  min-width: auto;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 12px;
+}
+
+.actionable-notification-centre .notification-badges .urgent {
+  background: rgba(176, 30, 45, 0.14);
+  color: var(--danger-text, #9f1d2f);
+}
+
+.actionable-notification-centre .notification-badges .review {
+  background: rgba(94, 68, 169, 0.12);
+  color: var(--accent-strong, #59429b);
+}
+
+/* Main Dashboard: clearer attention hierarchy using existing cards/data. */
+.dashboard-command-centre {
+  display: grid;
+  gap: 16px;
+}
+
+.dashboard-command-centre .dashboard-ops-card {
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(27, 39, 55, 0.06);
+}
+
+.dashboard-command-centre .dashboard-ops-card > header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-default, rgba(120, 134, 154, 0.18));
+}
+
+.dashboard-command-centre .my-work-card,
+.dashboard-command-centre .deadlines-card,
+.dashboard-command-centre .manager-personal-reviews-card {
+  border-left: 4px solid color-mix(in srgb, var(--accent, #8d6b2f) 72%, transparent);
+}
+
+.dashboard-command-centre .quick-actions-card button {
+  min-height: 42px;
+}
+
+.dashboard-command-centre .risk-dot.overdue {
+  box-shadow: 0 0 0 4px rgba(176, 30, 45, 0.08);
+}
+
+.dashboard-command-centre .risk-dot.almost-due {
+  box-shadow: 0 0 0 4px rgba(190, 112, 0, 0.08);
+}
+
+@media (max-width: 860px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .actionable-notification-centre .notification-badges {
+    justify-content: flex-start;
+  }
+}
+
+
+/* Phase 2: operational attention and notification triage */
+
+.assignment-workspace .assignment-workspace-attention {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-default, rgba(120, 134, 154, 0.22));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 94%, transparent);
+}
+
+.assignment-workspace .assignment-workspace-attention > div {
+  display: grid;
+  gap: 3px;
+}
+
+.assignment-workspace .assignment-workspace-attention small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.assignment-workspace .assignment-workspace-attention strong {
+  font-size: 14px;
+}
+
+.assignment-workspace .assignment-workspace-attention p {
+  margin: 0;
+  max-width: 74ch;
+}
+
+.assignment-workspace .assignment-workspace-attention-danger {
+  border-left: 4px solid var(--danger-text, #9f1d2f);
+  background: rgba(176, 30, 45, 0.07);
+}
+
+.assignment-workspace .assignment-workspace-attention-warning {
+  border-left: 4px solid var(--warning-text, #8c5700);
+  background: rgba(190, 112, 0, 0.07);
+}
+
+.assignment-workspace .assignment-workspace-attention-info {
+  border-left: 4px solid var(--accent-strong, #59429b);
+}
+
+.assignment-workspace .assignment-workspace-attention-success {
+  border-left: 4px solid var(--success-text, #176d45);
+  background: rgba(30, 126, 79, 0.06);
+}
+
+.actionable-notification-centre .notification-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.actionable-notification-centre .notification-search-row label {
+  flex: 1;
+}
+
+.actionable-notification-centre .notification-search-row input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--border-default, rgba(120, 134, 154, 0.28));
+  border-radius: 10px;
+  background: var(--surface-card, #fff);
+  color: inherit;
+}
+
+.actionable-notification-centre .notification-search-row input:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent, #8d6b2f) 35%, transparent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 700px) {
+  .assignment-workspace .assignment-workspace-attention {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-workspace .assignment-workspace-attention button {
+    width: 100%;
+  }
+}
+
+
+/* Phase 3: unified dashboard command centre */
+
+.dashboard-command-centre-unified {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dashboard-command-centre-unified .command-header {
+  margin-bottom: 0;
+}
+
+.dashboard-command-pulse {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-command-pulse > button {
+  display: grid;
+  gap: 3px;
+  min-height: 88px;
+  padding: 12px 14px;
+  text-align: left;
+  border: 1px solid var(--border-default, rgba(120, 134, 154, 0.22));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 96%, transparent);
+  color: inherit;
+}
+
+.dashboard-command-pulse > button:hover {
+  transform: translateY(-1px);
+}
+
+.dashboard-command-pulse > button span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  opacity: 0.68;
+}
+
+.dashboard-command-pulse > button strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.dashboard-command-pulse > button small {
+  font-size: 12px;
+  opacity: 0.76;
+}
+
+.dashboard-command-pulse > button.danger {
+  border-left: 4px solid var(--danger-text, #9f1d2f);
+  background: rgba(176, 30, 45, 0.07);
+}
+
+.operational-dashboard {
+  margin-top: 0;
+}
+
+.operational-dashboard .role-dashboard-intro {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard-command-pulse {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-command-pulse {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================
+   Phase 4: dashboard + notification status background colours
+   Completed = green, Almost overdue = amber, Overdue = red.
+   Presentation only; no workflow or RBAC logic.
+   ========================================================== */
+
+/* Dashboard deadline/work rows */
+.dashboard-command-centre .deadline-item.deadline-completed,
+.operational-dashboard .deadline-item.deadline-completed,
+.dashboard-ops-card .deadline-item.deadline-completed {
+  background: rgba(34, 139, 86, 0.12);
+  border-color: rgba(34, 139, 86, 0.28);
+  box-shadow: inset 4px 0 0 rgba(34, 139, 86, 0.72);
+}
+
+.dashboard-command-centre .deadline-item.deadline-almost-due,
+.operational-dashboard .deadline-item.deadline-almost-due,
+.dashboard-ops-card .deadline-item.deadline-almost-due,
+.dashboard-command-centre .deadline-item.deadline-soon,
+.operational-dashboard .deadline-item.deadline-soon,
+.dashboard-ops-card .deadline-item.deadline-soon,
+.dashboard-command-centre .deadline-item.deadline-today,
+.operational-dashboard .deadline-item.deadline-today,
+.dashboard-ops-card .deadline-item.deadline-today {
+  background: rgba(219, 139, 24, 0.14);
+  border-color: rgba(219, 139, 24, 0.32);
+  box-shadow: inset 4px 0 0 rgba(219, 139, 24, 0.82);
+}
+
+.dashboard-command-centre .deadline-item.deadline-overdue,
+.operational-dashboard .deadline-item.deadline-overdue,
+.dashboard-ops-card .deadline-item.deadline-overdue {
+  background: rgba(190, 45, 60, 0.13);
+  border-color: rgba(190, 45, 60, 0.34);
+  box-shadow: inset 4px 0 0 rgba(190, 45, 60, 0.84);
+}
+
+/* Preserve readable hover state while keeping status identity. */
+.dashboard-command-centre .deadline-item.deadline-completed:hover,
+.operational-dashboard .deadline-item.deadline-completed:hover,
+.dashboard-ops-card .deadline-item.deadline-completed:hover {
+  background: rgba(34, 139, 86, 0.18);
+}
+
+.dashboard-command-centre .deadline-item.deadline-almost-due:hover,
+.operational-dashboard .deadline-item.deadline-almost-due:hover,
+.dashboard-ops-card .deadline-item.deadline-almost-due:hover,
+.dashboard-command-centre .deadline-item.deadline-soon:hover,
+.operational-dashboard .deadline-item.deadline-soon:hover,
+.dashboard-ops-card .deadline-item.deadline-soon:hover,
+.dashboard-command-centre .deadline-item.deadline-today:hover,
+.operational-dashboard .deadline-item.deadline-today:hover,
+.dashboard-ops-card .deadline-item.deadline-today:hover {
+  background: rgba(219, 139, 24, 0.20);
+}
+
+.dashboard-command-centre .deadline-item.deadline-overdue:hover,
+.operational-dashboard .deadline-item.deadline-overdue:hover,
+.dashboard-ops-card .deadline-item.deadline-overdue:hover {
+  background: rgba(190, 45, 60, 0.19);
+}
+
+/* Notification rows already expose tone classes from NotificationCenter.tsx. */
+.actionable-notification-centre article.notification-success {
+  background: rgba(34, 139, 86, 0.11);
+  border-color: rgba(34, 139, 86, 0.26);
+  box-shadow: inset 4px 0 0 rgba(34, 139, 86, 0.70);
+}
+
+.actionable-notification-centre article.notification-warning {
+  background: rgba(219, 139, 24, 0.13);
+  border-color: rgba(219, 139, 24, 0.30);
+  box-shadow: inset 4px 0 0 rgba(219, 139, 24, 0.80);
+}
+
+.actionable-notification-centre article.notification-danger {
+  background: rgba(190, 45, 60, 0.12);
+  border-color: rgba(190, 45, 60, 0.32);
+  box-shadow: inset 4px 0 0 rgba(190, 45, 60, 0.82);
+}
+
+.actionable-notification-centre article.notification-success:hover {
+  background: rgba(34, 139, 86, 0.17);
+}
+
+.actionable-notification-centre article.notification-warning:hover {
+  background: rgba(219, 139, 24, 0.19);
+}
+
+.actionable-notification-centre article.notification-danger:hover {
+  background: rgba(190, 45, 60, 0.18);
+}
+
+/* Dashboard completed-work panels get a restrained green identity. */
+.manager-completed-work-card {
+  background: rgba(34, 139, 86, 0.055);
+  border-color: rgba(34, 139, 86, 0.22);
+}
+
+.manager-completed-work-card .manager-completed-work-list > button {
+  background: rgba(34, 139, 86, 0.085);
+  border-color: rgba(34, 139, 86, 0.20);
+}
+
+.manager-completed-work-card .manager-completed-work-list > button:hover {
+  background: rgba(34, 139, 86, 0.14);
+}
+
+/* Keep all status cards legible in dark themes as well. */
+[data-theme*="dark"] .dashboard-ops-card .deadline-item.deadline-completed,
+[data-theme*="dark"] .actionable-notification-centre article.notification-success {
+  background: rgba(52, 178, 112, 0.18);
+}
+
+[data-theme*="dark"] .dashboard-ops-card .deadline-item.deadline-almost-due,
+[data-theme*="dark"] .dashboard-ops-card .deadline-item.deadline-soon,
+[data-theme*="dark"] .dashboard-ops-card .deadline-item.deadline-today,
+[data-theme*="dark"] .actionable-notification-centre article.notification-warning {
+  background: rgba(230, 157, 46, 0.20);
+}
+
+[data-theme*="dark"] .dashboard-ops-card .deadline-item.deadline-overdue,
+[data-theme*="dark"] .actionable-notification-centre article.notification-danger {
+  background: rgba(218, 72, 86, 0.20);
+}
+
+
+/* ==========================================================
+   V5: actual dashboard row/status selectors
+   Fixes Management Attention, Team Workload and KPI backgrounds.
+   ========================================================== */
+
+/* KPI cards */
+.dashboard-kpis .dashboard-kpi.warning {
+  background: rgba(219, 139, 24, 0.16);
+  border-color: rgba(219, 139, 24, 0.34);
+  box-shadow: inset 0 4px 0 rgba(219, 139, 24, 0.86);
+}
+
+.dashboard-kpis .dashboard-kpi.danger {
+  background: rgba(190, 45, 60, 0.15);
+  border-color: rgba(190, 45, 60, 0.36);
+  box-shadow: inset 0 4px 0 rgba(190, 45, 60, 0.90);
+}
+
+.dashboard-kpis .dashboard-kpi.warning:hover {
+  background: rgba(219, 139, 24, 0.22);
+}
+
+.dashboard-kpis .dashboard-kpi.danger:hover {
+  background: rgba(190, 45, 60, 0.21);
+}
+
+/* Management attention rows - colour the entire row from the existing risk dot */
+.dashboard-work-list > button:has(.risk-dot.overdue) {
+  background: rgba(190, 45, 60, 0.13);
+  border-color: rgba(190, 45, 60, 0.32);
+  box-shadow: inset 4px 0 0 rgba(190, 45, 60, 0.86);
+}
+
+.dashboard-work-list > button:has(.risk-dot.almost-due) {
+  background: rgba(219, 139, 24, 0.14);
+  border-color: rgba(219, 139, 24, 0.30);
+  box-shadow: inset 4px 0 0 rgba(219, 139, 24, 0.82);
+}
+
+.dashboard-work-list > button:has(.risk-dot.new) {
+  background: color-mix(in srgb, var(--surface-card, #fff) 96%, transparent);
+}
+
+.dashboard-work-list > button:has(.risk-dot.overdue):hover {
+  background: rgba(190, 45, 60, 0.20);
+}
+
+.dashboard-work-list > button:has(.risk-dot.almost-due):hover {
+  background: rgba(219, 139, 24, 0.20);
+}
+
+/* Team workload rows */
+.manager-workload-row:has(.manager-workload-health.risk) {
+  background: rgba(190, 45, 60, 0.12);
+  border-color: rgba(190, 45, 60, 0.28);
+  box-shadow: inset 4px 0 0 rgba(190, 45, 60, 0.82);
+}
+
+.manager-workload-row:has(.manager-workload-health.watch) {
+  background: rgba(219, 139, 24, 0.13);
+  border-color: rgba(219, 139, 24, 0.28);
+  box-shadow: inset 4px 0 0 rgba(219, 139, 24, 0.78);
+}
+
+.manager-workload-row:has(.manager-workload-health.healthy),
+.manager-workload-row:has(.manager-workload-health.available) {
+  background: rgba(34, 139, 86, 0.10);
+  border-color: rgba(34, 139, 86, 0.24);
+  box-shadow: inset 4px 0 0 rgba(34, 139, 86, 0.68);
+}
+
+.manager-workload-row:has(.manager-workload-health.risk):hover {
+  background: rgba(190, 45, 60, 0.18);
+}
+
+.manager-workload-row:has(.manager-workload-health.watch):hover {
+  background: rgba(219, 139, 24, 0.19);
+}
+
+.manager-workload-row:has(.manager-workload-health.healthy):hover,
+.manager-workload-row:has(.manager-workload-health.available):hover {
+  background: rgba(34, 139, 86, 0.16);
+}
+
+/* Strengthen notification full-row status backgrounds */
+.actionable-notification-centre article.notification-success {
+  background: rgba(34, 139, 86, 0.14) !important;
+}
+
+.actionable-notification-centre article.notification-warning {
+  background: rgba(219, 139, 24, 0.16) !important;
+}
+
+.actionable-notification-centre article.notification-danger {
+  background: rgba(190, 45, 60, 0.15) !important;
+}
+
+/* Dark-theme equivalents */
+[data-theme*="dark"] .dashboard-kpis .dashboard-kpi.warning,
+[data-theme*="dark"] .dashboard-work-list > button:has(.risk-dot.almost-due),
+[data-theme*="dark"] .manager-workload-row:has(.manager-workload-health.watch) {
+  background: rgba(230, 157, 46, 0.22);
+}
+
+[data-theme*="dark"] .dashboard-kpis .dashboard-kpi.danger,
+[data-theme*="dark"] .dashboard-work-list > button:has(.risk-dot.overdue),
+[data-theme*="dark"] .manager-workload-row:has(.manager-workload-health.risk) {
+  background: rgba(218, 72, 86, 0.22);
+}
+
+[data-theme*="dark"] .manager-workload-row:has(.manager-workload-health.healthy),
+[data-theme*="dark"] .manager-workload-row:has(.manager-workload-health.available) {
+  background: rgba(52, 178, 112, 0.20);
+}

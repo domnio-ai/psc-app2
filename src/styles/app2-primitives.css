@@ -1,0 +1,78 @@
+.app2-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.app2-tabs > button {
+  min-height: 38px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.app2-tabs > button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--info, #3468aa) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.app2-tooltip {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  outline: none;
+}
+
+.app2-tooltip-content {
+  position: absolute;
+  z-index: 1000;
+  left: 50%;
+  bottom: calc(100% + 9px);
+  width: max-content;
+  max-width: min(280px, 80vw);
+  padding: 9px 11px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9px;
+  background: #172235;
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(9,18,32,.28);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 4px);
+  transition: opacity .12s ease .18s, transform .12s ease .18s, visibility 0s linear .3s;
+}
+
+.app2-tooltip:hover > .app2-tooltip-content,
+.app2-tooltip:focus > .app2-tooltip-content,
+.app2-tooltip:focus-within > .app2-tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition-delay: .18s;
+}
+
+@media (max-width: 640px) {
+  .app2-tooltip-content {
+    position: fixed;
+    z-index: 12000;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    transform: translateY(4px);
+  }
+
+  .app2-tooltip:hover > .app2-tooltip-content,
+  .app2-tooltip:focus > .app2-tooltip-content,
+  .app2-tooltip:focus-within > .app2-tooltip-content {
+    transform: translateY(0);
+  }
+}

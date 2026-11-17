@@ -1,0 +1,37 @@
+/* APP2 Assignments Final Pre-Lock Corrections */
+
+.assignments-control-centre-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+}
+
+.assignments-control-centre-actions button {
+  min-height: 38px;
+  padding: 7px 11px;
+  border-radius: 9px;
+}
+
+.assignment-overview-clean-task-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.assignment-overview-clean-task-actions .primary {
+  font-weight: 800;
+}
+
+@media (max-width: 680px) {
+  .assignments-control-centre-actions,
+  .assignment-overview-clean-task-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignments-control-centre-actions button,
+  .assignment-overview-clean-task-actions button {
+    width: 100%;
+  }
+}

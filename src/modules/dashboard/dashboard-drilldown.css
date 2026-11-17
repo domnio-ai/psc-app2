@@ -1,0 +1,114 @@
+/*
+  APP2 Dashboard V3.1 - Modular Drilldown Command Centre
+  Owns module overview and status/sub-tree cards that lead to direct selection popups or the existing workspace.
+*/
+.dashboard-drilldown-home {
+  --drill-blue: var(--app2-blue, #2c67aa);
+  --drill-teal: #3c9487;
+  --drill-violet: var(--app2-violet, #7658a9);
+  --drill-green: var(--app2-green, #2b975c);
+  --drill-amber: var(--app2-amber, #da921d);
+  --drill-red: var(--app2-red, #bf3746);
+  --drill-card: var(--surface-card, var(--surface-primary, #fff));
+  --drill-border: var(--border-default, #d8dce3);
+  --drill-text: var(--text-primary, #182233);
+  --drill-muted: var(--text-secondary, #626b78);
+  display: grid;
+  gap: 10px;
+}
+.dashboard-drilldown-home .dashboard-drilldown-head {
+  min-height: 88px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--drill-blue) 16%, var(--drill-border));
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--drill-blue) 11%, transparent), transparent 36%),
+    linear-gradient(90deg, color-mix(in srgb, var(--drill-blue) 5%, var(--drill-card)), var(--drill-card));
+  box-shadow: var(--app2-shadow-card, 0 7px 20px rgba(31,38,48,.055));
+}
+.dashboard-drilldown-head > div:first-child > span {
+  color: color-mix(in srgb, var(--drill-blue) 85%, #24364f);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.dashboard-drilldown-head h1 { margin: 2px 0; font-size: clamp(22px, 2vw, 29px); }
+.dashboard-drilldown-head p { margin: 0; color: var(--drill-muted); font-size: 12px; }
+.dashboard-drilldown-home .pulse-module-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+.dashboard-drilldown-home .pulse-module-actions button {
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid var(--drill-border);
+  border-radius: 9px;
+  background: var(--app2-neutral-gradient);
+  font-size: 11px;
+  font-weight: 800;
+}
+.dashboard-drilldown-home .pulse-module-actions .pulse-full-workspace {
+  background: var(--app2-blue-gradient);
+}
+
+.dashboard-drilldown-home .dashboard-drilldown-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.dashboard-drilldown-kpis .pulse-child-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 108px;
+  padding: 12px 13px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 3px;
+  text-align: left;
+  border: 1px solid var(--drill-border);
+  border-top: 4px solid var(--drill-blue);
+  border-radius: 13px;
+  background: var(--app2-blue-gradient);
+  box-shadow: var(--app2-shadow-card, 0 7px 20px rgba(31,38,48,.055));
+}
+.dashboard-drilldown-kpis .pulse-child-card::after {
+  content: "";
+  position: absolute;
+  right: -13px;
+  top: -20px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .07;
+}
+.dashboard-drilldown-kpis .pulse-child-card:nth-child(1) { border-top-color: var(--drill-blue); background: var(--app2-blue-gradient); }
+.dashboard-drilldown-kpis .pulse-child-card:nth-child(2) { border-top-color: var(--drill-teal); background: linear-gradient(145deg, color-mix(in srgb, var(--drill-card) 98%, transparent), color-mix(in srgb, var(--drill-teal) 9%, var(--drill-card))); }
+.dashboard-drilldown-kpis .pulse-child-card:nth-child(3) { border-top-color: var(--drill-amber); background: var(--app2-amber-gradient); }
+.dashboard-drilldown-kpis .pulse-child-card:nth-child(4) { border-top-color: var(--drill-violet); background: var(--app2-violet-gradient); }
+.dashboard-drilldown-kpis .pulse-child-card:nth-child(5) { border-top-color: var(--drill-green); background: var(--app2-green-gradient); }
+.dashboard-drilldown-kpis .pulse-critical { border-top-color: var(--drill-red) !important; background: var(--app2-red-gradient) !important; }
+.dashboard-drilldown-kpis .pulse-highlight { border-top-color: var(--drill-amber) !important; background: var(--app2-amber-gradient) !important; }
+.dashboard-drilldown-kpis .pulse-card-eyebrow { color: var(--drill-muted); font-size: 10px; font-weight: 850; }
+.dashboard-drilldown-kpis .pulse-card-title { font-size: 12px; font-weight: 800; }
+.dashboard-drilldown-kpis .pulse-child-card > strong { font-size: 29px; line-height: 1; }
+.dashboard-drilldown-kpis .pulse-child-card > small,
+.dashboard-drilldown-kpis .pulse-card-open { color: var(--drill-muted); font-size: 10px; }
+
+@media (max-width: 1320px) {
+  .dashboard-drilldown-home .dashboard-drilldown-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .dashboard-drilldown-home .dashboard-drilldown-head { align-items: stretch; flex-direction: column; }
+  .dashboard-drilldown-home .dashboard-drilldown-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .dashboard-drilldown-home .dashboard-drilldown-kpis { grid-template-columns: 1fr; }
+}

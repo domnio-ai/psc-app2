@@ -1,0 +1,81 @@
+/* App2 compact professional layout — shared across roles and workspaces. */
+@media (min-width: 901px) {
+  .assignment-reports-workspace{min-height:calc(100vh - 132px);padding:8px 12px!important;overflow:hidden}
+  .assignment-reports-simple-v3{display:grid;grid-template-columns:minmax(330px,.82fr) minmax(480px,1.18fr);grid-template-rows:auto auto minmax(0,1fr);align-content:start;gap:9px!important;margin-top:7px!important}
+  .assignment-reports-simple-v3>.assignment-reports-titlebar{grid-column:1/-1;min-height:0!important;padding:10px 14px!important;border-radius:10px}
+  .assignment-reports-simple-v3>.assignment-reports-titlebar p{margin:0 0 2px!important;font-size:12px!important;letter-spacing:.12em}
+  .assignment-reports-simple-v3>.assignment-reports-titlebar h2{margin:0!important;font-size:18px!important;line-height:1.2}
+  .assignment-reports-simple-v3>.assignment-reports-titlebar span{display:block;margin-top:3px;font-size:12px!important}
+  .assignment-reports-simple-v3>.assignment-report-notice{grid-column:1/-1;margin:0!important;padding:8px 12px!important;min-height:0!important;font-size:12px!important}
+  .assignment-reports-simple-v3>.assignment-source-simple{grid-column:1;padding:10px 12px!important;min-height:0;align-self:stretch}
+  .assignment-source-simple>header strong{font-size:14px!important}
+  .assignment-source-simple>header small{display:block;font-size:12px!important;margin-top:1px}
+  .assignment-source-simple-list{gap:2px!important;margin-top:5px!important;max-height:calc(100vh - 330px);overflow:auto}
+  .assignment-source-simple-list article{min-height:38px;padding:5px 0!important;gap:8px!important}
+  .assignment-source-simple-list article span{display:flex;min-width:0;align-items:baseline;gap:4px;flex-wrap:wrap}
+  .assignment-source-simple-list article strong{font-size:13px!important}
+  .assignment-source-simple-list article small{font-size:12px!important}
+  .assignment-source-simple-list button{min-height:30px!important;padding:4px 8px!important;font-size:12px!important;white-space:nowrap}
+  .assignment-reports-simple-v3>.assignment-primary-report-card{grid-column:2;padding:11px 14px!important;min-height:0;align-self:stretch}
+  .assignment-primary-report-card h3{margin:2px 0!important;font-size:16px!important}
+  .assignment-primary-report-card>p{margin:7px 0!important;font-size:12px!important}
+  .assignment-primary-report-actions{margin-top:8px!important;gap:6px!important}
+  .assignment-primary-report-actions button,.assignment-primary-report-actions select,.assignment-primary-report-actions input{min-height:32px!important;padding:5px 9px!important;font-size:12px!important}
+  .assignment-primary-report-card>.assignment-report-notice{margin-top:8px!important;padding:7px 9px!important;font-size:12px!important}
+  .assignment-reports-simple-v3>.assignment-report-evidence-picker{grid-column:1/-1;margin:0!important}
+  .dashboard-content{padding:10px 12px 14px!important}
+  .assignment-page-head,.document-page-head,.research-page-head{min-height:0!important;padding:13px 16px!important}
+  .assignment-page-head h2,.document-page-head h2,.research-page-head h2{margin:2px 0!important;font-size:20px!important}
+  .assignment-page-head span,.document-page-head span,.research-page-head span{font-size:12px!important}
+
+  .assignment-overview-v4{min-height:calc(100vh - 150px);grid-template-rows:auto auto auto minmax(0,1fr);gap:9px!important;padding:10px 12px!important}
+  .assignment-overview-v4-hero{grid-template-columns:minmax(0,1.9fr) minmax(410px,.9fr)!important;gap:18px!important;padding:13px 17px!important;border-radius:10px!important}
+  .assignment-overview-v4-title h2{margin:0 0 4px!important;font-size:24px!important}
+  .assignment-overview-v4-title p{max-width:none!important;font-size:13px!important;line-height:1.35!important}
+  .assignment-overview-v4-details{gap:3px 16px!important}
+  .assignment-overview-v4-details div{padding:4px 0!important}
+  .assignment-overview-v4-details dt{margin-bottom:1px!important}
+  .assignment-overview-v4-next{gap:14px!important;padding:9px 14px!important;border-radius:9px!important}
+  .assignment-overview-v4-next small{margin-bottom:2px!important}
+  .assignment-overview-v4-next strong{font-size:14px!important}
+  .assignment-overview-v4-next p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .assignment-overview-v4-metrics>div{min-height:54px!important;padding:7px 11px!important}
+  .assignment-overview-v4-grid{min-height:0;grid-template-columns:minmax(0,1.85fr) minmax(300px,.7fr)!important;gap:9px!important;align-items:stretch!important}
+  .assignment-overview-v4-grid>main,.assignment-overview-v4-grid>aside{min-height:0;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:9px!important}
+  .assignment-overview-v4-card{min-height:0;border-radius:10px!important}
+  .assignment-overview-v4-card>header{padding:9px 13px!important}
+  .assignment-overview-v4-card>header h3{font-size:15px!important}
+  .assignment-overview-v4-tasklist,.assignment-overview-v4-team,.assignment-overview-v4-activity{max-height:190px;overflow:auto}
+  .assignment-overview-v4-tasklist>button,.assignment-overview-v4-final-report{min-height:44px!important;padding:8px 13px!important}
+  .assignment-overview-v4-team{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 9px;padding:5px 11px 8px!important}
+  .assignment-overview-v4-team>div{min-height:39px!important}
+  .assignment-overview-v4-team>div>b{width:27px!important;height:27px!important}
+  .assignment-overview-v4-empty{padding:12px 13px!important}.assignment-overview-v4-empty.compact{min-height:52px!important}
+
+  .dashboard-kpis{gap:7px!important}.dashboard-kpi{min-height:66px!important;padding:9px 12px!important}
+  .dashboard-operations-grid{gap:9px!important}.dashboard-ops-card{border-radius:9px!important}
+  .dashboard-ops-card>header{min-height:49px!important;padding:8px 12px!important}
+  .dashboard-work-list>button,.dashboard-activity-list>button,.deadline-item{padding:9px 11px!important}
+
+  .assignment-workspace,.research-workspace,.document-management-view,.notification-management-view,.settings-management-view{max-width:none!important}
+  .assignment-workspace-tabs,.research-workspace-tabs{min-height:42px!important}
+  .assignment-workspace-tabs button,.research-workspace-tabs button{min-height:36px!important;padding:7px 12px!important}
+  .tasks-minimal-list,.assignment-reports-panel,.notification-centre{margin-top:9px!important}
+  .task-minimal-row{min-height:62px!important;padding:9px 12px!important}
+
+  .modal-backdrop,.task-assignment-backdrop,.research-source-choice-backdrop,.calendar-event-backdrop{padding:18px!important}
+  .modal-backdrop>section,.modal-backdrop>form,.task-assignment-backdrop>section,.task-assignment-backdrop>form,.research-source-choice,.calendar-event-editor{max-height:calc(100vh - 36px)!important;overflow:auto}
+  .assignment-editor,.profile-modal,.task-assignment-modal{padding:16px!important}
+  .assignment-editor h2,.profile-modal h2,.task-assignment-modal h2{margin:3px 0 9px!important;font-size:20px!important}
+  .form-grid,.assignment-form-grid,.settings-grid{gap:10px!important}
+  label>input,label>select,label>textarea{margin-top:4px}
+
+  table th,table td{padding:8px 10px!important}
+  .panel,.card,.settings-card,.report-card{border-radius:9px!important}
+}
+
+@media (max-width: 900px) {
+  .dashboard-content{padding:8px!important}
+  .assignment-overview-v4{padding:8px!important;gap:8px!important}
+  .assignment-overview-v4-hero,.assignment-overview-v4-grid{grid-template-columns:1fr!important}
+}

@@ -1,0 +1,12 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const backend=readFileSync("backend/src/app.js","utf8");
+const api=readFileSync("src/api.ts","utf8");
+const app=readFileSync("src/App.tsx","utf8");
+const popup=readFileSync("src/modules/messages/IncomingMessagePopup.tsx","utf8");
+const workspace=readFileSync("src/modules/messages/MessagesWorkspace.tsx","utf8");
+test("backend exposes recent unread previews",()=>{assert.match(backend,/\/api\/messages\/recent-unread/);assert.match(backend,/m\.created_at>cm\.last_read_at/);assert.match(backend,/LIMIT 8/)});
+test("app polls unread previews and suppresses duplicates",()=>{assert.match(api,/recentUnreadMessages/);assert.match(app,/seenMessagePopupIdsRef/);assert.match(app,/setInterval\(refresh,30000\)/);assert.match(app,/startMessageRealtime\(token\)/);assert.match(app,/setIncomingMessage\(unseen\)/)});
+test("popup shows sender preview and Open chat",()=>{assert.match(popup,/NEW MESSAGE/);assert.match(popup,/Open chat/);assert.match(popup,/aria-live="polite"/)});
+test("Open chat routes to exact conversation",()=>{assert.match(app,/app2-open-message-conversation/);assert.match(app,/navigateTo\("Messages"\)/);assert.match(workspace,/sessionStorage\.getItem\("app2-open-message-conversation"\)/)});

@@ -1,0 +1,280 @@
+/*
+  App2 Task Workspace
+  Module-owned visual system.
+  Reuses the shared Executive/Researcher design tokens and does not introduce
+  another independent gradient palette.
+*/
+
+.task-workspace-backdrop.task-workspace-fullscreen {
+  --task-accent-gradient: var(--app2-blue-gradient);
+  --task-accent: var(--app2-blue);
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: stretch;
+  padding: 0;
+  background: rgba(19, 27, 39, .30);
+  backdrop-filter: blur(2px);
+}
+
+.task-workspace-backdrop[data-contribution-status*="ready"],
+.task-workspace-backdrop[data-contribution-status*="review"],
+.task-workspace-backdrop[data-task-status*="review"] {
+  --task-accent-gradient: var(--app2-violet-gradient);
+  --task-accent: var(--app2-violet);
+}
+
+.task-workspace-backdrop[data-contribution-status*="accepted"],
+.task-workspace-backdrop[data-contribution-status*="integrated"],
+.task-workspace-backdrop[data-task-status*="complete"],
+.task-workspace-backdrop[data-task-status*="approved"] {
+  --task-accent-gradient: var(--app2-green-gradient);
+  --task-accent: var(--app2-green);
+}
+
+.task-workspace-backdrop[data-task-status*="blocked"],
+.task-workspace-backdrop[data-task-status*="overdue"],
+.task-workspace-backdrop[data-task-status*="rejected"],
+.task-workspace-backdrop[data-task-priority*="critical"] {
+  --task-accent-gradient: var(--app2-red-gradient);
+  --task-accent: var(--app2-red);
+}
+
+.task-workspace-backdrop[data-task-priority*="high"]:not([data-task-status*="complete"]) {
+  --task-accent-gradient: var(--app2-amber-gradient);
+  --task-accent: var(--app2-amber);
+}
+
+.task-workspace-modal.task-workspace-screen {
+  min-width: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--task-accent) 10%, transparent), transparent 31%),
+    var(--surface-page, #f7f8fb);
+  color: var(--text-primary, #1b1f24);
+}
+
+/* Task header / command bar */
+.task-workspace-screen :where(
+  .task-workspace-header,
+  .task-screen-header,
+  .task-workspace-topbar
+) {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: var(--app2-border-soft);
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--task-accent) 13%, transparent), transparent 32%),
+    var(--task-accent-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.task-workspace-screen :where(
+  .task-workspace-header,
+  .task-screen-header,
+  .task-workspace-topbar
+) :where(h1, h2, h3) {
+  letter-spacing: -.018em;
+}
+
+/* Primary task surfaces */
+.task-workspace-screen :where(
+  .task-screen-body,
+  .task-workspace-readonly,
+  .task-workflow-handoff,
+  .task-report-locked-card,
+  .task-report-builder-access,
+  .task-review-decision,
+  .task-review-card,
+  .task-report-owner-feedback,
+  .task-workspace-management,
+  .task-report-preview,
+  .task-report-sections,
+  .task-workspace-details
+) {
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+/* Owner work handoff */
+.task-workspace-screen .task-workflow-handoff {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-color: color-mix(in srgb, var(--task-accent) 26%, transparent);
+  background: var(--task-accent-gradient);
+}
+
+.task-workspace-screen .task-workflow-handoff strong {
+  font-size: var(--app2-font-size-md);
+}
+
+.task-workspace-screen .task-workflow-handoff p {
+  margin: 0;
+  font-size: var(--app2-font-size-sm);
+  line-height: 1.45;
+  opacity: .74;
+}
+
+/* Submitted / locked state */
+.task-workspace-screen .task-report-locked-card {
+  padding: 14px;
+  border-color: rgba(118, 88, 169, .24);
+  background: var(--app2-violet-gradient);
+}
+
+.task-workspace-screen .task-report-locked-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--app2-font-size-md);
+}
+
+.task-workspace-screen .task-report-locked-card p {
+  margin: 0 0 10px;
+  font-size: var(--app2-font-size-sm);
+  line-height: 1.45;
+  opacity: .75;
+}
+
+/* Reviewer access */
+.task-workspace-screen .task-report-builder-access {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.task-workspace-screen .task-report-builder-access small {
+  font-size: var(--app2-font-size-xs);
+  line-height: 1.4;
+  opacity: .67;
+}
+
+/* Review decision surfaces */
+.task-workspace-screen :where(
+  .task-review-decision,
+  .task-review-card
+) {
+  padding: 14px;
+  border-color: rgba(118, 88, 169, .22);
+  background: var(--app2-violet-gradient);
+}
+
+/* Semantic notices */
+.task-workspace-screen :where(
+  .success,
+  .task-status-complete,
+  .task-status-approved
+) {
+  background: var(--app2-green-gradient);
+}
+
+.task-workspace-screen :where(
+  .warning,
+  .task-status-due-soon
+) {
+  background: var(--app2-amber-gradient);
+}
+
+.task-workspace-screen :where(
+  .danger,
+  .error,
+  .task-status-overdue,
+  .task-status-blocked
+) {
+  background: var(--app2-red-gradient);
+}
+
+/* Buttons retain existing handlers; this only standardizes presentation */
+.task-workspace-screen :where(button.primary, .primary) {
+  border: 1px solid color-mix(in srgb, var(--app2-gold) 32%, transparent);
+  border-radius: var(--app2-radius-button);
+  background: var(--app2-gold-gradient);
+  box-shadow: 0 5px 13px rgba(87, 63, 14, .08);
+}
+
+.task-workspace-screen :where(
+  .task-review-open-report,
+  button.secondary
+) {
+  min-height: 38px;
+  border: var(--app2-border-soft);
+  border-radius: var(--app2-radius-button);
+  background: var(--app2-blue-gradient);
+  color: inherit;
+  cursor: pointer;
+}
+
+.task-workspace-screen :where(
+  button,
+  [role="button"]
+):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--task-accent) 24%, transparent);
+  outline-offset: 2px;
+}
+
+.task-workspace-screen button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app2-shadow-hover);
+}
+
+/* Forms */
+.task-workspace-screen :where(
+  input,
+  select,
+  textarea
+) {
+  min-height: 38px;
+  border: var(--app2-border-soft);
+  border-radius: var(--app2-radius-button);
+  background: color-mix(in srgb, var(--surface-card, #fff) 93%, transparent);
+  color: inherit;
+  font-size: var(--app2-font-size-sm);
+}
+
+.task-workspace-screen textarea {
+  min-height: 96px;
+}
+
+/* Labels and metadata */
+.task-workspace-screen :where(
+  label > span,
+  .workspace-eyebrow
+) {
+  font-size: var(--app2-font-size-xs);
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  opacity: .68;
+}
+
+/* Details/manager-only configuration */
+.task-workspace-screen details {
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+}
+
+.task-workspace-screen details > summary {
+  cursor: pointer;
+  min-height: 40px;
+  padding: 9px 11px;
+  font-size: var(--app2-font-size-sm);
+  font-weight: 800;
+}
+
+/* Preserve readability on smaller screens */
+@media (max-width: 800px) {
+  .task-workspace-backdrop.task-workspace-fullscreen {
+    backdrop-filter: none;
+  }
+
+  .task-workspace-screen {
+    padding-inline: 0;
+  }
+}

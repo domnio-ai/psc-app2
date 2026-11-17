@@ -17,22 +17,33 @@ export async function enqueueFelixDocumentIndex(client,knowledgeId,versionNumber
   )
 }
 
-export async function reconcilePublishedDocuments(){
+export async function reconcilePublishedDocuments({force=false}={}){
   await query(
     `INSERT INTO felix_document_index_jobs(knowledge_id,version_number,requested_by,status,next_attempt_at)
      SELECT k.id,k.current_version,COALESCE(k.approved_by,k.created_by),'Pending',NOW()
      FROM knowledge_items k
      WHERE k.status='Published' AND k.felix_enabled=TRUE AND k.is_archived=FALSE AND k.current_version>0
-     ON CONFLICT(knowledge_id,version_number) DO UPDATE
-     SET status='Pending',next_attempt_at=NOW(),last_error=NULL,updated_at=NOW()
-     WHERE felix_document_index_jobs.status='Failed'`
+     ON CONFLICT(knowledge_id,version_number) DO NOTHING`
   )
+  if(force){
+    // App2 startup is an explicit reconciliation boundary. Requeue every current
+    // approved Felix-enabled version so a rebuilt/cleared Felix index cannot leave
+    // a stale App2 job marked Completed while the AI store has no document chunks.
+    await query(
+      `UPDATE felix_document_index_jobs j
+       SET status='Pending',attempts=0,next_attempt_at=NOW(),last_error=NULL,completed_at=NULL,updated_at=NOW()
+       FROM knowledge_items k
+       WHERE j.knowledge_id=k.id AND j.version_number=k.current_version
+         AND k.status='Published' AND k.felix_enabled=TRUE AND k.is_archived=FALSE AND k.current_version>0`
+    )
+  }
   await query(
     `UPDATE felix_document_index_jobs
      SET status='Pending',next_attempt_at=NOW(),last_error='Recovered an interrupted indexing attempt.',updated_at=NOW()
      WHERE status='Processing' AND updated_at<NOW()-INTERVAL '5 minutes'`
   )
 }
+
 
 async function claimJob(){
   return transaction(async client=>{
@@ -55,18 +66,40 @@ async function claimJob(){
   })
 }
 
+async function felixAvailable(){
+  try{
+    const response=await fetch(`${config.aiResearchUrl}/api/health`,{
+      signal:AbortSignal.timeout(2500)
+    })
+    return response.ok
+  }catch{
+    return false
+  }
+}
+
 async function indexingUser(requestedBy){
+  // Indexing is a background publication service, not an interactive user action.
+  // Use the requesting account only when it already has organisation-level repository
+  // authority; otherwise fall back to an active Administrator/Research Manager token.
+  // The Felix endpoint independently re-checks that the target is Published.
   return (await query(
     `SELECT id,name,email,role,division,status,token_version
      FROM users
-     WHERE active=TRUE AND(id=$1 OR role IN('Administrator','Research Manager'))
-     ORDER BY CASE WHEN id=$1 THEN 0 WHEN role='Administrator' THEN 1 ELSE 2 END,id
+     WHERE active=TRUE AND(
+       (id=$1 AND role IN('System Admin','Director'))
+       OR role='System Admin'
+     )
+     ORDER BY CASE
+       WHEN id=$1 AND role IN('System Admin','Director') THEN 0
+       WHEN role='System Admin' THEN 1
+       ELSE 2 END,id
      LIMIT 1`,
     [requestedBy]
   )).rows[0]
 }
 
 export async function processFelixIndexJob(){
+  if(!await felixAvailable())return false
   const job=await claimJob()
   if(!job)return false
   try{
@@ -78,7 +111,7 @@ export async function processFelixIndexJob(){
       return true
     }
     const user=await indexingUser(job.requested_by)
-    if(!user)throw new Error('No active authorized App2 account is available for Felix indexing.')
+    if(!user)throw new Error('No active authorized REDESY account is available for Felix indexing.')
     const controller=new AbortController()
     const timeout=setTimeout(()=>controller.abort(new Error('Felix indexing request timed out.')),config.felixIndexTimeoutMs)
     let response
@@ -133,7 +166,7 @@ export function startFelixIndexWorker(){
       processing=false
     }
   }
-  void reconcilePublishedDocuments().then(pump).catch(error=>console.error(`Felix reconciliation failed: ${error?.message||error}`))
+  void reconcilePublishedDocuments().then(pump).catch(error=>console.error(`Felix startup reconciliation failed: ${error?.message||error}`))
   const workTimer=setInterval(()=>void pump(),config.felixIndexIntervalMs)
   const reconciliationTimer=setInterval(()=>void reconcilePublishedDocuments().then(pump).catch(error=>console.error(`Felix reconciliation failed: ${error?.message||error}`)),config.felixIndexReconcileMs)
   workTimer.unref?.()

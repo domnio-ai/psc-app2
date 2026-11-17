@@ -1,0 +1,146 @@
+/* APP2 PSC Slate — canonical theme owner.
+   Palette and theme tokens only; interaction mechanics live in app2-interactive-visuals.css. */
+html[data-theme="psc-slate"]{
+  color-scheme:light;
+  --app-background:#F1F4F7;
+  --surface-page:#F1F4F7;
+  --surface-primary:#FFFFFF;
+  --surface-secondary:#E0E6EC;
+  --surface-elevated:#D1DBE4;
+  --text-primary:#1A2433;
+  --text-secondary:#46566A;
+  --text-muted:#657386;
+  --border-default:#C0CAD4;
+  --border-strong:#929FAE;
+  --sidebar-background:#B1C0CC;
+  --header-background:#FFFFFF;
+  --input-background:#FFFFFF;
+  --input-border:#98A6B5;
+  --accent-primary:#345A78;
+  --button-primary-bg:#345A78;
+  --button-primary-text:#FFFFFF;
+  --focus-ring:#345A78;
+  --success:#2F7D5B;
+  --warning:#A36C16;
+  --danger:#B54747;
+  --info:#3E6F9E;
+  --yellow:#315A8A;
+  --orange:#A36C16;
+  --green:#2F7D5B;
+  --blue:#3E6F9E;
+  --primary:#345A78;
+  --primary-hover:#294860;
+  --secondary:#667C8F;
+  --bg:#F1F4F7;
+  --bg-2:#FFFFFF;
+  --panel:#FFFFFF;
+  --panel-2:#E0E6EC;
+  --line:#C0CAD4;
+  --muted:#657386;
+  --text:#1A2433;
+  --input-bg:#FFFFFF;
+  --app2-heading-blue:#315A8A;
+  --app2-heading-gold:#8A6517;
+  --app2-heading-green:#2F7D5B;
+  --app2-copy:#46566A;
+  --app2-copy-muted:#657386;
+  --repository-surface:#FFFFFF;
+  --repository-row:#FFFFFF;
+  --repository-row-hover:#E3E8ED;
+  --repository-head:#D8E0E7;
+  --repository-text:#1A2433;
+  --repository-muted:#526276;
+  --repository-border:#D0D8E2;
+  --repository-track:#D7DEE5;
+  --border:var(--border-default);
+  --surface-raised:var(--surface-elevated);
+  --accent:var(--accent-primary);
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-muted:var(--surface-secondary);
+  --surface-2:var(--surface-secondary);
+  --border-subtle:var(--border-default);
+  --muted-text:var(--text-secondary);
+  --sidebar-control-bg:#F6F8FA;
+  --sidebar-control-border:#9EAFBC;
+  --sidebar-text:#233746;
+  --sidebar-muted:#586B79;
+  --interaction-hover-bg:#C7D3DD;
+  --interaction-hover-border:#687F94;
+  --interaction-hover-text:#233746;
+  --interaction-active-bg:#AEC0CF;
+  --interaction-focus:#345A78;
+}
+
+html[data-theme="psc-slate"],
+html[data-theme="psc-slate"] body,
+html[data-theme="psc-slate"] #root,
+html[data-theme="psc-slate"] .dashboard-shell,
+html[data-theme="psc-slate"] .app-shell,
+html[data-theme="psc-slate"] .dashboard-shell>main,
+html[data-theme="psc-slate"] .dashboard-content{
+  background:var(--app-background)!important;
+  background-image:none!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="psc-slate"] .sidebar{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar-background) 90%,white 10%),var(--sidebar-background))!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:10px 0 28px color-mix(in srgb,var(--sidebar-background) 28%,transparent)!important;
+}
+html[data-theme="psc-slate"] .sidebar :is(.brand strong,.brand span){color:var(--sidebar-text)!important}
+html[data-theme="psc-slate"] .sidebar :is(.brand small,.nav-section-title,.sidebar-footer small){color:var(--sidebar-muted)!important}
+html[data-theme="psc-slate"] .sidebar :is(nav button,.quick-access button){
+  background:var(--sidebar-control-bg)!important;
+  background-image:none!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+
+html[data-theme="psc-slate"] .topbar{
+  background:var(--header-background)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="psc-slate"] .topbar :is(.title h1,.user strong){color:var(--text-primary)!important}
+html[data-theme="psc-slate"] .topbar :is(.title p,.user small,.live-time,.live-time span,.live-time small){color:var(--text-secondary)!important}
+html[data-theme="psc-slate"] :is(.header-search,.topbar .user){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="psc-slate"] :is(
+  .panel,.card,.stat-card,.command-card,.settings-panel,.settings-card,.management-area,
+  .assignment-card,.research-card,.document-card,.repository-card,.report-card,
+  .workspace-card,.workspace-header,.calendar-panel,.notification-card,.notice-card,
+  .document-management-view .repository-table,.review-queue,.deletion-approval-queue,
+  .modal-card,.dialog-card,.drawer,.account-menu,.app-context-menu,.login-card
+){
+  background:var(--surface-primary)!important;
+  background-image:none!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="psc-slate"] :is(input,textarea,select){
+  background:var(--input-background)!important;
+  border-color:var(--input-border)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="psc-slate"] :is(input,textarea)::placeholder{color:var(--text-muted)!important;opacity:1}
+html[data-theme="psc-slate"] :is(.muted,.meta,.secondary,small){color:var(--text-secondary)}
+html[data-theme="psc-slate"] :is(h1,h2,h3,h4,h5,h6,strong,b,legend){color:var(--text-primary)}
+html[data-theme="psc-slate"] :is(table,.data-table,.report-table){background:var(--surface-primary);color:var(--text-primary)}
+html[data-theme="psc-slate"] :is(th,.table-head){background:var(--surface-secondary);color:var(--text-secondary);border-color:var(--border-default)}
+html[data-theme="psc-slate"] td{border-color:var(--border-default)}
+html[data-theme="psc-slate"] .repository-table>article{
+  background:var(--repository-row,var(--surface-primary))!important;
+  background-image:none!important;
+  filter:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}

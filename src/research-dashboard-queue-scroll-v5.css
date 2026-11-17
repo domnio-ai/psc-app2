@@ -1,0 +1,18 @@
+/* App2 Research Dashboard/Portfolio synchronization V5
+   Keeps long dashboard queues usable without altering other dashboard layouts. */
+.dashboard-action-queue {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-action-queue > header {
+  flex: 0 0 auto;
+}
+
+.dashboard-action-queue-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}

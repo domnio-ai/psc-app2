@@ -1,0 +1,58 @@
+/*
+  Assignments Control Centre V1.3
+  Component-owned presentation for the top-level Assignments portfolio entry.
+*/
+
+.assignments-control-centre-entry {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.assignments-control-centre-head {
+  margin-bottom: 0;
+}
+
+.assignments-control-centre-head > div {
+  min-width: 0;
+}
+
+.assignments-control-centre-head h2 {
+  margin-bottom: 4px;
+}
+
+.assignments-control-centre-head > button {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .assignments-control-centre-head {
+    align-items: stretch;
+  }
+
+  .assignments-control-centre-head > button {
+    width: 100%;
+  }
+}
+
+
+/* V1.4 portfolio module ownership */
+.assignments-control-centre-entry .assignment-phase3 {
+  width: 100%;
+  min-width: 0;
+}
+
+.assignments-portfolio-icon-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-default, currentColor);
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.72;
+  flex: 0 0 auto;
+}

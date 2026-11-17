@@ -1,0 +1,203 @@
+/* APP2 Assignment Review V5 — authoritative screen stylesheet */
+
+.assignment-workspace .assignment-review-v3,
+.assignment-workspace .assignment-review-panel {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.assignment-workspace .assignment-review-v3 > header,
+.assignment-workspace .assignment-review-panel > header {
+  display: grid !important;
+  gap: 3px !important;
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--border-default, #d8dce3) !important;
+  border-radius: 11px !important;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, #7d61ad 5%, var(--surface-card, #fff)),
+      var(--surface-card, #fff)
+    ) !important;
+  box-shadow: 0 4px 16px rgba(27,31,36,.045);
+}
+
+.assignment-workspace .assignment-review-v3 > header small,
+.assignment-workspace .assignment-review-panel > header small {
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: .07em !important;
+  opacity: .68 !important;
+}
+
+.assignment-workspace .assignment-review-v3 > header h2,
+.assignment-workspace .assignment-review-panel > header h2 {
+  margin: 0 !important;
+  font-size: 20px !important;
+}
+
+.assignment-workspace .assignment-review-v3 > header p,
+.assignment-workspace .assignment-review-panel > header p {
+  margin: 0 !important;
+  max-width: 900px;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  opacity: .72 !important;
+}
+
+/* The report under review is the primary Review surface. */
+.assignment-workspace .assignment-review-document,
+.assignment-workspace .assignment-review-report,
+.assignment-workspace .assignment-review-current-report {
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+  margin: 0 !important;
+  border: 1px solid var(--border-default, #d8dce3) !important;
+  border-radius: 10px !important;
+  background: var(--surface-card, #fff) !important;
+}
+
+.assignment-workspace .assignment-review-document > header,
+.assignment-workspace .assignment-review-report > header,
+.assignment-workspace .assignment-review-current-report > header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: start !important;
+}
+
+.assignment-workspace .assignment-review-document h3,
+.assignment-workspace .assignment-review-report h3,
+.assignment-workspace .assignment-review-current-report h3 {
+  margin: 2px 0 0 !important;
+  font-size: 16px !important;
+}
+
+.assignment-workspace .assignment-review-document header > :last-child,
+.assignment-workspace .assignment-review-report header > :last-child,
+.assignment-workspace .assignment-review-current-report header > :last-child {
+  white-space: nowrap !important;
+  min-width: max-content !important;
+}
+
+/* Reviewer identity / authority should be compact, not repeated as large cards. */
+.assignment-workspace .assignment-review-access,
+.assignment-workspace .assignment-review-assignment,
+.assignment-workspace .assignment-review-responsibility {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-review-access > *,
+.assignment-workspace .assignment-review-assignment > *,
+.assignment-workspace .assignment-review-responsibility > * {
+  min-height: 58px !important;
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+}
+
+/* Decision controls are the main action area. */
+.assignment-workspace .assignment-review-actions,
+.assignment-workspace .assignment-review-decision,
+.assignment-workspace .assignment-reviewer-decision {
+  display: grid !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+  padding: 10px 11px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+}
+
+.assignment-workspace .assignment-review-actions textarea,
+.assignment-workspace .assignment-review-decision textarea,
+.assignment-workspace .assignment-reviewer-decision textarea {
+  min-height: 76px !important;
+  resize: vertical;
+}
+
+.assignment-workspace .assignment-review-actions > div,
+.assignment-workspace .assignment-review-decision > div,
+.assignment-workspace .assignment-reviewer-decision > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.assignment-workspace .assignment-review-actions button,
+.assignment-workspace .assignment-review-decision button,
+.assignment-workspace .assignment-reviewer-decision button {
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+}
+
+/* History should be useful but secondary. */
+.assignment-workspace .assignment-review-history {
+  display: grid !important;
+  gap: 6px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-review-history > article {
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+}
+
+/* Empty states should be compact and explicit. */
+.assignment-workspace .assignment-review-empty,
+.assignment-workspace .assignment-review-v3 .empty-state {
+  min-height: 76px !important;
+  padding: 11px 12px !important;
+  border: 1px dashed var(--border-default, #d8dce3) !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb, var(--surface-card, #fff) 94%, #eef2f7) !important;
+}
+
+/* Collapsed Felix remains a utility, not a full-width block. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)),
+.assignment-workspace .assignment-workspace-felix:not(:has(> div)) {
+  width: fit-content !important;
+  max-width: max-content !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-review-document > header,
+  .assignment-workspace .assignment-review-report > header,
+  .assignment-workspace .assignment-review-current-report > header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-review-access,
+  .assignment-workspace .assignment-review-assignment,
+  .assignment-workspace .assignment-review-responsibility {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-review-actions > div,
+  .assignment-workspace .assignment-review-decision > div,
+  .assignment-workspace .assignment-reviewer-decision > div {
+    flex-direction: column !important;
+  }
+
+  .assignment-workspace .assignment-review-actions button,
+  .assignment-workspace .assignment-review-decision button,
+  .assignment-workspace .assignment-reviewer-decision button {
+    width: 100% !important;
+  }
+}

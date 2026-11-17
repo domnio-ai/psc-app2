@@ -1,0 +1,161 @@
+/*
+  App2 Assignment Portfolio Visual Simplification V1
+  Presentation only: workflow, API, RBAC, review and persistence contracts are unchanged.
+*/
+
+.assignments-control-centre-entry .assignments-command-centre-compact {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.assignments-control-centre-entry .module-command-centre-head-compact {
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 14px;
+}
+
+.assignments-control-centre-entry .module-command-centre-head-compact h3 {
+  margin: 1px 0;
+  font-size: clamp(20px, 1.6vw, 26px);
+}
+
+.assignments-control-centre-entry .module-command-centre-head-compact p {
+  font-size: 12px;
+}
+
+.assignments-control-centre-entry .module-kpi-strip-compact {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.assignments-control-centre-entry .module-kpi-strip-compact > button {
+  min-height: 94px;
+  padding: 11px 12px;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.assignments-control-centre-entry .module-kpi-strip-compact > button:hover,
+.assignments-control-centre-entry .module-kpi-strip-compact > button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(31,38,48,.09);
+  outline: none;
+}
+
+.assignments-control-centre-entry .module-kpi-strip-compact strong {
+  margin: 4px 0 2px;
+  font-size: 27px;
+}
+
+/* The operational cards now replace the old shortcut row, Action Centre and donut. */
+.assignments-control-centre-entry .module-command-nav,
+.assignments-control-centre-entry .module-command-grid {
+  display: none !important;
+}
+
+.assignments-control-centre-entry .assignment-phase3 {
+  gap: 10px;
+}
+
+.assignments-control-centre-entry .assignment-phase3-head {
+  display: none !important;
+}
+
+.assignments-control-centre-entry .assignment-command-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--as-card, #fff) 96%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.assignments-control-centre-entry .assignment-filters-compact {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.assignments-control-centre-entry .assignment-filters-compact .assignment-filter-search {
+  min-width: 0;
+}
+
+.assignments-control-centre-entry .assignment-advanced-filters {
+  position: relative;
+}
+
+.assignments-control-centre-entry .assignment-advanced-filters > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--as-gold, #b9871b) 35%, var(--as-border));
+  border-radius: 10px;
+  background: var(--app2-gold-gradient);
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.assignments-control-centre-entry .assignment-advanced-filters > summary::-webkit-details-marker {
+  display: none;
+}
+
+.assignments-control-centre-entry .assignment-advanced-filters > summary b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--as-gold, #b9871b) 18%, #fff);
+  font-size: 11px;
+}
+
+.assignments-control-centre-entry .assignment-advanced-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 9px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--as-border) 75%, transparent);
+}
+
+.assignments-control-centre-entry .assignment-advanced-filter-grid .my-assignments-filter,
+.assignments-control-centre-entry .assignment-advanced-filter-grid .clear-assignment-filters {
+  align-self: end;
+}
+
+.assignments-control-centre-entry .assignment-list-view,
+.assignments-control-centre-entry .assignment-card-view,
+.assignments-control-centre-entry .assignment-kanban,
+.assignments-control-centre-entry .assignment-calendar-view,
+.assignments-control-centre-entry .assignment-workload-view {
+  margin-top: 2px;
+}
+
+@media (max-width: 1180px) {
+  .assignments-control-centre-entry .module-kpi-strip-compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .assignments-control-centre-entry .module-kpi-strip-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignments-control-centre-entry .assignment-filters-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .assignments-control-centre-entry .assignment-advanced-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

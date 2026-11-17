@@ -1,0 +1,313 @@
+/* APP2 Tasks Screen 7 V5 — Task Administration
+   Presentation only. Archive/delete handlers and delete-lock governance are untouched.
+*/
+
+.task-header-admin {
+  position: relative;
+}
+
+.task-header-admin > summary {
+  min-height: 38px;
+  padding: 7px 11px;
+  font-weight: 750;
+}
+
+.task-header-admin-popover {
+  width: min(420px, calc(100vw - 32px)) !important;
+  min-width: 360px;
+  max-width: 420px !important;
+  display: grid !important;
+  gap: 7px !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  white-space: normal !important;
+}
+
+.task-header-admin-popover > .workspace-eyebrow {
+  font-size: 9px !important;
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+
+.task-header-admin-popover > strong {
+  font-size: 14px !important;
+  line-height: 1.25;
+}
+
+.task-header-admin-popover > small:not(.task-delete-locked) {
+  font-size: 10px !important;
+  line-height: 1.4;
+  opacity: .72;
+}
+
+.task-header-admin-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px !important;
+  margin-top: 2px;
+}
+
+.task-header-admin-actions button {
+  min-height: 38px !important;
+  padding: 7px 10px !important;
+  font-size: 10px !important;
+}
+
+.task-header-admin-actions .task-archive-button {
+  font-weight: 800;
+}
+
+.task-header-admin-actions .task-delete-button {
+  font-weight: 700;
+}
+
+.task-header-admin-actions .task-delete-button:disabled {
+  opacity: .46 !important;
+  filter: saturate(.45);
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.task-delete-locked {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  border: 1px solid color-mix(in srgb, #b94747 26%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #b94747 6%, var(--surface-card, #fff));
+  font-size: 10px !important;
+  font-weight: 700;
+  line-height: 1.3 !important;
+}
+
+@media (max-width: 520px) {
+  .task-header-admin-popover {
+    min-width: 0;
+    width: calc(100vw - 24px) !important;
+  }
+
+  .task-header-admin-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* APP2 Tasks V7 - functional task overview layout.
+   Presentation only. Workflow, reporting and RBAC behavior are unchanged. */
+
+.task-overview-details {
+  width: min(var(--task-screen-content-max, 1560px), calc(100% - 24px));
+  margin: 8px auto 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--task-accent, #b8860b) 28%, var(--border-default, #d7dce5));
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--task-accent, #b8860b) 4%, var(--surface-card, #fff)),
+      var(--surface-card, #fff)
+    );
+  box-shadow: var(--app2-shadow-card, 0 6px 18px rgba(15, 23, 42, .045));
+}
+
+.task-overview-details__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.task-overview-details__header .workspace-eyebrow {
+  color: color-mix(in srgb, var(--task-accent, #b8860b) 84%, #4d390d);
+}
+
+.task-overview-details__header h3 {
+  margin: 1px 0 0;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.task-overview-details__status {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--task-accent, #b8860b) 30%, var(--border-default, #d7dce5));
+  border-radius: 999px;
+  background: var(--app2-gold-gradient);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.task-overview-details__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.task-overview-detail {
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 9px;
+  border: 1px solid var(--border-default, #d7dce5);
+  border-top: 3px solid var(--app2-blue, #2c67aa);
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+}
+
+.task-overview-detail:nth-child(2) {
+  border-top-color: var(--app2-violet, #7658a9);
+}
+
+.task-overview-detail:nth-child(3) {
+  border-top-color: var(--app2-green, #2b975c);
+}
+
+.task-overview-detail:nth-child(4) {
+  border-top-color: var(--app2-amber, #da921d);
+}
+
+.task-overview-detail:nth-child(5) {
+  border-top-color: #3c9487;
+}
+
+.task-overview-detail:nth-child(6) {
+  border-top-color: var(--task-accent, #b8860b);
+}
+
+.task-overview-detail--wide {
+  grid-column: span 2;
+}
+
+.task-overview-detail small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary, #626b78);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.task-overview-detail p {
+  margin: 0;
+  color: var(--text-primary, #182233);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.task-overview-details__footer {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.task-overview-details__footer span {
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-default, #d7dce5);
+  border-radius: 8px;
+  background: var(--surface-secondary, #f4f6f8);
+  color: var(--text-primary, #182233);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.task-overview-details__footer b {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-secondary, #626b78);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1050px) {
+  .task-overview-details__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-overview-details__footer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .task-overview-details {
+    width: calc(100% - 16px);
+    padding: 9px;
+  }
+
+  .task-overview-details__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .task-overview-details__grid,
+  .task-overview-details__footer {
+    grid-template-columns: 1fr;
+  }
+
+  .task-overview-detail--wide {
+    grid-column: auto;
+  }
+}
+
+/* APP2 Task Workspace V1.1 - compact overview reinforcement */
+.task-overview-details__grid {grid-auto-rows:minmax(54px,auto)}
+.task-overview-details__footer span {min-height:36px;padding:5px 7px}
+
+
+/* APP2_CALM_TASK_WORKSPACE_V1 */
+/* Keep task requirements readable without stacking decorative card treatments. */
+.task-workspace-screen .task-overview-details {
+  padding: 8px 10px !important;
+  border-color: var(--border-default, #d8dce3) !important;
+  border-radius: 10px !important;
+  background: var(--surface-card, #fff) !important;
+  box-shadow: none !important;
+}
+.task-workspace-screen .task-overview-details__header {
+  margin-bottom: 6px !important;
+}
+.task-workspace-screen .task-overview-details__header h3 {
+  font-size: 14px !important;
+}
+.task-workspace-screen .task-overview-details__grid {
+  gap: 6px !important;
+}
+.task-workspace-screen .task-overview-detail {
+  min-height: 0 !important;
+  padding: 7px 8px !important;
+  border: 1px solid var(--border-default, #d8dce3) !important;
+  border-radius: 8px !important;
+  border-top-width: 1px !important;
+  background: var(--surface-card, #fff) !important;
+  box-shadow: none !important;
+}
+.task-workspace-screen .task-overview-detail small {
+  margin-bottom: 3px !important;
+  font-size: 9px !important;
+}
+.task-workspace-screen .task-overview-detail p {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+.task-workspace-screen .task-overview-details__footer {
+  gap: 8px !important;
+  margin-top: 6px !important;
+}
+.task-workspace-screen .task-overview-details__footer span {
+  min-height: 0 !important;
+  padding: 4px 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 10px !important;
+}

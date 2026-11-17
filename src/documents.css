@@ -1,65 +1,3456 @@
-.document-management-view{display:none}
-.documents-active>.document-management-view{display:block}
-.documents-active>:not(.document-management-view){display:none}
 
-.repository-summary{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:1px;margin:12px 0;border:1px solid var(--border-default);border-radius:9px;overflow:hidden;background:var(--border-default)}
-.repository-summary button{display:flex;align-items:center;gap:10px;min-height:62px;padding:11px 14px;border:0;background:var(--surface-primary);color:var(--text-primary);text-align:left}
-.repository-summary button:hover,.repository-summary button.active{background:var(--surface-secondary)}
-.repository-summary button.active{box-shadow:inset 0 -3px var(--accent-primary)}
-.repository-summary strong{font-size:22px}.repository-summary span{color:var(--text-secondary);font-size:11px;font-weight:700}
 @media(max-width:950px){.repository-summary{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:620px){.repository-summary{grid-template-columns:1fr 1fr}}
-.repository-source,.repository-accountability{display:grid;gap:4px;min-width:0}.repository-source>b{color:var(--accent-primary);font-size:11px}.repository-source small,.repository-accountability small{overflow:hidden;color:var(--text-secondary);font-size:10px;line-height:1.35;text-overflow:ellipsis}.repository-source a{color:var(--accent-primary);font-size:10px}.repository-accountability b{color:var(--text-primary)}
-.repository-upload{width:min(760px,calc(100vw - 32px));max-height:90vh;overflow:auto}.repository-provenance-fields{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;padding:14px;border:1px solid var(--border-default);border-left:3px solid var(--accent-primary);border-radius:8px;background:var(--surface-secondary)}.repository-provenance-fields label:last-child:only-child{grid-column:1/-1}.provenance-note{display:flex;gap:10px;padding:10px 12px;border-radius:7px;background:rgba(45,166,105,.1);color:var(--text-secondary);font-size:11px}.provenance-note strong{color:var(--success);white-space:nowrap}
+@media(max-width:620px){.repository-summary{grid-template-columns:1fr 1fr}}.provenance-note{display:flex;gap:10px;padding:10px 12px;border-radius:7px;background:rgba(45,166,105,.1);color:var(--text-secondary);font-size:12px}.provenance-note strong{color:var(--success);white-space:nowrap}
 @media(max-width:700px){.repository-provenance-fields{grid-template-columns:1fr}.provenance-note{flex-direction:column}}
-.deletion-approval-queue{margin:12px 0;border:1px solid rgba(224,91,73,.45);border-left:3px solid var(--danger);border-radius:9px;background:var(--surface-primary);overflow:hidden}.deletion-approval-queue>header{padding:12px 14px;border-bottom:1px solid var(--border-default)}.deletion-approval-queue header p{margin:0;color:var(--danger);font-size:10px;font-weight:800;letter-spacing:.12em}.deletion-approval-queue h3{margin:4px 0 0;font-size:15px}.deletion-approval-queue article{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:11px 14px;border-bottom:1px solid var(--border-default)}.deletion-approval-queue article strong,.deletion-approval-queue article small{display:block}.deletion-approval-queue article small{margin-top:3px;color:var(--text-muted);font-size:10px}.deletion-approval-queue article p{margin:5px 0 0;color:var(--text-secondary);font-size:11px}.deletion-approval-queue article button{padding:7px 10px;border:1px solid var(--danger);border-radius:6px;background:transparent;color:var(--danger)}
-.repository-deletion-controls{margin-top:12px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-primary)}.repository-deletion-controls>summary{padding:11px 14px;color:var(--text-secondary);font-size:11px;font-weight:700;cursor:pointer}.repository-deletion-controls>p{margin:0;padding:0 14px 10px;color:var(--text-muted);font-size:10px}.repository-deletion-controls article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--border-default)}.repository-deletion-controls strong,.repository-deletion-controls small{display:block}.repository-deletion-controls small{margin-top:3px;color:var(--text-muted);font-size:10px}.repository-deletion-controls button{padding:6px 9px;border:1px solid var(--border-default);border-radius:6px;background:var(--surface-secondary);color:var(--text-secondary)}.repository-deletion-controls button:not(:disabled):hover{border-color:var(--danger);color:var(--danger)}
+.deletion-approval-queue{margin:12px 0;border:1px solid rgba(224,91,73,.45);border-left:3px solid var(--danger);border-radius:9px;background:var(--surface-primary);overflow:hidden}.deletion-approval-queue>header{padding:12px 14px;border-bottom:1px solid var(--border-default)}.deletion-approval-queue header p{margin:0;color:var(--danger);font-size:12px;font-weight:800;letter-spacing:.12em}.deletion-approval-queue h3{margin:4px 0 0;font-size:15px}.deletion-approval-queue article{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:11px 14px;border-bottom:1px solid var(--border-default)}.deletion-approval-queue article strong,.deletion-approval-queue article small{display:block}.deletion-approval-queue article small{margin-top:3px;color:var(--text-muted);font-size:12px}.deletion-approval-queue article p{margin:5px 0 0;color:var(--text-secondary);font-size:12px}.deletion-approval-queue article button{padding:7px 10px;border:1px solid var(--danger);border-radius:6px;background:transparent;color:var(--danger)}
 .deletion-request-modal{width:min(620px,calc(100vw - 32px))}.deletion-request-modal>strong,.deletion-request-modal>span,.deletion-request-modal>small{display:block}.deletion-request-modal>span,.deletion-request-modal>small{margin-top:5px;color:var(--text-secondary)}.deletion-request-modal blockquote{margin:14px 0;padding:12px;border-left:3px solid var(--danger);background:var(--surface-secondary);color:var(--text-secondary)}
 .notification-management-view{display:none}
 .notifications-active>.notification-management-view{display:block}
 .notifications-active>:not(.notification-management-view){display:none}
-.review-queue{margin:14px 0 18px;padding:16px;border:1px solid #4b421c;border-radius:12px;background:linear-gradient(135deg,rgba(255,196,0,.08),rgba(16,17,18,.96))}
-.review-queue header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.review-queue header p{margin:0;color:var(--yellow);font-size:8px;letter-spacing:1.5px}.review-queue header h3{margin:4px 0 0;font-size:15px}.review-queue header>span{position:relative;padding:7px 10px;border:1px solid #5d501c;border-radius:99px;color:var(--yellow);font-size:9px;cursor:help}
-.review-queue article{display:grid;grid-template-columns:1.5fr 1fr auto auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid #36331f}.review-queue article strong,.review-queue article small{display:block}.review-queue article small{margin-top:4px;color:#888;font-size:9px}.review-queue article select,.review-queue article button{padding:8px;border:1px solid #4b421c;border-radius:7px;background:#151617;color:#ddd;font-size:9px}.review-queue article button{position:relative;color:var(--yellow)}.review-queue article .approve{color:#74d65b;border-color:#326c24}.queue-empty{margin:0;padding:12px;border-top:1px solid #36331f;color:#888;font-size:10px}
-.notification-list{display:grid;gap:9px;margin-top:16px}.notification-list>button{display:flex;gap:12px;width:100%;padding:14px;text-align:left;border:1px solid #303234;border-radius:10px;background:#111213;color:#ddd}.notification-list>button.unread{border-color:#5d501c;background:rgba(255,196,0,.06)}.notification-list .icon{color:var(--yellow);font-size:22px}.notification-list span,.notification-list strong,.notification-list small,.notification-list time{display:block}.notification-list small{margin:5px 0;color:#aaa}.notification-list time{color:#686868;font-size:8px}
-.document-table{margin-top:12px;border:1px solid #303234;border-radius:12px;overflow:auto;background:#101112}
-.document-table-head,.document-table article{min-width:1300px;display:grid;grid-template-columns:1.6fr .65fr .7fr 1fr .65fr .85fr 1.9fr;gap:12px;align-items:center;padding:12px 16px}
-.document-table-head{color:#777;font-size:9px;text-transform:uppercase;border-bottom:1px solid #303234}
-.document-table article{border-bottom:1px solid #292b2c;font-size:10px}
-.document-table article:last-child{border-bottom:0}
-.document-name{display:flex;align-items:center;gap:10px}
-.document-name>.icon{font-size:25px;color:var(--yellow)}
-.document-name strong,.document-name small{display:block}
-.document-name small{color:#777;margin-top:4px}
-.felix-link-status{display:grid;grid-template-columns:minmax(70px,110px) auto;align-items:center;gap:7px;margin-top:7px;max-width:245px}
-.felix-link-status>span{height:5px;overflow:hidden;border-radius:99px;background:#2d3032}
-.felix-link-status>span>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b59100,var(--yellow));transition:width .35s ease}
-.felix-link-status em{color:#9a9da0;font-size:7px;font-style:normal;white-space:nowrap}
-.felix-link-status.complete>span>i{background:#54bd37}.felix-link-status.complete em{color:#77d75c}
-.felix-link-status.failed>span>i{background:#e36b4b}.felix-link-status.failed em{color:#ff9277}
-.felix-link-status.active>span>i{animation:felix-link-pulse 1.2s ease-in-out infinite}
-.upload-link-progress{display:grid;gap:7px;padding:10px 0 2px}
-.upload-link-progress>div{height:8px;overflow:hidden;border-radius:99px;background:#2b2e30}
-.upload-link-progress>div>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a98400,var(--yellow));transition:width .3s ease}
-.upload-link-progress>span{color:#aaa;font-size:9px}.upload-link-progress.failed>div>i{background:#e36b4b}.upload-link-progress.failed>span{color:#ff9277}
-.felix-review-link{padding:7px 9px;border:1px solid #3a3d3f;border-radius:7px;background:#191b1c;color:#6f7376;font-size:8px;white-space:nowrap}
+.review-queue{margin:14px 0 18px;padding:16px;border:1px solid #4b421c;border-radius:12px;background:linear-gradient(135deg,rgba(255,196,0,.08),var(--surface-primary))}
+.review-queue header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.review-queue header p{margin:0;color:var(--yellow);font-size:12px;letter-spacing:1.5px}.review-queue header h3{margin:4px 0 0;font-size:15px}.review-queue header>span{position:relative;padding:7px 10px;border:1px solid #5d501c;border-radius:99px;color:var(--yellow);font-size:12px;cursor:help}
+.review-queue article{display:grid;grid-template-columns:1.5fr 1fr auto auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid #36331f}.review-queue article strong,.review-queue article small{display:block}.review-queue article small{margin-top:4px;color:var(--text-secondary);font-size:12px}.review-queue article select,.review-queue article button{padding:8px;border:1px solid #4b421c;border-radius:7px;background:var(--surface-primary);color:var(--text-primary);font-size:12px}.review-queue article button{position:relative;color:var(--yellow)}.review-queue article .approve{color:#74d65b;border-color:#326c24}.queue-empty{margin:0;padding:12px;border-top:1px solid #36331f;color:var(--text-secondary);font-size:12px}
+.notification-list{display:grid;gap:9px;margin-top:16px}.notification-list>button{display:flex;gap:12px;width:100%;padding:14px;text-align:left;border:1px solid var(--border-default);border-radius:10px;background:var(--surface-primary);color:var(--text-primary)}.notification-list>button.unread{border-color:#5d501c;background:rgba(255,196,0,.06)}.notification-list .icon{color:var(--yellow);font-size:22px}.notification-list span,.notification-list strong,.notification-list small,.notification-list time{display:block}.notification-list small{margin:5px 0;color:var(--text-secondary)}.notification-list time{color:var(--text-secondary);font-size:12px}
+.felix-review-link{padding:7px 9px;border:1px solid var(--border-default);border-radius:7px;background:var(--surface-primary);color:var(--text-secondary);font-size:12px;white-space:nowrap}
 .felix-review-link.ready{border-color:#806a12;background:rgba(255,196,0,.08);color:var(--yellow);cursor:pointer}
-.felix-review-link.ready:hover{background:var(--yellow);color:#111}
+.felix-review-link.ready:hover{background:var(--yellow);color:var(--text-primary)}
 .felix-review-link:disabled{cursor:not-allowed;opacity:.7}
 @keyframes felix-link-pulse{50%{filter:brightness(1.45)}}
-.doc-state{justify-self:start;padding:4px 8px;border-radius:99px;background:#292b2c;font-size:8px}
-.doc-state.published{color:#74d65b}.doc-state.archived{color:#aaa}.doc-state.pending-approval{color:var(--yellow)}
 .document-locked{color:#ff8b58}.document-free{color:#72d45b}
-.document-actions{display:flex;gap:5px}
-.document-actions button,.retention-actions button{padding:7px 9px;border:1px solid #584a12;border-radius:6px;background:rgba(255,196,0,.07);color:var(--yellow);font-size:8px}
-.document-actions button,.knowledge-library button,.review-actions button{position:relative}
-[data-tooltip]:hover:after,[data-tooltip]:focus-visible:after{content:attr(data-tooltip);position:absolute;z-index:100;left:50%;bottom:calc(100% + 9px);width:240px;transform:translateX(-50%);padding:10px;border:1px solid #5d501c;border-radius:8px;background:#090a0b;color:#eee;box-shadow:0 12px 35px #000;font-size:10px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;pointer-events:none}
+[data-tooltip]:hover:after,[data-tooltip]:focus-visible:after{content:attr(data-tooltip);position:absolute;z-index:100;left:50%;bottom:calc(100% + 9px);width:240px;transform:translateX(-50%);padding:10px;border:1px solid #5d501c;border-radius:8px;color:var(--text-primary);font-size:12px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;pointer-events:none}
 [data-tooltip]:hover:before,[data-tooltip]:focus-visible:before{content:"";position:absolute;z-index:101;left:50%;bottom:calc(100% + 4px);border:5px solid transparent;border-top-color:#5d501c;transform:translateX(-50%)}
-.document-actions .approve,.review-actions .approve{color:#74d65b;border-color:#326c24}
-.document-actions .reject,.review-actions .reject{color:#ff8455;border-color:#713017}
-.retention-editor>label{display:block;margin:18px 0;color:#aaa;font-size:11px}
-.retention-editor input{display:block;width:100%;margin-top:7px;padding:11px;border-radius:7px;border:1px solid #444}
+.retention-editor>label{display:block;margin:18px 0;color:var(--text-secondary);font-size:12px}
+.retention-editor input{display:block;width:100%;margin-top:7px;padding:11px;border-radius:7px;border:1px solid var(--border-default)}
 .retention-actions{display:flex;gap:8px}
 .retention-actions button{flex:1;padding:11px}.retention-actions .danger{color:#ff8455;border-color:#713017}
-.review-editor ol{padding-left:22px}.review-editor li{padding:8px 0;color:var(--yellow)}.review-editor li b,.review-editor li span{display:block}.review-editor li span{margin-top:4px;color:#999;font-size:10px;line-height:1.45}.review-editor>label{display:block;color:#aaa;font-size:10px}.review-editor textarea{display:block;width:100%;min-height:100px;margin-top:7px;padding:10px;border-radius:8px}.review-actions{display:flex;gap:9px;margin-top:14px}.review-actions button{flex:1;padding:12px;border:1px solid;border-radius:8px;background:#151718;font-weight:700}.review-actions button:disabled{opacity:.4;cursor:not-allowed}
+.review-editor ol{padding-left:22px}.review-editor li{padding:8px 0;color:var(--yellow)}.review-editor li b,.review-editor li span{display:block}.review-editor li span{margin-top:4px;color:var(--text-secondary);font-size:12px;line-height:1.45}.review-editor>label{display:block;color:var(--text-secondary);font-size:12px}.review-editor textarea{display:block;width:100%;min-height:100px;margin-top:7px;padding:10px;border-radius:8px}.review-actions{display:flex;gap:9px;margin-top:14px}.review-actions button{flex:1;padding:12px;border:1px solid;border-radius:8px;background:var(--surface-primary);font-weight:700}.review-actions button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:850px){.review-queue article{grid-template-columns:1fr}.review-queue header{align-items:flex-start;gap:10px}.review-queue header>span{white-space:nowrap}}
+.app2-paste-button{width:100%;margin-top:9px;padding:9px 11px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-secondary);color:var(--text-secondary);font-weight:700}.app2-paste-button:hover{border-color:var(--accent-primary);color:var(--text-primary)}
+
+/* ============================================================
+   DOCUMENT REPOSITORY — CANONICAL UI
+   Single live implementation. Five-column institutional list.
+   ============================================================ */
+.document-management-view{
+  min-width:0;
+  color:var(--repository-text,var(--text-primary));
+}
+
+.documents-active>.document-management-view{display:block}
+
+.repository-head-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.repository-governance-chip{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:4px 9px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:999px;
+  background:var(--repository-head,var(--surface-secondary));
+  color:var(--repository-muted,var(--text-secondary));
+  font-size:12px;
+  font-weight:750;
+}
+
+.repository-summary{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(110px,1fr));
+  gap:7px;
+  margin:10px 0 8px;
+}
+
+.repository-summary button{
+  min-height:50px;
+  padding:8px 11px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:9px;
+  background:var(--repository-surface,var(--surface-primary));
+  color:var(--repository-text,var(--text-primary));
+  box-shadow:none;
+  text-align:left;
+}
+
+.repository-summary button:hover,
+.repository-summary button.active{
+  border-color:var(--accent-primary);
+  background:var(--repository-head,var(--surface-secondary));
+}
+
+.repository-summary button.active{
+  box-shadow:inset 3px 0 0 var(--accent-primary);
+}
+
+.repository-summary strong{
+  display:block;
+  color:var(--repository-text,var(--text-primary));
+  font-size:18px;
+  line-height:1;
+}
+
+.repository-summary span{
+  display:block;
+  margin-top:4px;
+  color:var(--repository-muted,var(--text-secondary));
+  font-size:12px;
+}
+
+.repository-canonical-toolbar{
+  position:sticky;
+  top:0;
+  z-index:9;
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) 170px auto auto;
+  align-items:center;
+  gap:8px;
+  margin:8px 0 10px;
+  padding:8px 9px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:9px;
+  background:var(--repository-surface,var(--surface-primary));
+  box-shadow:0 5px 14px rgba(15,23,42,.06);
+}
+
+.repository-canonical-search{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+}
+
+.repository-canonical-search input,
+.repository-canonical-toolbar select{
+  width:100%;
+  min-height:36px;
+  border-radius:7px;
+}
+
+.repository-canonical-toolbar>strong{
+  white-space:nowrap;
+  color:var(--repository-muted,var(--text-secondary));
+  font-size:12px;
+}
+
+.repository-clear-filter{
+  min-height:34px;
+  padding:5px 9px;
+}
+
+/* Five deliberate columns: document, source, status, accountability, actions. */
+.repository-table{
+  overflow:auto;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:10px;
+  background:var(--repository-surface,var(--surface-primary));
+  box-shadow:0 5px 16px rgba(15,23,42,.05);
+}
+
+.repository-table .document-table-head,
+.repository-table>article{
+  display:grid;
+  grid-template-columns:minmax(260px,2fr) minmax(155px,1fr) 105px minmax(220px,1.35fr) minmax(170px,.9fr);
+  gap:12px;
+  align-items:center;
+  min-width:940px;
+}
+
+.repository-table .document-table-head{
+  position:sticky;
+  top:0;
+  z-index:7;
+  padding:9px 14px;
+  border-bottom:1px solid var(--repository-border,var(--border-default));
+  background:var(--repository-head,var(--surface-secondary));
+  color:var(--repository-muted,var(--text-secondary));
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.025em;
+}
+
+.repository-table>article{
+  min-height:58px;
+  padding:8px 12px!important;
+  border-bottom:1px solid var(--repository-border,var(--border-default));
+  background:var(--repository-row,var(--surface-primary))!important;background-image:none!important;filter:none!important;
+  background-image:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+
+.repository-table>article:last-child{border-bottom:0}
+
+.repository-table>article:hover{
+  background:var(--repository-row-hover,var(--surface-secondary))!important;
+  background-image:none!important;
+}
+
+.repository-table .document-name{
+  display:block;
+  min-width:0;
+}
+
+.repository-table .document-name>.icon{
+  display:none!important;
+}
+
+.repository-table .document-name>span{min-width:0}
+
+.repository-table .document-name strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--repository-text,var(--text-primary))!important;
+  font-size:13px;
+  line-height:1.3;
+}
+
+.repository-table .document-name small,
+.repository-source small,
+.repository-accountability small{
+  display:block;
+  margin-top:3px;
+  color:var(--repository-muted,var(--text-secondary))!important;
+  font-size:12px!important;
+  line-height:1.3;
+}
+
+.repository-source,
+.repository-accountability{
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+
+.repository-source b,
+.repository-accountability b{
+  color:var(--repository-text,var(--text-primary))!important;
+}
+
+.repository-source a{
+  color:var(--accent-primary)!important;
+  font-size:12px;
+}
+
+.repository-table .doc-state{
+  justify-self:start;
+  min-height:24px;
+  padding:3px 8px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:999px;
+  background:var(--repository-head,var(--surface-secondary));
+  color:var(--repository-text,var(--text-primary))!important;
+  font-size:12px;
+  font-weight:800;
+}
+
+.repository-table .doc-state.published{
+  border-color:color-mix(in srgb,var(--success) 45%,var(--repository-border,var(--border-default)));
+  background:color-mix(in srgb,var(--success) 10%,var(--repository-surface,var(--surface-primary)));
+  color:var(--success)!important;
+}
+
+.canonical-document-actions{
+  position:relative;
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px!important;
+  flex-wrap:nowrap!important;
+}
+
+.canonical-document-actions>button,
+.repository-more-actions>summary,
+.repository-more-actions button{
+  min-height:30px;
+  padding:4px 8px;
+  border-radius:7px;
+  font-size:12px!important;
+  white-space:nowrap;
+  box-shadow:none!important;
+}
+
+.canonical-document-actions .repository-read-primary,
+.canonical-document-actions .repository-review-primary{
+  border-color:var(--accent-primary)!important;
+  background:var(--accent-primary)!important;
+  color:var(--button-primary-text)!important;
+  font-weight:800;
+}
+
+.felix-review-link{
+  min-width:54px;
+  border:1px solid var(--repository-border,var(--border-default))!important;
+  background:var(--repository-head,var(--surface-secondary))!important;
+  color:var(--repository-text,var(--text-primary))!important;
+  font-weight:750;
+}
+
+.felix-review-link.ready{
+  border-color:color-mix(in srgb,var(--success) 45%,var(--repository-border,var(--border-default)))!important;
+}
+
+.repository-more-actions{position:relative}
+
+.repository-more-actions>summary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:50px;
+  border:1px solid var(--repository-border,var(--border-default));
+  background:var(--repository-head,var(--surface-secondary));
+  color:var(--repository-text,var(--text-primary));
+  font-weight:750;
+  cursor:pointer;
+  list-style:none;
+}
+
+.repository-more-actions>summary::-webkit-details-marker{display:none}
+
+.repository-more-actions[open]>summary{
+  border-color:var(--accent-primary);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-primary) 15%,transparent);
+}
+
+.repository-more-actions>div{
+  position:absolute;
+  z-index:30;
+  top:calc(100% + 4px);
+  right:0;
+  display:grid;
+  min-width:140px;
+  padding:5px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:8px;
+  background:var(--repository-surface,var(--surface-primary));
+  box-shadow:0 10px 24px rgba(15,23,42,.16);
+}
+
+.repository-more-actions>div button{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--repository-text,var(--text-primary));
+  text-align:left;
+}
+
+.repository-more-actions>div button:hover{
+  background:var(--repository-head,var(--surface-secondary));
+}
+
+.review-queue,
+.deletion-approval-queue,
+.repository-deletion-controls{
+  border-color:var(--repository-border,var(--border-default))!important;
+  background:var(--repository-surface,var(--surface-primary))!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}
+
+.repository-deletion-controls{margin-top:10px}
+.repository-deletion-controls>summary{user-select:none;color:var(--repository-text,var(--text-primary))}
+
+@media(max-width:1050px){
+  .repository-canonical-toolbar{position:static;grid-template-columns:1fr 160px auto}
+  .repository-canonical-toolbar>strong{grid-column:1/-1}
+}
+
+@media(max-width:720px){
+  .repository-summary{grid-template-columns:1fr 1fr}
+  .repository-canonical-toolbar{grid-template-columns:1fr}
+}
+
+
+/* DOCUMENT ACTIVITY DIALOG — canonical */
+.repository-activity-backdrop{z-index:2450}
+.repository-activity-dialog{width:min(820px,94vw);max-height:min(760px,88vh);display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden;border:1px solid var(--border-strong);border-radius:16px;background:var(--surface-primary);color:var(--text-primary);box-shadow:0 28px 80px color-mix(in srgb,var(--text-primary) 22%,transparent)}
+.repository-activity-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 22px;border-bottom:1px solid var(--border-default);background:var(--surface-secondary)}
+.repository-activity-dialog>header p{margin:0;color:var(--accent-primary);font-size:12px;font-weight:900;letter-spacing:.13em}
+.repository-activity-dialog>header h2{margin:4px 0 3px;font-size:22px}
+.repository-activity-dialog>header span{color:var(--text-secondary);font-size:13px}
+.repository-activity-dialog>header .close{flex:0 0 auto;min-width:38px;min-height:38px;border:1px solid var(--border-default);border-radius:9px;background:var(--surface-primary);color:var(--text-primary);font-size:20px}
+.repository-activity-summary{display:flex;align-items:center;gap:10px;padding:10px 22px;border-bottom:1px solid var(--border-default);background:var(--surface-primary)}
+.repository-activity-summary span{padding:6px 9px;border:1px solid var(--border-default);border-radius:999px;background:var(--surface-secondary);color:var(--text-secondary);font-size:12px}
+.repository-activity-summary b{color:var(--text-primary)}
+.repository-activity-list{min-height:220px;overflow:auto;padding:8px 22px 22px;background:var(--surface-primary)}
+.repository-activity-list article{display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid var(--border-default)}
+.repository-activity-list article>i{width:10px;height:10px;margin-top:5px;border:2px solid var(--accent-primary);border-radius:50%;background:var(--surface-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 12%,transparent)}
+.repository-activity-list strong,.repository-activity-list small{display:block}
+.repository-activity-list small{margin-top:3px;color:var(--text-secondary);font-size:12px}
+.repository-activity-list p{margin:8px 0 0;color:var(--text-secondary);font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.repository-activity-empty,.repository-activity-error{margin:16px 0;padding:18px;border:1px dashed var(--border-default);border-radius:10px;background:var(--surface-secondary);color:var(--text-secondary);text-align:center}
+.repository-activity-error{border-style:solid;border-color:color-mix(in srgb,var(--danger) 45%,var(--border-default));background:color-mix(in srgb,var(--danger) 8%,var(--surface-primary));color:var(--text-primary)}
+@media(max-width:700px){.repository-activity-dialog{width:96vw;max-height:90vh}.repository-activity-dialog>header,.repository-activity-summary,.repository-activity-list{padding-left:14px;padding-right:14px}}
+.repository-review-read-gate{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0;padding:13px 14px;border:1px solid var(--border-default);border-radius:10px;background:var(--surface-secondary)}
+.repository-review-read-gate>div{display:grid;gap:4px}.repository-review-read-gate b{font-size:14px;color:var(--text-primary)}.repository-review-read-gate span{font-size:12px;line-height:1.5;color:var(--text-secondary)}.repository-review-read-gate.required{border-inline-start:4px solid var(--warning)}.repository-review-read-gate.complete{border-inline-start:4px solid var(--success)}.repository-review-read-gate button{flex:0 0 auto;min-width:170px}
+
+/* APP2_REPOSITORY_HIERARCHY_POLISH */
+
+/* Keep the document collection visually dominant. */
+.document-management-view{
+  display:grid;
+  gap:10px;
+}
+
+/* Governance queues become compact supporting surfaces. */
+.document-management-view .review-queue,
+.document-management-view .deletion-approval-queue{
+  margin:6px 0 4px;
+  padding:12px 14px;
+  border-color:var(--repository-border,var(--border-default));
+  background:var(--repository-surface,var(--surface-primary));
+  box-shadow:none;
+}
+
+.document-management-view .review-queue header,
+.document-management-view .deletion-approval-queue header{
+  margin-bottom:7px;
+}
+
+.document-management-view .review-queue header p,
+.document-management-view .deletion-approval-queue header p{
+  color:var(--accent-primary);
+}
+
+.document-management-view .review-queue article,
+.document-management-view .deletion-approval-queue article{
+  min-height:50px;
+  padding:7px 0;
+  border-top-color:var(--repository-border,var(--border-default));
+}
+
+/* Summary becomes a lighter navigation strip. */
+.repository-summary{
+  gap:6px;
+  margin:6px 0;
+}
+
+.repository-summary button{
+  min-height:44px;
+  padding:7px 10px;
+}
+
+.repository-summary strong{
+  font-size:17px;
+}
+
+.repository-summary span{
+  margin-top:3px;
+}
+
+/* Toolbar stays prominent but visually quiet. */
+.repository-canonical-toolbar{
+  gap:7px;
+  padding:7px 8px;
+  box-shadow:none;
+}
+
+/* Main repository list gains stronger information hierarchy. */
+.repository-table{
+  box-shadow:none;
+}
+
+.repository-table .document-table-head{
+  min-height:38px;
+  padding:8px 13px;
+}
+
+.repository-table>article{
+  min-height:62px;
+  padding:8px 13px!important;
+}
+
+.repository-table .document-name strong{
+  font-size:14px;
+  font-weight:800;
+}
+
+.repository-table .document-name small{
+  margin-top:4px;
+}
+
+.repository-source b,
+.repository-accountability b{
+  font-size:12px;
+  font-weight:800;
+}
+
+.repository-source small,
+.repository-accountability small{
+  line-height:1.25;
+}
+
+/* Make status easier to identify while scanning vertically. */
+.repository-table .doc-state{
+  min-width:88px;
+  justify-content:center;
+  text-align:center;
+}
+
+/* Keep operational actions compact and consistent. */
+.canonical-document-actions{
+  gap:5px!important;
+}
+
+.canonical-document-actions>button,
+.repository-more-actions>summary{
+  min-height:32px;
+  padding:5px 9px;
+}
+
+/* Secondary governance note/control should not compete with documents. */
+.repository-deletion-controls{
+  margin-top:6px;
+}
+
+/* Better hover cue without heavy colour blocks. */
+.repository-table>article:hover{
+  box-shadow:inset 3px 0 0 var(--accent-primary)!important;
+}
+
+/* Responsive: retain current horizontal table behaviour on medium screens. */
+@media(max-width:1050px){
+  .document-management-view{
+    gap:8px;
+  }
+
+  .document-management-view .review-queue,
+  .document-management-view .deletion-approval-queue{
+    padding:10px 12px;
+  }
+}
+
+/* APP2_REPOSITORY_EMPTY_QUEUE_COMPACTION */
+
+.review-queue:has(.queue-empty),
+.deletion-approval-queue:has(.queue-empty) {
+  margin: 8px 0;
+  padding: 10px 14px;
+  min-height: 0;
+}
+
+.review-queue:has(.queue-empty) header,
+.deletion-approval-queue:has(.queue-empty) header {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.review-queue:has(.queue-empty) .queue-empty,
+.deletion-approval-queue:has(.queue-empty) .queue-empty {
+  margin: 5px 0 0;
+  padding: 0;
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--repository-muted,var(--text-secondary));
+}
+
+.review-queue:has(.queue-empty) header h3,
+.deletion-approval-queue:has(.queue-empty) header h3 {
+  font-size: 14px;
+  margin: 2px 0 0;
+}
+
+.review-queue:has(.queue-empty) header p,
+.deletion-approval-queue:has(.queue-empty) header p {
+  font-size: 11px;
+}
+
+/* APP2_REPOSITORY_SMART_FILTERS */
+
+.repository-smart-filters{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:8px 0 10px;
+}
+
+.repository-smart-filters select,
+.repository-smart-filters button{
+  min-height:34px;
+  padding:6px 11px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:7px;
+  background:var(--repository-surface,var(--surface-primary));
+  color:var(--repository-text,var(--text-primary));
+  font:inherit;
+  font-size:12px;
+}
+
+.repository-smart-filters select{
+  min-width:150px;
+}
+
+.repository-smart-filters button{
+  cursor:pointer;
+}
+
+.repository-smart-filters button:hover{
+  border-color:var(--accent-primary);
+}
+
+.repository-smart-filters button.active{
+  border-color:var(--accent-primary);
+  background:color-mix(
+    in srgb,
+    var(--accent-primary) 12%,
+    var(--repository-surface,var(--surface-primary))
+  );
+  color:var(--accent-primary);
+  font-weight:700;
+}
+
+.repository-smart-filters .repository-clear-filter{
+  margin-left:auto;
+}
+
+@media(max-width:700px){
+  .repository-smart-filters{
+    align-items:stretch;
+  }
+
+  .repository-smart-filters select,
+  .repository-smart-filters button{
+    flex:1 1 140px;
+  }
+
+  .repository-smart-filters .repository-clear-filter{
+    margin-left:0;
+  }
+}
+
+/* APP2_REPOSITORY_RESULT_COUNT */
+
+.repository-result-count{
+  margin-left:auto;
+  color:var(--repository-muted,var(--text-secondary));
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.repository-smart-filters .repository-clear-filter{
+  margin-left:0;
+}
+
+@media(max-width:700px){
+  .repository-result-count{
+    flex:1 1 100%;
+    margin-left:0;
+  }
+}
+
+/* APP2_READER_GOVERNANCE_INFO */
+
+.reader-info-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.reader-info-head small,
+.reader-info-section h3{
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+
+.reader-info-head h2{
+  margin:2px 0 0;
+}
+
+.reader-info-status{
+  padding:5px 9px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.reader-info-section{
+  padding:12px 0;
+  border-top:1px solid var(--border-default);
+}
+
+.reader-info-section h3{
+  margin:0 0 9px;
+  font-size:12px;
+}
+
+.reader-info-section dl{
+  display:grid;
+  grid-template-columns:minmax(105px,auto) 1fr;
+  gap:7px 12px;
+  margin:0;
+}
+
+.reader-info-section dt{
+  color:var(--text-secondary);
+  font-size:12px;
+}
+
+.reader-info-section dd{
+  margin:0;
+  font-size:12px;
+  overflow-wrap:anywhere;
+}
+
+.reader-info-links{
+  display:grid;
+  gap:6px;
+}
+
+.reader-info-links span{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:7px 9px;
+  border:1px solid var(--border-default);
+  border-radius:7px;
+}
+
+.reader-info-links b{
+  font-size:11px;
+  text-transform:uppercase;
+  color:var(--text-secondary);
+}
+
+.reader-info-tags{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.reader-info-tags span{
+  padding:4px 7px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  font-size:11px;
+}
+
+.reader-info-download{
+  width:100%;
+  margin-top:12px;
+}
+
+/* APP2_REPOSITORY_ACTION_HIERARCHY */
+
+.repository-table .canonical-document-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.repository-table .repository-read-primary{
+  min-width:68px;
+  font-weight:700;
+}
+
+.repository-table .repository-review-primary{
+  min-width:76px;
+  font-weight:700;
+}
+
+.repository-table .felix-review-link{
+  background:transparent;
+  border-color:var(--border-default);
+  font-weight:600;
+}
+
+.repository-table .felix-review-link.ready:hover{
+  border-color:var(--accent-primary);
+}
+
+.repository-table .repository-more-actions{
+  position:relative;
+}
+
+.repository-table .repository-more-actions summary{
+  list-style:none;
+  cursor:pointer;
+  padding:7px 10px;
+  border:1px solid var(--border-default);
+  border-radius:7px;
+  background:transparent;
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:600;
+  user-select:none;
+}
+
+.repository-table .repository-more-actions summary::-webkit-details-marker{
+  display:none;
+}
+
+.repository-table .repository-more-actions summary:hover{
+  color:var(--text-primary);
+  border-color:var(--accent-primary);
+}
+
+.repository-table .repository-more-actions > div{
+  position:absolute;
+  z-index:30;
+  right:0;
+  top:calc(100% + 5px);
+  min-width:165px;
+  padding:6px;
+  border:1px solid var(--border-default);
+  border-radius:8px;
+  background:var(--surface-primary);
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+}
+
+.repository-table .repository-more-actions > div button{
+  width:100%;
+  display:block;
+  text-align:left;
+  padding:7px 9px;
+  border:0;
+  background:transparent;
+  border-radius:6px;
+}
+
+.repository-table .repository-more-actions > div button:hover{
+  background:var(--surface-secondary);
+}
+
+@media(max-width:900px){
+  .repository-table .canonical-document-actions{
+    justify-content:flex-start;
+  }
+}
+
+/* APP2_REPOSITORY_VERSION_HISTORY_POLISH */
+
+.version-list{
+  display:grid;
+  gap:8px;
+}
+
+.repository-version-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:11px 12px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-primary);
+}
+
+.repository-version-row.current{
+  border-color:color-mix(
+    in srgb,
+    var(--accent-primary) 45%,
+    var(--border-default)
+  );
+  background:color-mix(
+    in srgb,
+    var(--accent-primary) 5%,
+    var(--surface-primary)
+  );
+}
+
+.repository-version-main{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+.repository-version-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.repository-version-title b{
+  padding:3px 6px;
+  border-radius:999px;
+  background:color-mix(
+    in srgb,
+    var(--accent-primary) 12%,
+    transparent
+  );
+  color:var(--accent-primary);
+  font-size:11px;
+  font-weight:800;
+}
+
+.repository-version-main small{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.repository-version-meta{
+  color:var(--text-secondary);
+  font-size:12px;
+}
+
+.repository-version-row > button{
+  min-height:34px;
+}
+
+@media(max-width:720px){
+  .repository-version-row{
+    grid-template-columns:1fr;
+  }
+}
+
+/* APP2_REPOSITORY_ACTIVITY_EVENT_POLISH */
+
+.repository-activity-event{
+  position:relative;
+}
+
+.repository-activity-event-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.repository-activity-event-head span{
+  flex:0 0 auto;
+  padding:3px 7px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-secondary);
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:700;
+  text-transform:capitalize;
+}
+
+.repository-activity-event.approval>i{
+  border-color:var(--success,var(--accent-primary));
+  box-shadow:0 0 0 3px color-mix(
+    in srgb,
+    var(--success,var(--accent-primary)) 12%,
+    transparent
+  );
+}
+
+.repository-activity-event.review>i{
+  border-color:var(--accent-primary);
+}
+
+.repository-activity-event.read>i,
+.repository-activity-event.access>i{
+  border-color:var(--text-secondary);
+  box-shadow:none;
+}
+
+.repository-activity-event.version>i{
+  border-color:var(--accent-secondary,var(--accent-primary));
+}
+
+.repository-activity-event.warning>i{
+  border-color:var(--danger);
+  box-shadow:0 0 0 3px color-mix(
+    in srgb,
+    var(--danger) 10%,
+    transparent
+  );
+}
+
+.repository-activity-event.warning
+.repository-activity-event-head span{
+  color:var(--danger);
+  border-color:color-mix(
+    in srgb,
+    var(--danger) 35%,
+    var(--border-default)
+  );
+}
+
+.repository-activity-event.approval
+.repository-activity-event-head span{
+  color:var(--success,var(--accent-primary));
+}
+
+.repository-activity-event p{
+  max-width:680px;
+}
+
+/* APP2_REPOSITORY_UPLOAD_GOVERNANCE_POLISH */
+
+.repository-reviewer-field{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:color-mix(
+    in srgb,
+    var(--accent-primary) 4%,
+    var(--surface-primary)
+  );
+}
+
+.repository-reviewer-field label{
+  display:grid;
+  gap:7px;
+  font-weight:700;
+}
+
+.repository-reviewer-field select{
+  min-height:40px;
+  width:100%;
+}
+
+.repository-reviewer-field label>span[aria-hidden="true"]{
+  color:var(--danger);
+}
+
+.repository-reviewer-field small{
+  color:var(--text-secondary);
+  font-size:12px;
+  font-weight:500;
+  line-height:1.45;
+}
+
+.provenance-note{
+  margin-top:8px;
+  padding:10px 12px;
+  border-left:3px solid var(--accent-primary);
+  border-radius:6px;
+  background:var(--surface-secondary);
+}
+
+.provenance-note strong,
+.provenance-note span{
+  display:block;
+}
+
+.provenance-note strong{
+  margin-bottom:3px;
+  font-size:12px;
+}
+
+.provenance-note span{
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.repository-felix-toggle{
+  margin-top:10px;
+  padding:11px 12px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-primary);
+}
+
+.repository-felix-toggle>span{
+  display:grid;
+  gap:2px;
+}
+
+.repository-felix-toggle strong{
+  font-size:12px;
+}
+
+.repository-felix-toggle small{
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.4;
+}
+
+.repository-felix-toggle input{
+  flex:0 0 auto;
+}
+
+@media(max-width:720px){
+  .repository-reviewer-field{
+    padding:12px;
+  }
+}
+
+/* APP2_REPOSITORY_SOURCE_LINKING_POLISH */
+
+.repository-provenance-fields{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:var(--surface-secondary);
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.repository-provenance-fields label{
+  min-width:0;
+  display:grid;
+  gap:6px;
+  font-weight:700;
+}
+
+.repository-provenance-fields select,
+.repository-provenance-fields input{
+  width:100%;
+  min-height:40px;
+}
+
+.repository-provenance-fields small{
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.repository-provenance-fields label:has(select[value="Research"]),
+.repository-provenance-fields label:has(select[value="Assignment"]),
+.repository-provenance-fields label:has(select[value="Task"]),
+.repository-provenance-fields label:has(select[value="App2 Report"]){
+  border-color:var(--accent-primary);
+}
+
+.repository-provenance-fields select:required:invalid{
+  border-color:color-mix(
+    in srgb,
+    var(--danger) 45%,
+    var(--border-default)
+  );
+}
+
+.repository-provenance-fields select:required:valid{
+  border-color:color-mix(
+    in srgb,
+    var(--accent-primary) 45%,
+    var(--border-default)
+  );
+}
+
+@media(max-width:720px){
+  .repository-provenance-fields{
+    grid-template-columns:1fr;
+    padding:12px;
+  }
+}
+
+/* APP2_REPOSITORY_FELIX_STATUS_STATES */
+
+.felix-review-link.pending,
+.felix-review-link.processing{
+  color:var(--text-secondary)!important;
+}
+
+.felix-review-link.processing{
+  border-color:color-mix(
+    in srgb,
+    var(--accent-primary) 42%,
+    var(--repository-border,var(--border-default))
+  )!important;
+}
+
+.felix-review-link.failed{
+  border-color:color-mix(
+    in srgb,
+    var(--danger) 55%,
+    var(--repository-border,var(--border-default))
+  )!important;
+  color:var(--danger)!important;
+  background:color-mix(
+    in srgb,
+    var(--danger) 6%,
+    var(--repository-head,var(--surface-secondary))
+  )!important;
+  opacity:1!important;
+}
+
+.felix-review-link.failed:disabled{
+  cursor:not-allowed;
+  opacity:1!important;
+}
+/* ============================================================
+   APP2 RECORDS & DOCUMENT MANAGEMENT V1
+   Search-first records-management layer over the existing Repository.
+   ============================================================ */
+
+.repository-records-command-centre{
+  margin:10px 0 12px;
+  padding:14px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:14px;
+  background:
+    radial-gradient(circle at 92% 12%,color-mix(in srgb,var(--accent-primary) 10%,transparent),transparent 34%),
+    linear-gradient(135deg,color-mix(in srgb,var(--accent-primary) 6%,var(--repository-surface,var(--surface-primary))),var(--repository-surface,var(--surface-primary)));
+}
+.repository-records-command-centre>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px}
+.repository-records-command-centre>header small{font-size:10px;font-weight:850;letter-spacing:.09em;color:var(--accent-primary)}
+.repository-records-command-centre>header h3{margin:3px 0 4px;font-size:17px}
+.repository-records-command-centre>header p{margin:0;max-width:820px;color:var(--text-secondary);font-size:12px;line-height:1.45}
+.repository-rm-standard{flex:0 0 auto;padding:6px 9px;border:1px solid var(--repository-border,var(--border-default));border-radius:999px;background:var(--surface-secondary);font-size:11px;font-weight:750;color:var(--text-secondary)}
+.repository-rm-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.repository-rm-cards button{min-height:84px;padding:10px 11px;border:1px solid var(--repository-border,var(--border-default));border-radius:11px;background:linear-gradient(145deg,color-mix(in srgb,var(--accent-primary) 5%,var(--surface-primary)),var(--surface-primary));text-align:left;color:var(--text-primary)}
+.repository-rm-cards button:hover{border-color:var(--accent-primary);transform:translateY(-1px)}
+.repository-rm-cards small{display:block;font-size:9px;font-weight:850;letter-spacing:.07em;color:var(--text-secondary)}
+.repository-rm-cards strong{display:block;margin:6px 0 4px;font-size:23px;line-height:1}
+.repository-rm-cards span{display:block;font-size:10.5px;line-height:1.25;color:var(--text-secondary)}
+.repository-improvement-strip{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,2fr);gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--repository-border,var(--border-default))}
+.repository-improvement-strip>div:first-child strong,.repository-improvement-strip>div:first-child span{display:block}
+.repository-improvement-strip>div:first-child span{margin-top:3px;color:var(--text-secondary);font-size:11px}
+.repository-improvement-strip>div:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.repository-improvement-strip button{padding:8px 10px;border:1px solid var(--repository-border,var(--border-default));border-radius:9px;background:var(--surface-primary);text-align:left;color:var(--text-primary)}
+.repository-improvement-strip button b,.repository-improvement-strip button span,.repository-improvement-strip button small{display:block}
+.repository-improvement-strip button span,.repository-improvement-strip button small{margin-top:2px;color:var(--text-secondary);font-size:10.5px}
+.repository-rm-scope-note{margin:9px 0 0;padding:8px 10px;border-radius:8px;background:var(--surface-secondary);color:var(--text-secondary);font-size:11px}
+
+/* Six-column searchable records list. */
+.repository-table .document-table-head,
+.repository-table>article{
+  grid-template-columns:minmax(245px,1.8fr) minmax(155px,1fr) 95px 108px minmax(215px,1.25fr) minmax(190px,.9fr);
+  min-width:1080px;
+}
+.repository-record-identity{color:var(--accent-primary)!important;font-weight:650}
+.repository-version-cell{display:grid;gap:3px;align-content:center}
+.repository-version-cell strong{font-size:14px}
+.repository-version-cell small{font-size:10.5px;color:var(--text-secondary)}
+.repository-legal-hold{display:inline-flex;width:max-content;padding:2px 5px;border:1px solid var(--danger);border-radius:999px;color:var(--danger);font-size:9px}
+.repository-improve-action{border-color:color-mix(in srgb,var(--accent-primary) 55%,var(--border-default))!important;color:var(--accent-primary)!important;font-weight:750}
+
+/* Controlled improvement assignment dialog. */
+.repository-improvement-dialog{width:min(720px,calc(100vw - 28px))}
+.repository-improvement-dialog>span{display:block;margin:-3px 0 14px;color:var(--text-secondary);font-size:12px;line-height:1.45}
+.repository-improvement-current{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.repository-improvement-current>div{padding:9px 10px;border:1px solid var(--border-default);border-radius:9px;background:var(--surface-secondary)}
+.repository-improvement-current small,.repository-improvement-current strong{display:block}
+.repository-improvement-current small{font-size:10px;color:var(--text-secondary)}
+.repository-improvement-current strong{margin-top:3px;font-size:12px}
+.repository-improvement-dialog label{display:block;margin-top:10px;color:var(--text-secondary);font-size:11px;font-weight:700}
+.repository-improvement-dialog input,.repository-improvement-dialog select,.repository-improvement-dialog textarea{display:block;width:100%;margin-top:5px}
+.repository-improvement-dialog textarea{min-height:96px}
+.repository-version-eyebrow{margin:0;color:var(--accent-primary);font-size:10px;font-weight:850;letter-spacing:.09em}
+.repository-version-governance-note{margin:10px 0;padding:9px 10px;border-left:3px solid var(--accent-primary);border-radius:7px;background:var(--surface-secondary);color:var(--text-secondary);font-size:11px;line-height:1.45}
+.repository-version-download-status{margin:-8px 0 12px;padding:8px 10px;border-radius:7px;background:var(--surface-secondary);color:var(--text-secondary);font-size:12px;line-height:1.4}
+
+@media(max-width:1200px){
+  .repository-rm-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .repository-records-command-centre>header{flex-direction:column}
+  .repository-rm-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .repository-improvement-strip{grid-template-columns:1fr}
+  .repository-improvement-strip>div:last-child{grid-template-columns:1fr}
+  .repository-improvement-current{grid-template-columns:1fr}
+}
+
+
+/* ============================================================
+   APP2 REPOSITORY TABBED LIBRARY V1
+   Search-first, tabbed, paginated records library.
+   ============================================================ */
+
+.document-management-view{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.repository-library-tabs{
+  padding:10px 12px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:13px;
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 4%,var(--surface-primary)),
+    var(--surface-primary));
+}
+
+.repository-library-tabs-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:8px;
+}
+
+.repository-library-tabs-heading>div small,
+.repository-library-tabs-heading>div strong,
+.repository-library-tabs-heading>div span{
+  display:block;
+}
+
+.repository-library-tabs-heading>div small{
+  color:var(--accent-primary);
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.08em;
+}
+
+.repository-library-tabs-heading>div strong{
+  margin-top:2px;
+  font-size:14px;
+}
+
+.repository-library-tabs-heading>div span{
+  margin-top:2px;
+  color:var(--text-secondary);
+  font-size:10.5px;
+}
+
+.repository-library-tabs-heading>span{
+  flex:0 0 auto;
+  padding:5px 8px;
+  border-radius:999px;
+  background:var(--surface-secondary);
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:750;
+}
+
+.repository-library-tab-list{
+  display:flex;
+  gap:5px;
+  overflow-x:auto;
+  padding-bottom:2px;
+}
+
+.repository-library-tab-list button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:35px;
+  padding:6px 10px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:9px;
+  background:var(--surface-primary);
+  color:var(--text-primary);
+  white-space:nowrap;
+}
+
+.repository-library-tab-list button span{
+  font-size:11px;
+  font-weight:750;
+}
+
+.repository-library-tab-list button b{
+  display:inline-grid;
+  place-items:center;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  border-radius:999px;
+  background:var(--surface-secondary);
+  font-size:9.5px;
+}
+
+.repository-library-tab-list button.active{
+  border-color:var(--accent-primary);
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 18%,var(--surface-primary)),
+    color-mix(in srgb,var(--accent-primary) 7%,var(--surface-primary)));
+  box-shadow:0 4px 12px color-mix(in srgb,var(--accent-primary) 10%,transparent);
+}
+
+.repository-library-tab-list button.active b{
+  background:color-mix(in srgb,var(--accent-primary) 24%,var(--surface-primary));
+}
+
+/* The command centre and library selector form the primary page hierarchy. */
+.repository-records-command-centre{
+  margin:0;
+}
+
+.repository-records-command-centre>header{
+  margin-bottom:8px;
+}
+
+.repository-rm-cards{
+  gap:6px;
+}
+
+.repository-rm-cards button{
+  min-height:72px;
+  padding:8px 10px;
+}
+
+.repository-rm-cards strong{
+  margin:4px 0 3px;
+  font-size:20px;
+}
+
+/* Draft controls only appear on the Drafts tab and stay compact. */
+.repository-draft-primary-nav,
+.repository-draft-manager-summary-compact{
+  margin:0;
+}
+
+/* Search/filter controls sit immediately above results. */
+.repository-smart-filters{
+  position:sticky;
+  top:0;
+  z-index:5;
+  margin:0;
+  padding:8px 10px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:11px;
+  background:color-mix(in srgb,var(--surface-primary) 94%,transparent);
+  backdrop-filter:blur(12px);
+}
+
+/* Governance no longer consumes the main list view unless opened. */
+.repository-governance-drawer{
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:10px;
+  background:var(--surface-primary);
+}
+
+.repository-governance-drawer>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px 11px;
+  cursor:pointer;
+  list-style:none;
+}
+
+.repository-governance-drawer>summary::-webkit-details-marker{
+  display:none;
+}
+
+.repository-governance-drawer>summary span b,
+.repository-governance-drawer>summary span small{
+  display:block;
+}
+
+.repository-governance-drawer>summary span b{
+  font-size:11px;
+}
+
+.repository-governance-drawer>summary span small{
+  margin-top:2px;
+  color:var(--text-secondary);
+  font-size:9.5px;
+}
+
+.repository-governance-drawer>summary>strong{
+  display:inline-grid;
+  place-items:center;
+  min-width:24px;
+  height:24px;
+  border-radius:999px;
+  background:var(--surface-secondary);
+  font-size:10px;
+}
+
+.repository-governance-drawer-body{
+  padding:0 10px 10px;
+}
+
+/* The searchable list is compact and limited to 12 rows per page. */
+.repository-table{
+  max-height:none!important;
+  overflow-x:auto;
+}
+
+.repository-table>article{
+  min-height:74px;
+  padding-block:8px;
+}
+
+.repository-table .document-name strong{
+  font-size:12px;
+  line-height:1.2;
+}
+
+.repository-table .document-name small,
+.repository-table .repository-source small,
+.repository-table .repository-accountability small{
+  font-size:9px;
+  line-height:1.25;
+}
+
+.repository-library-empty{
+  display:grid;
+  place-items:center;
+  gap:4px;
+  min-height:150px;
+  padding:22px;
+  border:1px dashed var(--repository-border,var(--border-default));
+  border-radius:11px;
+  background:var(--surface-secondary);
+  text-align:center;
+}
+
+.repository-library-empty strong{
+  font-size:13px;
+}
+
+.repository-library-empty span{
+  color:var(--text-secondary);
+  font-size:10.5px;
+}
+
+.repository-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:10px;
+  background:var(--surface-primary);
+}
+
+.repository-pagination span{
+  color:var(--text-secondary);
+  font-size:10.5px;
+  font-weight:700;
+}
+
+.repository-pagination button{
+  padding:6px 10px;
+  border:1px solid var(--repository-border,var(--border-default));
+  border-radius:8px;
+  background:var(--surface-secondary);
+  color:var(--text-primary);
+  font-size:10.5px;
+  font-weight:750;
+}
+
+.repository-pagination button:disabled{
+  opacity:.4;
+}
+
+@media(max-width:900px){
+  .repository-library-tabs-heading{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .repository-smart-filters{
+    position:static;
+  }
+}
+
+
+/* ============================================================
+   APP2 ADD RECORD / DOCUMENT WIZARD V1
+   General institutional intake: record, reference, evidence or source.
+   ============================================================ */
+
+.repository-add-record-wizard{
+  width:min(900px,calc(100vw - 28px));
+  max-height:min(90vh,900px);
+  overflow:auto;
+  padding:20px;
+}
+
+.repository-add-record-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:12px;
+}
+
+.repository-add-record-heading p{
+  margin:0;
+  color:var(--accent-primary);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.09em;
+}
+
+.repository-add-record-heading h2{
+  margin:3px 0 4px;
+}
+
+.repository-add-record-heading span{
+  display:block;
+  max-width:680px;
+  color:var(--text-secondary);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.repository-add-record-heading>b{
+  flex:0 0 auto;
+  padding:6px 9px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-secondary);
+  font-size:10px;
+}
+
+.repository-add-record-steps{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.repository-add-record-steps button{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:42px;
+  padding:7px 9px;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:var(--surface-primary);
+  color:var(--text-secondary);
+  text-align:left;
+}
+
+.repository-add-record-steps button i{
+  display:grid;
+  place-items:center;
+  width:23px;
+  height:23px;
+  border-radius:50%;
+  background:var(--surface-secondary);
+  font-style:normal;
+  font-size:10px;
+  font-weight:850;
+}
+
+.repository-add-record-steps button span{
+  font-size:10.5px;
+  font-weight:750;
+}
+
+.repository-add-record-steps button.active{
+  border-color:var(--accent-primary);
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 14%,var(--surface-primary)),
+    var(--surface-primary));
+  color:var(--text-primary);
+}
+
+.repository-add-record-steps button.active i,
+.repository-add-record-steps button.done i{
+  background:var(--accent-primary);
+  color:var(--surface-primary);
+}
+
+.repository-add-record-step{
+  display:grid;
+  gap:11px;
+  min-height:390px;
+  padding:14px;
+  border:1px solid var(--border-default);
+  border-radius:13px;
+  background:var(--surface-primary);
+}
+
+.repository-add-record-step>header small{
+  color:var(--accent-primary);
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.08em;
+}
+
+.repository-add-record-step>header h3{
+  margin:2px 0 3px;
+  font-size:18px;
+}
+
+.repository-add-record-step>header p{
+  margin:0;
+  max-width:760px;
+  color:var(--text-secondary);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.repository-purpose-grid,
+.repository-source-choice-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+
+.repository-purpose-grid button,
+.repository-source-choice-grid button{
+  min-height:72px;
+  padding:9px 10px;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:var(--surface-secondary);
+  color:var(--text-primary);
+  text-align:left;
+}
+
+.repository-purpose-grid button strong,
+.repository-purpose-grid button small,
+.repository-source-choice-grid button strong,
+.repository-source-choice-grid button small{
+  display:block;
+}
+
+.repository-purpose-grid button strong,
+.repository-source-choice-grid button strong{
+  font-size:11px;
+}
+
+.repository-purpose-grid button small,
+.repository-source-choice-grid button small{
+  margin-top:4px;
+  color:var(--text-secondary);
+  font-size:9.5px;
+  line-height:1.35;
+}
+
+.repository-purpose-grid button.active,
+.repository-source-choice-grid button.active{
+  border-color:var(--accent-primary);
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 16%,var(--surface-primary)),
+    color-mix(in srgb,var(--accent-primary) 5%,var(--surface-primary)));
+  box-shadow:0 5px 14px color-mix(in srgb,var(--accent-primary) 9%,transparent);
+}
+
+.repository-add-record-step label{
+  display:block;
+  color:var(--text-secondary);
+  font-size:10.5px;
+  font-weight:700;
+}
+
+.repository-add-record-step input,
+.repository-add-record-step select,
+.repository-add-record-step textarea{
+  display:block;
+  width:100%;
+  margin-top:5px;
+}
+
+.repository-add-record-step label>small{
+  display:block;
+  margin-top:4px;
+  color:var(--text-secondary);
+  font-size:9.5px;
+  font-weight:500;
+}
+
+.repository-relationship-principle{
+  padding:10px 11px;
+  border-left:3px solid var(--accent-primary);
+  border-radius:8px;
+  background:var(--surface-secondary);
+}
+
+.repository-relationship-principle strong,
+.repository-relationship-principle span{
+  display:block;
+}
+
+.repository-relationship-principle strong{
+  font-size:11px;
+}
+
+.repository-relationship-principle span{
+  margin-top:3px;
+  color:var(--text-secondary);
+  font-size:10px;
+  line-height:1.4;
+}
+
+.repository-add-record-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+
+.repository-add-record-summary>div{
+  padding:9px 10px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-secondary);
+}
+
+.repository-add-record-summary small,
+.repository-add-record-summary strong{
+  display:block;
+}
+
+.repository-add-record-summary small{
+  color:var(--text-secondary);
+  font-size:9px;
+}
+
+.repository-add-record-summary strong{
+  margin-top:3px;
+  font-size:10.5px;
+}
+
+.repository-add-record-actions{
+  position:sticky;
+  bottom:-20px;
+  z-index:3;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:10px;
+  margin:14px -20px -20px;
+  padding:11px 20px;
+  border-top:1px solid var(--border-default);
+  background:color-mix(in srgb,var(--surface-primary) 96%,transparent);
+  backdrop-filter:blur(12px);
+}
+
+.repository-add-record-actions>span{
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:700;
+  text-align:center;
+}
+
+.repository-add-record-actions>button:last-child{
+  justify-self:end;
+}
+
+@media(max-width:760px){
+  .repository-add-record-steps{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .repository-purpose-grid,
+  .repository-source-choice-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .repository-add-record-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .repository-add-record-actions{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .repository-add-record-actions>span{
+    display:none;
+  }
+}
+
+@media(max-width:520px){
+  .repository-purpose-grid,
+  .repository-source-choice-grid,
+  .repository-add-record-summary{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* APP2 ADD RECORD WIZARD V1.1 - always-visible close control */
+.repository-add-record-heading{
+  position:sticky;
+  top:-20px;
+  z-index:12;
+  margin:-20px -20px 12px;
+  padding:16px 20px 12px;
+  border-bottom:1px solid var(--border-default);
+  background:color-mix(in srgb,var(--surface-primary) 97%,transparent);
+  backdrop-filter:blur(12px);
+}
+
+.repository-add-record-heading-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.repository-add-record-heading-actions>b{
+  padding:6px 9px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-secondary);
+  font-size:10px;
+  white-space:nowrap;
+}
+
+.repository-add-record-close{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:34px;
+  padding:6px 10px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-primary);
+  color:var(--text-primary);
+  font-size:10.5px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+.repository-add-record-close:hover{
+  border-color:var(--accent-primary);
+  color:var(--accent-primary);
+}
+
+.repository-add-record-close span{
+  font-size:16px;
+  line-height:1;
+}
+
+.repository-add-record-close:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+@media(max-width:640px){
+  .repository-add-record-heading{
+    align-items:flex-start;
+  }
+
+  .repository-add-record-heading-actions{
+    flex-direction:column-reverse;
+    align-items:flex-end;
+  }
+
+  .repository-add-record-close{
+    min-width:72px;
+  }
+}
+
+/* APP2 REPOSITORY RELATIONSHIPS & EVIDENCE V1 */
+.repository-rm-exception-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+.repository-rm-exception-cards button{min-height:66px}
+.repository-rm-exception-cards strong{font-size:18px}
+.repository-records-command-centre>header p{max-width:700px}
+.repository-relationship-action{border-color:color-mix(in srgb,var(--accent-primary) 35%,var(--border-default))!important}
+.repository-relationship-dialog{width:min(860px,calc(100vw - 28px));max-height:88vh;overflow:auto}
+.repository-relationship-dialog>span{display:block;margin:-3px 0 12px;color:var(--text-secondary);font-size:11px;line-height:1.45}
+.repository-relationship-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:11px;border:1px solid var(--border-default);border-radius:11px;background:var(--surface-secondary)}
+.repository-relationship-form label{font-size:10.5px;font-weight:700;color:var(--text-secondary)}
+.repository-relationship-form select,.repository-relationship-form textarea{display:block;width:100%;margin-top:4px}
+.repository-relationship-target,.repository-pin-version,.repository-relationship-notes{grid-column:1/-1}
+.repository-pin-version{display:flex!important;align-items:flex-start;gap:8px;padding:9px;border:1px solid var(--border-default);border-radius:9px;background:var(--surface-primary)}
+.repository-pin-version input{width:auto;margin-top:2px}
+.repository-pin-version strong,.repository-pin-version small{display:block}
+.repository-pin-version small{margin-top:2px;font-weight:500}
+.repository-relationship-notes textarea{min-height:70px}
+.repository-relationship-form>.approve{grid-column:2;justify-self:end}
+.repository-relationship-list{margin-top:12px}
+.repository-relationship-list>header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.repository-relationship-list>header span{display:grid;place-items:center;min-width:24px;height:24px;border-radius:999px;background:var(--surface-secondary);font-size:10px}
+.repository-relationship-list article{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid var(--border-default);border-radius:9px;margin-top:6px}
+.repository-relationship-list article b,.repository-relationship-list article strong,.repository-relationship-list article small,.repository-relationship-list article span{display:block}
+.repository-relationship-list article b{color:var(--accent-primary);font-size:9px;text-transform:uppercase}
+.repository-relationship-list article strong{margin-top:2px;font-size:11px}
+.repository-relationship-list article small,.repository-relationship-list article span{margin-top:2px;color:var(--text-secondary);font-size:9.5px}
+@media(max-width:760px){.repository-rm-exception-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.repository-relationship-form{grid-template-columns:1fr}.repository-relationship-form>.approve{grid-column:1}.repository-relationship-target,.repository-pin-version,.repository-relationship-notes{grid-column:1}}
+
+
+/* ============================================================
+   APP2 DOCUMENT PROTECTION + CALM REPOSITORY LIST V1
+   ============================================================ */
+
+/* Reduce the dense six-column spreadsheet effect to five calm information groups. */
+.repository-table .document-table-head,
+.repository-table>article{
+  grid-template-columns:minmax(300px,2fr) minmax(190px,1.1fr) 105px minmax(180px,1fr) minmax(145px,.75fr);
+  min-width:1020px;
+}
+.repository-table>article{min-height:68px;padding-block:7px;align-items:center}
+.repository-row-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.repository-row-meta span,.repository-row-meta b{
+  padding:2px 6px;border:1px solid var(--border-default);border-radius:999px;
+  background:var(--surface-secondary);font-size:8.5px;font-weight:700;color:var(--text-secondary)
+}
+.repository-row-meta b{border-color:var(--danger);color:var(--danger)}
+.repository-accountability-compact{display:grid;gap:2px}
+.repository-accountability-compact>strong{font-size:10.5px}
+.repository-accountability-compact>small{font-size:9px;color:var(--text-secondary)}
+.repository-accountability-compact details summary{font-size:9px;color:var(--accent-primary);cursor:pointer}
+.repository-accountability-compact details>div{
+  position:absolute;z-index:30;min-width:230px;padding:9px;border:1px solid var(--border-default);
+  border-radius:9px;background:var(--surface-primary);box-shadow:0 12px 28px rgba(0,0,0,.12)
+}
+.repository-accountability-compact details small{display:block;margin-top:3px}
+.canonical-document-actions{display:flex;justify-content:flex-end;gap:5px;align-items:center}
+.canonical-document-actions>.repository-read-primary,
+.canonical-document-actions>.repository-review-primary,
+.canonical-document-actions>.repository-archived-final-primary{min-width:62px}
+.repository-more-actions>summary{white-space:nowrap}
+
+/* Protection editor */
+.repository-protection-dialog{width:min(880px,calc(100vw - 28px));max-height:88vh;overflow:auto}
+.repository-protection-dialog>span{display:block;margin:-3px 0 12px;color:var(--text-secondary);font-size:11px;line-height:1.45}
+.repository-protection-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.repository-protection-levels button{
+  min-height:76px;padding:8px;border:1px solid var(--border-default);border-radius:9px;
+  background:var(--surface-secondary);color:var(--text-primary);text-align:left
+}
+.repository-protection-levels button strong,.repository-protection-levels button small{display:block}
+.repository-protection-levels button strong{font-size:10px}
+.repository-protection-levels button small{margin-top:4px;color:var(--text-secondary);font-size:8.8px;line-height:1.3}
+.repository-protection-levels button.active{
+  border-color:var(--accent-primary);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent-primary) 16%,var(--surface-primary)),var(--surface-primary))
+}
+.repository-protection-readers{display:block;margin-top:11px;font-size:10.5px;font-weight:700;color:var(--text-secondary)}
+.repository-protection-readers select{display:block;width:100%;min-height:130px;margin-top:5px}
+.repository-protection-readers small{display:block;margin-top:3px;font-weight:500}
+.repository-protection-capabilities{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:11px}
+.repository-protection-capabilities label{
+  display:flex;gap:7px;align-items:flex-start;padding:8px;border:1px solid var(--border-default);
+  border-radius:9px;background:var(--surface-secondary)
+}
+.repository-protection-capabilities input{width:auto;margin-top:2px}
+.repository-protection-capabilities strong,.repository-protection-capabilities small{display:block}
+.repository-protection-capabilities strong{font-size:10px}
+.repository-protection-capabilities small{margin-top:2px;color:var(--text-secondary);font-size:8.8px;line-height:1.25}
+.repository-protection-dialog .form-pair{margin-top:11px}
+.repository-protection-dialog textarea{min-height:76px}
+.repository-protection-warning{
+  margin-top:11px;padding:9px 10px;border-left:3px solid var(--accent-primary);
+  border-radius:8px;background:var(--surface-secondary)
+}
+.repository-protection-warning strong,.repository-protection-warning span{display:block}
+.repository-protection-warning strong{font-size:10px}
+.repository-protection-warning span{margin-top:3px;color:var(--text-secondary);font-size:9.5px;line-height:1.4}
+
+@media(max-width:980px){
+  .repository-protection-levels{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .repository-protection-capabilities{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+
+/* ============================================================
+   APP2 REPOSITORY CALM ROWS V1.4
+   Remove repeated badges and keep only primary actions visible.
+   ============================================================ */
+
+.repository-table>article{
+  min-height:60px;
+  padding-block:6px;
+}
+
+.repository-private-draft-badge,
+.repository-archived-draft-badge{
+  margin-top:4px;
+  padding:2px 6px;
+  font-size:8.5px;
+}
+
+.repository-draft-signals-compact{
+  margin-top:4px;
+}
+
+.repository-draft-signals-compact span{
+  padding:2px 5px;
+  font-size:8px;
+}
+
+.repository-row-meta{
+  margin-top:4px;
+}
+
+.repository-row-meta span,
+.repository-row-meta b{
+  padding:1px 5px;
+  font-size:8px;
+}
+
+.repository-source{
+  gap:2px;
+}
+
+.repository-source b{
+  font-size:10.5px;
+}
+
+.repository-source small{
+  font-size:9px;
+  line-height:1.2;
+}
+
+.repository-final-record-indicator{
+  display:inline-flex;
+  width:max-content;
+  margin-top:3px;
+  padding:2px 5px;
+  border-radius:999px;
+  background:var(--surface-secondary);
+  color:var(--text-secondary);
+}
+
+.repository-accountability-compact>strong{
+  font-size:10px;
+}
+
+.repository-accountability-compact>small{
+  font-size:8.8px;
+}
+
+.repository-accountability-compact details summary{
+  margin-top:2px;
+  font-size:8.7px;
+}
+
+.canonical-document-actions{
+  gap:5px;
+  flex-wrap:nowrap;
+}
+
+.canonical-document-actions>.repository-read-primary,
+.canonical-document-actions>.repository-review-primary{
+  min-width:58px;
+  padding-inline:10px;
+}
+
+.repository-more-actions>summary{
+  min-width:52px;
+  text-align:center;
+}
+
+/* Do not let old archived-workflow buttons re-expand the row if legacy CSS still exists. */
+.repository-archived-final-primary,
+.repository-archived-history-action{
+  max-width:100%;
+}
+
+
+/* ============================================================
+   APP2 REPOSITORY PAGE NAVIGATION V1.5
+   Always-visible Previous / Next controls above the record list.
+   ============================================================ */
+
+.repository-pagination-top{
+  position:sticky;
+  top:0;
+  z-index:6;
+  margin:0 0 7px;
+  padding:7px 9px;
+  background:color-mix(in srgb,var(--surface-primary) 96%,transparent);
+  backdrop-filter:blur(10px);
+}
+
+.repository-pagination-top>div:first-child{
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+}
+
+.repository-pagination-top>div:first-child strong{
+  font-size:10.5px;
+}
+
+.repository-pagination-top>div:first-child span{
+  color:var(--text-secondary);
+  font-size:9.5px;
+}
+
+.repository-pagination-controls{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.repository-pagination-controls b{
+  min-width:76px;
+  text-align:center;
+  font-size:9.5px;
+  color:var(--text-secondary);
+}
+
+.repository-pagination-top button{
+  min-width:78px;
+}
+
+@media(max-width:700px){
+  .repository-pagination-top{
+    position:static;
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .repository-pagination-controls{
+    justify-content:space-between;
+  }
+}
+
+
+/* ============================================================
+   APP2 REPOSITORY FELIX CLEARANCE V1.6
+   Keep the floating Felix launcher away from Repository paging controls.
+   ============================================================ */
+
+.felix-launcher-zone{
+  display:contents;
+}
+
+/* Repository only: lift and slightly reduce Felix so it cannot cover Next/Previous. */
+.repository-felix-clearance .felix-launcher{
+  right:18px !important;
+  bottom:104px !important;
+  width:54px !important;
+  height:54px !important;
+  z-index:44 !important;
+}
+
+.repository-felix-clearance .felix-launcher .professor-felix{
+  --felix-size:48px;
+  left:2px !important;
+  bottom:2px !important;
+}
+
+/* Keep Repository paging above floating assistants and tool bubbles. */
+.documents-active .repository-pagination,
+.documents-active .repository-pagination-top{
+  position:relative;
+  z-index:60;
+}
+
+/* Preserve the sticky behavior of the top pager while keeping it above Felix. */
+.documents-active .repository-pagination-top{
+  position:sticky;
+  top:0;
+}
+
+@media(max-width:760px){
+  .repository-felix-clearance .felix-launcher{
+    right:10px !important;
+    bottom:92px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+
+  .repository-felix-clearance .felix-launcher .professor-felix{
+    --felix-size:42px;
+  }
+}
+
+.repository-record-title-button{display:block;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}.repository-record-title-button:hover strong{text-decoration:underline;text-underline-offset:2px}
+
+
+/* ============================================================
+   APP2 REPOSITORY V3.0 - NAVIGATION & GOVERNANCE CLEANUP
+   ============================================================ */
+.repository-primary-library-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.repository-primary-library-tabs button{
+  justify-content:space-between;
+  min-height:42px;
+  border-radius:10px;
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 8%,var(--surface-primary)),
+    var(--surface-secondary));
+}
+.repository-primary-library-tabs button.active{
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 20%,var(--surface-primary)),
+    color-mix(in srgb,var(--accent-primary) 7%,var(--surface-secondary)));
+  box-shadow:0 5px 16px color-mix(in srgb,var(--accent-primary) 12%,transparent);
+}
+.repository-secondary-library-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
+  padding:8px 10px;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--surface-secondary) 82%,transparent);
+}
+.repository-secondary-library-tabs>span:first-child{
+  margin-right:2px;
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.repository-secondary-library-tabs button{
+  min-height:31px;
+  padding:5px 9px;
+  border:1px solid var(--border-default);
+  border-radius:8px;
+  background:var(--surface-primary);
+  color:var(--text-secondary);
+  font:inherit;
+  font-size:11px;
+  font-weight:750;
+}
+.repository-secondary-library-tabs button.active{
+  border-color:var(--accent-primary);
+  color:var(--text-primary);
+  background:color-mix(in srgb,var(--accent-primary) 10%,var(--surface-primary));
+}
+.repository-secondary-library-tabs button b{
+  margin-left:4px;
+  color:var(--text-primary);
+}
+.repository-reviewer-gap-summary{
+  margin-left:auto;
+  padding:5px 8px;
+  border:1px solid color-mix(in srgb,var(--warning,#b7791f) 35%,var(--border-default));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--warning,#b7791f) 10%,var(--surface-primary));
+  color:var(--text-primary);
+  font-size:10.5px;
+  font-weight:750;
+}
+.repository-reviewer-required{
+  width:max-content;
+  max-width:100%;
+  padding:3px 6px;
+  border:1px solid color-mix(in srgb,var(--warning,#b7791f) 42%,var(--border-default));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--warning,#b7791f) 12%,var(--surface-primary));
+  color:var(--text-primary);
+  font-size:9px;
+  font-weight:800;
+}
+.repository-source>b{font-size:10.5px}
+.repository-row-meta span{white-space:nowrap}
+@media(max-width:900px){
+  .repository-primary-library-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .repository-reviewer-gap-summary{margin-left:0}
+}
+@media(max-width:520px){
+  .repository-primary-library-tabs{grid-template-columns:1fr}
+}
+
+
+/* APP2 REPOSITORY V3.1 - REVIEWER GOVERNANCE ENFORCEMENT */
+.repository-reviewer-state{display:inline-flex;align-items:center;min-height:30px;padding:6px 10px;border-radius:999px;font-size:.78rem;font-weight:700;line-height:1.15;white-space:normal}
+.repository-reviewer-state.assigned{background:color-mix(in srgb,var(--success,#2f7d50) 12%,var(--surface,#fff));border:1px solid color-mix(in srgb,var(--success,#2f7d50) 35%,transparent)}
+.repository-reviewer-state.required{background:color-mix(in srgb,var(--warning,#b7791f) 14%,var(--surface,#fff));border:1px solid color-mix(in srgb,var(--warning,#b7791f) 38%,transparent)}
+.review-queue article:has(.repository-reviewer-state.required){box-shadow:inset 3px 0 0 color-mix(in srgb,var(--warning,#b7791f) 70%,transparent)}
+
+/* ============================================================
+   APP2 REPOSITORY V3.2 - DOCUMENT ACTIONS & AUDIT HARDENING
+   ============================================================ */
+.repository-protection-chip{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  padding:2px 6px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 32%,var(--border-default));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--accent-primary) 9%,var(--surface-primary));
+  color:var(--text-primary);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.025em;
+}
+.canonical-document-actions{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.canonical-document-actions .repository-action-secondary{
+  min-height:31px;
+  padding:6px 9px;
+  border:1px solid var(--border-default);
+  border-radius:8px;
+  background:var(--surface-primary);
+  color:var(--text-primary);
+  font:inherit;
+  font-size:10.5px;
+  font-weight:750;
+}
+.canonical-document-actions .repository-action-secondary:hover,
+.canonical-document-actions .repository-action-secondary:focus-visible{
+  border-color:color-mix(in srgb,var(--accent-primary) 55%,var(--border-default));
+  background:color-mix(in srgb,var(--accent-primary) 8%,var(--surface-primary));
+}
+.canonical-document-actions .repository-audit-action{
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--accent-primary) 8%,var(--surface-primary)),
+    var(--surface-secondary));
+}
+.repository-activity-summary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+}
+.repository-activity-summary>span{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:28px;
+  padding:5px 8px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-secondary) 86%,transparent);
+}
+.repository-activity-summary>span b{color:var(--text-primary)}
+@media(max-width:720px){
+  .canonical-document-actions{align-items:stretch}
+  .canonical-document-actions>button,
+  .canonical-document-actions>details{flex:1 1 auto}
+}
+
+/* ============================================================
+   APP2 REPOSITORY V3.4 - CROSS-MODULE RECORD TRACEABILITY
+   ============================================================ */
+.repository-traceability-inline{
+  display:grid;
+  gap:3px;
+  margin-top:3px;
+  padding:5px 6px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 18%,var(--border-default));
+  border-radius:8px;
+  background:color-mix(in srgb,var(--accent-primary) 4%,var(--surface-primary));
+}
+.repository-traceability-inline small{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.repository-traceability-inline small b{
+  font-size:inherit;
+}
+.repository-traceability-inline button{
+  justify-self:start;
+  min-height:24px;
+  padding:3px 7px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 28%,var(--border-default));
+  border-radius:999px;
+  background:var(--surface-primary);
+  color:var(--accent-primary);
+  font-size:8.8px;
+  font-weight:750;
+  cursor:pointer;
+}
+.repository-traceability-inline button:hover,
+.repository-traceability-inline button:focus-visible{
+  background:color-mix(in srgb,var(--accent-primary) 9%,var(--surface-primary));
+}
+.repository-linked-count{
+  color:var(--text-secondary);
+  font-size:8.8px;
+}
+@media(max-width:760px){
+  .repository-traceability-inline{padding:5px}
+  .repository-traceability-inline button{min-height:28px}
+}
+
+
+/* APP2 REPOSITORY V3.5 - COMPACT LIBRARY & AUTOMATIC WORK LOCK */
+.repository-progressive-panel {
+  border: 1px solid var(--border-soft, rgba(148,163,184,.24));
+  border-radius: 12px;
+  background: var(--panel-bg, rgba(255,255,255,.72));
+  margin: 8px 0;
+  overflow: clip;
+}
+.repository-progressive-panel > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 8px 12px;
+}
+.repository-progressive-panel > summary::-webkit-details-marker { display:none; }
+.repository-progressive-panel > summary span { display:flex; flex-direction:column; gap:1px; }
+.repository-progressive-panel > summary b { font-size: 12px; }
+.repository-progressive-panel > summary small { font-size: 10px; opacity:.7; }
+.repository-progressive-panel > summary::after { content:"+"; font-weight:800; }
+.repository-progressive-panel[open] > summary::after { content:"−"; }
+.repository-progressive-panel-body { padding: 0 8px 8px; }
+
+.document-list article,
+.repository-document-list article {
+  min-height: 0;
+}
+.repository-row-meta { gap: 4px 8px; }
+.repository-row-meta span,
+.repository-row-meta b { font-size: 10px; }
+.repository-source { gap: 3px; }
+.repository-origin-compact {
+  display:block;
+  max-width: 100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:10px;
+  opacity:.78;
+}
+.repository-accountability-compact { gap:2px; }
+.canonical-document-actions { align-content:start; gap:5px; }
+.canonical-document-actions > button,
+.repository-more-actions > summary { min-height:32px; padding:6px 9px; }
+.repository-more-actions > div { min-width: 190px; max-width: 230px; }
+.repository-more-actions > div > button { min-height:34px; padding:7px 10px; text-align:left; }
+.repository-lock-status {
+  display:block;
+  padding:7px 10px;
+  font-size:10px;
+  font-weight:700;
+  opacity:.72;
+  border-bottom:1px solid var(--border-soft, rgba(148,163,184,.2));
+}
+
+@media (max-width: 980px) {
+  .repository-progressive-panel > summary { padding:8px 10px; }
+  .repository-more-actions > div { min-width:180px; }
+}
+
+
+/* APP2 REPOSITORY V3.6 - ACTION GOVERNANCE & MENU RATIONALISATION */
+.repository-more-actions > div { min-width: 230px; }
+.repository-governance-actions { width: 100%; border-top: 1px solid var(--border-subtle, rgba(127,127,127,.22)); padding-top: 4px; }
+.repository-governance-actions > summary { cursor: pointer; font-weight: 700; padding: 7px 9px; border-radius: 8px; }
+.repository-governance-actions > summary:hover,
+.repository-governance-actions > summary:focus-visible { background: var(--surface-hover, rgba(127,127,127,.09)); outline: none; }
+.repository-governance-actions > div { display: grid; gap: 4px; padding: 4px 0 0 8px; }
+.repository-governance-actions > div > button { width: 100%; text-align: left; }
+
+/* APP2 REPOSITORY V3.7 - LOCK VISIBILITY & FORMAL VISUAL SIMPLIFICATION */
+.repository-library-tabs,
+.repository-smart-filters,
+.repository-governance-drawer,
+.repository-progressive-panel{
+  border:1px solid color-mix(in srgb,var(--border-default) 82%,var(--accent-primary) 18%);
+  border-radius:14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface-primary) 92%,var(--accent-primary) 8%),var(--surface-primary));
+  box-shadow:0 10px 28px rgba(15,23,42,.05);
+}
+
+.repository-progressive-panel>summary,
+.repository-governance-drawer>summary{
+  list-style:none;
+  cursor:pointer;
+  font-weight:800;
+}
+
+.repository-progressive-panel>summary::-webkit-details-marker,
+.repository-governance-drawer>summary::-webkit-details-marker{
+  display:none;
+}
+
+.repository-table{
+  border-radius:16px;
+  box-shadow:0 16px 38px rgba(15,23,42,.06);
+}
+
+.repository-table .document-table-head{
+  padding:11px 16px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--repository-head,var(--surface-secondary)) 84%,var(--accent-primary) 16%),var(--repository-head,var(--surface-secondary)));
+  letter-spacing:.04em;
+}
+
+.repository-table>article{
+  min-height:72px;
+  padding:10px 14px!important;
+  border-inline-start:3px solid transparent;
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+
+.repository-table>article:hover{
+  border-inline-start-color:color-mix(in srgb,var(--accent-primary) 48%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent-primary) 12%,transparent);
+  transform:translateY(-1px);
+}
+
+.repository-record-title-button{
+  padding:0;
+  border:0;
+  background:transparent;
+  text-align:left;
+}
+
+.repository-record-title-button strong{
+  font-size:14px!important;
+}
+
+.repository-row-meta{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:6px;
+}
+
+.repository-row-meta span,
+.repository-row-meta b{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:2px 8px;
+  border:1px solid color-mix(in srgb,var(--border-default) 84%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-secondary) 82%,transparent);
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-secondary);
+}
+
+.repository-state-stack{
+  display:grid;
+  gap:6px;
+  justify-items:start;
+}
+
+.repository-lock-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 9px;
+  border-radius:999px;
+  border:1px solid var(--border-default);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.01em;
+}
+
+.repository-lock-pill.ready{
+  border-color:color-mix(in srgb,var(--accent-primary) 28%,var(--border-default));
+  background:color-mix(in srgb,var(--accent-primary) 7%,var(--surface-primary));
+  color:var(--accent-primary);
+}
+
+.repository-lock-pill.mine{
+  border-color:color-mix(in srgb,var(--success) 42%,var(--border-default));
+  background:color-mix(in srgb,var(--success) 12%,var(--surface-primary));
+  color:var(--success);
+}
+
+.repository-lock-pill.other{
+  border-color:color-mix(in srgb,var(--warning) 46%,var(--border-default));
+  background:color-mix(in srgb,var(--warning) 13%,var(--surface-primary));
+  color:color-mix(in srgb,var(--warning) 72%,var(--text-primary));
+}
+
+.repository-accountability-compact{
+  gap:4px;
+}
+
+.repository-accountability-compact details{
+  margin-top:4px;
+  padding:8px 10px;
+  border:1px solid color-mix(in srgb,var(--border-default) 84%,transparent);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--surface-secondary) 72%,var(--surface-primary));
+}
+
+.repository-accountability-compact details>summary{
+  cursor:pointer;
+  font-weight:800;
+  color:var(--text-primary);
+}
+
+.repository-accountability-compact details>div{
+  display:grid;
+  gap:4px;
+  margin-top:8px;
+}
+
+.repository-accountability-compact strong,
+.repository-source b{
+  font-size:13px;
+}
+
+.repository-source,
+.repository-accountability{
+  gap:4px;
+}
+
+.repository-source a{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  margin-top:4px;
+  padding:4px 0;
+  font-weight:700;
+}
+
+.repository-table .canonical-document-actions{
+  gap:8px!important;
+}
+
+.repository-table .canonical-document-actions>button,
+.repository-more-actions>summary,
+.repository-more-actions button{
+  min-height:32px;
+  padding:5px 10px;
+  border-radius:9px;
+}
+
+.repository-table .repository-action-secondary,
+.repository-table .repository-more-actions summary{
+  border:1px solid color-mix(in srgb,var(--border-default) 82%,var(--accent-primary) 18%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface-primary) 85%,var(--accent-primary) 15%),var(--surface-primary));
+  color:var(--text-primary);
+  font-weight:700;
+}
+
+.repository-table .repository-action-secondary:hover,
+.repository-table .repository-more-actions summary:hover{
+  border-color:var(--accent-primary);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface-secondary) 72%,var(--accent-primary) 28%),var(--surface-secondary));
+}
+
+.repository-table .repository-workspace-action:disabled{
+  cursor:not-allowed;
+  opacity:.62;
+  border-color:color-mix(in srgb,var(--warning) 34%,var(--border-default));
+}
+
+.repository-lock-status{
+  display:block;
+  margin-bottom:6px;
+  padding:7px 8px;
+  border:1px solid color-mix(in srgb,var(--border-default) 84%,transparent);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-secondary) 72%,var(--surface-primary));
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:700;
+}
+
+.repository-governance-actions>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:7px 9px;
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-secondary) 76%,var(--surface-primary));
+  font-weight:800;
+}
+
+.repository-governance-actions>div{
+  display:grid;
+  gap:4px;
+  margin-top:6px;
+}
+
+@media(max-width:1100px){
+  .repository-table .document-table-head,
+  .repository-table>article{
+    min-width:980px;
+  }
+}
+
+/* ============================================================
+   APP2 REPOSITORY V3.7.1 - FORMAL TABLE LAYOUT & VISUAL HIERARCHY
+   CSS-only refinement over the V3.7 stable baseline.
+   ============================================================ */
+
+/* Keep the Repository visually self-contained: the generic department title
+   is redundant once the Records Repository heading is in view. */
+main:has(> .documents-active) > .topbar .title{
+  display:none!important;
+}
+main:has(> .documents-active) > .topbar{
+  min-height:48px;
+  padding-block:6px;
+  justify-content:flex-end;
+  border-bottom-color:color-mix(in srgb,var(--border-default) 78%,transparent);
+  background:var(--surface-primary);
+}
+main:has(> .documents-active) > .topbar .menu-button{
+  margin-right:auto;
+}
+
+/* The Repository already exposes Ask Felix per governed record. Suppress the
+   floating assistant here so it cannot cover row actions or pagination. */
+.repository-felix-clearance .felix-launcher{
+  display:none!important;
+}
+
+/* Remove the accidental/fallback glyph before Repository search while keeping
+   the native input and its accessible label unchanged. */
+.repository-canonical-search > :not(input){
+  display:none!important;
+}
+
+/* Formal surfaces: neutral first, institutional accent second. */
+.repository-library-tabs,
+.repository-smart-filters,
+.repository-governance-drawer,
+.repository-progressive-panel{
+  border-color:color-mix(in srgb,var(--border-default) 88%,var(--accent-primary) 12%);
+  background:var(--surface-primary);
+  box-shadow:0 5px 16px rgba(15,23,42,.035);
+}
+.repository-library-tabs-heading{
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--surface-primary) 94%,var(--accent-primary) 6%),
+    var(--surface-primary));
+}
+.repository-primary-library-tabs button,
+.repository-secondary-library-tabs button{
+  background:var(--surface-primary);
+}
+.repository-primary-library-tabs button.active,
+.repository-secondary-library-tabs button.active{
+  background:color-mix(in srgb,var(--accent-primary) 13%,var(--surface-primary));
+  border-color:color-mix(in srgb,var(--accent-primary) 45%,var(--border-default));
+}
+
+/* Give the records table enough real estate for institutional metadata and
+   keep a deliberate fixed action zone instead of allowing controls to collide. */
+.repository-table .document-table-head,
+.repository-table>article{
+  grid-template-columns:
+    minmax(300px,2.15fr)
+    minmax(190px,1.2fr)
+    122px
+    minmax(190px,1.15fr)
+    minmax(300px,1.5fr);
+  gap:14px;
+  min-width:1160px;
+}
+.repository-table>article{
+  min-height:84px;
+  padding:12px 14px!important;
+  align-items:start;
+}
+.repository-table .document-table-head{
+  padding:10px 14px;
+  background:color-mix(in srgb,var(--surface-secondary) 92%,var(--accent-primary) 8%);
+  font-size:11px;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+
+/* Strong title, quiet metadata. Avoid turning every metadata value into an
+   equally prominent badge. */
+.repository-record-title-button strong{
+  font-size:13.5px!important;
+  line-height:1.35;
+}
+.repository-record-identity{
+  margin-top:4px!important;
+  font-weight:700;
+}
+.repository-row-meta{
+  gap:4px 9px;
+  margin-top:6px;
+}
+.repository-row-meta span,
+.repository-row-meta b{
+  min-height:auto;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:650;
+}
+.repository-row-meta span+span::before,
+.repository-row-meta span+b::before,
+.repository-row-meta b+span::before{
+  content:"·";
+  margin-right:9px;
+  color:color-mix(in srgb,var(--text-secondary) 55%,transparent);
+}
+.repository-protection-chip{
+  padding:1px 6px!important;
+  border-radius:999px!important;
+}
+
+/* Context should scan as source first, origin second. */
+.repository-source{
+  gap:5px;
+  padding-top:1px;
+}
+.repository-source>b{
+  font-size:12.5px;
+}
+.repository-origin-compact,
+.repository-linked-count,
+.repository-final-record-indicator{
+  font-size:10.5px!important;
+  line-height:1.35!important;
+}
+
+/* Status is primary; an unlocked record is merely informational. */
+.repository-state-stack{
+  gap:7px;
+  align-self:start;
+}
+.repository-lock-pill.ready{
+  min-height:auto;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:650;
+}
+.repository-lock-pill.ready::before{
+  content:"•";
+  margin-right:5px;
+  color:var(--success);
+}
+.repository-lock-pill.mine,
+.repository-lock-pill.other{
+  min-height:22px;
+  padding:3px 7px;
+  font-size:10px;
+}
+
+/* Governance is readable by default, with detailed traceability remaining
+   progressively disclosed behind Info. */
+.repository-accountability-compact{
+  gap:3px;
+  padding-top:1px;
+}
+.repository-accountability-compact>strong{
+  font-size:12.5px;
+}
+.repository-accountability-compact>small{
+  font-size:10.5px!important;
+}
+.repository-accountability-compact details{
+  width:max-content;
+  max-width:100%;
+  margin-top:4px;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.repository-accountability-compact details>summary{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:3px 7px;
+  border:1px solid color-mix(in srgb,var(--border-default) 88%,var(--accent-primary) 12%);
+  border-radius:7px;
+  background:var(--surface-primary);
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:750;
+}
+.repository-accountability-compact details[open]{
+  width:100%;
+  padding:7px 8px;
+  border:1px solid var(--border-default);
+  border-radius:9px;
+  background:var(--surface-secondary);
+}
+.repository-accountability-compact details[open]>summary{
+  margin-bottom:5px;
+}
+.repository-accountability-compact details>div{
+  margin-top:4px;
+  gap:3px;
+}
+
+/* A fixed two-row action matrix prevents Read/Workspace/Versions/Audit/More
+   from stacking on top of governance or status content. */
+.repository-table .canonical-document-actions{
+  display:grid!important;
+  grid-template-columns:max-content max-content max-content;
+  grid-auto-rows:minmax(30px,auto);
+  justify-content:end;
+  align-content:start;
+  align-items:center;
+  gap:5px 6px!important;
+  width:100%;
+  min-width:0;
+}
+.repository-table .canonical-document-actions .repository-read-primary,
+.repository-table .canonical-document-actions .repository-review-primary{
+  order:1;
+}
+.repository-table .canonical-document-actions .repository-workspace-action{
+  order:2;
+}
+.repository-table .canonical-document-actions .repository-more-actions{
+  order:3;
+}
+.repository-table .canonical-document-actions button[title="Draft version history"]{
+  order:4;
+}
+.repository-table .canonical-document-actions .repository-audit-action{
+  order:5;
+}
+.repository-table .canonical-document-actions>button,
+.repository-table .repository-more-actions>summary{
+  min-height:30px;
+  padding:5px 9px;
+  font-size:10.5px!important;
+}
+.repository-table .canonical-document-actions .repository-read-primary,
+.repository-table .canonical-document-actions .repository-review-primary{
+  min-width:62px;
+}
+.repository-table .canonical-document-actions .repository-action-secondary{
+  background:var(--surface-primary);
+  border-color:color-mix(in srgb,var(--border-default) 90%,var(--accent-primary) 10%);
+  font-weight:700;
+}
+.repository-table .canonical-document-actions button[title="Draft version history"],
+.repository-table .canonical-document-actions .repository-audit-action{
+  color:var(--text-secondary);
+  background:transparent;
+  border-color:color-mix(in srgb,var(--border-default) 78%,transparent);
+}
+.repository-table .repository-more-actions>summary{
+  min-width:48px;
+  background:var(--surface-primary);
+}
+
+/* More remains an overflow surface, not a second workspace. */
+.repository-more-actions>div{
+  min-width:220px;
+  max-width:250px;
+  border-radius:10px;
+  box-shadow:0 16px 34px rgba(15,23,42,.16);
+}
+.repository-more-actions>div>button,
+.repository-governance-actions>summary{
+  font-size:11px!important;
+}
+
+/* Give dense enterprise records a calm row hover rather than a card-like jump. */
+.repository-table>article:hover{
+  transform:none;
+  border-inline-start-color:color-mix(in srgb,var(--accent-primary) 42%,transparent);
+  background:color-mix(in srgb,var(--surface-secondary) 78%,var(--surface-primary))!important;
+}
+
+@media(max-width:1180px){
+  .repository-table .document-table-head,
+  .repository-table>article{
+    min-width:1120px;
+  }
+}
+
+@media(max-width:760px){
+  main:has(> .documents-active) > .topbar{
+    min-height:44px;
+  }
+  .repository-table .canonical-document-actions{
+    grid-template-columns:max-content max-content;
+    justify-content:start;
+  }
+}
+
+/* APP2 REPOSITORY V3.7.2 - SEPARATE ADMINISTRATION HUB */
+.repository-administration-hub{
+  margin:10px 0 14px;
+  border:1px solid color-mix(in srgb,var(--border-default) 82%,var(--accent-primary) 18%);
+  border-radius:14px;
+  background:var(--surface-primary);
+  box-shadow:0 8px 22px rgba(15,23,42,.045);
+  overflow:visible;
+}
+
+.repository-administration-hub>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:64px;
+  padding:12px 16px;
+  cursor:pointer;
+  list-style:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface-primary) 94%,var(--accent-primary) 6%),var(--surface-primary));
+}
+
+.repository-administration-hub>summary::-webkit-details-marker{display:none}
+
+.repository-administration-hub>summary>span:first-child{
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+
+.repository-administration-hub>summary small{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.12em;
+  color:var(--text-secondary);
+}
+
+.repository-administration-hub>summary b{
+  font-size:14px;
+  color:var(--text-primary);
+}
+
+.repository-administration-hub>summary em{
+  font-size:12px;
+  font-style:normal;
+  color:var(--text-secondary);
+}
+
+.repository-administration-hub-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.repository-administration-hub-actions button{
+  min-height:34px;
+  padding:6px 11px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 48%,var(--border-default));
+  border-radius:9px;
+  background:color-mix(in srgb,var(--accent-primary) 10%,var(--surface-primary));
+  color:var(--text-primary);
+  font-weight:800;
+}
+
+.repository-administration-hub-actions strong{
+  min-height:28px;
+  display:inline-flex;
+  align-items:center;
+  padding:4px 9px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-secondary);
+  color:var(--text-secondary);
+  font-size:11px;
+  white-space:nowrap;
+}
+
+.repository-administration-hub-body{
+  display:grid;
+  gap:8px;
+  padding:10px 12px 12px;
+  border-top:1px solid var(--border-default);
+  background:color-mix(in srgb,var(--surface-secondary) 38%,var(--surface-primary));
+}
+
+.repository-administration-hub .repository-administration-subpanel{
+  margin:0;
+  border:1px solid var(--border-default);
+  border-radius:10px;
+  background:var(--surface-primary);
+  box-shadow:none;
+}
+
+.repository-administration-hub .repository-administration-subpanel>summary{
+  min-height:48px;
+  padding:9px 12px;
+  background:transparent;
+}
+
+.repository-administration-hub .repository-administration-subpanel>summary b{
+  font-size:13px;
+}
+
+.repository-administration-hub .repository-administration-subpanel>summary small{
+  font-size:11px;
+  color:var(--text-secondary);
+}
+
+.repository-library-tabs{
+  margin-top:0;
+}
+
+.repository-library-tabs-heading{
+  padding-top:2px;
+}
+
+.repository-library-tabs-heading-actions{
+  align-items:center;
+}
+
+@media(max-width:760px){
+  .repository-administration-hub>summary{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .repository-administration-hub-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+}
+
+/* APP2 REPOSITORY V3.7.3 - INSTITUTIONAL AUDIT TIMELINE */
+.repository-activity-dialog{
+  width:min(940px,94vw);
+  max-height:min(780px,90vh);
+  grid-template-rows:auto auto minmax(0,1fr);
+  border-radius:18px;
+  box-shadow:0 28px 80px rgba(15,23,42,.22);
+}
+
+.repository-activity-dialog>header{
+  padding:16px 20px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--surface-secondary) 86%,var(--accent-primary) 14%),var(--surface-secondary));
+}
+
+.repository-activity-dialog>header p{
+  font-size:11px;
+  letter-spacing:.16em;
+}
+
+.repository-activity-dialog>header h2{
+  margin:3px 0 2px;
+  font-size:21px;
+}
+
+.repository-activity-dialog>header span{
+  display:block;
+  max-width:720px;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.repository-activity-summary{
+  gap:7px;
+  padding:8px 20px;
+  overflow:auto;
+}
+
+.repository-activity-summary span{
+  flex:0 0 auto;
+  padding:5px 8px;
+  font-size:11px;
+}
+
+.institutional-audit-timeline{
+  padding-top:4px;
+}
+
+.institutional-audit-timeline .repository-activity-event{
+  grid-template-columns:14px minmax(0,1fr);
+  gap:12px;
+  padding:14px 0;
+}
+
+.institutional-audit-timeline .repository-activity-event>i{
+  width:10px;
+  height:10px;
+  margin-top:5px;
+  border-width:2px;
+}
+
+.institutional-audit-timeline .repository-activity-event-head{
+  align-items:center;
+  gap:12px;
+}
+
+.institutional-audit-timeline .repository-activity-event-head strong{
+  font-size:14px;
+  line-height:1.35;
+}
+
+.institutional-audit-timeline .repository-activity-event-head span{
+  margin-left:auto;
+  padding:4px 8px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-secondary);
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.repository-activity-human-summary{
+  margin:5px 0 3px!important;
+  color:var(--text-primary)!important;
+  font-size:13px!important;
+  line-height:1.45!important;
+}
+
+.repository-activity-actor{
+  display:block;
+  margin-top:3px!important;
+  color:var(--text-secondary)!important;
+  font-size:11px!important;
+}
+
+.repository-activity-technical-details{
+  margin-top:8px;
+  border-top:1px dashed color-mix(in srgb,var(--border-default) 84%,transparent);
+  padding-top:7px;
+}
+
+.repository-activity-technical-details>summary{
+  width:max-content;
+  cursor:pointer;
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:800;
+}
+
+.repository-activity-technical-details>p{
+  margin:7px 0 3px!important;
+  padding:8px 10px;
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-secondary) 76%,var(--surface-primary));
+  color:var(--text-secondary)!important;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11px!important;
+  line-height:1.5!important;
+  overflow-wrap:anywhere;
+}
+
+.repository-activity-technical-details>small{
+  color:var(--text-secondary);
+  font-size:10px;
+}
+
+.institutional-audit-timeline .repository-activity-event.access>i{
+  border-color:color-mix(in srgb,var(--accent-primary) 54%,var(--border-default));
+  box-shadow:none;
+}
+
+.institutional-audit-timeline .repository-activity-event.access .repository-activity-event-head span{
+  background:color-mix(in srgb,var(--accent-primary) 6%,var(--surface-primary));
+}
+
+.institutional-audit-timeline .repository-activity-event.edit>i,
+.institutional-audit-timeline .repository-activity-event.review>i{
+  border-color:var(--accent-primary);
+}
+
+.institutional-audit-timeline .repository-activity-event.approval>i,
+.institutional-audit-timeline .repository-activity-event.publication>i{
+  border-color:var(--success);
+  background:color-mix(in srgb,var(--success) 12%,var(--surface-primary));
+}
+
+.institutional-audit-timeline .repository-activity-event.approval .repository-activity-event-head span,
+.institutional-audit-timeline .repository-activity-event.publication .repository-activity-event-head span{
+  border-color:color-mix(in srgb,var(--success) 42%,var(--border-default));
+  color:var(--success);
+  background:color-mix(in srgb,var(--success) 8%,var(--surface-primary));
+}
+
+.institutional-audit-timeline .repository-activity-event.governance>i,
+.institutional-audit-timeline .repository-activity-event.security>i{
+  border-color:var(--warning);
+  background:color-mix(in srgb,var(--warning) 12%,var(--surface-primary));
+}
+
+.institutional-audit-timeline .repository-activity-event.governance .repository-activity-event-head span,
+.institutional-audit-timeline .repository-activity-event.security .repository-activity-event-head span{
+  border-color:color-mix(in srgb,var(--warning) 42%,var(--border-default));
+  color:color-mix(in srgb,var(--warning) 72%,var(--text-primary));
+  background:color-mix(in srgb,var(--warning) 8%,var(--surface-primary));
+}
+
+@media(max-width:700px){
+  .repository-activity-dialog>header{padding:14px}
+  .repository-activity-summary{padding:7px 14px}
+  .institutional-audit-timeline .repository-activity-event-head{align-items:flex-start;flex-direction:column;gap:6px}
+  .institutional-audit-timeline .repository-activity-event-head span{margin-left:0}
+}
+
+.repository-activity-day{
+  position:sticky;
+  top:0;
+  z-index:2;
+  width:max-content;
+  margin:10px 0 2px;
+  padding:4px 8px;
+  border:1px solid var(--border-default);
+  border-radius:999px;
+  background:var(--surface-primary);
+  color:var(--text-secondary);
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.repository-activity-entry:first-child .repository-activity-day{
+  margin-top:4px;
+}
+
+/* APP2_REPOSITORY_DRAFT_REFERENCE_WRAP_V1
+   Keep every Repository cell within its own grid column. */
+.repository-table .document-table-head > *,
+.repository-table > article > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.repository-table .document-name,
+.repository-table .document-name > span {
+  display: block !important;
+  width: 100%;
+  min-width: 0 !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.repository-table .document-name > span {
+  overflow: hidden;
+}
+
+.repository-table .document-name .repository-record-title-button {
+  display: block !important;
+  width: 100%;
+  min-width: 0 !important;
+  max-width: 100%;
+  padding: 0;
+  white-space: normal !important;
+  text-align: left;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.repository-table .repository-record-title-button strong {
+  display: -webkit-box !important;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-overflow: clip;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.35;
+}
+
+.repository-table .document-name small,
+.repository-table .repository-source small,
+.repository-table .repository-accountability small {
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.repository-table .repository-source,
+.repository-table .repository-accountability,
+.repository-table .repository-state-stack,
+.repository-table .canonical-document-actions {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.repository-table .repository-source > b,
+.repository-table .repository-accountability > strong {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.repository-table .repository-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  gap: 4px 8px;
+}

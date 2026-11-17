@@ -1,0 +1,146 @@
+/* APP2 Light — canonical theme owner.
+   Palette and theme tokens only; interaction mechanics live in app2-interactive-visuals.css. */
+html[data-theme="light"]{
+  color-scheme:light;
+  --app-background:#E9F1F7;
+  --surface-page:#E9F1F7;
+  --surface-primary:#FFFFFF;
+  --surface-secondary:#D5E6F2;
+  --surface-elevated:#BFD8E8;
+  --text-primary:#172433;
+  --text-secondary:#3F5264;
+  --text-muted:#607183;
+  --border-default:#AEC5D5;
+  --border-strong:#779FB9;
+  --sidebar-background:#9FC4DB;
+  --header-background:#FFFFFF;
+  --input-background:#FFFFFF;
+  --input-border:#95ACBD;
+  --accent-primary:#1B5F8B;
+  --button-primary-bg:#1B5F8B;
+  --button-primary-text:#FFFFFF;
+  --focus-ring:#1B5F8B;
+  --success:#25704A;
+  --warning:#986D12;
+  --danger:#B04444;
+  --info:#2D6F9E;
+  --yellow:#23699B;
+  --orange:#986D12;
+  --green:#25704A;
+  --blue:#2D6F9E;
+  --primary:#1B5F8B;
+  --primary-hover:#184D71;
+  --secondary:#557D9B;
+  --bg:#E9F1F7;
+  --bg-2:#FFFFFF;
+  --panel:#FFFFFF;
+  --panel-2:#D5E6F2;
+  --line:#AEC5D5;
+  --muted:#607183;
+  --text:#172433;
+  --input-bg:#FFFFFF;
+  --app2-heading-blue:#185F91;
+  --app2-heading-gold:#806019;
+  --app2-heading-green:#25704A;
+  --app2-copy:#3F5264;
+  --app2-copy-muted:#607183;
+  --repository-surface:#FFFFFF;
+  --repository-row:#FFFFFF;
+  --repository-row-hover:#E3EDF3;
+  --repository-head:#D6E4EC;
+  --repository-text:#172433;
+  --repository-muted:#506274;
+  --repository-border:#C5D0DA;
+  --repository-track:#D4E1E9;
+  --border:var(--border-default);
+  --surface-raised:var(--surface-elevated);
+  --accent:var(--accent-primary);
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-muted:var(--surface-secondary);
+  --surface-2:var(--surface-secondary);
+  --border-subtle:var(--border-default);
+  --muted-text:var(--text-secondary);
+  --sidebar-control-bg:#F6FBFE;
+  --sidebar-control-border:#78A5C0;
+  --sidebar-text:#12344D;
+  --sidebar-muted:#365A72;
+  --interaction-hover-bg:#B8D6E7;
+  --interaction-hover-border:#397FA8;
+  --interaction-hover-text:#12344D;
+  --interaction-active-bg:#A4CBE0;
+  --interaction-focus:#1B5F8B;
+}
+
+html[data-theme="light"],
+html[data-theme="light"] body,
+html[data-theme="light"] #root,
+html[data-theme="light"] .dashboard-shell,
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] .dashboard-shell>main,
+html[data-theme="light"] .dashboard-content{
+  background:var(--app-background)!important;
+  background-image:none!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="light"] .sidebar{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar-background) 90%,white 10%),var(--sidebar-background))!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:10px 0 28px color-mix(in srgb,var(--sidebar-background) 28%,transparent)!important;
+}
+html[data-theme="light"] .sidebar :is(.brand strong,.brand span){color:var(--sidebar-text)!important}
+html[data-theme="light"] .sidebar :is(.brand small,.nav-section-title,.sidebar-footer small){color:var(--sidebar-muted)!important}
+html[data-theme="light"] .sidebar :is(nav button,.quick-access button){
+  background:var(--sidebar-control-bg)!important;
+  background-image:none!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+
+html[data-theme="light"] .topbar{
+  background:var(--header-background)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="light"] .topbar :is(.title h1,.user strong){color:var(--text-primary)!important}
+html[data-theme="light"] .topbar :is(.title p,.user small,.live-time,.live-time span,.live-time small){color:var(--text-secondary)!important}
+html[data-theme="light"] :is(.header-search,.topbar .user){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="light"] :is(
+  .panel,.card,.stat-card,.command-card,.settings-panel,.settings-card,.management-area,
+  .assignment-card,.research-card,.document-card,.repository-card,.report-card,
+  .workspace-card,.workspace-header,.calendar-panel,.notification-card,.notice-card,
+  .document-management-view .repository-table,.review-queue,.deletion-approval-queue,
+  .modal-card,.dialog-card,.drawer,.account-menu,.app-context-menu,.login-card
+){
+  background:var(--surface-primary)!important;
+  background-image:none!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="light"] :is(input,textarea,select){
+  background:var(--input-background)!important;
+  border-color:var(--input-border)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="light"] :is(input,textarea)::placeholder{color:var(--text-muted)!important;opacity:1}
+html[data-theme="light"] :is(.muted,.meta,.secondary,small){color:var(--text-secondary)}
+html[data-theme="light"] :is(h1,h2,h3,h4,h5,h6,strong,b,legend){color:var(--text-primary)}
+html[data-theme="light"] :is(table,.data-table,.report-table){background:var(--surface-primary);color:var(--text-primary)}
+html[data-theme="light"] :is(th,.table-head){background:var(--surface-secondary);color:var(--text-secondary);border-color:var(--border-default)}
+html[data-theme="light"] td{border-color:var(--border-default)}
+html[data-theme="light"] .repository-table>article{
+  background:var(--repository-row,var(--surface-primary))!important;
+  background-image:none!important;
+  filter:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}

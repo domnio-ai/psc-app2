@@ -1,0 +1,1272 @@
+﻿
+/* =========================================================
+   APP2 TASKS
+   Compact operational console
+   The parent WORKSPACE shell already provides page identity.
+   ========================================================= */
+
+.tasks-control-centre {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+
+/* =========================================================
+   REMOVE DUPLICATED INNER PAGE HEADER
+   Outer App2 workspace shell already says TASKS.
+   ========================================================= */
+
+.tasks-control-centre .tasks-control-head {
+  display: none !important;
+}
+
+
+/* =========================================================
+   NAVIGATION FIRST
+   ========================================================= */
+
+.tasks-control-centre .tasks-view-tabs {
+  display: inline-flex;
+
+  width: max-content;
+  max-width: 100%;
+
+  gap: 2px;
+
+  margin: 0;
+  padding: 2px;
+
+  overflow-x: auto;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-secondary);
+}
+
+
+.tasks-control-centre .tasks-view-tabs button {
+  min-height: 27px;
+
+  padding: 4px 10px;
+
+  border: 1px solid transparent;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.tasks-control-centre .tasks-view-tabs button:hover {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+
+.tasks-control-centre .tasks-view-tabs button.active {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 38%,
+      var(--border-default)
+    );
+
+  background: var(--surface-primary);
+
+  color: var(--accent-primary);
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   KPI STRIP
+   Small status indicators, not giant dashboard cards.
+   ========================================================= */
+
+.tasks-control-centre .tasks-summary {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 5px;
+
+  margin: 0;
+}
+
+
+.tasks-control-centre .tasks-summary-card {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "value label"
+    "value note";
+
+  column-gap: 8px;
+
+  align-items: center;
+
+  min-width: 0;
+  min-height: 45px;
+
+  padding: 6px 9px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-primary) !important;
+
+  color: var(--text-primary);
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-shadow: none !important;
+
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease;
+}
+
+
+.tasks-control-centre .tasks-summary-card::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 5px auto 5px 0;
+
+  width: 2px;
+
+  border-radius: 2px;
+
+  background: var(--accent-primary);
+}
+
+
+.tasks-control-centre .tasks-summary-card.primary,
+.tasks-control-centre .tasks-summary-card.warning,
+.tasks-control-centre .tasks-summary-card.review,
+.tasks-control-centre .tasks-summary-card.approval {
+  background: var(--surface-primary) !important;
+}
+
+
+.tasks-control-centre .tasks-summary-card.warning::before {
+  background: var(--warning);
+}
+
+
+.tasks-control-centre .tasks-summary-card:hover:not(:disabled) {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 42%,
+      var(--border-default)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 2%,
+      var(--surface-primary)
+    ) !important;
+}
+
+
+.tasks-control-centre .tasks-summary-card:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+
+
+.tasks-control-centre .tasks-summary-card strong {
+  grid-area: value;
+
+  display: block;
+
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 18px;
+  line-height: 1;
+
+  font-weight: 800;
+}
+
+
+.tasks-control-centre .tasks-summary-card small {
+  grid-area: label;
+
+  display: block;
+
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1.1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.02em;
+}
+
+
+.tasks-control-centre .tasks-summary-card span {
+  grid-area: note;
+
+  display: block;
+
+  margin: 1px 0 0;
+
+  overflow: hidden;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+  line-height: 1.15;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   GUIDANCE
+   One compact actionable line.
+   ========================================================= */
+
+.tasks-control-centre .tasks-view-guide {
+  display: grid;
+
+  grid-template-columns:
+    20px minmax(0, 1fr);
+
+  gap: 7px;
+
+  align-items: center;
+
+  min-height: 36px;
+
+  padding: 6px 9px;
+
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--accent-primary) 18%,
+      var(--border-default)
+    );
+
+  border-radius: 7px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 2%,
+      var(--surface-primary)
+    );
+}
+
+
+.tasks-control-centre .tasks-view-guide-icon {
+  display: grid;
+
+  place-items: center;
+
+  width: 19px;
+  height: 19px;
+
+  border-radius: 50%;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 12%,
+      var(--surface-secondary)
+    );
+
+  color: var(--accent-primary);
+
+  font-size: 12px;
+
+  font-weight: 900;
+}
+
+
+.tasks-control-centre .tasks-view-guide-copy {
+  display: flex;
+
+  align-items: baseline;
+  flex-wrap: wrap;
+
+  gap: 4px 6px;
+
+  min-width: 0;
+}
+
+
+.tasks-control-centre .tasks-view-guide-copy small {
+  display: none;
+}
+
+
+/* Keep only short contextual title */
+
+.tasks-control-centre .tasks-view-guide-copy strong {
+  display: inline;
+
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1.25;
+
+  font-weight: 800;
+}
+
+
+/* Hide repetitive explanatory paragraph */
+
+.tasks-control-centre .tasks-view-guide-copy p {
+  display: none;
+}
+
+
+/* Keep the actual next action */
+
+.tasks-control-centre .tasks-view-guide-copy span {
+  display: inline;
+
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.25;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   FILTER BAR
+   ========================================================= */
+
+.tasks-control-centre .tasks-filters {
+  display: grid;
+
+  grid-template-columns:
+    minmax(300px, 1fr)
+    150px
+    auto;
+
+  align-items: end;
+
+  gap: 7px;
+
+  padding: 6px 8px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-primary);
+}
+
+
+.tasks-control-centre .tasks-filters label > span {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+.tasks-control-centre .tasks-filters input,
+.tasks-control-centre .tasks-filters select {
+  box-sizing: border-box;
+
+  width: 100%;
+  height: 30px;
+
+  padding: 3px 7px;
+
+  border: 1px solid var(--input-border);
+  border-radius: 5px;
+
+  background: var(--input-background);
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+}
+
+
+.tasks-control-centre .tasks-filters > strong {
+  padding: 6px 0;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TASK LIST
+   ========================================================= */
+
+.tasks-control-centre .tasks-list {
+  display: grid;
+  gap: 5px;
+}
+
+
+.tasks-control-centre .standalone-task-row {
+  display: grid;
+
+  grid-template-columns:
+    minmax(190px, 1fr)
+    minmax(470px, 2.1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 8px;
+
+  min-height: 61px;
+
+  padding: 7px 9px;
+
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--accent-primary);
+
+  border-radius: 7px;
+
+  background: var(--surface-primary);
+
+  box-shadow: none;
+}
+
+
+.tasks-control-centre .standalone-task-row.due-overdue {
+  border-left-color: var(--danger);
+}
+
+
+.tasks-control-centre .standalone-task-row.due-today,
+.tasks-control-centre .standalone-task-row.due-soon {
+  border-left-color: var(--warning);
+}
+
+
+.tasks-control-centre .standalone-task-main {
+  min-width: 0;
+}
+
+
+.tasks-control-centre .standalone-task-main small {
+  color: var(--accent-primary);
+
+  font-size: 12px;
+  line-height: 1.1;
+
+  font-weight: 800;
+}
+
+
+.tasks-control-centre .standalone-task-main h3 {
+  margin: 1px 0;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1.2;
+
+  font-weight: 800;
+}
+
+
+.tasks-control-centre .standalone-task-main p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   TASK METADATA
+   Dense horizontal metadata cells.
+   ========================================================= */
+
+.tasks-control-centre .standalone-task-row dl {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 4px;
+
+  margin: 0;
+}
+
+
+.tasks-control-centre .standalone-task-row dl div {
+  min-width: 0;
+
+  padding: 3px 5px;
+
+  border: 0;
+  border-radius: 4px;
+
+  background: var(--surface-secondary);
+}
+
+
+.tasks-control-centre .standalone-task-row dt {
+  color: var(--text-muted);
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 700;
+}
+
+
+.tasks-control-centre .standalone-task-row dd {
+  margin: 1px 0 0;
+
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1.15;
+
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.tasks-control-centre .standalone-task-row dd.due-overdue {
+  color: var(--danger);
+}
+
+
+.tasks-control-centre .standalone-task-row dd.due-today,
+.tasks-control-centre .standalone-task-row dd.due-soon {
+  color: var(--warning);
+}
+
+
+/* =========================================================
+   TASK ACTION
+   ========================================================= */
+
+.tasks-control-centre .standalone-task-row > button {
+  min-height: 28px;
+
+  padding: 4px 8px;
+
+  border: 1px solid var(--accent-primary);
+  border-radius: 5px;
+
+  background: var(--button-primary-bg);
+
+  color: var(--button-primary-text);
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+
+/* Task actions: open the task in App2 or download an editable offline work pack. */
+.tasks-control-centre .standalone-task-actions,
+.tasks-control-centre .task-request-actions {
+  display: grid;
+  min-width: 154px;
+  gap: 5px;
+  align-content: center;
+}
+
+.tasks-control-centre .standalone-task-actions button,
+.tasks-control-centre .task-request-actions button {
+  width: 100%;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid var(--accent-primary);
+  border-radius: 5px;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.tasks-control-centre .standalone-task-actions button.secondary,
+.tasks-control-centre .task-request-actions button.secondary {
+  border: 1px solid var(--border-default);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+
+.tasks-control-centre .tasks-empty,
+.tasks-control-centre .tasks-message {
+  padding: 10px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-primary);
+
+  color: var(--text-secondary);
+
+  text-align: center;
+}
+
+
+.tasks-control-centre .tasks-empty strong {
+  display: block;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+}
+
+
+.tasks-control-centre .tasks-empty p {
+  margin: 2px 0 0;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TASK REQUEST SURFACES
+   ========================================================= */
+
+.tasks-control-centre .task-request-surface {
+  display: grid;
+  gap: 6px;
+}
+
+
+.tasks-control-centre .task-request-surface > header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 7px 9px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-primary);
+}
+
+
+.tasks-control-centre .task-request-surface > header small {
+  color: var(--accent-primary);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.tasks-control-centre .task-request-surface > header h3 {
+  margin: 1px 0;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+}
+
+
+.tasks-control-centre .task-request-surface > header p {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+}
+
+
+.tasks-control-centre .task-request-surface > header button,
+.tasks-control-centre .task-request-card > button {
+  min-height: 28px;
+
+  padding: 4px 8px;
+
+  border: 1px solid var(--accent-primary);
+  border-radius: 5px;
+
+  background: var(--button-primary-bg);
+
+  color: var(--button-primary-text);
+
+  font-size: 12px;
+
+  font-weight: 800;
+}
+
+
+.tasks-control-centre .task-request-list {
+  display: grid;
+  gap: 5px;
+}
+
+
+.tasks-control-centre .task-request-card {
+  display: grid;
+
+  grid-template-columns:
+    minmax(220px, 1.2fr)
+    minmax(300px, 1fr)
+    auto;
+
+  gap: 8px;
+
+  align-items: center;
+
+  padding: 6px 8px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+
+  background: var(--surface-primary);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+
+/* APP2 TASK REQUEST UNIVERSAL FORM START */
+
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+
+.task-request-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 120;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 24px;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--text-primary) 38%,
+      transparent
+    );
+
+  backdrop-filter: blur(3px);
+}
+
+
+/* =========================================================
+   FORM CONTAINER
+   ========================================================= */
+
+.task-request-modal {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 12px 14px;
+
+  width: min(760px, calc(100vw - 48px));
+  max-height: min(82vh, 760px);
+
+  overflow-y: auto;
+
+  box-sizing: border-box;
+
+  padding: 18px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+
+  background: var(--surface-primary);
+
+  color: var(--text-primary);
+
+  box-shadow:
+    0 18px 55px
+    color-mix(
+      in srgb,
+      var(--text-primary) 24%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.task-request-modal > header {
+  grid-column: 1 / -1;
+
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding-bottom: 11px;
+
+  border-bottom: 1px solid var(--border-default);
+}
+
+
+.task-request-modal > header > div {
+  min-width: 0;
+}
+
+
+.task-request-modal > header small {
+  display: block;
+
+  margin: 0 0 3px;
+
+  color: var(--accent-primary);
+
+  font-size: 12px;
+  line-height: 1.2;
+
+  font-weight: 850;
+
+  letter-spacing: 0.06em;
+}
+
+
+.task-request-modal > header h3 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 17px;
+  line-height: 1.2;
+
+  font-weight: 800;
+}
+
+
+.task-request-modal > header p {
+  margin: 4px 0 0;
+
+  max-width: 580px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+/* Close button behaves as secondary action */
+
+.task-request-modal > header > button {
+  flex: 0 0 auto;
+
+  min-height: 30px;
+
+  padding: 5px 9px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+
+  background: var(--surface-secondary);
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+
+.task-request-modal > header > button:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 40%,
+      var(--border-default)
+    );
+
+  background:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 4%,
+      var(--surface-primary)
+    );
+}
+
+
+/* =========================================================
+   FORM FIELDS
+   ========================================================= */
+
+.task-request-modal > label,
+.task-request-grid > label {
+  display: grid;
+
+  gap: 4px;
+
+  min-width: 0;
+}
+
+
+.task-request-modal > label > span,
+.task-request-grid > label > span {
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.2;
+
+  font-weight: 700;
+}
+
+
+/* Make direct top-level fields full width */
+
+.task-request-modal > label {
+  grid-column: 1 / -1;
+}
+
+
+.task-request-modal input,
+.task-request-modal select,
+.task-request-modal textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  min-height: 34px;
+
+  padding: 6px 8px;
+
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+
+  background: var(--input-background);
+
+  color: var(--text-primary);
+
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+
+  outline: none;
+}
+
+
+.task-request-modal textarea {
+  min-height: 74px;
+
+  resize: vertical;
+}
+
+
+.task-request-modal input:hover,
+.task-request-modal select:hover,
+.task-request-modal textarea:hover {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 36%,
+      var(--input-border)
+    );
+}
+
+
+.task-request-modal input:focus,
+.task-request-modal select:focus,
+.task-request-modal textarea:focus {
+  border-color: var(--accent-primary);
+
+  box-shadow:
+    0 0 0 2px
+    color-mix(
+      in srgb,
+      var(--accent-primary) 14%,
+      transparent
+    );
+}
+
+
+.task-request-modal input:disabled,
+.task-request-modal select:disabled,
+.task-request-modal textarea:disabled {
+  opacity: 0.62;
+
+  cursor: not-allowed;
+
+  background: var(--surface-secondary);
+}
+
+
+/* =========================================================
+   INNER FIELD GRID
+   ========================================================= */
+
+.task-request-grid {
+  grid-column: 1 / -1;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(120px, 0.6fr)
+    minmax(150px, 0.8fr);
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   HELP TEXT
+   ========================================================= */
+
+.task-request-modal label small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   FOOTER ACTION BAR
+   ========================================================= */
+
+.task-request-modal > footer {
+  grid-column: 1 / -1;
+
+  display: flex;
+
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 2px;
+
+  padding-top: 11px;
+
+  border-top: 1px solid var(--border-default);
+}
+
+
+.task-request-modal > footer button {
+  min-height: 31px;
+
+  padding: 5px 10px;
+
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+
+  background: var(--surface-secondary);
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+
+.task-request-modal > footer button:hover:not(:disabled) {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--accent-primary) 40%,
+      var(--border-default)
+    );
+}
+
+
+/* Primary submit/approve button */
+
+.task-request-modal > footer button[type="submit"] {
+  border-color: var(--accent-primary);
+
+  background: var(--button-primary-bg);
+
+  color: var(--button-primary-text);
+
+  font-weight: 820;
+}
+
+
+.task-request-modal > footer button[type="submit"]:hover:not(:disabled) {
+  box-shadow:
+    0 4px 10px
+    color-mix(
+      in srgb,
+      var(--accent-primary) 14%,
+      transparent
+    );
+}
+
+
+.task-request-modal > footer button:disabled {
+  opacity: 0.48;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  .task-request-backdrop {
+    padding: 10px;
+  }
+
+
+  .task-request-modal {
+    grid-template-columns: 1fr;
+
+    width: calc(100vw - 20px);
+    max-height: 92vh;
+
+    padding: 13px;
+  }
+
+
+  .task-request-modal > header {
+    align-items: flex-start;
+  }
+
+
+  .task-request-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .task-request-modal > footer {
+    position: sticky;
+
+    bottom: -13px;
+
+    padding: 9px 0 0;
+
+    background: var(--surface-primary);
+  }
+}
+
+
+/* APP2 TASK REQUEST UNIVERSAL FORM END */
+
+@media (max-width: 1100px) {
+
+  .tasks-control-centre .tasks-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .tasks-control-centre .standalone-task-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-control-centre .standalone-task-row dl {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 700px) {
+
+  .tasks-control-centre .tasks-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-control-centre .tasks-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-control-centre .standalone-task-row dl {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .tasks-control-centre .tasks-view-guide-copy {
+    display: block;
+  }
+
+  .tasks-control-centre .tasks-view-guide-copy span {
+    display: block;
+    margin-top: 2px;
+  }
+}
+
+
+

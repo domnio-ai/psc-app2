@@ -1,0 +1,146 @@
+/* APP2 Low-Contrast Navy — canonical theme owner.
+   Palette and theme tokens only; interaction mechanics live in app2-interactive-visuals.css. */
+html[data-theme="low-contrast-navy"]{
+  color-scheme:dark;
+  --app-background:#111927;
+  --surface-page:#111927;
+  --surface-primary:#182234;
+  --surface-secondary:#202C3E;
+  --surface-elevated:#29374A;
+  --text-primary:#E8EDF3;
+  --text-secondary:#BBC6D3;
+  --text-muted:#9EACBC;
+  --border-default:#2F3D52;
+  --border-strong:#465972;
+  --sidebar-background:#101925;
+  --header-background:#182234;
+  --input-background:#141E2D;
+  --input-border:#465972;
+  --accent-primary:#5A83C6;
+  --button-primary-bg:#5A83C6;
+  --button-primary-text:#FFFFFF;
+  --focus-ring:#7BA8D8;
+  --success:#5EA27C;
+  --warning:#C7A24C;
+  --danger:#C56B6B;
+  --info:#6E9ED3;
+  --yellow:#5A83C6;
+  --orange:#C7A24C;
+  --green:#5EA27C;
+  --blue:#6E9ED3;
+  --primary:#5A83C6;
+  --primary-hover:#466EAE;
+  --secondary:#7BA8D8;
+  --bg:#111927;
+  --bg-2:#182234;
+  --panel:#182234;
+  --panel-2:#202C3E;
+  --line:#2F3D52;
+  --muted:#9EACBC;
+  --text:#E8EDF3;
+  --input-bg:#141E2D;
+  --app2-heading-blue:#8CB8E4;
+  --app2-heading-gold:#D1B661;
+  --app2-heading-green:#5EA27C;
+  --app2-copy:#BBC6D3;
+  --app2-copy-muted:#9EACBC;
+  --repository-surface:#182234;
+  --repository-row:#182234;
+  --repository-row-hover:#202C3E;
+  --repository-head:#202C3E;
+  --repository-text:#E8EDF3;
+  --repository-muted:#B9C5D2;
+  --repository-border:#2F3D52;
+  --repository-track:#29374A;
+  --border:var(--border-default);
+  --surface-raised:var(--surface-elevated);
+  --accent:var(--accent-primary);
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-muted:var(--surface-secondary);
+  --surface-2:var(--surface-secondary);
+  --border-subtle:var(--border-default);
+  --muted-text:var(--text-secondary);
+  --sidebar-control-bg:#192638;
+  --sidebar-control-border:#31445C;
+  --sidebar-text:#E8EDF3;
+  --sidebar-muted:#AAB4C1;
+  --interaction-hover-bg:#24364D;
+  --interaction-hover-border:#5A83C6;
+  --interaction-hover-text:#F0F4F8;
+  --interaction-active-bg:#2D4560;
+  --interaction-focus:#6C94D4;
+}
+
+html[data-theme="low-contrast-navy"],
+html[data-theme="low-contrast-navy"] body,
+html[data-theme="low-contrast-navy"] #root,
+html[data-theme="low-contrast-navy"] .dashboard-shell,
+html[data-theme="low-contrast-navy"] .app-shell,
+html[data-theme="low-contrast-navy"] .dashboard-shell>main,
+html[data-theme="low-contrast-navy"] .dashboard-content{
+  background:var(--app-background)!important;
+  background-image:none!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="low-contrast-navy"] .sidebar{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar-background) 90%,white 10%),var(--sidebar-background))!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:10px 0 28px color-mix(in srgb,var(--sidebar-background) 28%,transparent)!important;
+}
+html[data-theme="low-contrast-navy"] .sidebar :is(.brand strong,.brand span){color:var(--sidebar-text)!important}
+html[data-theme="low-contrast-navy"] .sidebar :is(.brand small,.nav-section-title,.sidebar-footer small){color:var(--sidebar-muted)!important}
+html[data-theme="low-contrast-navy"] .sidebar :is(nav button,.quick-access button){
+  background:var(--sidebar-control-bg)!important;
+  background-image:none!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+
+html[data-theme="low-contrast-navy"] .topbar{
+  background:var(--header-background)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="low-contrast-navy"] .topbar :is(.title h1,.user strong){color:var(--text-primary)!important}
+html[data-theme="low-contrast-navy"] .topbar :is(.title p,.user small,.live-time,.live-time span,.live-time small){color:var(--text-secondary)!important}
+html[data-theme="low-contrast-navy"] :is(.header-search,.topbar .user){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="low-contrast-navy"] :is(
+  .panel,.card,.stat-card,.command-card,.settings-panel,.settings-card,.management-area,
+  .assignment-card,.research-card,.document-card,.repository-card,.report-card,
+  .workspace-card,.workspace-header,.calendar-panel,.notification-card,.notice-card,
+  .document-management-view .repository-table,.review-queue,.deletion-approval-queue,
+  .modal-card,.dialog-card,.drawer,.account-menu,.app-context-menu,.login-card
+){
+  background:var(--surface-primary)!important;
+  background-image:none!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="low-contrast-navy"] :is(input,textarea,select){
+  background:var(--input-background)!important;
+  border-color:var(--input-border)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="low-contrast-navy"] :is(input,textarea)::placeholder{color:var(--text-muted)!important;opacity:1}
+html[data-theme="low-contrast-navy"] :is(.muted,.meta,.secondary,small){color:var(--text-secondary)}
+html[data-theme="low-contrast-navy"] :is(h1,h2,h3,h4,h5,h6,strong,b,legend){color:var(--text-primary)}
+html[data-theme="low-contrast-navy"] :is(table,.data-table,.report-table){background:var(--surface-primary);color:var(--text-primary)}
+html[data-theme="low-contrast-navy"] :is(th,.table-head){background:var(--surface-secondary);color:var(--text-secondary);border-color:var(--border-default)}
+html[data-theme="low-contrast-navy"] td{border-color:var(--border-default)}
+html[data-theme="low-contrast-navy"] .repository-table>article{
+  background:var(--repository-row,var(--surface-primary))!important;
+  background-image:none!important;
+  filter:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}

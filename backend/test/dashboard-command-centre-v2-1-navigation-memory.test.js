@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+const d=fs.readFileSync('src/modules/dashboard/ProgressiveDashboard.tsx','utf8');const m=fs.readFileSync('src/modules/dashboard/dashboardNavigationMemory.ts','utf8');
+test('workspace pin memory is retained without unused record-history state',()=>{assert.match(m,/localStorage/);assert.match(m,/toggleDashboardWorkspacePin/);assert.match(d,/toggleDashboardWorkspacePin/);assert.doesNotMatch(m,/sessionStorage|pinnedRecords|rememberDashboardRecord|toggleDashboardRecordPin/);assert.doesNotMatch(d,/rememberDashboardRecord|toggleDashboardRecordPin/);});
+test('navigation memory no longer crowds the landing page',()=>{assert.doesNotMatch(d,/pulse-navigation-memory pulse-navigation-memory-compact/);assert.doesNotMatch(d,/Recently viewed/);assert.doesNotMatch(d,/Continue working/);});
+test('module overview retains full workspace and workspace-pin actions',()=>{assert.match(d,/Pin workspace/);assert.match(d,/Open full workspace/);assert.doesNotMatch(d,/pulse-detail-pin/);});

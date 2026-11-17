@@ -1,0 +1,461 @@
+/* APP2_SHARED_REPORT_EDITOR_STANDARD_V1
+   Shared visual standard for Task, Assignment and Research report workspaces.
+   Deliberately changes presentation only: no workflow, state, permission or persistence logic. */
+
+.app2-report-builder {
+  --app2-report-navy: #182b43;
+  --app2-report-navy-soft: #233b57;
+  --app2-report-gold: #b28a2e;
+  --app2-report-gold-soft: #f4ead0;
+  --app2-report-ink: #182536;
+  --app2-report-muted: #64748b;
+  --app2-report-border: #d8e0e9;
+  --app2-report-surface: #ffffff;
+  --app2-report-surface-soft: #f5f7fa;
+  min-width: 0 !important;
+  max-width: 100vw !important;
+  color: var(--app2-report-ink);
+}
+
+.app2-report-builder,
+.app2-report-builder * {
+  box-sizing: border-box;
+}
+
+/* The workspace is a viewport dialog. Prevent oversized command grids from
+   shifting the controls beyond the visible left or right edge. */
+html body .app2-report-builder.section-workspace-backdrop {
+  inset: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+html body .app2-report-builder .section-workspace-shell {
+  display: grid !important;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Consistent, responsive title bar for every report workspace. */
+html body .app2-report-builder .section-workspace-shell > header {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 6px 12px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 46px !important;
+  max-height: none !important;
+  padding: 7px 14px !important;
+  background: linear-gradient(105deg, var(--app2-report-navy), var(--app2-report-navy-soft)) !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .section-workspace-shell > header > div:first-child {
+  flex: 1 1 280px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+html body .app2-report-builder .section-workspace-shell > header h2 {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+  line-height: 1.25 !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body .app2-report-builder .section-workspace-shell > header p {
+  color: #e2e8f0 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body .app2-report-builder .section-workspace-state,
+html body .app2-report-builder .section-window-actions {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+}
+
+html body .app2-report-builder .section-workspace-state > *,
+html body .app2-report-builder .section-window-actions > * {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Workflow/reviewer strip: allow its fields to wrap instead of clipping them. */
+html body .app2-report-builder .report-review-workflow {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 8px 12px !important;
+  overflow: visible !important;
+  background: var(--app2-report-surface) !important;
+}
+
+html body .app2-report-builder .report-review-workflow > * {
+  flex: 1 1 190px !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 38px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .report-review-workflow .assignment-report-readiness {
+  grid-template-columns: minmax(110px, auto) minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  gap: 5px 8px !important;
+}
+
+html body .app2-report-builder .report-review-workflow select,
+html body .app2-report-builder .report-review-workflow input,
+html body .app2-report-builder .report-review-workflow textarea {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* A calm, consistent command bar. Tabs and actions may wrap at narrower widths. */
+html body .app2-report-builder .document-ribbon {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  background: var(--app2-report-surface) !important;
+  border-bottom: 1px solid var(--app2-report-border) !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .report-command-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 5px 8px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 42px !important;
+  max-height: none !important;
+  padding: 4px 10px !important;
+  border-bottom: 1px solid var(--app2-report-border) !important;
+  background: var(--app2-report-navy) !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .report-command-row .ribbon-tabs {
+  display: flex !important;
+  flex: 1 1 460px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 3px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 34px !important;
+  max-height: none !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+html body .app2-report-builder .report-command-row .ribbon-tabs button {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 34px !important;
+  max-width: 100% !important;
+  padding: 7px 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #e8edf4 !important;
+  -webkit-text-fill-color: #e8edf4 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+}
+
+html body .app2-report-builder .report-command-row .ribbon-tabs button:hover,
+html body .app2-report-builder .report-command-row .ribbon-tabs button:focus-visible {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html body .app2-report-builder .report-command-row .ribbon-tabs button.active,
+html body .app2-report-builder .report-command-row .ribbon-tabs button[aria-selected="true"] {
+  background: var(--app2-report-gold) !important;
+  border-color: var(--app2-report-gold) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html body .app2-report-builder .report-command-workflow-slot,
+html body .app2-report-builder .report-command-actions {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 5px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 34px !important;
+  max-height: none !important;
+  padding: 2px 4px !important;
+  border-left: 0 !important;
+  overflow: visible !important;
+}
+
+/* Formatting toolbar: a neutral, wrapping surface instead of a clipped strip. */
+html body .app2-report-builder .section-word-toolbar,
+html body .app2-report-builder .ribbon-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 8px 10px !important;
+  background: var(--app2-report-surface-soft) !important;
+  border-top: 0 !important;
+  border-bottom: 1px solid var(--app2-report-border) !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .section-word-toolbar > *,
+html body .app2-report-builder .ribbon-toolbar > *,
+html body .app2-report-builder .ribbon-group {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+html body .app2-report-builder .section-word-toolbar button,
+html body .app2-report-builder .ribbon-toolbar button,
+html body .app2-report-builder .ribbon-group button,
+html body .app2-report-builder .section-word-toolbar select,
+html body .app2-report-builder .ribbon-toolbar select,
+html body .app2-report-builder .ribbon-group select {
+  min-height: 34px !important;
+  max-width: 100% !important;
+  border: 1px solid var(--app2-report-border) !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: var(--app2-report-ink) !important;
+  -webkit-text-fill-color: var(--app2-report-ink) !important;
+  box-shadow: none !important;
+}
+
+html body .app2-report-builder .section-word-toolbar button:hover,
+html body .app2-report-builder .ribbon-toolbar button:hover,
+html body .app2-report-builder .ribbon-group button:hover {
+  border-color: #c7a85e !important;
+  background: var(--app2-report-gold-soft) !important;
+}
+
+html body .app2-report-builder .task-report-primary-actions,
+html body .app2-report-builder .assignment-report-editor-actions,
+html body .app2-report-builder .report-command-actions {
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+html body .app2-report-builder .task-report-primary-actions .task-report-save-primary,
+html body .app2-report-builder .assignment-report-editor-actions .report-action-save,
+html body .app2-report-builder .report-command-actions .report-action-save {
+  background: var(--app2-report-gold) !important;
+  border: 1px solid #987321 !important;
+  border-radius: 7px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 750 !important;
+}
+
+html body .app2-report-builder .task-report-primary-actions .task-report-preview-primary,
+html body .app2-report-builder .assignment-report-editor-actions .report-action-preview,
+html body .app2-report-builder .report-command-actions .report-action-preview {
+  border: 1px solid var(--app2-report-border) !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: var(--app2-report-navy) !important;
+  -webkit-text-fill-color: var(--app2-report-navy) !important;
+  font-weight: 700 !important;
+}
+
+html body .app2-report-builder .section-document-stage {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+}
+
+html body .app2-report-builder .a4-document-page {
+  background: #ffffff !important;
+  border: 1px solid #dbe2ea !important;
+  box-shadow: 0 8px 28px rgba(24, 43, 67, 0.1) !important;
+}
+
+html body .app2-report-builder .report-lexical-host,
+html body .app2-report-builder .app2-lexical-editor-engine,
+html body .app2-report-builder .app2-lexical-document {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+html body .app2-report-builder .app2-lexical-document {
+  overflow-wrap: anywhere;
+}
+
+html body .app2-report-builder .app2-lexical-document img {
+  height: auto;
+  max-width: 100%;
+}
+
+html body .app2-report-builder .app2-lexical-document table {
+  max-width: 100%;
+  border-collapse: collapse;
+}
+
+@media (max-width: 1100px) {
+  html body .app2-report-builder .report-command-row .ribbon-tabs {
+    flex-basis: 100% !important;
+  }
+
+  html body .app2-report-builder .report-review-workflow > * {
+    flex-basis: 220px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .app2-report-builder .section-workspace-shell > header > div:first-child,
+  html body .app2-report-builder .section-workspace-state,
+  html body .app2-report-builder .section-window-actions {
+    flex-basis: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  html body .app2-report-builder .report-review-workflow > * {
+    flex-basis: 100% !important;
+  }
+
+  html body .app2-report-builder .report-command-row .ribbon-tabs {
+    gap: 3px !important;
+  }
+
+  html body .app2-report-builder .report-command-row .ribbon-tabs button {
+    flex: 1 1 auto !important;
+  }
+}
+/* APP2_REPORT_EDITOR_VISIBILITY_FIX_V1 â€” improve tab contrast and prevent workspace controls from clipping. */
+.app2-report-builder .task-report-builder-v1 {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app2-report-builder .task-report-builder-v1 .document-ribbon,
+.app2-report-builder .task-report-builder-v1 .report-command-row {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs button:not(:disabled):not(.active):not([aria-selected="true"]) {
+  color: #344054 !important;
+  -webkit-text-fill-color: #344054 !important;
+  opacity: 1 !important;
+  background-color: #fffdf7;
+  border-color: #d7c18b;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs button:not(:disabled):not(.active):not([aria-selected="true"]):hover,
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs button:not(:disabled):not(.active):not([aria-selected="true"]):focus-visible {
+  color: #182b43 !important;
+  -webkit-text-fill-color: #182b43 !important;
+  background-color: #f4e8c6;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-progress-compact,
+.app2-report-builder .task-report-builder-v1 .assignment-report-editor-status {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1100px) {
+  .app2-report-builder .task-report-builder-v1 .document-ribbon,
+  .app2-report-builder .task-report-builder-v1 .report-command-row {
+    flex-wrap: wrap;
+    height: auto;
+  }
+
+  .app2-report-builder .task-report-builder-v1 .ribbon-tabs {
+    width: 100%;
+  }
+
+  .app2-report-builder .task-report-builder-v1 .task-report-primary-actions {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .app2-report-builder .task-report-builder-v1 .ribbon-tabs button {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

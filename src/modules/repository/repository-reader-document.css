@@ -1,0 +1,418 @@
+:root { color-scheme: light; }
+html { background: #eef1f4 !important; }
+body {
+  margin: 0 !important;
+  padding: 26px 16px 40px !important;
+  background: #eef1f4 !important;
+  color: #26384d !important;
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  overflow-wrap: anywhere;
+}
+body .page, body article.page {
+  box-sizing: border-box !important;
+  width: min(900px, calc(100% - 24px)) !important;
+  max-width: 900px !important;
+  min-height: 1080px !important;
+  margin: 0 auto 30px !important;
+  padding: 50px 64px 70px !important;
+  background: #fff !important;
+  color: #26384d !important;
+  border: 1px solid #e0e5ec !important;
+  border-top: 6px solid #c89b2c !important;
+  border-radius: 3px !important;
+  box-shadow: 0 12px 34px rgba(25, 43, 65, .13) !important;
+  overflow-wrap: anywhere;
+}
+body .app2-psc-report-brand {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 18px !important;
+  width: 100% !important;
+  margin: 0 auto 32px !important;
+  padding: 0 0 22px !important;
+  border-bottom: 1px solid #e2e7ed !important;
+  text-align: left !important;
+  color: #153a63 !important;
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif !important;
+}
+body .app2-psc-report-brand img {
+  display: block !important;
+  flex: 0 0 76px !important;
+  width: 76px !important;
+  height: 76px !important;
+  max-width: 76px !important;
+  max-height: 76px !important;
+  object-fit: contain !important;
+  margin: 0 !important;
+}
+body .app2-psc-report-brand > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+body .app2-psc-report-brand strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #153a63 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+  letter-spacing: .045em !important;
+}
+body .app2-psc-report-brand span {
+  display: block !important;
+  margin: 0 !important;
+  color: #69788b !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+  letter-spacing: .13em !important;
+}
+body .app2-task-report-kicker {
+  margin: 0 0 12px !important;
+  color: #987321 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+  letter-spacing: .15em !important;
+  text-transform: uppercase !important;
+}
+body h1, body .app2-task-report-title {
+  margin: 0 0 26px !important;
+  padding: 0 0 18px !important;
+  border: 0 !important;
+  border-bottom: 3px solid #c89b2c !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #12365b !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 31px !important;
+  font-weight: 700 !important;
+  line-height: 1.22 !important;
+  letter-spacing: -.01em !important;
+  overflow-wrap: anywhere;
+}
+body .app2-task-report-meta {
+  display: block !important;
+  margin: 0 0 30px !important;
+  padding: 10px 16px !important;
+  border: 1px solid #d9e1eb !important;
+  border-radius: 8px !important;
+  background: #f7f9fc !important;
+}
+body .app2-task-report-meta-item {
+  display: grid !important;
+  grid-template-columns: minmax(128px, .36fr) minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 10px 4px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e5eaf1 !important;
+  background: transparent !important;
+  color: #32445a !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+body .app2-task-report-meta-item:last-child { border-bottom: 0 !important; }
+body .app2-task-report-meta-item strong { color: #153a63 !important; font-weight: 750 !important; }
+body .app2-task-report-meta-item span { min-width: 0 !important; overflow-wrap: anywhere; }
+body .app2-task-report-section { margin: 30px 0 0 !important; }
+body .app2-task-report-section-title {
+  margin: 0 0 14px !important;
+  padding: 12px 16px !important;
+  border: 0 !important;
+  border-left: 5px solid #c89b2c !important;
+  border-radius: 0 6px 6px 0 !important;
+  background: #f2f6fa !important;
+  color: #153a63 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+body .app2-task-report-section-content { color: #29394e !important; font-size: 14px !important; line-height: 1.75 !important; }
+body .app2-task-report-section-content p, body .body p { margin: 0 0 14px !important; }
+body .app2-task-report-section-content h1,
+body .app2-task-report-section-content h2,
+body .app2-task-report-section-content h3 {
+  margin: 26px 0 10px !important;
+  color: #153a63 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  line-height: 1.3 !important;
+}
+body .head {
+  margin: 0 0 0 !important;
+  padding: 26px 30px !important;
+  border: 0 !important;
+  border-bottom: 4px solid #c89b2c !important;
+  background: #153a63 !important;
+  color: #fff !important;
+}
+body .head h1 { color: #fff !important; border: 0 !important; margin: 8px 0 6px !important; padding: 0 !important; font-size: 28px !important; }
+body .eyebrow { color: #f0cf78 !important; font-size: 11px !important; font-weight: 800 !important; letter-spacing: .1em !important; }
+body .sub { color: #e1e8f0 !important; font-size: 13px !important; }
+body .meta { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1px !important; background: #dfe5ec !important; }
+body .meta > div { min-width: 0 !important; padding: 13px 16px !important; background: #f7f9fc !important; overflow-wrap: anywhere; }
+body .meta small { display: block !important; margin-bottom: 4px !important; color: #69788b !important; font-size: 10px !important; font-weight: 800 !important; letter-spacing: .07em !important; text-transform: uppercase !important; }
+body .meta strong { color: #153a63 !important; font-size: 13px !important; font-weight: 700 !important; }
+body .body { padding: 30px 0 0 !important; color: #29394e !important; line-height: 1.75 !important; }
+body .section { margin: 0 0 28px !important; break-inside: avoid; }
+body h2,
+body .body h2,
+body .section h2,
+body .app2-repository-report-content h2 {
+  margin: 18pt 0 7pt !important;
+  padding: 10px 14px !important;
+  border: 0 !important;
+  border-left: 5px solid #c89b2c !important;
+  border-radius: 0 7px 7px 0 !important;
+  background: linear-gradient(90deg, #eef3f8 0%, #ffffff 88%) !important;
+  color: #25384c !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 15pt !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+  break-after: avoid;
+  page-break-after: avoid;
+  overflow-wrap: anywhere;
+}
+
+body h3,
+body .body h3,
+body .section h3,
+body .app2-repository-report-content h3 {
+  margin: 13pt 0 6pt !important;
+  padding-left: 11px !important;
+  border-left: 3px solid #6c9b82 !important;
+  color: #31465b !important;
+  font-size: 12.5pt !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  overflow-wrap: anywhere;
+  break-after: avoid;
+}
+body .callout { padding: 14px 18px !important; border-left: 4px solid #c89b2c !important; border-radius: 0 6px 6px 0 !important; background: #fbf7eb !important; }
+body p { overflow-wrap: anywhere; }
+body table { width: 100% !important; max-width: 100% !important; border-collapse: collapse !important; margin: 18px 0 24px !important; font-size: 13px !important; }
+body th, body td { padding: 10px 12px !important; border: 1px solid #d5deea !important; text-align: left; vertical-align: top; }
+body th { color: #153a63 !important; background: #f2f6fa !important; font-weight: 750 !important; }
+body .app2-repository-assignment-report { overflow: visible !important; }
+body .app2-repository-report-cover { min-height: 660px; display: flex; flex-direction: column; padding: 12px 0 24px; border-bottom: 3px solid #c89b2c; }
+body .app2-repository-report-cover .app2-psc-report-brand { justify-content: flex-start !important; margin: 0 0 58px !important; padding: 0 0 20px !important; border-bottom: 2px solid #c89b2c !important; }
+body .app2-repository-report-cover .app2-psc-report-brand img { width: 72px !important; height: 72px !important; max-width: 72px !important; max-height: 72px !important; }
+body .app2-repository-report-kicker { margin: 0 0 12px !important; color: #8b6914 !important; font-size: 11px !important; font-weight: 800 !important; letter-spacing: .14em !important; }
+body .app2-repository-report-cover h1 { margin: 0 0 30px !important; padding: 0 0 18px !important; border-bottom: 3px solid #c89b2c !important; color: #153a63 !important; font-family: Georgia, 'Times New Roman', serif !important; font-size: 32px !important; }
+body .app2-repository-document-control { margin-top: auto; padding: 18px 20px 12px; border: 1px solid #d7e0e9; border-top: 4px solid #153a63; background: #fbfcfe; }
+body .app2-repository-document-control-heading { display: flex; justify-content: space-between; gap: 12px; padding: 0 0 12px; border-bottom: 2px solid #c89b2c; color: #153a63; font-size: 12px; }
+body .app2-repository-document-control-heading span { color: #65758a; font-size: 11px; }
+body .app2-repository-document-control table { margin: 0 !important; table-layout: fixed; }
+body .app2-repository-document-control td { width: 50%; padding: 10px 8px !important; border: 0 !important; border-bottom: 1px solid #e5eaf0 !important; }
+body .app2-repository-document-control td strong, body .app2-repository-document-control td span { display: block; }
+body .app2-repository-document-control td strong { margin-bottom: 3px; color: #617188; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
+body .app2-repository-document-control td span { color: #26384d; font-size: 12px; }
+body .app2-repository-report-content table { table-layout: auto !important; }
+body .app2-repository-report-content td, body .app2-repository-report-content th { min-width: 0;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.62 !important;
+  color: #26384b !important;
+  overflow-wrap: anywhere;
+  background: #f3ead0;
+  border: 1px solid #d6c18b;
+  padding: 7px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+body .app2-repository-report-content tr:first-child th { background: #153a63 !important; color: #fff !important; border-color: #153a63 !important; }
+body .app2-repository-report-content { width: min(100%, 210mm) !important; max-width: 210mm !important; overflow: visible;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  margin: 0 auto 28px !important;
+  padding: 18mm 18mm 22mm !important;
+  background: #fff !important;
+  color: #202630 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.62 !important;
+  overflow-wrap: anywhere !important;
+  border: 1px solid #d8dce3 !important;
+  box-shadow: 0 8px 26px rgba(25,35,45,.12) !important;
+}
+body .app2-reader-wide-table { box-sizing: border-box; width: 100%; max-width: 100%; margin: 20px 0 26px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-inline: contain; border: 1px solid #d5deea; border-radius: 7px; background: #fff; scrollbar-width: auto; }
+body .app2-reader-wide-table:focus-visible { outline: 3px solid #c89b2c; outline-offset: 2px; }
+body .app2-reader-table-hint { position: sticky; left: 0; width: max-content; max-width: 100%; box-sizing: border-box; margin: 0 !important; padding: 7px 10px !important; background: #f2f6fa; color: #153a63; font-size: 11px !important; font-weight: 700; border-bottom: 1px solid #d5deea; }
+body .app2-repository-report-content::before {
+  content: "PUBLIC SERVICE COMMISSION\A OFFICIAL CONTROLLED DOCUMENT";
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 116px;
+  margin: 0 0 22px;
+  padding: 82px 0 14px;
+  background-image: url("/psc-logo.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 68px 68px;
+  border-bottom: 3px solid #b58a1e;
+  color: #193650;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.4;
+  text-align: center;
+  white-space: pre-line;
+}
+body .app2-repository-report-content h1 {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 22pt !important;
+  line-height: 1.24 !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  color: #172b40 !important;
+  margin: 0 0 18pt !important;
+  overflow-wrap: anywhere;
+  break-after: avoid;
+}
+body .app2-repository-report-content h4 {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+  color: #31465b !important;
+  margin: 10pt 0 5pt !important;
+  overflow-wrap: anywhere;
+  break-after: avoid;
+}
+body .app2-repository-report-content p {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.62 !important;
+  color: #202630 !important;
+  overflow-wrap: anywhere;
+}
+body .app2-repository-report-content li {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.62 !important;
+  color: #202630 !important;
+  overflow-wrap: anywhere;
+}
+body .app2-repository-report-content td {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.62 !important;
+  color: #202630 !important;
+  overflow-wrap: anywhere;
+  border: 1px solid #d5dbe2;
+  padding: 7px 9px;
+  vertical-align: top;
+}
+body .app2-repository-report-content table:not(.app2-reader-wide-table-content) {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 12pt 0 16pt;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10pt !important;
+}
+body .app2-repository-report-content img[src*="kenya-coat-of-arms" i], body .app2-repository-report-content img[alt*="coat of arms" i], body .app2-repository-report-content img[alt*="Government of Kenya" i] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+
+
+
+
+
+
+
+body .app2-repository-report-content table.app2-reader-wide-table-content { width: max-content !important; min-width: 1120px; max-width: none !important; margin: 0 !important; table-layout: fixed !important; }
+body .app2-reader-wide-table-content th, body .app2-reader-wide-table-content td { min-width: 145px; max-width: 310px; overflow-wrap: anywhere; }
+body img { max-width: 100% !important; height: auto; }
+body ul, body ol { margin: 10px 0 18px !important; padding-left: 28px !important; }
+body li { margin: 5px 0 !important; line-height: 1.65 !important; }
+/* Meeting draft HTML is sanitized before it reaches this reader. Keep its known,
+   allowlisted document classes and apply trusted App2 styles here instead of
+   trusting embedded CSS from a stored document. */
+body .app2-repository-meeting-minutes {
+  box-sizing: border-box !important;
+  width: min(900px, calc(100% - 24px)) !important;
+  max-width: 900px !important;
+  min-height: 1080px !important;
+  margin: 0 auto 30px !important;
+  padding: 50px 64px 70px !important;
+  border: 1px solid #e0e5ec !important;
+  border-top: 6px solid #c89b2c !important;
+  background: #fff !important;
+  color: #26384d !important;
+  font-family: Arial, "Segoe UI", sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+  box-shadow: 0 12px 34px rgba(25,43,65,.13) !important;
+}
+body .app2-repository-meeting-minutes .identity {
+  display: grid !important;
+  grid-template-columns: 72px minmax(0,1fr) 72px !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin: 0 0 22px !important;
+  padding: 0 0 16px !important;
+  border-bottom: 2px solid #c89b2c !important;
+  color: #153a63 !important;
+  text-align: center !important;
+}
+body .app2-repository-meeting-minutes .identity img { width: 68px !important; max-height: 68px !important; object-fit: contain !important; }
+body .app2-repository-meeting-minutes .identity strong { font: 800 13px/1.4 Arial,sans-serif !important; letter-spacing: .08em; }
+body .app2-repository-meeting-minutes .identity span { font: 700 10px/1.5 Arial,sans-serif !important; letter-spacing: .12em; }
+body .app2-repository-meeting-minutes .draft-banner {
+  margin: 16px 0 !important; padding: 10px 12px !important;
+  border: 1px solid #b48e28 !important; background: #fff8e4 !important;
+  color: #714b05 !important; text-align: center !important;
+  font: 700 11px/1.5 Arial,sans-serif !important; letter-spacing: .04em;
+}
+body .app2-repository-meeting-minutes .meta {
+  display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  gap: 1px !important; margin: 16px 0 24px !important;
+  border: 1px solid #ded5bd !important; background: #ded5bd !important;
+}
+body .app2-repository-meeting-minutes .meta p { margin: 0 !important; padding: 10px 12px !important; background: #f8f6ef !important; font: 10pt/1.5 Arial,sans-serif !important; }
+body .app2-repository-meeting-minutes .content { padding-top: 8px !important; color: #26384d !important; font: 11pt/1.65 Arial,sans-serif !important; }
+body .app2-repository-meeting-minutes .content h1 { margin: 0 0 20px !important; padding-bottom: 10px !important; border-bottom: 2px solid #c89b2c !important; color: #153a63 !important; font: 700 22pt/1.25 Georgia,"Times New Roman",serif !important; }
+body .app2-repository-meeting-minutes .content h2 { margin: 20px 0 9px !important; padding: 8px 12px !important; border-left: 4px solid #c89b2c !important; background: #f2f6fa !important; color: #735610 !important; font: 700 14pt/1.35 Arial,sans-serif !important; }
+body .app2-repository-meeting-minutes .content p { margin: 0 0 10px !important; }
+body .app2-repository-meeting-minutes .content table { width: 100% !important; border-collapse: collapse !important; margin: 12px 0 18px !important; font: 10pt/1.5 Arial,sans-serif !important; }
+body .app2-repository-meeting-minutes .content th, body .app2-repository-meeting-minutes .content td { padding: 7px 8px !important; border: 1px solid #cbd0d7 !important; vertical-align: top !important; }
+body .app2-repository-meeting-minutes .content th { background: #f1ead7 !important; color: #594714 !important; }
+body .app2-repository-meeting-minutes .foot { margin-top: 24px !important; padding-top: 8px !important; border-top: 1px solid #d5d8de !important; color: #626874 !important; text-align: center !important; font: 8pt/1.5 Arial,sans-serif !important; }
+@media (max-width: 760px) {
+  body { padding: 8px !important; }
+  body .page, body article.page { width: 100% !important; min-height: 0 !important; margin: 0 auto 12px !important; padding: 28px 22px 38px !important; }
+  body .app2-repository-meeting-minutes { width: 100% !important; min-height: 0 !important; margin: 0 auto 12px !important; padding: 28px 22px 38px !important; }
+  body .app2-repository-meeting-minutes .identity { grid-template-columns: 48px minmax(0,1fr) 48px !important; gap: 8px !important; }
+  body .app2-repository-meeting-minutes .identity img { width: 46px !important; max-height: 50px !important; }
+  body .app2-repository-meeting-minutes .meta { grid-template-columns: minmax(0,1fr) !important; }
+  body .app2-psc-report-brand { justify-content: flex-start !important; gap: 12px !important; margin-bottom: 24px !important; }
+  body .app2-psc-report-brand img { flex-basis: 58px !important; width: 58px !important; height: 58px !important; max-width: 58px !important; max-height: 58px !important; }
+  body h1, body .app2-task-report-title { font-size: 25px !important; }
+  body .app2-task-report-meta-item { grid-template-columns: minmax(0, 1fr) !important; gap: 3px !important; }
+  body .meta { grid-template-columns: minmax(0, 1fr) !important; }
+  body .app2-repository-report-cover { min-height: 560px; }
+  body .app2-repository-report-cover .app2-psc-report-brand { margin-bottom: 38px !important; }
+  body .app2-repository-document-control td { display: block; width: 100%; }
+}
+@media print {
+  html, body { background: #fff !important; padding: 0 !important; }
+  body .page, body article.page { width: 100% !important; max-width: none !important; min-height: 0 !important; margin: 0 !important; border: 0 !important; border-top: 4px solid #c89b2c !important; border-radius: 0 !important; box-shadow: none !important; padding: 18mm !important; }
+}

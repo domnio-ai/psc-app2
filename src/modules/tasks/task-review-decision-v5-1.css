@@ -1,0 +1,155 @@
+/* APP2 Tasks Screen 6 V5.1 — Reviewer decision consolidation
+   Exact current component selectors. Presentation only.
+*/
+
+.task-review-decision-card,
+.task-review-rejected-card {
+  display: grid;
+  gap: 9px;
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+}
+
+.task-review-decision-card > header,
+.task-review-rejected-card > header {
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 0 !important;
+  padding: 0 0 3px !important;
+}
+
+.task-review-decision-card > header > div,
+.task-review-rejected-card > header > div {
+  display: grid;
+  gap: 1px;
+}
+
+.task-review-decision-card > header .workspace-eyebrow,
+.task-review-rejected-card > header .workspace-eyebrow {
+  font-size: 9px !important;
+  font-weight: 850;
+  letter-spacing: .065em;
+}
+
+.task-review-decision-card > header h3,
+.task-review-rejected-card > header h3 {
+  margin: 0 !important;
+  font-size: 16px !important;
+  line-height: 1.25;
+}
+
+.task-review-decision-card > header > b,
+.task-review-rejected-card > header > b {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  background: color-mix(in srgb, var(--task-accent, #2c67aa) 7%, transparent);
+}
+
+.task-review-decision-card .task-review-open-report {
+  justify-self: start;
+  min-height: 34px !important;
+  padding: 6px 9px !important;
+  font-size: 10px !important;
+}
+
+/* Comments support the decision without dominating the viewport. */
+.task-review-decision-card > label {
+  display: grid;
+  gap: 4px;
+  margin: 0 !important;
+}
+
+.task-review-decision-card > label > span {
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.task-review-decision-card > label > textarea {
+  min-height: 84px !important;
+  max-height: 160px !important;
+  padding: 9px 10px !important;
+  resize: vertical;
+  font-size: 11px !important;
+  line-height: 1.45;
+}
+
+/* Formal decisions remain visible and clearly ordered. */
+.task-review-decision-card > footer,
+.task-review-rejected-card > footer {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px !important;
+  min-height: 0 !important;
+  padding: 2px 0 0 !important;
+  margin: 0 !important;
+}
+
+.task-review-decision-card > footer button,
+.task-review-rejected-card > footer button {
+  min-height: 38px !important;
+  padding: 7px 11px !important;
+  font-size: 10px !important;
+  white-space: nowrap;
+}
+
+.task-review-decision-card .task-review-accept {
+  font-weight: 850 !important;
+}
+
+.task-review-decision-card .task-review-changes {
+  font-weight: 750 !important;
+}
+
+.task-review-decision-card .task-review-reject {
+  font-weight: 750 !important;
+}
+
+.task-review-result,
+.task-review-rejection-reason,
+.task-review-rejected-wait {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+  line-height: 1.35;
+}
+
+.task-review-rejection-reason p {
+  margin: 2px 0 0 !important;
+}
+
+/* Approved/finalization state stays concise. */
+.task-review-approved-card .task-review-open-report {
+  margin: 0;
+}
+
+.task-review-approved-card > footer {
+  padding-top: 2px !important;
+}
+
+@media (max-width: 720px) {
+  .task-review-decision-card > header,
+  .task-review-rejected-card > header {
+    flex-direction: column;
+  }
+
+  .task-review-decision-card > footer,
+  .task-review-rejected-card > footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-review-decision-card > footer button,
+  .task-review-rejected-card > footer button {
+    width: 100%;
+  }
+}

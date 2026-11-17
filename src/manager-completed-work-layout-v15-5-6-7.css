@@ -1,0 +1,97 @@
+/* App2 Manager Completed Work Layout V15.5.6.7
+   The Completed Work archive is a management-wide record, not a half-column card. */
+
+.dashboard-operations-grid > .manager-completed-work-card{
+  grid-column:1 / -1!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  align-self:stretch!important;
+}
+
+.manager-completed-work-card{
+  overflow:hidden!important;
+}
+
+.manager-completed-work-card > header{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+  width:100%!important;
+}
+
+.manager-completed-work-card > header > div{
+  min-width:0!important;
+  flex:1 1 auto!important;
+}
+
+.manager-completed-work-card > header h2{
+  margin:2px 0 5px!important;
+  white-space:normal!important;
+}
+
+.manager-completed-work-card > header span{
+  display:block!important;
+  max-width:900px!important;
+  line-height:1.45!important;
+  white-space:normal!important;
+}
+
+.manager-completed-work-grid{
+  width:100%!important;
+  min-width:0!important;
+  grid-template-columns:repeat(3,minmax(260px,1fr))!important;
+  align-items:start!important;
+}
+
+.manager-completed-work-grid > section{
+  width:100%!important;
+  min-width:0!important;
+}
+
+.manager-completed-work-list > button{
+  min-width:0!important;
+}
+
+.manager-completed-work-list > button > span:first-child{
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+
+.manager-completed-work-list > button::after{
+  display:none!important;
+}
+
+.manager-completed-work-open{
+  flex:0 0 auto!important;
+  min-width:112px!important;
+}
+
+.manager-completed-work-open time,
+.manager-completed-work-open b{
+  white-space:nowrap!important;
+}
+
+@media(max-width:1180px){
+  .manager-completed-work-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media(max-width:720px){
+  .manager-completed-work-card > header{
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+
+  .manager-completed-work-list > button{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+  }
+
+  .manager-completed-work-open{
+    justify-items:start!important;
+    min-width:0!important;
+  }
+}

@@ -1,0 +1,293 @@
+/* Shared application components. The Director command centre remains untouched. */
+body {
+  font-family: var(--app2-font-family);
+  font-size: var(--app2-font-size-md);
+  line-height: 1.45;
+}
+
+body :where(button, input, select, textarea):not(.exec-command-centre *) {
+  font: inherit;
+  font-size: max(var(--app2-font-size-xs), 1em);
+}
+
+body :where(small, .helper-text, .metadata, [class*="-meta"], [class*="-eyebrow"]):not(.exec-command-centre *) {
+  font-size: var(--app2-font-size-xs);
+  line-height: 1.4;
+}
+
+body :where([class*="-eyebrow"], [class*="-section-label"], .panel-title > p):not(.exec-command-centre *) {
+  color: color-mix(in srgb, var(--accent, #a57313) 88%, #4e3a16);
+  font-weight: 850;
+  letter-spacing: var(--app2-label-spacing);
+  text-transform: uppercase;
+}
+
+body :where(h1, .page-title):not(.exec-command-centre *) {
+  letter-spacing: -.025em;
+}
+
+body :where(h2, .section-title, .panel-title):not(.exec-command-centre *) {
+  letter-spacing: -.012em;
+}
+
+body :where(p, small, [class*="-description"], [class*="-subtitle"]):not(.exec-command-centre *) {
+  text-wrap: pretty;
+}
+
+body :where(
+  .panel,
+  .settings-panel,
+  .felix-admin-panel,
+  .dashboard-ops-card,
+  .tasks-summary-card,
+  .assignment-overview-v4-card,
+  .reader-info-section,
+  .builder-control-pane,
+  .institutional-grid > article,
+  .reviews-workspace-list > article,
+  [class$="-panel"],
+  [class$="-card"]
+):not(.exec-command-centre *):not(.exec-card):not(button):not(a) {
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+body :where(
+  [class*="page-head"],
+  [class*="workspace-head"],
+  [class*="workspace-header"],
+  [class*="command-header"],
+  .panel > header,
+  [class$="-panel"] > header,
+  [class$="-card"] > header
+):not(.exec-command-centre *) {
+  gap: var(--app2-section-gap);
+  border-bottom-color: color-mix(in srgb, var(--border-default, #cdb170) 62%, transparent);
+  background: var(--app2-panel-header-gradient);
+}
+
+body :where(button, .button, [role="button"]):not(.exec-command-centre *) {
+  min-height: 36px;
+  border-radius: var(--app2-radius-button);
+  font-weight: 750;
+  transition: transform var(--app2-transition), box-shadow var(--app2-transition), border-color var(--app2-transition), background var(--app2-transition);
+}
+
+body :where(button, .button, [role="button"]):not(.exec-command-centre *):focus-visible,
+body :where(input, select, textarea, a):not(.exec-command-centre *):focus-visible {
+  outline: var(--app2-focus-ring);
+  outline-offset: 2px;
+}
+
+body :where(button, .button, [role="button"]):not(.exec-command-centre *):not(:disabled):active {
+  transform: translateY(0);
+}
+
+body :where(button, .button, [role="button"]):not(.exec-command-centre *):disabled {
+  cursor: not-allowed;
+  opacity: .56;
+}
+
+body :where(button.primary, .app-action-primary, .settings-save, .external-primary):not(.exec-command-centre *) {
+  color: #fff;
+  border-color: rgba(132,96,25,.48);
+  background: linear-gradient(145deg, #d5a637, #846019);
+  box-shadow: 0 6px 16px rgba(133,95,24,.18);
+}
+
+body :where(button.primary, .app-action-primary, .settings-save, .external-primary):not(.exec-command-centre *):not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app2-shadow-hover);
+}
+
+body :where(button.secondary, .app-action-secondary, .task-modal-secondary):not(.exec-command-centre *) {
+  color: inherit;
+  border-color: rgba(178,138,49,.28);
+  background: var(--app2-neutral-gradient);
+}
+
+body :where(button.approve, button.success, .task-review-accept):not(.exec-command-centre *) {
+  color: #1f6843;
+  border-color: rgba(43,151,92,.32);
+  background: var(--app2-green-gradient);
+}
+
+body :where(button.review, [class*="review-action"]):not(.exec-command-centre *) {
+  color: #684f91;
+  border-color: rgba(118,88,169,.28);
+  background: var(--app2-violet-gradient);
+}
+
+body :where(button.danger, button.reject, .danger-link):not(.exec-command-centre *) {
+  color: #a72d40;
+  border-color: rgba(191,55,70,.30);
+  background: var(--app2-red-gradient);
+}
+
+body :where(input, select, textarea):not(.exec-command-centre *) {
+  min-height: var(--app2-control-min-height);
+  border-radius: var(--app2-radius-control);
+  border-color: color-mix(in srgb, var(--border-default, #cdb170) 82%, transparent);
+  background-color: color-mix(in srgb, var(--surface-card, #fff) 96%, transparent);
+  transition: border-color var(--app2-transition), box-shadow var(--app2-transition), background var(--app2-transition);
+}
+
+body textarea:not(.exec-command-centre *) {
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+body :where(input, select, textarea):not(.exec-command-centre *):hover {
+  border-color: color-mix(in srgb, var(--accent, #b78823) 42%, var(--border-default, #cdb170));
+}
+
+body :where(label):not(.exec-command-centre *) {
+  gap: 6px;
+  font-size: var(--app2-font-size-sm);
+  font-weight: 720;
+}
+
+body :where(.modal-backdrop, [class*="dialog-backdrop"]):not(.exec-command-centre *) {
+  backdrop-filter: blur(6px);
+  background: rgba(24,28,35,.46);
+}
+
+body :where([role="dialog"], .assignment-editor, .profile-modal, [class$="-modal"]):not(.exec-command-centre *) {
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-panel);
+  background: var(--app2-neutral-gradient);
+  box-shadow: 0 22px 58px rgba(31,27,18,.22);
+}
+
+body :where(table, [class*="-table"]):not(.exec-command-centre *) {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--app2-font-size-sm);
+}
+
+body :where(th, [class*="table-head"] > *):not(.exec-command-centre *) {
+  min-height: 44px;
+  padding: 11px 13px;
+  font-size: var(--app2-font-size-xs);
+  font-weight: 850;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  background: var(--app2-panel-header-gradient);
+  border-bottom: var(--app2-border-soft);
+}
+
+body :where(td, [class*="table-row"] > *):not(.exec-command-centre *) {
+  padding: 11px 13px;
+  border-bottom: 1px solid rgba(145,119,62,.16);
+}
+
+body :where(tr, [class*="table-row"]):not(.exec-command-centre *):hover {
+  background: color-mix(in srgb, var(--accent, #b78823) 6%, var(--surface-card, #fff));
+}
+
+body :where(.badge, .status, [class*="status-badge"], [class*="status-pill"], [class*="-chip"]):not(.exec-command-centre *) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  border-radius: var(--app2-radius-pill);
+  font-size: var(--app2-font-size-xs);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+body :where(.approved, .completed, .published, .healthy, [class*="status-approved"], [class*="status-completed"]):not(.exec-command-centre *) {
+  color: #247d50;
+  background: rgba(43,151,92,.11);
+  border-color: rgba(43,151,92,.22);
+}
+
+body :where(.pending, .due, .warning, [class*="due-soon"], [class*="status-pending"]):not(.exec-command-centre *) {
+  color: #8f5d09;
+  background: rgba(223,151,31,.12);
+  border-color: rgba(223,151,31,.22);
+}
+
+body :where(.overdue, .rejected, .failed, .critical, .error, [class*="status-rejected"]):not(.exec-command-centre *) {
+  color: #a72d40;
+  background: rgba(197,57,71,.11);
+  border-color: rgba(197,57,71,.21);
+}
+
+body :where(.review, [class*="under-review"], [class*="awaiting-review"]):not(.exec-command-centre *) {
+  color: #684f91;
+  background: rgba(118,88,169,.10);
+  border-color: rgba(118,88,169,.20);
+}
+
+body :where(.active, .in-progress, .information, [class*="status-active"]):not(.exec-command-centre *) {
+  color: #315f9c;
+  background: rgba(54,110,176,.10);
+  border-color: rgba(54,110,176,.20);
+}
+
+body :where(.dashboard-empty, .assignment-empty, .tasks-empty, .queue-empty, .report-empty, .report-no-data, .exec-empty):not(.exec-command-centre *) {
+  padding: 20px;
+  border: 1px dashed color-mix(in srgb, var(--border-default, #cdb170) 72%, transparent);
+  border-radius: var(--app2-radius-card);
+  text-align: center;
+  background: var(--app2-neutral-gradient);
+  opacity: .82;
+}
+
+body :where(.report-loading, [class*="loading-state"], [class$="-loading"]):not(.exec-command-centre *) {
+  min-height: 96px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  font-size: var(--app2-font-size-sm);
+  font-weight: 750;
+}
+
+body :where(.felix-panel, .felix-admin-panel, [class*="felix-"][class*="card"]):not(.exec-command-centre *) {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(203,160,58,.11), transparent 31%),
+    var(--app2-neutral-gradient);
+}
+
+body :where(.ai-message, [class*="felix-response"], [class*="citation"]):not(.exec-command-centre *) {
+  border-radius: var(--app2-radius-card);
+  border-color: rgba(79,111,154,.22);
+}
+
+@media (hover: hover) {
+  body :where(button, .button, [role="button"]):not(.exec-command-centre *):not(:disabled):hover {
+    border-color: color-mix(in srgb, var(--accent, #b78823) 40%, var(--border-default, #cdb170));
+  }
+}
+
+@media (max-width: 980px) {
+  body :where([class*="-grid"], .form-pair):not(.exec-command-centre *) {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  body :where([class*="page-head"], [class*="workspace-head"], [class*="workspace-header"], [class*="command-header"]):not(.exec-command-centre *) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body :where(.form-pair, [class*="filter-grid"], [class*="action-grid"]):not(.exec-command-centre *) {
+    grid-template-columns: 1fr;
+  }
+
+  body :where(button, input, select, textarea):not(.exec-command-centre *) {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body :where(button, .button, [role="button"], input, select, textarea):not(.exec-command-centre *) {
+    transition-duration: .01ms;
+  }
+}

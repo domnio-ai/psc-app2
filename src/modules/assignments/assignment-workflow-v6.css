@@ -1,0 +1,66 @@
+/* APP2 Assignment Workflow Guide V6 — shared workflow presentation */
+
+.assignment-workspace .assignment-workflow-guide {
+  display: grid;
+  gap: 8px;
+  margin: 0 !important;
+  padding: 9px 10px !important;
+  border: 1px solid var(--border-default, #d8dce3);
+  border-radius: 0 0 11px 11px;
+  background: var(--surface-card, #fff);
+  box-shadow: 0 4px 16px rgba(27,31,36,.045);
+}
+
+.assignment-workspace .assignment-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 6px;
+}
+
+.assignment-workspace .assignment-workflow-step {
+  min-height: 38px !important;
+  padding: 6px 8px !important;
+}
+
+.assignment-workspace .assignment-workflow-summary {
+  display: grid !important;
+  grid-template-columns: minmax(165px,.55fr) minmax(0,1.8fr) !important;
+  gap: 8px !important;
+}
+
+.assignment-workspace .assignment-workflow-current,
+.assignment-workspace .assignment-workflow-next {
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+}
+
+.assignment-workspace .assignment-workflow-current small,
+.assignment-workspace .assignment-workflow-next small {
+  font-size: 10px !important;
+}
+
+.assignment-workspace .assignment-workflow-current strong {
+  font-size: 17px !important;
+}
+
+.assignment-workspace .assignment-workflow-next p {
+  margin: 0 !important;
+  font-size: 11px !important;
+}
+
+/* V6 stage truth is semantic; do not imply tab == stage. */
+.assignment-workspace .assignment-workflow-current span {
+  font-size: 10px !important;
+  opacity: .65;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-workflow-steps {
+    grid-template-columns: repeat(5, minmax(96px,1fr));
+    overflow-x: auto;
+  }
+
+  .assignment-workspace .assignment-workflow-summary {
+    grid-template-columns: 1fr !important;
+  }
+}

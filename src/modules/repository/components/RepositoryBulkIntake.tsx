@@ -1,0 +1,23 @@
+import {useMemo,useState} from "react";
+import {api,type ApiUser} from "../../../api";
+type Props={token:string;reviewers:ApiUser[];onClose:()=>void;onComplete:()=>Promise<void>};
+
+export default function RepositoryBulkIntake({token,reviewers,onClose,onComplete}:Props){
+  const[files,setFiles]=useState<File[]>([]);const[reviewerId,setReviewerId]=useState("");const[category,setCategory]=useState("Administrative Records");const[documentType,setDocumentType]=useState("Reference");const[classification,setClassification]=useState("INTERNAL");const[directorate,setDirectorate]=useState("");const[running,setRunning]=useState(false);const[results,setResults]=useState<Array<{name:string;ok:boolean;message:string}>>([]);
+  const totalSize=useMemo(()=>files.reduce((sum,file)=>sum+file.size,0),[files]);
+  const upload=async()=>{if(!files.length||!reviewerId)return;setRunning(true);const rows=[];for(const file of files){try{const title=file.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim();await api.uploadKnowledge(token,file,{title,description:"Bulk repository intake",category,tags:"bulk-intake",sourceType:"App2 Upload",sourceUrl:"",directorate,documentType,subject:"",classification,felixEnabled:true,reviewerId});rows.push({name:file.name,ok:true,message:"Added"})}catch(error){rows.push({name:file.name,ok:false,message:error instanceof Error?error.message:"Failed"})}}setResults(rows);setRunning(false);await onComplete()};
+  const successCount=results.filter(row=>row.ok).length;
+
+  return <div className="modal-backdrop"><section className="assignment-editor repository-bulk-intake">
+    <button className="close" disabled={running} onClick={onClose}>×</button>
+    <p>BULK DIGITISATION / INTAKE</p><h2>Add multiple records</h2><span>Apply one controlled intake profile to the batch, then refine individual records from their Record Workspace.</span>
+    <label>Files<input type="file" multiple accept=".pdf,.docx,.txt,.md" disabled={running} onChange={e=>setFiles(Array.from(e.target.files||[]))}/><small>{files.length} file(s) · {Math.max(0.1,totalSize/1024/1024).toFixed(1)} MB selected</small>{!files.length&&<small role="alert">Select at least one file; an empty batch has no records to add.</small>}</label>
+    <div className="form-pair"><label>Purpose<select disabled={running} value={documentType} onChange={e=>setDocumentType(e.target.value)}>{["Reference","Evidence","Source Material","Supporting Document","Policy / Guideline","Minutes","Correspondence","Report","Dataset","Other"].map(v=><option key={v}>{v}</option>)}</select></label><label>Record class<input disabled={running} value={category} onChange={e=>setCategory(e.target.value)}/></label></div>
+    <div className="form-pair"><label>Directorate<input disabled={running} value={directorate} onChange={e=>setDirectorate(e.target.value)}/></label><label>Classification<select disabled={running} value={classification} onChange={e=>setClassification(e.target.value)}>{["PUBLIC","INTERNAL","CONFIDENTIAL","RESTRICTED"].map(v=><option key={v}>{v}</option>)}</select></label></div>
+    <label>Reviewer<select disabled={running} value={reviewerId} onChange={e=>setReviewerId(e.target.value)}><option value="">{reviewers.length ? "Choose reviewer" : "No authorised reviewers available"}</option>{reviewers.map(member=><option key={member.id} value={member.id}>{member.name} · {member.role}</option>)}</select>{reviewers.length===0&&<small>Ask a director or System Admin to correct your reporting scope or add an eligible reviewer. Governed uploads require a separate reviewer.</small>}</label>
+    <div className="repository-bulk-intake-summary"><div><small>Files</small><strong>{files.length}</strong></div><div><small>Purpose</small><strong>{documentType}</strong></div><div><small>Class</small><strong>{category}</strong></div><div><small>Reviewer</small><strong>{reviewers.find(member=>member.id===reviewerId)?.name||"Not selected"}</strong></div></div>
+    {!reviewerId&&reviewers.length>0&&<small role="alert">Choose a reviewer so each uploaded record can enter the required governed review.</small>}
+    <button type="button" className="approve" title={!files.length?"Select one or more files to upload.":!reviewerId?"Choose a reviewer before starting governed intake.":undefined} disabled={!files.length||!reviewerId||running} onClick={()=>void upload()}>{running?`Uploading ${files.length} record${files.length===1?"":"s"}…`:"Upload governed batch"}</button>
+    {results.length>0&&<div className="repository-bulk-results"><header><strong>{successCount} added</strong><span>{results.length-successCount} failed</span></header>{results.map(row=><p key={row.name} className={row.ok?"ok":"failed"}><b>{row.name}</b> · {row.message}</p>)}</div>}
+  </section></div>
+}

@@ -1,0 +1,107 @@
+/* Global styles are grouped here so the cascade and feature ownership are easy to audit. */
+
+/* App shell and base workspace styling. */
+@import "./styles.css";
+@import "./access.css";
+@import "./research.css";
+@import "./documents.css";
+@import "./reports.css";
+@import "./users.css";
+@import "./audit.css";
+@import "./settings.css";
+@import "./notice-board.css";
+@import "./calendar.css";
+@import "./notice-fix.css";
+@import "./notifications.css";
+@import "./notification-detail.css";
+@import "./notice-workspace.css";
+@import "./notification-filters.css";
+@import "./ai-chat.css";
+@import "./felix.css";
+@import "./inbox-ordering.css";
+@import "./felix-actions.css";
+@import "./felix-admin.css";
+@import "./app-shell.css";
+@import "./dashboard-phase2.css";
+@import "./assignments-phase3.css";
+@import "./assignments-phase4.css";
+@import "./assignment-structure-plan.css";
+
+/* Feature defaults and long-lived workflow rules. */
+@import "./research-phase5.css";
+@import "./document-builders-phase6-8.css";
+@import "./assignment-report-builder.css";
+@import "./actionable-navigation.css";
+@import "./app-button-clarity.css";
+@import "./research-theme-scroll-v3.css";
+@import "./research-report-review-v10.css";
+@import "./research-completion-v11.css";
+@import "./task-review-routing-v12.css";
+@import "./app2-typography-hierarchy.css";
+@import "./app2-compact-layout.css";
+@import "./assignment-overview-v4.css";
+@import "./assignment-tasks-assignment-modal.css";
+@import "./assignment-tasks-task-requests.css";
+@import "./assignment-task-workspace.css";
+@import "./task-review-action-clarity.css";
+@import "./user-access-password-reset.css";
+@import "./temporary-password-visibility.css";
+@import "./task-report-owner-access.css";
+@import "./workspace-document-overview.css";
+@import "./research-workspace-redesign-v1.css";
+@import "./research-work-progress.css";
+@import "./research-workflow-phase2.css";
+@import "./external-research-phase3.css";
+
+/* Research, repository, assignment and task refinements. */
+@import "./research-workspace-theme-v4.css";
+@import "./research-workspace-workflow-v5.css";
+@import "./research-workspace-simplified-v6.css";
+@import "./research-workspace-live-v8.css";
+@import "./research-workspace-evidence-v9.css";
+@import "./research-workspace-report-v10.css";
+@import "./research-workspace-template-library-v11.css";
+@import "./research-report-handoff-v11-1.css";
+@import "./research-review-v12.css";
+@import "./research-template-outline-v13.css";
+@import "./research-report-builder-templates-v14.css";
+@import "./research-preview-review-v14-6.css";
+@import "./research-brief-visibility-fix.css";
+@import "./research-editor-preview-review-v14-7.css";
+@import "./research-editor-ribbon-v14-8.css";
+@import "./research-footer-preview-v14-9.css";
+@import "./research-report-reader-v14-10.css";
+@import "./research-report-reader-v14-11.css";
+@import "./research-review-finalization-v15.css";
+@import "./research-reviewer-selector-v15-1.css";
+@import "./manager-completed-work-v15-5-6.css";
+@import "./manager-completed-work-v15-5-6-1.css";
+@import "./manager-completed-work-layout-v15-5-6-7.css";
+@import "./operational-alerts.css";
+@import "./research-team-professional-contrast.css";
+@import "./research-discussion-composer-fix.css";
+@import "./workspace-screen-navigation.css";
+@import "./user-directory-redesign.css";
+@import "./app2-reader-contrast-fix.css";
+@import "./assignment-report-simple-v3.css";
+@import "./task-section-workspace.css";
+@import "./theme-readability-refinements.css";
+@import "./app2-light-theme-polish.css";
+
+/* Theme palettes load in their existing order; the preference selects one at runtime. */
+@import "./gold-grey-theme.css";
+@import "./low-contrast-navy-theme.css";
+@import "./app2-psc-slate-theme.css";
+@import "./app2-low-contrast-navy-theme.css";
+@import "./executive-gold-theme.css";
+@import "./sage-ivory-theme.css";
+@import "./app2-interactive-visuals.css";
+@import "./research-workspace-simplified-final.css";
+@import "./modules/research/research-workspace-controller.css";
+@import "./app2-button-system.css";
+@import "./assignment-notifications-dashboard-refinement-v1.css";
+
+/* Shared tokens and components are the final visual defaults. */
+@import "./styles/app2-executive-tokens.css";
+@import "./styles/app2-executive-components.css";
+@import "./styles/app2-primitives.css";

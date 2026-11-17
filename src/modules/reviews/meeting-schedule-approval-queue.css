@@ -1,0 +1,57 @@
+.meeting-schedule-approval-queue{display:grid;gap:12px;margin:0 0 16px;padding:16px;border:1px solid var(--border-default,#d8dce3);border-radius:14px;background:var(--surface-primary,#fff)}
+.meeting-schedule-approval-queue>header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-bottom:10px;border-bottom:1px solid var(--border-default,#d8dce3)}
+.meeting-schedule-approval-queue>header p{margin:0;color:#936a12;font-size:10px;font-weight:900;letter-spacing:.12em}.meeting-schedule-approval-queue>header h3{margin:4px 0;font-size:16px}.meeting-schedule-approval-queue>header span{color:var(--text-secondary,#68717d);font-size:12px}.meeting-schedule-approval-queue>header>b{display:grid;place-items:center;min-width:32px;height:32px;border-radius:999px;background:var(--surface-secondary,#f7f5ef);font-size:13px}
+.meeting-schedule-approval-item{display:grid;gap:10px;padding:12px;border:1px solid var(--border-default,#d8dce3);border-radius:11px;background:var(--surface-secondary,#f7f5ef)}
+.meeting-schedule-approval-item-main{display:grid;gap:5px}.meeting-schedule-approval-item-main>small{color:var(--text-secondary,#68717d);font-size:11px}.meeting-schedule-approval-item-main>strong{font-size:14px}.meeting-schedule-approval-item-main>span,.meeting-schedule-approval-item-main>p{margin:0;color:var(--text-secondary,#68717d);font-size:12px}.meeting-schedule-approval-item a{color:var(--accent-primary,#8a6412);font-size:12px;overflow-wrap:anywhere}
+.meeting-schedule-approval-item>label{display:grid;gap:5px;font-size:12px;font-weight:700}.meeting-schedule-approval-item textarea{width:100%;box-sizing:border-box;border:1px solid var(--border-default,#d8dce3);border-radius:8px;padding:8px;background:var(--surface-primary,#fff);color:var(--text-primary,#1b1f24);font:inherit;resize:vertical}
+.meeting-schedule-approval-open-record{width:fit-content;min-height:32px;padding:0 10px;border:1px solid var(--border-default,#d8dce3);border-radius:8px;background:var(--surface-primary,#fff);color:var(--text-primary,#1b1f24);font-size:11px;font-weight:800}.meeting-schedule-approval-full-record{display:grid;gap:10px;padding:11px;border:1px solid var(--border-default,#d8dce3);border-radius:9px;background:var(--surface-primary,#fff)}.meeting-schedule-approval-full-record>div{display:grid;gap:5px}.meeting-schedule-approval-full-record strong{font-size:12px}.meeting-schedule-approval-full-record span,.meeting-schedule-approval-full-record article{color:var(--text-secondary,#68717d);font-size:11px;line-height:1.45}.meeting-schedule-approval-full-record article{display:grid;gap:3px;padding-left:9px;border-left:2px solid color-mix(in srgb,#a97713 40%,var(--border-default,#d8dce3))}.meeting-schedule-approval-full-record article b{color:var(--text-primary,#1b1f24)}.meeting-schedule-approval-actions{display:flex;flex-wrap:wrap;gap:8px}.meeting-schedule-approval-actions button{min-height:36px;padding:0 12px;border:1px solid var(--border-default,#d8dce3);border-radius:8px;background:var(--surface-primary,#fff);color:var(--text-primary,#1b1f24);font-size:12px;font-weight:800}.meeting-schedule-approval-actions button:first-child{border-color:#7b590e;background:#947017;color:#fff}.meeting-schedule-approval-actions button:disabled{opacity:.5;cursor:not-allowed}.meeting-schedule-approval-empty{padding:12px;color:var(--text-secondary,#68717d);font-size:12px}.meeting-schedule-approval-error{padding:9px;border:1px solid #b91c1c;border-radius:8px;color:#991b1b;font-size:12px}
+
+/* APP2_MEETING_APPROVAL_EMPTY_STATE_VISUAL_R2_BEGIN */
+.meeting-schedule-approval-queue.is-empty {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 20px;
+  row-gap: 0;
+  min-height: 0;
+  margin: 0 0 12px;
+  padding: 12px 18px;
+  border-radius: 13px;
+}
+.meeting-schedule-approval-queue.is-empty > header {
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+.meeting-schedule-approval-queue.is-empty > header > div { min-width: 0; }
+.meeting-schedule-approval-queue.is-empty > header p { margin: 0 0 2px; font-size: 10px; }
+.meeting-schedule-approval-queue.is-empty > header h3 { margin: 0 0 3px; font-size: 15px; line-height: 1.25; }
+.meeting-schedule-approval-queue.is-empty > header span { font-size: 12px; line-height: 1.35; }
+.meeting-schedule-approval-queue.is-empty > header > b { min-width: 30px; height: 30px; }
+.meeting-schedule-approval-queue.is-empty > .meeting-schedule-approval-empty {
+  margin: 0;
+  padding: 5px 0 5px 18px;
+  border-left: 1px solid var(--border-default, #d8dce3);
+  color: var(--text-secondary, #68717d);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .meeting-schedule-approval-queue.is-empty {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    padding: 12px 14px;
+  }
+  .meeting-schedule-approval-queue.is-empty > header { align-items: flex-start; }
+  .meeting-schedule-approval-queue.is-empty > .meeting-schedule-approval-empty {
+    padding: 7px 0 0;
+    border-top: 1px solid var(--border-default, #d8dce3);
+    border-left: 0;
+    text-align: left;
+    white-space: normal;
+  }
+}
+/* APP2_MEETING_APPROVAL_EMPTY_STATE_VISUAL_R2_END */

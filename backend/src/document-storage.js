@@ -31,7 +31,9 @@ export async function storeDocument(bytes,extension){
   const target=path.resolve(root,storedName)
   if(path.dirname(target)!==root)throw new Error('Unsafe storage target.')
   await fs.writeFile(target,bytes,{flag:'wx'})
-  return {storedName,storagePath:storedName,absolutePath:target}
+  const stat=await fs.stat(target)
+  if(stat.size!==bytes.length){await fs.unlink(target).catch(()=>{});throw new Error('Stored document integrity check failed: byte length changed during upload.')}
+  return {storedName,storagePath:storedName,absolutePath:target,sizeBytes:stat.size}
 }
 export const resolveDocumentPath=storagePath=>{
   const root=path.resolve(config.documentStoragePath)

@@ -1,0 +1,69 @@
+/* APP2 Research Workspace Governed Read-only V8.3.2
+   Runtime-safe lock boundary. Keeps the pre-lock Research DOM hierarchy intact
+   and does not use fieldset/disabled structural wrapping. */
+.research-workspace-readonly-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 10px 12px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--warning, #b7791f) 52%,
+    var(--rw-border, var(--border))
+  );
+  border-radius: 10px;
+  background: color-mix(
+    in srgb,
+    var(--warning, #b7791f) 12%,
+    var(--surface-primary)
+  );
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+
+.research-workspace-readonly-banner strong {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.research-workspace-readonly-banner span {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .research-workspace-readonly-banner {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin: 8px;
+    padding: 10px 12px;
+  }
+
+  .research-workspace-readonly-banner strong {
+    flex-basis: 100%;
+  }
+}
+.research-workspace-content-boundary{min-width:0}
+.research-workspace-content-boundary[data-readonly="true"] input,
+.research-workspace-content-boundary[data-readonly="true"] textarea:not(.research-report-review-gate textarea),
+.research-workspace-content-boundary[data-readonly="true"] select,
+.research-workspace-content-boundary[data-readonly="true"] button:not(.research-report-review-gate button),
+.research-workspace-content-boundary[data-readonly="true"] [contenteditable="true"]{
+    pointer-events:none!important;
+    cursor:not-allowed!important;
+}
+.research-workspace-content-boundary[data-readonly="true"] input,
+.research-workspace-content-boundary[data-readonly="true"] textarea:not(.research-report-review-gate textarea),
+.research-workspace-content-boundary[data-readonly="true"] select,
+.research-workspace-content-boundary[data-readonly="true"] button:not(.research-report-review-gate button){
+    filter:saturate(.65);
+    opacity:.72;
+}
+.research-workspace-content-boundary[data-readonly="true"] [contenteditable="true"]{
+  user-select:text!important;
+}

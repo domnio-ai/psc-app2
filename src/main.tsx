@@ -1,40 +1,22 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App'
-import AppErrorBoundary from './AppErrorBoundary'
-import './styles.css'
-import './access.css'
-import './research.css'
-import './documents.css'
-import './reports.css'
-import './users.css'
-import './audit.css'
-import './settings.css'
-import './notice-board.css'
-import './calendar.css'
-import './notice-fix.css'
-import './notifications.css'
-import './notification-detail.css'
-import './notice-workspace.css'
-import './notification-filters.css'
-import './ai-chat.css'
-import './felix.css'
-import './inbox-ordering.css'
-import './felix-actions.css'
-import './felix-expert.css'
-import './felix-admin.css'
-import './gold-grey-theme.css'
-import './app-shell.css'
-import './dashboard-phase2.css'
-import './assignments-phase3.css'
-import './assignments-phase4.css'
-import './assignment-structure-plan.css'
-import './research-phase5.css'
-import './document-builders-phase6-8.css'
-import './assignment-report-builder.css'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-createRoot(document.getElementById('root')!).render(
+/* Central stylesheet manifest; feature-only styles remain with their components. */
+import "./app-styles.css";
+/* Browser guards and theme setup run before React paints the workspace. */
+import "./text-encoding-guard";
+import { applyStoredThemeToDocument } from "./theme-preferences";
+import App from "./App";
+import AppErrorBoundary from "./AppErrorBoundary";
+
+// Apply the saved device theme before React paints the login or authenticated shell.
+applyStoredThemeToDocument();
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AppErrorBoundary><App /></AppErrorBoundary>
   </StrictMode>,
-)
+);
+
+
+

@@ -1,0 +1,80 @@
+/* App2 Manager Completed Work V15.5.6 */
+.manager-completed-work-card > header{
+  align-items:flex-start!important;
+}
+.manager-completed-work-card > header > strong{
+  flex:0 0 auto!important;
+  padding:7px 10px!important;
+  border-radius:999px!important;
+  border:1px solid var(--border)!important;
+  font-size:12px!important;
+}
+.manager-completed-work-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+.manager-completed-work-grid>section{
+  min-width:0!important;
+  border:1px solid var(--border)!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+}
+.manager-completed-work-grid>section>header{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  border-bottom:1px solid var(--border)!important;
+}
+.manager-completed-work-grid>section>header span,
+.manager-completed-work-grid>section>header b{
+  font-size:12px!important;
+}
+.manager-completed-work-list{
+  max-height:260px!important;
+  overflow:auto!important;
+}
+.manager-completed-work-list>button{
+  width:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:10px 12px!important;
+  border:0!important;
+  border-bottom:1px solid var(--border)!important;
+  background:transparent!important;
+  text-align:left!important;
+  cursor:pointer!important;
+}
+.manager-completed-work-list>button:last-child{
+  border-bottom:0!important;
+}
+.manager-completed-work-list>button:hover{
+  background:var(--surface-2)!important;
+}
+.manager-completed-work-list>button>span{
+  min-width:0!important;
+  display:grid!important;
+  gap:3px!important;
+}
+.manager-completed-work-list strong,
+.manager-completed-work-list small,
+.manager-completed-work-list time{
+  font-size:12px!important;
+}
+.manager-completed-work-list strong{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.manager-completed-work-list time{
+  flex:0 0 auto!important;
+}
+@media(max-width:1000px){
+  .manager-completed-work-grid{
+    grid-template-columns:1fr!important;
+  }
+}

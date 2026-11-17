@@ -1,0 +1,147 @@
+/* APP2 Sage Ivory — canonical theme owner.
+   Palette and theme tokens only; interaction mechanics live in app2-interactive-visuals.css. */
+html[data-theme="sage-ivory"]{
+  color-scheme:light;
+  font-size:17px;
+  --app-background:#EEF2E9;
+  --surface-page:#EEF2E9;
+  --surface-primary:#FFFEFA;
+  --surface-secondary:#C7DCC1;
+  --surface-elevated:#B5CFAD;
+  --text-primary:#1F2A22;
+  --text-secondary:#465349;
+  --text-muted:#657169;
+  --border-default:#A6C0A1;
+  --border-strong:#73936F;
+  --sidebar-background:#88AA80;
+  --header-background:#FFFEFA;
+  --input-background:#FFFFFF;
+  --input-border:#87A482;
+  --accent-primary:#3F6848;
+  --button-primary-bg:#3F6848;
+  --button-primary-text:#FFFFFF;
+  --focus-ring:#3F6848;
+  --success:#2E6B45;
+  --warning:#8A6510;
+  --danger:#A83A32;
+  --info:#4F7180;
+  --yellow:#5F7E63;
+  --orange:#8A6510;
+  --green:#2E6B45;
+  --blue:#4F7180;
+  --primary:#3F6848;
+  --primary-hover:#315439;
+  --secondary:#58775D;
+  --bg:#EEF2E9;
+  --bg-2:#FFFEFA;
+  --panel:#FFFEFA;
+  --panel-2:#C7DCC1;
+  --line:#A6C0A1;
+  --muted:#657169;
+  --text:#1F2A22;
+  --input-bg:#FFFFFF;
+  --app2-heading-blue:#355D42;
+  --app2-heading-gold:#77641E;
+  --app2-heading-green:#2E6B45;
+  --app2-copy:#465349;
+  --app2-copy-muted:#657169;
+  --repository-surface:#FFFEFA;
+  --repository-row:#FFFEFA;
+  --repository-row-hover:#E0EBDD;
+  --repository-head:#D3E1CF;
+  --repository-text:#1F2A22;
+  --repository-muted:#4E5B51;
+  --repository-border:#C8D2C6;
+  --repository-track:#D5E2D2;
+  --border:var(--border-default);
+  --surface-raised:var(--surface-elevated);
+  --accent:var(--accent-primary);
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-muted:var(--surface-secondary);
+  --surface-2:var(--surface-secondary);
+  --border-subtle:var(--border-default);
+  --muted-text:var(--text-secondary);
+  --sidebar-control-bg:#F7FAF4;
+  --sidebar-control-border:#6E916A;
+  --sidebar-text:#18321F;
+  --sidebar-muted:#36543B;
+  --interaction-hover-bg:#AFCBA8;
+  --interaction-hover-border:#557B5B;
+  --interaction-hover-text:#18321F;
+  --interaction-active-bg:#9FBE98;
+  --interaction-focus:#3F6848;
+}
+
+html[data-theme="sage-ivory"],
+html[data-theme="sage-ivory"] body,
+html[data-theme="sage-ivory"] #root,
+html[data-theme="sage-ivory"] .dashboard-shell,
+html[data-theme="sage-ivory"] .app-shell,
+html[data-theme="sage-ivory"] .dashboard-shell>main,
+html[data-theme="sage-ivory"] .dashboard-content{
+  background:var(--app-background)!important;
+  background-image:none!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="sage-ivory"] .sidebar{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar-background) 90%,white 10%),var(--sidebar-background))!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:10px 0 28px color-mix(in srgb,var(--sidebar-background) 28%,transparent)!important;
+}
+html[data-theme="sage-ivory"] .sidebar :is(.brand strong,.brand span){color:var(--sidebar-text)!important}
+html[data-theme="sage-ivory"] .sidebar :is(.brand small,.nav-section-title,.sidebar-footer small){color:var(--sidebar-muted)!important}
+html[data-theme="sage-ivory"] .sidebar :is(nav button,.quick-access button){
+  background:var(--sidebar-control-bg)!important;
+  background-image:none!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+
+html[data-theme="sage-ivory"] .topbar{
+  background:var(--header-background)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="sage-ivory"] .topbar :is(.title h1,.user strong){color:var(--text-primary)!important}
+html[data-theme="sage-ivory"] .topbar :is(.title p,.user small,.live-time,.live-time span,.live-time small){color:var(--text-secondary)!important}
+html[data-theme="sage-ivory"] :is(.header-search,.topbar .user){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="sage-ivory"] :is(
+  .panel,.card,.stat-card,.command-card,.settings-panel,.settings-card,.management-area,
+  .assignment-card,.research-card,.document-card,.repository-card,.report-card,
+  .workspace-card,.workspace-header,.calendar-panel,.notification-card,.notice-card,
+  .document-management-view .repository-table,.review-queue,.deletion-approval-queue,
+  .modal-card,.dialog-card,.drawer,.account-menu,.app-context-menu,.login-card
+){
+  background:var(--surface-primary)!important;
+  background-image:none!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="sage-ivory"] :is(input,textarea,select){
+  background:var(--input-background)!important;
+  border-color:var(--input-border)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="sage-ivory"] :is(input,textarea)::placeholder{color:var(--text-muted)!important;opacity:1}
+html[data-theme="sage-ivory"] :is(.muted,.meta,.secondary,small){color:var(--text-secondary)}
+html[data-theme="sage-ivory"] :is(h1,h2,h3,h4,h5,h6,strong,b,legend){color:var(--text-primary)}
+html[data-theme="sage-ivory"] :is(table,.data-table,.report-table){background:var(--surface-primary);color:var(--text-primary)}
+html[data-theme="sage-ivory"] :is(th,.table-head){background:var(--surface-secondary);color:var(--text-secondary);border-color:var(--border-default)}
+html[data-theme="sage-ivory"] td{border-color:var(--border-default)}
+html[data-theme="sage-ivory"] .repository-table>article{
+  background:var(--repository-row,var(--surface-primary))!important;
+  background-image:none!important;
+  filter:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}

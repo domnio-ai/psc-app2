@@ -1,0 +1,220 @@
+/* PSC meeting minutes workspace: document-first, workflow-visible, and scoped to Minutes. */
+.minutes-panel .minutes-workflow-toolbar{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;
+  padding:10px 12px;border:1px solid #e3dfd2;border-radius:10px;
+  background:#fbfaf7;box-shadow:0 1px 2px rgba(24,32,44,.03)
+}
+.minutes-panel .minutes-workflow-toolbar button{
+  min-height:36px;padding:8px 12px;border:1px solid #d6d8dd;border-radius:7px;
+  background:#fff;color:#29313d;font-size:12px;font-weight:650;cursor:pointer
+}
+.minutes-panel .minutes-workflow-toolbar button:hover:not(:disabled){border-color:#a98526;background:#faf6e9;color:#6b5012}
+.minutes-panel .minutes-workflow-toolbar button.meetings-primary{
+  border-color:#92701a;background:#a88425;color:#fff
+}
+.minutes-panel .minutes-workflow-toolbar button.meetings-primary:hover:not(:disabled){border-color:#765a12;background:#8c6c18;color:#fff}
+.minutes-panel .minutes-workflow-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.minutes-panel .minutes-workflow-toolbar button:focus-visible,
+.meeting-minutes-formatting-toolbar button:focus-visible,
+.meeting-minutes-formatting-toolbar select:focus-visible,
+.meeting-minutes-quick-tools button:focus-visible{outline:2px solid #a88425;outline-offset:2px}
+.minutes-panel .minutes-workflow-state{
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px 18px;margin:0 0 14px;padding:10px 13px;
+  border:1px solid #e2e5e9;border-radius:8px;background:#fff;color:#555f6d;font-size:12px
+}
+.minutes-panel .minutes-workflow-state b{color:#202735}
+.minutes-panel .minutes-workflow-state small{color:#697383;font-size:11px}
+.meeting-minutes-save-state{
+  display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:3px 9px;
+  border:1px solid #d9dce2;border-radius:999px;background:#f7f8fa;color:#4d5867;font-size:11px;font-weight:750
+}
+.meeting-minutes-save-state.is-saved{border-color:#c9dfd0;background:#f1f8f3;color:#285d3c}
+.meeting-minutes-save-state.is-unsaved{border-color:#e7d3a3;background:#fff8e8;color:#77580f}
+.meeting-minutes-save-state.is-saving{border-color:#c9d9ec;background:#f1f6fc;color:#2b5680}
+.meeting-minutes-save-state.is-error{border-color:#edc5c5;background:#fff3f3;color:#922f2f}
+.meeting-minutes-repository-receipt{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 16px;padding:14px 16px;
+  border:1px solid #d8c791;border-left:4px solid #a88425;border-radius:8px;background:#fffdf7
+}
+.meeting-minutes-repository-receipt-copy{display:flex;min-width:0;flex-direction:column;gap:4px}
+.meeting-minutes-repository-kicker{color:#806117;font-size:9px;font-weight:850;letter-spacing:.13em}
+.meeting-minutes-repository-receipt strong{color:#29313d;font-size:13px}
+.meeting-minutes-repository-receipt-copy>span:not(.meeting-minutes-repository-kicker){color:#3b4653;font-size:13px;font-weight:650;overflow-wrap:anywhere}
+.meeting-minutes-repository-receipt small{color:#687282;font-size:11px;overflow-wrap:anywhere}
+.meeting-minutes-repository-receipt button{
+  flex:none;min-height:34px;padding:7px 10px;border:1px solid #d8c791;border-radius:7px;
+  background:#fff;color:#705515;font-size:11px;font-weight:750;cursor:pointer
+}
+.meeting-minutes-publication-notice{
+  margin:0 0 14px;padding:11px 13px;border:1px solid #c9dfd0;border-radius:8px;
+  background:#f2f8f3;color:#285d3c;font-size:12px;line-height:1.5
+}
+
+.meeting-minutes-repository-repair{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;padding:14px 16px;border:1px solid #e5c78c;border-left:4px solid #b08a28;border-radius:8px;background:#fffaf0}
+.meeting-minutes-repository-repair>div{min-width:0}
+.meeting-minutes-repository-repair strong{display:block;margin-bottom:5px;color:#5e4713;font-size:13px}
+.meeting-minutes-repository-repair p{margin:0;color:#6d624b;font-size:12px;line-height:1.55}
+.meeting-minutes-repository-repair button,.meeting-minutes-no-publication button{flex:none;min-height:36px;padding:8px 12px;border:1px solid #94711d;border-radius:7px;background:#a88425;color:#fff;font-size:12px;font-weight:750;cursor:pointer}
+.meeting-minutes-repository-repair button:disabled,.meeting-minutes-no-publication button:disabled{opacity:.5;cursor:wait}
+
+.meeting-minutes-authoring-layout{display:block;width:100%;max-width:1200px;margin:12px auto 28px}
+.meeting-minutes-editor-column{min-width:0;overflow:hidden;border:1px solid #d9dde4;border-radius:12px;background:#fff;box-shadow:0 4px 18px rgba(28,35,45,.055)}
+.meeting-minutes-pane-heading{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:19px 23px;
+  border-bottom:1px solid #e4e6eb;background:linear-gradient(110deg,#fbf8ef 0%,#fff 62%)
+}
+.meeting-minutes-heading-copy{min-width:0}
+.meeting-minutes-pane-heading h4{margin:5px 0 6px;color:#202735;font-size:20px;font-weight:760;line-height:1.25;overflow-wrap:anywhere}
+.meeting-minutes-pane-heading p{max-width:760px;margin:0;color:#626b78;font-size:12px;line-height:1.55}
+.meeting-minutes-eyebrow{display:block;color:#806117;font-size:9px;font-weight:850;letter-spacing:.14em}
+.meeting-minutes-paper-label{
+  flex:none;margin-top:2px;padding:7px 10px;border:1px solid #d7c38f;border-radius:7px;
+  background:#fbf7eb;color:#775a13;font-size:10px;font-weight:800;letter-spacing:.055em;white-space:nowrap
+}
+.meeting-minutes-formatting-toolbar{
+  display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:9px 12px;
+  border-bottom:1px solid #dfe3e9;background:#f7f8fa
+}
+.meeting-minutes-tool-group{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.meeting-minutes-tool-group button,.meeting-minutes-preview-actions button{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:31px;min-height:31px;
+  padding:5px 8px;border:1px solid #d8dce3;border-radius:6px;background:#fff;color:#303847;
+  font-size:12px;font-weight:650;line-height:1.2;cursor:pointer
+}
+.meeting-minutes-tool-group button:hover:not(:disabled),.meeting-minutes-preview-actions button:hover{
+  border-color:#ad8727;background:#fffaf0;color:#6d5111
+}
+.meeting-minutes-tool-group button:disabled{opacity:.42;cursor:not-allowed}
+.meeting-minutes-tool-divider{height:25px;width:1px;background:#d8dce3;margin:0 3px}
+.meeting-minutes-tool-select{display:flex;align-items:center;gap:5px;color:#677180;font-size:10px;font-weight:750}
+.meeting-minutes-tool-select select{
+  max-width:140px;min-height:31px;padding:5px 7px;border:1px solid #d8dce3;border-radius:6px;
+  background:#fff;color:#29313d;font-size:11px;font-weight:600
+}
+.meeting-minutes-tool-select select:disabled{opacity:.5}
+.meeting-minutes-quick-tools{
+  display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:10px 14px;
+  border-bottom:1px solid #e7e9ed;background:#fcfbf8
+}
+.meeting-minutes-tools-label{margin-right:4px;color:#71664b;font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.09em}
+.meeting-minutes-quick-tools button{
+  min-height:30px;padding:6px 10px;border:1px solid #e0d8c4;border-radius:6px;background:#fff;
+  color:#514728;font-size:11px;font-weight:700;cursor:pointer
+}
+.meeting-minutes-quick-tools button:hover:not(:disabled){border-color:#ad8727;background:#fbf7eb;color:#6d5111}
+.meeting-minutes-quick-tools button:disabled{opacity:.42;cursor:not-allowed}
+.meeting-minutes-editor-canvas{padding:25px clamp(12px,3vw,38px) 32px;background:#eef0f3}
+.meeting-minutes-report-editor{display:block;width:100%;max-width:1000px;min-width:0;margin:0 auto;background:transparent;color:#202735;font-family:Arial,Helvetica,sans-serif}
+.meeting-minutes-report-editor[contenteditable="true"],.meeting-minutes-report-editor [contenteditable="true"],.meeting-minutes-report-editor [data-lexical-editor="true"]{
+  box-sizing:border-box;display:block;width:100%;max-width:850px;min-height:980px;margin:0 auto;padding:54px clamp(28px,5vw,70px);
+  border:1px solid #e0e3e8;border-radius:2px;background:#fff;box-shadow:0 3px 14px rgba(24,32,44,.085);
+  color:#202735;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.66;overflow-wrap:anywhere;outline-color:#ad8727
+}
+.meeting-minutes-report-editor[contenteditable="false"],.meeting-minutes-report-editor [contenteditable="false"]{cursor:default}
+.meeting-minutes-report-editor[contenteditable="true"] h1,.meeting-minutes-report-editor [contenteditable="true"] h1,.meeting-minutes-report-editor [data-lexical-editor="true"] h1{
+  margin:0 0 20px;padding:0 0 12px;border-bottom:2px solid #ad8727;color:#72550f;font-size:24px;font-weight:750;line-height:1.25
+}
+.meeting-minutes-report-editor[contenteditable="true"] h2,.meeting-minutes-report-editor [contenteditable="true"] h2,.meeting-minutes-report-editor [data-lexical-editor="true"] h2{
+  margin:25px 0 10px;padding-bottom:5px;border-bottom:1px solid #e7dcc0;color:#846313;font-size:16px;font-weight:750;line-height:1.35
+}
+.meeting-minutes-report-editor[contenteditable="true"] h3,.meeting-minutes-report-editor [contenteditable="true"] h3,.meeting-minutes-report-editor [data-lexical-editor="true"] h3{margin:18px 0 7px;color:#725a23;font-size:14px;font-weight:700}
+.meeting-minutes-report-editor[contenteditable="true"] p,.meeting-minutes-report-editor [contenteditable="true"] p,.meeting-minutes-report-editor [data-lexical-editor="true"] p{margin:0 0 10px;line-height:1.66}
+.meeting-minutes-report-editor[contenteditable="true"] ul,.meeting-minutes-report-editor [contenteditable="true"] ol,.meeting-minutes-report-editor [data-lexical-editor="true"] ul,.meeting-minutes-report-editor [data-lexical-editor="true"] ol{margin:7px 0 14px;padding-left:24px}
+.meeting-minutes-report-editor[contenteditable="true"] li,.meeting-minutes-report-editor [contenteditable="true"] li,.meeting-minutes-report-editor [data-lexical-editor="true"] li{margin:0 0 4px;line-height:1.58}
+.meeting-minutes-report-editor[contenteditable="true"] table,.meeting-minutes-report-editor [contenteditable="true"] table,.meeting-minutes-report-editor [data-lexical-editor="true"] table{width:100%;margin:12px 0 18px;border-collapse:collapse;font-size:11px}
+.meeting-minutes-report-editor[contenteditable="true"] th,.meeting-minutes-report-editor [contenteditable="true"] th,.meeting-minutes-report-editor [data-lexical-editor="true"] th{background:#f5efdf;color:#594714;font-weight:700}
+.meeting-minutes-report-editor[contenteditable="true"] th,.meeting-minutes-report-editor[contenteditable="true"] td,.meeting-minutes-report-editor [contenteditable="true"] th,.meeting-minutes-report-editor [contenteditable="true"] td,.meeting-minutes-report-editor [data-lexical-editor="true"] th,.meeting-minutes-report-editor [data-lexical-editor="true"] td{padding:8px;border:1px solid #d9dce2;text-align:left;vertical-align:top}
+.meeting-minutes-live-preview{border-top:1px solid #e2e5e9;background:#fff}
+.meeting-minutes-preview-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 18px;border-bottom:1px solid #e3e5e9;background:#fff}
+.meeting-minutes-preview-heading>div:first-child{display:flex;flex-direction:column;gap:3px}
+.meeting-minutes-preview-heading strong{color:#4c421f;font-size:13px;font-weight:800}
+.meeting-minutes-preview-heading span{color:#707785;font-size:11px}
+.meeting-minutes-preview-actions{display:flex;align-items:center;gap:7px}
+.meeting-minutes-preview-panel{padding:18px;background:#eceff3;border-top:1px solid #e0e3e8}
+.meeting-minutes-preview-frame{display:block;width:min(100%,1000px);height:min(1120px,calc(100vh - 210px));min-height:740px;margin:0 auto;border:1px solid #dfe2e7;border-radius:4px;background:#eceff3}
+
+.meeting-minutes-documents-panel{display:flex;flex-direction:column;gap:16px}
+.meeting-minutes-documents-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:4px 0 16px;border-bottom:1px solid #e3e5e9}
+.meeting-minutes-documents-header h4{margin:5px 0 6px;color:#202735;font-size:19px}
+.meeting-minutes-documents-header p{margin:0;color:#626b78;font-size:12px;line-height:1.55}
+.meeting-minutes-documents-header>button,.meeting-minutes-repository-document button{min-height:34px;padding:8px 11px;border:1px solid #d8c791;border-radius:7px;background:#fffdf7;color:#705515;font-size:11px;font-weight:750;cursor:pointer}
+.meeting-minutes-repository-document{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:17px;border:1px solid #d8c791;border-left:4px solid #a88425;border-radius:9px;background:#fffdf7}
+.meeting-minutes-repository-document strong{font-size:15px;line-height:1.45;color:#29313d;overflow-wrap:anywhere}
+.meeting-minutes-repository-document>span:not(.meeting-minutes-repository-kicker){font-size:12px;color:#576170;overflow-wrap:anywhere}
+.meeting-minutes-repository-document>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.meeting-minutes-no-publication{padding:20px;border:1px dashed #d5d9df;border-radius:9px;background:#f9fafb}
+.meeting-minutes-no-publication strong{display:block;margin-bottom:6px;color:#353e4b;font-size:14px}
+.meeting-minutes-no-publication p{max-width:850px;margin:0;color:#626b78;font-size:12px;line-height:1.65}
+
+@media(max-width:1150px){
+  .meeting-minutes-authoring-layout{max-width:100%}
+  .meeting-minutes-pane-heading{gap:14px}
+  .meeting-minutes-editor-canvas{padding:20px 14px 26px}
+  .meeting-minutes-formatting-toolbar{gap:6px;padding:8px}
+}
+@media(max-width:760px){
+  .meeting-minutes-documents-header{flex-direction:column;align-items:stretch}
+  .meeting-minutes-documents-header>button{width:100%}
+  .meeting-minutes-repository-document>div{width:100%;flex-direction:column}
+  .meeting-minutes-repository-document button{width:100%}
+  .meeting-minutes-repository-repair{align-items:stretch;flex-direction:column}
+  .meeting-minutes-repository-repair button,.meeting-minutes-no-publication button{width:100%}
+
+  .minutes-panel .minutes-workflow-toolbar{gap:6px;padding:9px}
+  .minutes-panel .minutes-workflow-toolbar button{flex:1 1 auto}
+  .minutes-panel .minutes-workflow-state{align-items:flex-start;flex-direction:column;gap:7px}
+  .meeting-minutes-repository-receipt{align-items:flex-start;flex-direction:column;gap:10px}
+  .meeting-minutes-repository-receipt button{width:100%}
+  .meeting-minutes-pane-heading{padding:15px;flex-direction:column;gap:12px}
+  .meeting-minutes-pane-heading h4{font-size:18px}
+  .meeting-minutes-paper-label{align-self:flex-start}
+  .meeting-minutes-formatting-toolbar{align-items:flex-start;gap:7px}
+  .meeting-minutes-tool-divider{display:none}
+  .meeting-minutes-tool-select{flex:1 1 105px;justify-content:space-between}
+  .meeting-minutes-tool-select select{max-width:100px}
+  .meeting-minutes-quick-tools{padding:10px;gap:6px}
+  .meeting-minutes-tools-label{width:100%}
+  .meeting-minutes-editor-canvas{padding:12px 8px 18px}
+  .meeting-minutes-report-editor[contenteditable="true"],.meeting-minutes-report-editor [contenteditable="true"],.meeting-minutes-report-editor [data-lexical-editor="true"]{min-height:720px;padding:30px 22px;font-size:12px}
+  .meeting-minutes-preview-panel{padding:8px}
+  .meeting-minutes-preview-frame{height:850px;min-height:600px}
+  .meeting-minutes-preview-heading{align-items:flex-start;flex-direction:column}
+  .meeting-minutes-preview-actions{width:100%}
+  .meeting-minutes-preview-actions button{flex:1}
+}
+@media print{
+  .minutes-panel .minutes-workflow-toolbar,.minutes-panel .minutes-workflow-state,.meeting-minutes-pane-heading,.meeting-minutes-formatting-toolbar,.meeting-minutes-quick-tools,.meeting-minutes-repository-receipt,.meeting-minutes-publication-notice{display:none!important}
+}
+
+
+/* R2.4: explicit private Repository working-draft receipt, owned by the Minutes module. */
+.meeting-minutes-working-draft-receipt,
+.meeting-minutes-repository-draft-document {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 18px;
+  margin: 14px 0;
+  border: 1px solid #d9bd70;
+  border-left: 4px solid #a77a14;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #322b1c;
+}
+.meeting-minutes-working-draft-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 5px; }
+.meeting-minutes-working-draft-copy strong,
+.meeting-minutes-repository-draft-document strong { color: #59430f; font-size: 14px; }
+.meeting-minutes-working-draft-copy span:not(.meeting-minutes-repository-kicker),
+.meeting-minutes-repository-draft-document span { overflow-wrap: anywhere; }
+.meeting-minutes-working-draft-copy small,
+.meeting-minutes-repository-draft-document p { color: #68604f; font-size: 12px; }
+.meeting-minutes-repository-draft-document { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.meeting-minutes-working-draft-receipt > button,
+.meeting-minutes-repository-draft-document > button { flex: none; min-height: 38px; padding: 8px 14px; border: 1px solid #9c781e; border-radius: 6px; background: #fff; color: #61480b; font-weight: 700; cursor: pointer; }
+.meeting-minutes-working-draft-receipt > button:disabled,
+.meeting-minutes-repository-draft-document > button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 760px) {
+  .meeting-minutes-working-draft-receipt { flex-direction: column; }
+  .meeting-minutes-working-draft-receipt > button { width: 100%; }
+}

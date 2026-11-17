@@ -1,0 +1,2908 @@
+/*
+  App2 Assignments — Dashboard Standard
+  Presentation-only refinement layered over the accepted Stage 27 functional baseline.
+  Reuses shared App2 executive semantic tokens. No workflow/RBAC/API behaviour lives here.
+*/
+
+.assignments-control-centre-entry,
+.assignment-workspace {
+  --as-blue: var(--app2-blue, #2c67aa);
+  --as-violet: var(--app2-violet, #7658a9);
+  --as-green: var(--app2-green, #2b975c);
+  --as-amber: var(--app2-amber, #da921d);
+  --as-red: var(--app2-red, #bf3746);
+  --as-gold: var(--app2-gold, #b78925);
+  --as-card: var(--surface-card, var(--surface-primary, #fff));
+  --as-page: var(--surface-page, var(--surface-secondary, #f7f8fb));
+  --as-border: var(--border-default, #d8dce3);
+  --as-muted: var(--text-secondary, #626b78);
+}
+
+/* =========================================================
+   ASSIGNMENTS CONTROL CENTRE
+   ========================================================= */
+
+.assignments-control-centre-entry {
+  gap: 16px;
+}
+
+.assignments-control-centre-entry .assignment-page-head {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-panel, 16px);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--as-gold) 19%, transparent), transparent 34%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--as-card) 97%, transparent),
+      color-mix(in srgb, var(--as-gold) 8%, var(--as-card)));
+  box-shadow: var(--app2-shadow-card, 0 10px 28px rgba(31, 38, 48, .08));
+}
+
+.assignments-control-centre-entry .assignment-page-head p {
+  margin: 0 0 4px;
+  color: color-mix(in srgb, var(--as-gold) 86%, #4e3a16);
+  font-size: var(--app2-font-size-xs, 12px);
+  font-weight: 850;
+  letter-spacing: .105em;
+}
+
+.assignments-control-centre-entry .assignment-page-head h2 {
+  margin: 0;
+  font-size: clamp(22px, 2vw, 28px);
+  letter-spacing: -.025em;
+}
+
+.assignments-control-centre-entry .assignment-page-head span {
+  display: block;
+  margin-top: 5px;
+  max-width: 820px;
+  color: var(--as-muted);
+  line-height: 1.45;
+}
+
+.assignments-control-centre-entry .assignment-page-head > button {
+  min-height: 42px;
+  padding-inline: 16px;
+  border: 1px solid color-mix(in srgb, var(--as-gold) 42%, transparent);
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-gold-gradient,
+    linear-gradient(145deg, rgba(255,248,226,.98), rgba(225,179,60,.25)));
+  color: inherit;
+  font-weight: 850;
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--as-gold) 15%, transparent);
+}
+
+.assignments-control-centre-entry .assignment-phase3 {
+  display: grid;
+  gap: 13px;
+}
+
+.assignments-control-centre-entry .assignment-phase3-head,
+.assignments-control-centre-entry .assignment-command-bar,
+.assignments-control-centre-entry .assignment-filters {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  background: var(--app2-neutral-gradient,
+    linear-gradient(145deg, rgba(255,255,255,.98), rgba(247,248,251,.96)));
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.06));
+}
+
+.assignments-control-centre-entry .assignment-command-bar,
+.assignments-control-centre-entry .assignment-filters {
+  padding: 10px 12px;
+}
+
+.assignments-control-centre-entry :where(
+  .assignment-list-view,
+  .assignment-card-view,
+  .assignment-kanban,
+  .assignment-calendar-view,
+  .assignment-workload-view
+) {
+  border-radius: var(--app2-radius-panel, 15px);
+}
+
+.assignments-control-centre-entry .assignment-list-head {
+  background: color-mix(in srgb, var(--as-blue) 7%, var(--as-card));
+  border-bottom: 1px solid color-mix(in srgb, var(--as-blue) 14%, var(--as-border));
+  font-weight: 850;
+}
+
+.assignments-control-centre-entry :where(
+  .assignment-list-view article,
+  .assignment-card-view article,
+  .assignment-kanban article,
+  .workload-person
+) {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  background: var(--app2-neutral-gradient,
+    linear-gradient(145deg, rgba(255,255,255,.985), rgba(248,249,252,.95)));
+  box-shadow: var(--app2-shadow-card, 0 7px 20px rgba(31,38,48,.055));
+}
+
+.assignments-control-centre-entry :where(
+  .assignment-list-view article,
+  .assignment-card-view article,
+  .assignment-kanban article
+):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app2-shadow-hover, 0 12px 28px rgba(31,38,48,.10));
+}
+
+.assignments-control-centre-entry .assignment-open-workspace {
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-blue-gradient,
+    linear-gradient(145deg, rgba(239,247,255,.98), rgba(199,219,244,.68)));
+  border: 1px solid color-mix(in srgb, var(--as-blue) 28%, transparent);
+  font-weight: 820;
+}
+
+.assignments-control-centre-entry .assignment-health,
+.assignments-control-centre-entry .assignment-priority {
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.assignments-control-centre-entry .assignment-health[data-state*="overdue"],
+.assignments-control-centre-entry .assignment-health.danger {
+  background: var(--app2-red-gradient);
+}
+
+.assignments-control-centre-entry .assignment-health[data-state*="soon"],
+.assignments-control-centre-entry .assignment-priority[data-priority*="high"] {
+  background: var(--app2-amber-gradient);
+}
+
+/* =========================================================
+   ASSIGNMENT WORKSPACE — SHARED TAB STANDARD
+   ========================================================= */
+
+.assignment-workspace .assignment-phase4 {
+  gap: 14px;
+  padding: 14px 16px 20px;
+}
+
+.assignment-workspace .assignment-workspace-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 28;
+  padding: 8px;
+  gap: 6px;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--as-card) 97%, transparent),
+      color-mix(in srgb, var(--assignment-accent, var(--as-blue)) 5%, var(--as-card)));
+  backdrop-filter: blur(10px);
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"] {
+  position: relative;
+  min-height: 42px;
+  padding: 9px 14px;
+  color: var(--text-primary, #1b1f24);
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"].active::after,
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--assignment-accent, var(--as-blue)) 78%, #fff);
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span:nth-child(1) {
+  background: var(--app2-blue-gradient);
+}
+.assignment-workspace .assignment-workspace-context-strip > span:nth-child(2) {
+  background: var(--app2-gold-gradient);
+}
+.assignment-workspace .assignment-workspace-context-strip > span:nth-child(3) {
+  background: var(--app2-violet-gradient);
+}
+.assignment-workspace .assignment-workspace-context-strip > span:nth-child(4) {
+  background: var(--app2-green-gradient);
+}
+
+.assignment-workspace .assignment-workspace-tabpanel {
+  gap: 14px;
+}
+
+/* Every primary tab gets one dashboard-like surface hierarchy */
+.assignment-workspace :where(
+  .assignment-overview-v4,
+  .assignment-resources-simple,
+  .phase4-documents,
+  .assignment-reports-panel,
+  .assignment-reports-simple-v3,
+  .assignment-review-v3,
+  .phase4-activity
+) {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.assignment-workspace :where(
+  .workspace-section-heading,
+  .assignment-reports-titlebar,
+  .assignment-review-v3-head
+) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px 12px;
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--as-card) 98%, transparent),
+      color-mix(in srgb, var(--assignment-accent, var(--as-blue)) 6%, var(--as-card)));
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.06));
+}
+
+.assignment-workspace :where(
+  .workspace-section-heading,
+  .assignment-reports-titlebar,
+  .assignment-review-v3-head
+) :where(h2,h3) {
+  margin: 2px 0 3px;
+  letter-spacing: -.015em;
+}
+
+.assignment-workspace :where(
+  .workspace-section-heading,
+  .assignment-reports-titlebar,
+  .assignment-review-v3-head
+) p {
+  margin: 0;
+  color: var(--as-muted);
+  line-height: 1.45;
+}
+
+.assignment-workspace .workspace-eyebrow {
+  color: color-mix(in srgb, var(--assignment-accent, var(--as-blue)) 85%, #25364f);
+}
+
+/* Overview */
+.assignment-workspace .assignment-overview-v4-hero,
+.assignment-workspace .assignment-overview-v4-card,
+.assignment-workspace .assignment-overview-v4-next,
+.assignment-workspace .assignment-overview-v4-final-report {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.06));
+}
+
+.assignment-workspace .assignment-overview-v4-hero {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--assignment-accent, var(--as-blue)) 13%, transparent), transparent 34%),
+    var(--app2-neutral-gradient);
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > * {
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--as-blue) 15%, var(--as-border));
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > *:nth-child(1) {
+  background: var(--app2-blue-gradient);
+}
+.assignment-workspace .assignment-overview-v4-metrics > *:nth-child(2) {
+  background: var(--app2-amber-gradient);
+}
+.assignment-workspace .assignment-overview-v4-metrics > *:nth-child(3) {
+  background: var(--app2-violet-gradient);
+}
+.assignment-workspace .assignment-overview-v4-metrics > *:nth-child(4) {
+  background: var(--app2-green-gradient);
+}
+
+.assignment-workspace .assignment-overview-v4-tasklist > *,
+.assignment-workspace .assignment-overview-v4-activity > *,
+.assignment-workspace .assignment-member-request-card {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--as-blue) 11%, var(--as-border));
+  background: color-mix(in srgb, var(--as-card) 96%, var(--as-page));
+}
+
+/* Evidence / Documents */
+.assignment-workspace :where(
+  .assignment-resource-list > *,
+  .assignment-note-composer,
+  .assignment-repository-link,
+  .assignment-resource-tools,
+  .phase4-documents > section,
+  .phase4-documents > article
+) {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card, 0 7px 19px rgba(31,38,48,.05));
+}
+
+.assignment-workspace .assignment-resource-list > * {
+  position: relative;
+  overflow: hidden;
+}
+
+.assignment-workspace .assignment-resource-list > *::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--app2-blue-gradient);
+}
+
+/* Reports */
+.assignment-workspace :where(
+  .assignment-primary-report-card,
+  .assignment-builder-access,
+  .assignment-source-simple,
+  .assignment-reviewer-decision,
+  .assignment-import-handoff,
+  .assignment-report-evidence-picker
+) {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.06));
+}
+
+.assignment-workspace .assignment-primary-report-card {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--as-gold) 15%, transparent), transparent 34%),
+    var(--app2-neutral-gradient);
+}
+
+.assignment-workspace .assignment-builder-access {
+  background: var(--app2-blue-gradient);
+}
+
+.assignment-workspace .assignment-reviewer-decision {
+  background: var(--app2-violet-gradient);
+}
+
+.assignment-workspace .assignment-import-handoff {
+  background: var(--app2-amber-gradient);
+}
+
+/* Review */
+.assignment-workspace .assignment-formal-report-review,
+.assignment-workspace .review-v3-sources,
+.assignment-workspace .task-review-routing-card {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.06));
+}
+
+.assignment-workspace .assignment-review-decision-panel {
+  border: 1px solid color-mix(in srgb, var(--as-violet) 27%, var(--as-border));
+  border-radius: 12px;
+  background: var(--app2-violet-gradient);
+}
+
+.assignment-workspace .assignment-review-finalize-panel,
+.assignment-workspace .assignment-review-final-note {
+  border: 1px solid color-mix(in srgb, var(--as-green) 28%, var(--as-border));
+  border-radius: 12px;
+  background: var(--app2-green-gradient);
+}
+
+.assignment-workspace .assignment-review-returned-note {
+  border-radius: 10px;
+  background: var(--app2-amber-gradient);
+}
+
+.assignment-workspace .assignment-review-rejected-note {
+  border-radius: 10px;
+  background: var(--app2-red-gradient);
+}
+
+.assignment-workspace .review-v3-source-list > article,
+.assignment-workspace .task-review-routing-list > article {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--as-violet) 12%, var(--as-border));
+  background: color-mix(in srgb, var(--as-card) 96%, var(--as-page));
+}
+
+/* Activity */
+.assignment-workspace .assignment-human-activity {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+}
+
+.assignment-workspace .assignment-human-activity::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--as-blue) 25%, var(--as-border));
+}
+
+.assignment-workspace .assignment-human-activity > div {
+  position: relative;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--as-blue) 11%, var(--as-border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--as-card) 97%, var(--as-page));
+}
+
+.assignment-workspace .assignment-human-activity > div::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--as-blue);
+}
+
+.assignment-workspace .assignment-activity-comment {
+  border: var(--app2-border-card, 1px solid var(--as-border));
+  border-radius: var(--app2-radius-card, 13px);
+  padding: 12px;
+  background: var(--app2-neutral-gradient);
+}
+
+/* Shared buttons across tabs */
+.assignment-workspace :where(
+  .app-action-primary,
+  .assignment-primary-report-actions button.primary,
+  button.primary
+) {
+  border: 1px solid color-mix(in srgb, var(--as-gold) 34%, transparent);
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-gold-gradient);
+  font-weight: 820;
+}
+
+.assignment-workspace :where(
+  .app-action-secondary,
+  button.secondary
+) {
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-blue-gradient);
+}
+
+.assignment-workspace .app-action-approve {
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-green-gradient);
+}
+
+.assignment-workspace .app-action-return {
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-amber-gradient);
+}
+
+.assignment-workspace .app-action-danger {
+  border-radius: var(--app2-radius-button, 10px);
+  background: var(--app2-red-gradient);
+}
+
+.assignment-workspace button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app2-shadow-hover, 0 10px 24px rgba(31,38,48,.10));
+}
+
+/* Forms remain readable in all themes */
+.assignment-workspace :where(input, select, textarea) {
+  min-height: 38px;
+  border-radius: var(--app2-radius-button, 10px);
+  border: var(--app2-border-soft, 1px solid var(--as-border));
+  background: color-mix(in srgb, var(--as-card) 94%, transparent);
+  color: var(--text-primary, #1b1f24);
+}
+
+.assignment-workspace textarea {
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-workspace :where(
+    .assignment-overview-v4-grid,
+    .assignment-overview-v4-brief-grid
+  ) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .assignments-control-centre-entry .assignment-page-head,
+  .assignment-workspace :where(
+    .workspace-section-heading,
+    .assignment-reports-titlebar,
+    .assignment-review-v3-head
+  ) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-workspace .assignment-phase4 {
+    padding-inline: 9px;
+  }
+
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* APP2_VISUAL_STAGE3_ASSIGNMENTS_BEGIN */
+/* VISUAL STAGE 3 - ASSIGNMENT WORKSPACE COMPACTION */
+/* Based on rendered Overview / Evidence / Reports / Review / Activity screens. */
+
+/* Prevent the sticky tab strip from covering the context cards while scrolling. */
+.assignment-workspace .assignment-workspace-tabs {
+  position: static;
+  top: auto;
+  z-index: auto;
+  min-height: 46px;
+  margin: 0;
+  padding: 5px 8px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: none;
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"] {
+  min-height: 38px;
+  padding: 7px 13px;
+}
+
+/* Compact the repeated context strip at the top of every tab. */
+.assignment-workspace .assignment-workspace-context-strip {
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span {
+  min-height: 68px;
+  padding: 10px 13px;
+  border-radius: 11px;
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span small {
+  margin-bottom: 3px;
+  font-size: 12px;
+  letter-spacing: .055em;
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+/* Needs-attention becomes a compact operational callout instead of a full hero. */
+.assignment-workspace .assignment-workspace-attention,
+.assignment-workspace .assignment-attention-card,
+.assignment-workspace .assignment-workspace-next-action {
+  min-height: 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--as-violet) 8%, var(--as-card)),
+      color-mix(in srgb, var(--as-violet) 3%, var(--as-card)));
+  border: 1px solid color-mix(in srgb, var(--as-violet) 20%, var(--as-border));
+  box-shadow: none;
+}
+
+.assignment-workspace :where(
+  .assignment-workspace-attention,
+  .assignment-attention-card,
+  .assignment-workspace-next-action
+) :where(h3,strong) {
+  margin: 0 0 3px;
+  font-size: 14px;
+}
+
+.assignment-workspace :where(
+  .assignment-workspace-attention,
+  .assignment-attention-card,
+  .assignment-workspace-next-action
+) p {
+  margin: 0;
+  max-width: 760px;
+  color: var(--as-muted);
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+.assignment-workspace :where(
+  .assignment-workspace-attention,
+  .assignment-attention-card,
+  .assignment-workspace-next-action
+) button {
+  min-height: 36px;
+  padding: 7px 12px;
+}
+
+/* Felix is a contextual utility, not a full-width panel. */
+.assignment-workspace .assignment-felix-utility,
+.assignment-workspace .assignment-felix-strip,
+.assignment-workspace .assignment-workspace-felix {
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.assignment-workspace :where(
+  .assignment-felix-utility,
+  .assignment-felix-strip,
+  .assignment-workspace-felix
+) button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--as-gold) 18%, var(--as-border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--as-gold) 4%, var(--as-card));
+  box-shadow: none;
+}
+
+/* Generic fallback for the rendered Felix wrapper seen in current workspace. */
+.assignment-workspace .assignment-workspace-tabpanel > div:has(> button:first-child:last-child) {
+  min-height: 0;
+}
+
+/* Tighten tab content so real work begins sooner. */
+.assignment-workspace .assignment-workspace-tabpanel {
+  gap: 10px;
+}
+
+.assignment-workspace :where(
+  .assignment-overview-v4,
+  .assignment-resources-simple,
+  .phase4-documents,
+  .assignment-reports-panel,
+  .assignment-reports-simple-v3,
+  .assignment-review-v3,
+  .phase4-activity
+) {
+  gap: 10px;
+}
+
+/* Overview */
+.assignment-workspace .assignment-overview-v4-hero {
+  min-height: 0;
+  padding: 14px 16px;
+}
+
+.assignment-workspace .assignment-overview-v4-hero h2 {
+  margin: 2px 0 5px;
+  font-size: clamp(20px, 1.7vw, 25px);
+}
+
+.assignment-workspace .assignment-overview-v4-hero p {
+  margin: 0;
+  line-height: 1.42;
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid {
+  gap: 10px;
+}
+
+.assignment-workspace .assignment-overview-v4-card,
+.assignment-workspace .assignment-overview-v4-next,
+.assignment-workspace .assignment-overview-v4-final-report {
+  padding: 12px 14px;
+}
+
+/* Evidence */
+.assignment-workspace .workspace-section-heading {
+  padding: 12px 14px 10px;
+}
+
+.assignment-workspace .assignment-resource-tools {
+  padding: 8px;
+}
+
+.assignment-workspace .assignment-resource-tools :where(input,select) {
+  min-height: 38px;
+}
+
+.assignment-workspace .assignment-repository-link,
+.assignment-workspace .assignment-note-composer {
+  padding: 10px 12px;
+}
+
+/* Reports: make the actual report work start immediately. */
+.assignment-workspace .assignment-reports-titlebar {
+  padding: 12px 14px 10px;
+}
+
+.assignment-workspace .assignment-primary-report-card {
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.assignment-workspace .assignment-primary-report-card > header {
+  margin-bottom: 8px;
+}
+
+.assignment-workspace :where(
+  .assignment-builder-access,
+  .assignment-source-simple,
+  .assignment-reviewer-decision,
+  .assignment-import-handoff,
+  .assignment-report-evidence-picker
+) {
+  padding: 11px 13px;
+}
+
+/* Report role cards should sit in a compact grid rather than leaving a wide empty canvas. */
+.assignment-workspace .assignment-primary-report-card :where(
+  .assignment-report-role-grid,
+  .assignment-report-access-grid,
+  .assignment-report-owner-grid
+) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 920px;
+}
+
+/* Review */
+.assignment-workspace .assignment-review-v3-head,
+.assignment-workspace .assignment-formal-report-review {
+  padding: 12px 14px;
+}
+
+.assignment-workspace .assignment-review-v3-head {
+  min-height: 0;
+}
+
+.assignment-workspace .assignment-formal-report-review {
+  gap: 8px;
+}
+
+.assignment-workspace .assignment-review-decision-panel,
+.assignment-workspace .assignment-review-finalize-panel {
+  padding: 11px 13px;
+}
+
+/* Activity */
+.assignment-workspace .phase4-activity {
+  gap: 9px;
+}
+
+.assignment-workspace .assignment-human-activity {
+  gap: 6px;
+  padding-left: 18px;
+}
+
+.assignment-workspace .assignment-human-activity > div {
+  min-height: 0;
+  padding: 8px 11px;
+}
+
+.assignment-workspace .assignment-activity-comment {
+  padding: 8px;
+}
+
+.assignment-workspace .assignment-activity-comment textarea {
+  min-height: 60px;
+}
+
+/* Keep all tab headings aligned to dashboard typography. */
+.assignment-workspace :where(
+  .workspace-section-heading,
+  .assignment-reports-titlebar,
+  .assignment-review-v3-head
+) :where(h2,h3) {
+  font-size: clamp(19px, 1.6vw, 24px);
+}
+
+/* Keep semantic text contrast strong on Executive Gold / Sage Ivory. */
+.assignment-workspace :where(
+  .assignment-overview-v4-hero,
+  .assignment-primary-report-card,
+  .assignment-formal-report-review,
+  .assignment-resource-list > *,
+  .assignment-human-activity > div
+) {
+  color: var(--text-primary, #1b1f24);
+}
+
+.assignment-workspace :where(
+  .assignment-overview-v4-hero,
+  .assignment-primary-report-card,
+  .assignment-formal-report-review
+) small {
+  color: color-mix(in srgb, var(--as-muted) 88%, var(--text-primary, #1b1f24));
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-primary-report-card :where(
+    .assignment-report-role-grid,
+    .assignment-report-access-grid,
+    .assignment-report-owner-grid
+  ) {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* APP2_VISUAL_STAGE4_ASSIGNMENT_DASHBOARD_BEGIN */
+.assignments-operational-dashboard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--as-blue) 16%, var(--as-border));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--as-blue) 9%, transparent), transparent 34%),
+    var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card, 0 8px 22px rgba(31,38,48,.055));
+}
+.assignments-dashboard-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.assignments-dashboard-head small,
+.assignments-dashboard-attention header small,
+.assignments-dashboard-progress > small {
+  color: color-mix(in srgb, var(--as-blue) 82%, var(--text-primary, #1b1f24));
+  font-size: 11px; font-weight: 850; letter-spacing: .085em;
+}
+.assignments-dashboard-head h3 { margin: 2px 0 3px; font-size: 20px; }
+.assignments-dashboard-head p { margin: 0; color: var(--as-muted); font-size: 13px; }
+.assignments-dashboard-head > span {
+  padding: 5px 9px; border-radius: 999px; background: var(--app2-blue-gradient);
+  border: 1px solid color-mix(in srgb, var(--as-blue) 20%, var(--as-border));
+  font-size: 12px; font-weight: 780;
+}
+.assignments-dashboard-metrics {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
+}
+.assignments-dashboard-metrics > * {
+  min-height: 91px; padding: 10px 12px; border-radius: 11px;
+  border: 1px solid var(--as-border); text-align: left; color: inherit;
+}
+.assignments-dashboard-metrics > button { cursor: pointer; }
+.assignments-dashboard-metrics small { display: block; font-size: 11px; font-weight: 850; letter-spacing: .055em; }
+.assignments-dashboard-metrics strong { display: block; margin: 4px 0 2px; font-size: 27px; line-height: 1; }
+.assignments-dashboard-metrics span { color: var(--as-muted); font-size: 12px; line-height: 1.3; }
+.assignments-dashboard-metrics .tone-blue { background: var(--app2-blue-gradient); }
+.assignments-dashboard-metrics .tone-amber { background: var(--app2-amber-gradient); }
+.assignments-dashboard-metrics .tone-red { background: var(--app2-red-gradient); }
+.assignments-dashboard-metrics .tone-violet { background: var(--app2-violet-gradient); }
+.assignments-dashboard-metrics .tone-green { background: var(--app2-green-gradient); }
+.assignments-dashboard-lower {
+  display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, .7fr); gap: 9px;
+}
+.assignments-dashboard-attention,
+.assignments-dashboard-progress {
+  border: 1px solid color-mix(in srgb, var(--as-blue) 12%, var(--as-border));
+  border-radius: 11px; background: color-mix(in srgb, var(--as-card) 97%, var(--as-page));
+}
+.assignments-dashboard-attention { overflow: hidden; }
+.assignments-dashboard-attention > header {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 9px 11px; border-bottom: 1px solid color-mix(in srgb, var(--as-border) 78%, transparent);
+}
+.assignments-dashboard-attention > header strong { display: block; margin-top: 1px; }
+.assignments-dashboard-attention > header > span { font-size: 11px; color: var(--as-muted); }
+.assignments-dashboard-attention article {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 9px; align-items: center;
+  padding: 8px 11px; border-bottom: 1px solid color-mix(in srgb, var(--as-border) 68%, transparent);
+}
+.assignments-dashboard-attention article:last-child { border-bottom: 0; }
+.assignments-dashboard-attention article div { min-width: 0; display: grid; gap: 1px; }
+.assignments-dashboard-attention article small,
+.assignments-dashboard-attention article span { color: var(--as-muted); font-size: 11px; }
+.assignments-dashboard-attention article b {
+  padding: 4px 8px; border-radius: 999px; font-size: 11px; white-space: nowrap;
+}
+.assignments-dashboard-attention .attention-0 { background: var(--app2-red-gradient); }
+.assignments-dashboard-attention .attention-1,
+.assignments-dashboard-attention .attention-4 { background: var(--app2-amber-gradient); }
+.assignments-dashboard-attention .attention-2,
+.assignments-dashboard-attention .attention-3 { background: var(--app2-violet-gradient); }
+.assignments-dashboard-attention article button {
+  min-height: 34px; padding: 6px 10px; border-radius: 8px; background: var(--app2-blue-gradient);
+}
+.assignments-dashboard-clear { padding: 12px; color: var(--as-muted); font-size: 12px; }
+.assignments-dashboard-progress { padding: 11px 12px; }
+.assignments-dashboard-progress > strong { display: block; margin: 3px 0 9px; font-size: 15px; }
+.assignments-dashboard-progress-track {
+  height: 8px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--as-blue) 9%, var(--as-border));
+}
+.assignments-dashboard-progress-track span {
+  display: block; height: 100%; border-radius: inherit; background: var(--as-green);
+}
+.assignments-dashboard-progress dl {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 10px 0 0;
+}
+.assignments-dashboard-progress dl > div {
+  padding: 6px; border-radius: 8px; background: color-mix(in srgb, var(--as-card) 95%, var(--as-page)); text-align: center;
+}
+.assignments-dashboard-progress dt { color: var(--as-muted); font-size: 10px; }
+.assignments-dashboard-progress dd { margin: 2px 0 0; font-size: 15px; font-weight: 850; }
+@media (max-width: 1050px) {
+  .assignments-dashboard-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .assignments-dashboard-lower { grid-template-columns: 1fr; }
+}
+@media (max-width: 650px) {
+  .assignments-dashboard-head { display: grid; }
+  .assignments-dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .assignments-dashboard-attention article { grid-template-columns: 1fr auto; }
+  .assignments-dashboard-attention article button { grid-column: 1 / -1; justify-self: start; }
+}
+
+
+/* APP2_COMMAND_CENTRE_V1_BEGIN */
+.assignments-command-centre,
+.tasks-command-centre {
+  --command-blue: #2f6fb4;
+  --command-teal: #3c9487;
+  --command-amber: #e5a01c;
+  --command-orange: #db7d1f;
+  --command-red: #cf3f50;
+  --command-violet: #7d61ad;
+  --command-green: #2f9660;
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  color: var(--text-primary, #1b1f24);
+}
+
+.module-command-centre-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  border-bottom: 1px solid color-mix(in srgb, var(--command-amber) 42%, var(--border-default, #d8dce3));
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--command-amber) 11%, transparent), transparent 34%),
+    color-mix(in srgb, var(--surface-card, #fff) 98%, transparent);
+}
+
+.module-command-centre-head small,
+.module-action-centre > header small,
+.module-delivery-health > header small {
+  color: color-mix(in srgb, var(--command-amber) 84%, #4d3812);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.module-command-centre-head h3 {
+  margin: 2px 0 2px;
+  font-size: clamp(23px, 2vw, 31px);
+  letter-spacing: -.025em;
+}
+
+.module-command-centre-head p {
+  margin: 0;
+  color: var(--text-secondary, #68717d);
+  font-size: 13px;
+}
+
+.module-command-centre-head > span {
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--command-amber) 26%, var(--border-default, #d8dce3));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--command-amber) 8%, var(--surface-card, #fff));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.module-command-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tasks-command-centre .module-command-nav {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 820px;
+}
+
+.module-command-nav > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 69px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--command-amber) 20%, var(--border-default, #d8dce3));
+  border-radius: 12px;
+  background: var(--surface-card, #fff);
+  color: inherit;
+  text-align: left;
+  box-shadow: 0 5px 14px rgba(31,38,48,.045);
+}
+
+.module-command-nav > button > b {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--command-amber) 10%, var(--surface-card, #fff));
+  border: 1px solid color-mix(in srgb, var(--command-amber) 22%, transparent);
+}
+
+.module-command-nav > button span {
+  display: grid;
+  gap: 2px;
+}
+
+.module-command-nav > button strong {
+  font-size: 14px;
+}
+
+.module-command-nav > button small {
+  color: var(--text-secondary, #68717d);
+  font-size: 12px;
+}
+
+.module-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.module-kpi-strip > * {
+  position: relative;
+  overflow: hidden;
+  min-height: 112px;
+  padding: 13px 14px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, var(--border-default, #d8dce3));
+  border-radius: 12px;
+  background: var(--surface-card, #fff);
+  color: inherit;
+  text-align: left;
+  box-shadow: 0 5px 16px rgba(31,38,48,.045);
+}
+
+.module-kpi-strip > *::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: -17px;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.module-kpi-strip small {
+  display: block;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.module-kpi-strip strong {
+  display: block;
+  margin: 6px 0 3px;
+  font-size: 31px;
+  line-height: 1;
+}
+
+.module-kpi-strip span {
+  color: var(--text-secondary, #68717d);
+  font-size: 12px;
+}
+
+.module-kpi-strip .kpi-blue { color: var(--command-blue); border-top: 4px solid var(--command-blue); }
+.module-kpi-strip .kpi-teal { color: var(--command-teal); border-top: 4px solid var(--command-teal); }
+.module-kpi-strip .kpi-amber { color: var(--command-amber); border-top: 4px solid var(--command-amber); }
+.module-kpi-strip .kpi-orange { color: var(--command-orange); border-top: 4px solid var(--command-orange); }
+.module-kpi-strip .kpi-red { color: var(--command-red); border-top: 4px solid var(--command-red); }
+.module-kpi-strip .kpi-violet { color: var(--command-violet); border-top: 4px solid var(--command-violet); }
+.module-kpi-strip .kpi-green { color: var(--command-green); border-top: 4px solid var(--command-green); }
+
+.module-kpi-strip > * small,
+.module-kpi-strip > * strong,
+.module-kpi-strip > * span {
+  color: var(--text-primary, #1b1f24);
+}
+
+.module-kpi-strip > * span {
+  color: var(--text-secondary, #68717d);
+}
+
+.module-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(320px, .9fr);
+  gap: 10px;
+}
+
+.module-action-centre,
+.module-delivery-health {
+  border: 1px solid color-mix(in srgb, var(--command-amber) 22%, var(--border-default, #d8dce3));
+  border-radius: 13px;
+  background: var(--surface-card, #fff);
+  overflow: hidden;
+}
+
+.module-action-centre > header,
+.module-delivery-health > header {
+  padding: 13px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--command-amber) 18%, var(--border-default, #d8dce3));
+}
+
+.module-action-centre > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.module-action-centre h4,
+.module-delivery-health h4 {
+  margin: 3px 0 0;
+  font-size: 20px;
+}
+
+.module-action-centre > header > button {
+  min-height: 38px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--command-amber) 12%, var(--surface-card, #fff));
+  border: 1px solid color-mix(in srgb, var(--command-amber) 32%, var(--border-default, #d8dce3));
+  font-weight: 800;
+}
+
+.command-pressure-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.command-pressure-chips span {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.chip-red { background: color-mix(in srgb, var(--command-red) 11%, #fff); color: var(--command-red); }
+.chip-amber { background: color-mix(in srgb, var(--command-amber) 12%, #fff); color: #8c5f00; }
+.chip-violet { background: color-mix(in srgb, var(--command-violet) 11%, #fff); color: var(--command-violet); }
+
+.command-action-list article {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 135px 138px;
+  gap: 10px;
+  align-items: center;
+  min-height: 92px;
+  padding: 10px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 72%, transparent);
+}
+
+.command-action-list article:last-child {
+  border-bottom: 0;
+}
+
+.command-record-type {
+  justify-self: start;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--command-amber) 30%, var(--border-default, #d8dce3));
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.command-action-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.command-action-copy > strong {
+  font-size: 15px;
+}
+
+.command-action-copy > small,
+.command-action-copy > span {
+  color: var(--text-secondary, #68717d);
+  font-size: 11px;
+}
+
+.command-action-copy > em {
+  margin-top: 2px;
+  padding: 5px 8px;
+  border-left: 3px solid color-mix(in srgb, var(--command-red) 42%, transparent);
+  background: color-mix(in srgb, var(--command-red) 4%, var(--surface-card, #fff));
+  color: var(--text-secondary, #68717d);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.command-action-status {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
+}
+
+.command-action-status b {
+  color: var(--command-red);
+  font-size: 12px;
+}
+
+.command-action-status small {
+  color: var(--text-secondary, #68717d);
+  font-size: 11px;
+}
+
+.command-action-list article > button {
+  min-height: 39px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--command-red) 24%, var(--border-default, #d8dce3));
+  background: color-mix(in srgb, var(--command-red) 4%, var(--surface-card, #fff));
+  color: color-mix(in srgb, var(--command-red) 88%, #1b1f24);
+  font-weight: 850;
+}
+
+.command-clear-state {
+  padding: 18px;
+  color: var(--text-secondary, #68717d);
+  font-size: 13px;
+}
+
+.health-donut-wrap {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 18px 15px;
+}
+
+.health-donut {
+  display: grid;
+  place-items: center;
+  width: 166px;
+  height: 166px;
+  border-radius: 50%;
+}
+
+.health-donut > div {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: var(--surface-card, #fff);
+  text-align: center;
+}
+
+.health-donut strong {
+  font-size: 30px;
+}
+
+.health-donut span {
+  color: var(--text-secondary, #68717d);
+  font-size: 11px;
+}
+
+.health-legend {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.health-legend > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 90%, var(--surface-page, #f7f8fb));
+}
+
+.health-legend dt,
+.health-legend dd {
+  margin: 0;
+}
+
+.health-legend dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.health-legend dd {
+  color: var(--text-secondary, #68717d);
+  font-size: 12px;
+}
+
+.health-legend dd b {
+  margin-left: 4px;
+  color: var(--text-primary, #1b1f24);
+}
+
+.health-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot-green { background: var(--command-green); }
+.dot-amber { background: var(--command-amber); }
+.dot-red { background: var(--command-red); }
+
+@media (max-width: 1200px) {
+  .module-kpi-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .module-command-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .module-command-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tasks-command-centre .module-command-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .command-action-list article {
+    grid-template-columns: 1fr auto;
+  }
+  .command-record-type,
+  .command-action-copy {
+    grid-column: 1;
+  }
+  .command-action-status {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .command-action-list article > button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 600px) {
+  .module-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .module-command-centre-head {
+    display: grid;
+  }
+  .health-donut-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+/* Command Centre V1.1: the outer Assignments Control Centre is the page identity. */
+.assignments-control-centre-entry .assignment-phase3-head {
+  display: none !important;
+}
+
+/* The older Tasks summary strip is superseded by TasksCommandCentre. */
+.tasks-control-centre > .tasks-summary {
+  display: none !important;
+}
+
+
+/* APP2_COMMAND_CENTRE_V1_4_DUPLICATE_DASHBOARD_CLEANUP */
+.assignments-command-centre ~ .assignments-operational-dashboard,
+.tasks-command-centre ~ .tasks-operational-dashboard,
+.assignments-operational-dashboard,
+.tasks-operational-dashboard {
+  display: none !important;
+}
+
+
+/* APP2_COMMAND_CENTRE_V1_7_EXACT_RECORD_NAVIGATION */
+.command-action-list article[role="button"] {
+  cursor: pointer;
+}
+.command-action-list article[role="button"]:hover,
+.command-action-list article[role="button"]:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--command-blue) 34%, var(--border-default, #d8dce3));
+  background: color-mix(in srgb, var(--command-blue) 3.5%, var(--surface-card, #fff));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--command-blue) 62%, transparent);
+}
+
+
+/* APP2_COMMAND_CENTRE_V1_8_KPI_POPUPS */
+.command-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(18, 24, 33, .42);
+  backdrop-filter: blur(3px);
+}
+
+.command-popup {
+  width: min(920px, 96vw);
+  max-height: min(78vh, 760px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--command-blue) 20%, var(--border-default, #d8dce3));
+  border-radius: 16px;
+  background: var(--surface-card, #fff);
+  color: var(--text-primary, #1b1f24);
+  box-shadow: 0 26px 70px rgba(17, 24, 39, .22);
+}
+
+.command-popup-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--command-amber) 20%, var(--border-default, #d8dce3));
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--command-amber) 10%, transparent), transparent 38%),
+    var(--surface-card, #fff);
+}
+
+.command-popup-head small {
+  color: color-mix(in srgb, var(--command-amber) 84%, #4d3812);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.command-popup-head h4 {
+  margin: 2px 0;
+  font-size: 23px;
+}
+
+.command-popup-head p {
+  margin: 0;
+  color: var(--text-secondary, #68717d);
+  font-size: 12px;
+}
+
+.command-popup-head > button {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--border-default, #d8dce3);
+  background: var(--surface-card, #fff);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.command-popup-list {
+  overflow: auto;
+  padding: 8px 12px;
+}
+
+.command-popup-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 5px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 72%, transparent);
+}
+
+.command-popup-list article:last-child {
+  border-bottom: 0;
+}
+
+.command-popup-record {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.command-popup-record small,
+.command-popup-record span {
+  color: var(--text-secondary, #68717d);
+  font-size: 11px;
+}
+
+.command-popup-record strong {
+  font-size: 15px;
+}
+
+.command-popup-list article > button {
+  min-height: 38px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--command-blue) 26%, var(--border-default, #d8dce3));
+  background: color-mix(in srgb, var(--command-blue) 5%, var(--surface-card, #fff));
+  font-weight: 850;
+}
+
+.command-popup-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--text-secondary, #68717d);
+  font-size: 13px;
+}
+
+.command-popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--border-default, #d8dce3);
+  background: color-mix(in srgb, var(--surface-card, #fff) 93%, var(--surface-page, #f7f8fb));
+}
+
+.command-popup-footer button {
+  min-height: 38px;
+  padding: 7px 12px;
+  border-radius: 9px;
+}
+
+.command-popup-footer button:first-child {
+  background: color-mix(in srgb, var(--command-blue) 8%, var(--surface-card, #fff));
+  border: 1px solid color-mix(in srgb, var(--command-blue) 28%, var(--border-default, #d8dce3));
+  font-weight: 850;
+}
+
+@media (max-width: 620px) {
+  .command-popup-backdrop {
+    padding: 10px;
+  }
+  .command-popup {
+    width: 100%;
+    max-height: 88vh;
+  }
+  .command-popup-list article {
+    grid-template-columns: 1fr;
+  }
+  .command-popup-list article > button {
+    justify-self: start;
+  }
+}
+
+
+/* APP2_WORKFLOW_SCREENS_V1_ASSIGNMENTS_BEGIN */
+
+/* Assignment workspace: reduce repeated chrome and keep content near the top. */
+.assignment-workspace {
+  --wf-gap: 10px;
+}
+
+.assignment-workspace .assignment-workspace-tabs {
+  position: sticky !important;
+  top: var(--assignment-shell-header-height, 84px) !important;
+  z-index: 60 !important;
+  margin-bottom: var(--wf-gap);
+}
+
+.assignment-workspace .assignment-workspace-context-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 var(--wf-gap);
+}
+
+.assignment-workspace .assignment-workspace-context-card {
+  min-height: 62px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px;
+}
+
+.assignment-workspace .assignment-workspace-context-card small {
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+
+.assignment-workspace .assignment-workspace-context-card strong {
+  font-size: 14px;
+}
+
+.assignment-workspace .assignment-workspace-attention,
+.assignment-workspace .assignment-attention-card,
+.assignment-workspace .assignment-workspace-next-action {
+  min-height: 0 !important;
+  padding: 9px 11px !important;
+  margin-bottom: var(--wf-gap) !important;
+  border-radius: 10px !important;
+}
+
+.assignment-workspace .assignment-workspace-attention h3,
+.assignment-workspace .assignment-attention-card h3,
+.assignment-workspace .assignment-workspace-next-action h3 {
+  margin: 0 0 2px !important;
+  font-size: 14px !important;
+}
+
+.assignment-workspace .assignment-workspace-attention p,
+.assignment-workspace .assignment-attention-card p,
+.assignment-workspace .assignment-workspace-next-action p {
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+
+/* Felix becomes a compact utility, not a full-width content block. */
+.assignment-workspace .assignment-felix-utility,
+.assignment-workspace .assignment-felix-strip,
+.assignment-workspace .assignment-workspace-felix {
+  min-height: 0 !important;
+  padding: 7px 10px !important;
+  margin: 0 0 var(--wf-gap) !important;
+  border-radius: 9px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.assignment-workspace .assignment-felix-utility > *,
+.assignment-workspace .assignment-felix-strip > *,
+.assignment-workspace .assignment-workspace-felix > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Overview becomes a concise assignment brief. */
+.assignment-workspace .assignment-overview-v3,
+.assignment-workspace .assignment-overview-card,
+.assignment-workspace .assignment-overview-hero {
+  padding: 12px 14px !important;
+  border-radius: 12px !important;
+  margin-bottom: var(--wf-gap) !important;
+}
+
+.assignment-workspace .assignment-overview-v3 h2,
+.assignment-workspace .assignment-overview-card h2,
+.assignment-workspace .assignment-overview-hero h2 {
+  margin: 0 0 4px !important;
+  font-size: 20px !important;
+}
+
+.assignment-workspace .assignment-overview-v3 p,
+.assignment-workspace .assignment-overview-card p,
+.assignment-workspace .assignment-overview-hero p {
+  margin: 0 !important;
+  line-height: 1.45;
+}
+
+/* Evidence / Reports / Review / Activity should begin immediately after shared context. */
+.assignment-workspace [role="tabpanel"],
+.assignment-workspace .assignment-tab-panel {
+  padding-top: 0 !important;
+}
+
+.assignment-workspace .assignment-evidence-toolbar,
+.assignment-workspace .assignment-report-builder-header,
+.assignment-workspace .assignment-review-v3,
+.assignment-workspace .assignment-activity-panel {
+  margin-top: 0 !important;
+}
+
+/* Report and review surfaces become compact decision/work cards. */
+.assignment-workspace .assignment-primary-report-card,
+.assignment-workspace .assignment-report-access-card,
+.assignment-workspace .assignment-review-v3 {
+  padding: 11px 13px !important;
+  border-radius: 11px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card h3,
+.assignment-workspace .assignment-review-v3 h3 {
+  margin-top: 0 !important;
+}
+
+/* Avoid oversized empty cards. */
+.assignment-workspace .assignment-primary-report-card,
+.assignment-workspace .assignment-review-v3,
+.assignment-workspace .assignment-activity-panel {
+  min-height: 0 !important;
+}
+
+/* More compact on smaller screens. */
+@media (max-width: 900px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-workspace .assignment-felix-utility,
+  .assignment-workspace .assignment-felix-strip,
+  .assignment-workspace .assignment-workspace-felix {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* APP2_ASSIGNMENT_WORKFLOW_SCREEN_V2_BEGIN */
+
+.assignment-workspace .assignment-workflow-guide {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: var(--app2-border-card);
+  border-radius: 12px;
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.assignment-workspace .assignment-workflow-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 70%, transparent);
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.assignment-workspace .assignment-workflow-step > span {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app2-blue) 8%, var(--surface-card, #fff));
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.assignment-workspace .assignment-workflow-step > strong {
+  font-size: 12px;
+}
+
+.assignment-workspace .assignment-workflow-step.complete {
+  background: var(--app2-green-gradient);
+  border-color: rgba(43,151,92,.24);
+}
+
+.assignment-workspace .assignment-workflow-step.current {
+  background: var(--assignment-accent-gradient);
+  border-color: color-mix(in srgb, var(--assignment-accent) 36%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--assignment-accent) 13%, transparent);
+}
+
+.assignment-workspace .assignment-workflow-step.upcoming {
+  opacity: .78;
+}
+
+.assignment-workspace .assignment-workflow-summary {
+  display: grid;
+  grid-template-columns: minmax(150px, .55fr) minmax(0, 1.25fr) minmax(300px, 1.1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.assignment-workspace .assignment-workflow-current,
+.assignment-workspace .assignment-workflow-facts,
+.assignment-workspace .assignment-workflow-next {
+  border: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 70%, transparent);
+  border-radius: 9px;
+  background: var(--surface-card, #fff);
+}
+
+.assignment-workspace .assignment-workflow-current {
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  padding: 8px 10px;
+}
+
+.assignment-workspace .assignment-workflow-current small,
+.assignment-workspace .assignment-workflow-next small {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  opacity: .66;
+}
+
+.assignment-workspace .assignment-workflow-current strong {
+  font-size: 17px;
+}
+
+.assignment-workspace .assignment-workflow-current span {
+  font-size: 11px;
+  opacity: .7;
+}
+
+.assignment-workspace .assignment-workflow-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  overflow: hidden;
+}
+
+.assignment-workspace .assignment-workflow-facts > div {
+  min-width: 0;
+  padding: 8px 9px;
+  border-right: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 55%, transparent);
+}
+
+.assignment-workspace .assignment-workflow-facts > div:last-child {
+  border-right: 0;
+}
+
+.assignment-workspace .assignment-workflow-facts dt {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: .62;
+  text-transform: uppercase;
+}
+
+.assignment-workspace .assignment-workflow-facts dd {
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.assignment-workspace .assignment-workflow-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 8px 10px;
+}
+
+.assignment-workspace .assignment-workflow-next > div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.assignment-workspace .assignment-workflow-next strong {
+  font-size: 13px;
+}
+
+.assignment-workspace .assignment-workflow-next p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: .72;
+}
+
+.assignment-workspace .assignment-workflow-next > button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 8px;
+}
+
+.assignment-workspace .assignment-workflow-next-danger {
+  background: var(--app2-red-gradient);
+  border-color: rgba(191,55,70,.25);
+}
+
+.assignment-workspace .assignment-workflow-next-warning {
+  background: var(--app2-amber-gradient);
+  border-color: rgba(218,146,29,.25);
+}
+
+.assignment-workspace .assignment-workflow-next-info {
+  background: var(--app2-violet-gradient);
+  border-color: rgba(118,88,169,.22);
+}
+
+.assignment-workspace .assignment-workflow-next-success {
+  background: var(--app2-green-gradient);
+  border-color: rgba(43,151,92,.22);
+}
+
+/* V2 replaces the old repeated context strip + separate attention card. */
+.assignment-workspace > .assignment-phase4 > .assignment-workspace-context-strip,
+.assignment-workspace > .assignment-phase4 > .assignment-workspace-attention {
+  display: none !important;
+}
+
+/* Keep the actual tab content immediately after the workflow guide. */
+.assignment-workspace .assignment-workspace-tabpanel {
+  gap: 9px !important;
+}
+
+/* Compact the header further: title + key metadata only. */
+.assignment-workspace .assignment-workspace-head {
+  padding-block: 11px !important;
+}
+
+.assignment-workspace .assignment-workspace-title {
+  gap: 6px !important;
+}
+
+.assignment-workspace .assignment-title-meta {
+  gap: 5px !important;
+}
+
+.assignment-workspace .assignment-title-meta > span,
+.assignment-workspace .assignment-title-meta > button {
+  min-height: 25px !important;
+  padding: 4px 8px !important;
+}
+
+/* Felix utility inside child content should not consume a full content band. */
+.assignment-workspace :where(
+  .assignment-felix-utility,
+  .assignment-felix-strip,
+  .assignment-workspace-felix
+) {
+  min-height: 0 !important;
+  padding: 6px 9px !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 1050px) {
+  .assignment-workspace .assignment-workflow-summary {
+    grid-template-columns: 1fr 1.6fr;
+  }
+
+  .assignment-workspace .assignment-workflow-next {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-workflow-steps {
+    grid-template-columns: repeat(5, minmax(96px, 1fr));
+    overflow-x: auto;
+  }
+
+  .assignment-workspace .assignment-workflow-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-workspace .assignment-workflow-next {
+    grid-column: auto;
+  }
+
+  .assignment-workspace .assignment-workflow-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-workspace .assignment-workflow-facts > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .assignment-workspace .assignment-workflow-facts > div:nth-child(-n+2) {
+    border-bottom: 1px solid color-mix(in srgb, var(--border-default, #cdb170) 55%, transparent);
+  }
+}
+
+
+/* APP2_ASSIGNMENT_OVERVIEW_V2_1_OPERATIONAL_SUMMARY_TOP */
+
+/*
+  Assignment Overview visual priority:
+  1. operational metrics
+  2. task/team/final-output/activity grid
+  3. assignment identity/brief
+  4. accountability/advisory supporting context
+
+  Presentation only. DOM content and all handlers remain unchanged.
+*/
+.assignment-workspace .assignment-overview-v4 {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+/* Put all unspecified supporting surfaces after the core operational summary. */
+.assignment-workspace .assignment-overview-v4 > * {
+  order: 8;
+}
+
+/* 1 — immediate operational state */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-metrics {
+  order: 1;
+  margin: 0 !important;
+}
+
+/* 2 — actionable operational content */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-grid {
+  order: 2;
+  margin: 0 !important;
+}
+
+/* 3 — one concise next-action surface, if still rendered in Overview */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-next {
+  order: 3;
+  margin: 0 !important;
+}
+
+/* 4 — assignment identity */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-hero {
+  order: 4;
+  margin: 0 !important;
+}
+
+/* 5 — assignment brief/details */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-brief {
+  order: 5;
+  margin: 0 !important;
+}
+
+/* 6 — accountability is supporting context, not the first thing users need */
+.assignment-workspace .assignment-overview-v4 > .assignment-overview-v4-accountability {
+  order: 6;
+  margin: 0 !important;
+}
+
+/* Supporting advisory/Felix surfaces naturally fall after the above. */
+
+/* Make the top metrics read as one compact command strip. */
+.assignment-workspace .assignment-overview-v4-metrics {
+  display: grid !important;
+  grid-template-columns: 1.35fr .75fr .75fr .75fr .75fr !important;
+  gap: 0 !important;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--assignment-accent) 20%, var(--border-default, #d8dce3));
+  border-radius: 12px !important;
+  background: var(--surface-card, #fff) !important;
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > div {
+  min-height: 76px !important;
+  padding: 10px 12px !important;
+  border-right: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 72%, transparent);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > div:last-child {
+  border-right: 0;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics small {
+  font-size: 10px !important;
+  letter-spacing: .055em;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics strong {
+  font-size: 16px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-progress strong {
+  font-size: 24px !important;
+}
+
+/* Keep the actionable grid dense enough to remain above the fold. */
+.assignment-workspace .assignment-overview-v4-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.75fr) minmax(300px, .7fr) !important;
+  gap: 10px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-grid > main,
+.assignment-workspace .assignment-overview-v4-grid > aside {
+  display: grid !important;
+  gap: 10px !important;
+  align-content: start;
+}
+
+.assignment-workspace .assignment-overview-v4-card {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border-radius: 11px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header {
+  padding: 9px 12px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header h3 {
+  margin: 2px 0 0 !important;
+  font-size: 15px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > :not(header) {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.assignment-workspace .assignment-overview-v4-empty {
+  padding-top: 9px !important;
+  padding-bottom: 12px !important;
+}
+
+/* Identity and brief remain available, but no longer dominate first view. */
+.assignment-workspace .assignment-overview-v4-hero {
+  padding: 11px 13px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-hero h2 {
+  font-size: 20px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief > header {
+  padding: 9px 12px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid > section {
+  padding: 9px 11px !important;
+}
+
+/* Accountability is compact supporting information. */
+.assignment-workspace .assignment-overview-v4-accountability {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-accountability > div {
+  min-height: 64px !important;
+  padding: 8px 10px !important;
+}
+
+/* Felix/advisory should not create a large empty band after the useful overview. */
+.assignment-workspace .assignment-overview-v4 > :where(
+  .felix-advice-panel,
+  .assignment-felix-utility,
+  .assignment-felix-strip,
+  .assignment-workspace-felix
+) {
+  min-height: 0 !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+@media (max-width: 1050px) {
+  .assignment-workspace .assignment-overview-v4-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .assignment-workspace .assignment-overview-v4-metrics > div:nth-child(3) {
+    border-right: 0;
+  }
+
+  .assignment-workspace .assignment-overview-v4-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .assignment-workspace .assignment-overview-v4-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .assignment-workspace .assignment-overview-v4-accountability {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* APP2_WORKFLOW_REPETITION_CLEANUP_V3_BEGIN */
+
+/* Assignment: Workflow Guide is the single next-action surface. */
+.assignment-workspace .assignment-workflow-summary {
+  grid-template-columns: minmax(155px, .55fr) minmax(0, 1.8fr) !important;
+}
+
+.assignment-workspace .assignment-workflow-facts {
+  display: none !important;
+}
+
+.assignment-workspace .assignment-overview-v4-governance {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+/* Overview title/description and Next Step were removed from component;
+   metrics and operational grid remain the primary Overview content. */
+.assignment-workspace .assignment-overview-v4 {
+  gap: 9px !important;
+}
+
+/* Supporting Felix advisory belongs after actual operational content. */
+.assignment-workspace .assignment-overview-v4 > .felix-advice-panel {
+  order: 9 !important;
+}
+
+/* Task: one workflow explanation + one action/access surface. */
+.task-next-responsibility {
+  min-height: 0 !important;
+  padding: 6px 9px !important;
+}
+
+.task-next-responsibility > span {
+  font-size: 11px !important;
+  opacity: .7;
+}
+
+.task-workflow-action-only {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+}
+
+.task-workflow-action-only > small {
+  margin: 0 !important;
+  font-size: 11px;
+  opacity: .72;
+}
+
+.task-workflow-access-compact {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+}
+
+.task-workflow-access-compact > strong,
+.task-workflow-access-compact > small {
+  margin: 0 !important;
+}
+
+/* The workflow status panel remains the authoritative state explanation. */
+.task-report-access-notice {
+  margin-bottom: 8px !important;
+}
+
+@media (max-width: 720px) {
+  .assignment-workspace .assignment-workflow-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-overview-v4-governance {
+    grid-template-columns: 1fr !important;
+  }
+
+  .task-workflow-action-only,
+  .task-workflow-access-compact {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* APP2_ASSIGNMENT_REPORTS_V4_1_CSS_SAFE_SIMPLIFICATION */
+
+/* Keep the Reports screen focused on one status + one action surface. */
+.assignment-workspace .assignment-reports-simple-v3 {
+  display: grid;
+  gap: 10px !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar {
+  padding: 10px 13px !important;
+  min-height: 0 !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar h2 {
+  margin: 1px 0 2px !important;
+  font-size: 20px !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar span {
+  font-size: 12px !important;
+}
+
+/* Builder identity stays available but becomes one compact responsibility strip. */
+.assignment-workspace .assignment-builder-identity {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr) !important;
+  gap: 0 !important;
+  overflow: hidden;
+  border: var(--app2-border-card) !important;
+  border-radius: 11px !important;
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-builder-identity > div {
+  min-height: 0 !important;
+  padding: 9px 11px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-builder-identity > div + div {
+  border-left: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 70%, transparent);
+}
+
+.assignment-workspace .assignment-builder-identity small {
+  font-size: 10px !important;
+}
+
+.assignment-workspace .assignment-builder-identity strong {
+  font-size: 15px !important;
+}
+
+.assignment-workspace .assignment-builder-identity span {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+/* Notice should never become a large empty gold panel. */
+.assignment-workspace .assignment-report-notice {
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 8px 10px !important;
+  margin: 0 !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Direct-reporting source block is redundant when there are no task rows.
+   Chromium supports :has(); App2 runs in Chromium-based browsers. */
+.assignment-workspace .assignment-source-simple:has(.assignment-source-simple-list > p:only-child) {
+  display: none !important;
+}
+
+/* If task sources exist, keep the source list compact and actionable. */
+.assignment-workspace .assignment-source-simple {
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-source-simple > header {
+  padding: 8px 10px !important;
+}
+
+.assignment-workspace .assignment-source-simple-list {
+  padding: 8px 10px 10px !important;
+}
+
+.assignment-workspace .assignment-source-simple-list article {
+  min-height: 0 !important;
+  padding: 7px 0 !important;
+}
+
+/* The existing primary report card becomes the authoritative next-action surface. */
+.assignment-workspace .assignment-primary-report-card {
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+  border-radius: 11px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header {
+  padding: 9px 11px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header h3 {
+  margin: 2px 0 0 !important;
+  font-size: 17px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > p {
+  margin: 0 !important;
+  padding: 9px 11px 2px !important;
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+.assignment-workspace .assignment-primary-report-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px !important;
+  padding: 9px 11px 11px !important;
+}
+
+.assignment-workspace .assignment-primary-report-meta {
+  gap: 6px !important;
+  padding: 8px 11px !important;
+}
+
+/* Keep reviewer/submit/finalise controls compact, never page-sized. */
+.assignment-workspace .assignment-import-handoff,
+.assignment-workspace .assignment-reviewer-decision,
+.assignment-workspace .assignment-report-review-actions,
+.assignment-workspace .assignment-finalize-actions {
+  min-height: 0 !important;
+  padding: 10px 11px !important;
+  margin: 0 !important;
+}
+
+/* Ensure selects/inputs/actions fit on one working row where possible. */
+.assignment-workspace .assignment-primary-report-actions select,
+.assignment-workspace .assignment-primary-report-actions input {
+  min-height: 36px !important;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-builder-identity {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-builder-identity > div + div {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 70%, transparent);
+  }
+
+  .assignment-workspace .assignment-primary-report-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-workspace .assignment-primary-report-actions > * {
+    width: 100%;
+  }
+}
+
+
+/* APP2_ASSIGNMENT_WORKFLOW_V3_1_1_SEMANTIC_FIX */
+
+/* Collapsed Felix is a utility button, not a full-width workspace section. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)) {
+  width: fit-content !important;
+  max-width: 100%;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) > header {
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) > header > button {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+
+/* Open Felix remains a proper contained assistant panel. */
+.assignment-workspace .assignment-felix-context:has(> div) {
+  min-height: 0 !important;
+  padding: 9px 10px !important;
+  border-radius: 10px !important;
+}
+
+/* When a Final Assignment Report already exists, the report card is authoritative.
+   Hide the separate builder/access identity strip to remove duplication. */
+.assignment-workspace
+  .assignment-reports-simple-v3:has(.assignment-primary-report-card)
+  .assignment-builder-identity {
+  display: none !important;
+}
+
+/* Submitted/review report card should sit immediately below the Reporting header. */
+.assignment-workspace
+  .assignment-reports-simple-v3:has(.assignment-primary-report-card)
+  .assignment-primary-report-card {
+  margin-top: 0 !important;
+}
+
+/* Keep the report state compact and visually authoritative. */
+.assignment-workspace .assignment-primary-report-card > header {
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header h3 {
+  margin: 2px 0 0 !important;
+  font-size: 17px !important;
+}
+
+.assignment-workspace .assignment-primary-report-meta {
+  padding: 8px 12px !important;
+  gap: 7px !important;
+  font-size: 11px !important;
+}
+
+.assignment-workspace .assignment-primary-report-actions {
+  padding: 9px 12px 11px !important;
+}
+
+/* Workflow guide: Report stage should read as current for ready/reporting states;
+   Final is reserved for genuinely completed/finalized work. */
+.assignment-workspace .assignment-workflow-step.current {
+  opacity: 1 !important;
+}
+
+@media (max-width: 700px) {
+  .assignment-workspace .assignment-felix-context:not(:has(> div)) {
+    width: 100% !important;
+  }
+}
+
+
+/* APP2_ASSIGNMENT_OVERVIEW_V4_FINAL_SIMPLIFICATION */
+
+/* Overview should read as an operational workspace, not a second assignment header. */
+.assignment-workspace .assignment-overview-v4 {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 9px !important;
+}
+
+/* Remove any remaining duplicate title/description and duplicate Next Step surfaces.
+   The workspace header + Workflow Guide already own these responsibilities. */
+.assignment-workspace .assignment-overview-v4-hero,
+.assignment-workspace .assignment-overview-v4-next {
+  display: none !important;
+}
+
+/* Operational metrics become the first, compact summary row. */
+.assignment-workspace .assignment-overview-v4-metrics {
+  order: 1 !important;
+  display: grid !important;
+  grid-template-columns: 1.25fr repeat(4, minmax(0, .72fr)) !important;
+  gap: 0 !important;
+  overflow: hidden;
+  margin: 0 !important;
+  border: 1px solid color-mix(in srgb, var(--assignment-accent) 20%, var(--border-default, #d8dce3));
+  border-radius: 11px !important;
+  background: var(--surface-card, #fff) !important;
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > div {
+  min-height: 68px !important;
+  padding: 8px 10px !important;
+  border-right: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 68%, transparent);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics > div:last-child {
+  border-right: 0;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics small {
+  font-size: 10px !important;
+  letter-spacing: .055em !important;
+}
+
+.assignment-workspace .assignment-overview-v4-metrics strong {
+  font-size: 15px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-progress strong {
+  font-size: 22px !important;
+}
+
+/* Tasks / Team / Final Output / Recent Activity are the core Overview. */
+.assignment-workspace .assignment-overview-v4-grid {
+  order: 2 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.7fr) minmax(290px, .68fr) !important;
+  gap: 9px !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-grid > main,
+.assignment-workspace .assignment-overview-v4-grid > aside {
+  display: grid !important;
+  gap: 9px !important;
+  align-content: start !important;
+}
+
+/* Cards should fit above the fold where possible. */
+.assignment-workspace .assignment-overview-v4-card {
+  min-height: 0 !important;
+  overflow: hidden;
+  border-radius: 10px !important;
+  box-shadow: var(--app2-shadow-card) !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header {
+  min-height: 0 !important;
+  padding: 8px 11px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header small {
+  font-size: 10px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header h3 {
+  margin: 1px 0 0 !important;
+  font-size: 15px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card > header button {
+  min-height: 34px !important;
+  padding: 6px 9px !important;
+}
+
+/* Empty task/final/activity states should not create large blank boxes. */
+.assignment-workspace .assignment-overview-v4-empty,
+.assignment-workspace .assignment-overview-v4-card > p {
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 8px !important;
+  padding-bottom: 10px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-card:has(.assignment-overview-v4-empty),
+.assignment-workspace .assignment-overview-v4-card:has(> p:last-child) {
+  min-height: 118px !important;
+}
+
+/* Team should be a compact people panel. */
+.assignment-workspace .assignment-overview-v4-team,
+.assignment-workspace .assignment-overview-team {
+  min-height: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-team-list,
+.assignment-workspace .assignment-team-list {
+  padding: 8px 10px 10px !important;
+  gap: 7px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-team-list > *,
+.assignment-workspace .assignment-team-list > * {
+  min-height: 0 !important;
+}
+
+/* Final output should communicate one status + one action. */
+.assignment-workspace .assignment-overview-v4-final-output {
+  min-height: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-final-output > div,
+.assignment-workspace .assignment-overview-v4-final-output > p {
+  padding: 8px 11px 10px !important;
+}
+
+/* Recent activity should remain compact if there is little/no history. */
+.assignment-workspace .assignment-overview-v4-activity,
+.assignment-workspace .assignment-overview-recent-activity {
+  min-height: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-activity-list,
+.assignment-workspace .assignment-overview-recent-list {
+  max-height: 210px;
+  overflow: auto;
+  padding: 7px 10px 9px !important;
+}
+
+/* Assignment Brief is useful detail, but secondary. */
+.assignment-workspace .assignment-overview-v4-brief {
+  order: 4 !important;
+  margin: 0 !important;
+  overflow: hidden;
+  border-radius: 10px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief > header {
+  padding: 8px 11px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief > header h3 {
+  margin: 1px 0 0 !important;
+  font-size: 15px !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid > section {
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 62%, transparent);
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid > section:nth-child(odd) {
+  border-right: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 62%, transparent);
+}
+
+.assignment-workspace .assignment-overview-v4-brief-grid p {
+  margin: 3px 0 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Governance is supporting context; keep it at the bottom and compact. */
+.assignment-workspace .assignment-overview-v4-accountability,
+.assignment-workspace .assignment-overview-v4-governance {
+  order: 5 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-overview-v4-accountability > div,
+.assignment-workspace .assignment-overview-v4-governance > div {
+  min-height: 58px !important;
+  padding: 7px 9px !important;
+}
+
+/* Advisory/Felix belongs after operational content. */
+.assignment-workspace .assignment-overview-v4 > :where(
+  .felix-advice-panel,
+  .assignment-felix-context,
+  .assignment-felix-utility,
+  .assignment-workspace-felix
+) {
+  order: 9 !important;
+  min-height: 0 !important;
+}
+
+/* If Felix is closed, it should not consume a horizontal empty band. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)) {
+  width: fit-content !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Prevent older Overview styling from forcing large minimum heights. */
+.assignment-workspace .assignment-overview-v4 :where(
+  .assignment-overview-summary,
+  .assignment-overview-people,
+  .assignment-overview-scope,
+  .assignment-overview-timeline
+) {
+  min-height: 0 !important;
+}
+
+/* Do not make missing-data messages visually dominant. */
+.assignment-workspace .assignment-overview-v4 :where(
+  .assignment-overview-v4-empty,
+  .empty-state,
+  .muted
+) {
+  font-size: 12px !important;
+}
+
+@media (max-width: 1050px) {
+  .assignment-workspace .assignment-overview-v4-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .assignment-workspace .assignment-overview-v4-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .assignment-workspace .assignment-overview-v4-metrics,
+  .assignment-workspace .assignment-overview-v4-brief-grid,
+  .assignment-workspace .assignment-overview-v4-accountability,
+  .assignment-workspace .assignment-overview-v4-governance {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-overview-v4-brief-grid > section {
+    border-right: 0 !important;
+  }
+}
+
+
+/* APP2_ASSIGNMENT_WORKSPACE_V4_1_ISOLATION */
+
+/*
+  When an Assignment Workspace is open it is a governed working screen,
+  not another section appended above the Assignments portfolio.
+*/
+.assignment-workspace.collab-drawer.governed-workspace {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1100 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--surface-page, #f7f8fb) !important;
+  box-shadow: none !important;
+  isolation: isolate;
+}
+
+/* The command header stays visible while working through long tabs. */
+.assignment-workspace .assignment-workspace-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 40 !important;
+}
+
+/* Tabs remain visible immediately under the command header without overlapping content. */
+.assignment-workspace .assignment-workspace-tabs {
+  position: sticky !important;
+  top: var(--assignment-workspace-head-height, 72px) !important;
+  z-index: 35 !important;
+}
+
+/*
+  Keep the working content constrained for readability, while the workspace itself
+  owns the whole viewport.
+*/
+.assignment-workspace .assignment-phase4 {
+  width: 100% !important;
+  max-width: 1600px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+}
+
+/* No large blank spacer around Felix when it is collapsed. */
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)),
+.assignment-workspace .assignment-workspace-felix:not(:has(> div)) {
+  display: inline-flex !important;
+  width: auto !important;
+  max-width: max-content !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Prevent tab content from inheriting viewport-sized minimum heights from older drawer styles. */
+.assignment-workspace .assignment-workspace-tabpanel {
+  min-height: 0 !important;
+}
+
+/* Close/back controls always remain usable above sticky content. */
+.assignment-workspace .assignment-workspace-back,
+.assignment-workspace .assignment-workspace-close {
+  position: relative;
+  z-index: 45;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-workspace-tabs {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 60 !important;
+  }
+
+  .assignment-workspace .assignment-phase4 {
+    padding-inline: 8px !important;
+  }
+}

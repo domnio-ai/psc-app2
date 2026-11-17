@@ -1,4 +1,4 @@
-# PSC App2
+# REDESY
 
 PSC Research Department Assignment, Knowledge, Research and Document Management System.
 
@@ -23,6 +23,12 @@ PSC Research Department Assignment, Knowledge, Research and Document Management 
 
    ```powershell
    npm --prefix backend run db:setup
+   ```
+
+   For an existing App2 database that already has its core tables, apply the meeting attachment upgrade without reseeding users:
+
+   ```powershell
+   npm --prefix backend run db:migrate:meeting-documents
    ```
 
 4. Start the API:
@@ -50,13 +56,10 @@ npm --prefix backend run check
 
 ## Production
 
-Copy `.env.production.example` to `.env.production`, set strong secrets, and run:
+Use the production Compose file and the maintained template. Follow the host
+deployment, database initialization, migration, TLS, and backup steps in
+[HOST_DEPLOYMENT.md](HOST_DEPLOYMENT.md). Do not use `db:setup` on production:
+it creates demo users with a shared default password.
 
-```powershell
-docker compose --env-file .env.production up --build -d
-```
-
-The web application is exposed on port `8080` by default. PostgreSQL is not
-published to the host.
-
-See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) and [BACKUP_RECOVERY.md](BACKUP_RECOVERY.md).
+See [ADMIN_GUIDE.md](ADMIN_GUIDE.md) and [BACKUP_RECOVERY.md](BACKUP_RECOVERY.md)
+for ongoing operations and data recovery.

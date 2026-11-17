@@ -1,0 +1,468 @@
+/*
+  App2 Assignment Workspace
+  Module-owned visual system using the shared Director/Researcher executive tokens.
+  No duplicated hard-coded gradient palette is introduced here.
+*/
+
+.assignment-workspace {
+  --assignment-accent-gradient: var(--app2-blue-gradient);
+  --assignment-accent: var(--app2-blue);
+  min-width: 0;
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--assignment-accent) 10%, transparent), transparent 30%),
+    var(--surface-page, #f7f8fb);
+}
+
+.assignment-workspace[data-assignment-status*="review"],
+.assignment-workspace[data-assignment-status*="submitted"],
+.assignment-workspace[data-assignment-status*="await"] {
+  --assignment-accent-gradient: var(--app2-violet-gradient);
+  --assignment-accent: var(--app2-violet);
+}
+
+.assignment-workspace[data-assignment-status*="complete"],
+.assignment-workspace[data-assignment-status*="approved"],
+.assignment-workspace[data-assignment-status*="final"],
+.assignment-workspace[data-assignment-status*="closed"] {
+  --assignment-accent-gradient: var(--app2-green-gradient);
+  --assignment-accent: var(--app2-green);
+}
+
+.assignment-workspace[data-assignment-status*="overdue"],
+.assignment-workspace[data-assignment-status*="rejected"],
+.assignment-workspace[data-assignment-status*="failed"] {
+  --assignment-accent-gradient: var(--app2-red-gradient);
+  --assignment-accent: var(--app2-red);
+}
+
+.assignment-workspace[data-assignment-priority*="urgent"],
+.assignment-workspace[data-assignment-priority*="critical"] {
+  --assignment-accent-gradient: var(--app2-red-gradient);
+  --assignment-accent: var(--app2-red);
+}
+
+.assignment-workspace[data-assignment-priority*="high"]:not([data-assignment-status*="complete"]):not([data-assignment-status*="approved"]) {
+  --assignment-accent-gradient: var(--app2-amber-gradient);
+  --assignment-accent: var(--app2-amber);
+}
+
+/* Workspace command header */
+.assignment-workspace .assignment-workspace-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: var(--app2-border-soft);
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--assignment-accent) 13%, transparent), transparent 31%),
+    var(--assignment-accent-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-workspace-back,
+.assignment-workspace .assignment-workspace-close {
+  min-height: 38px;
+  border: var(--app2-border-soft);
+  border-radius: var(--app2-radius-button);
+  background: color-mix(in srgb, var(--surface-card, #fff) 88%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.assignment-workspace .assignment-workspace-back:hover,
+.assignment-workspace .assignment-workspace-close:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app2-shadow-hover);
+}
+
+.assignment-workspace .assignment-workspace-title {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.assignment-workspace .assignment-title-copy p {
+  margin: 0 0 3px;
+  font-size: var(--app2-font-size-xs);
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  opacity: .68;
+}
+
+.assignment-workspace .assignment-title-copy h2 {
+  margin: 0;
+  font-size: clamp(21px, 2vw, var(--app2-font-size-xl));
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+
+.assignment-workspace .assignment-title-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.assignment-workspace .assignment-title-meta > span,
+.assignment-workspace .assignment-title-meta > button {
+  min-height: 28px;
+  padding: 5px 9px;
+  border-radius: var(--app2-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--assignment-accent) 24%, var(--border-default, #cdb170));
+  background: color-mix(in srgb, var(--surface-card, #fff) 83%, transparent);
+  font-size: var(--app2-font-size-xs);
+  font-weight: 780;
+}
+
+.assignment-workspace .assignment-status-badge {
+  color: color-mix(in srgb, var(--assignment-accent) 82%, #111);
+  background: var(--assignment-accent-gradient) !important;
+}
+
+.assignment-workspace .assignment-priority-badge {
+  background: var(--app2-gold-gradient) !important;
+  border-color: color-mix(in srgb, var(--app2-gold) 30%, transparent) !important;
+}
+
+.assignment-workspace .assignment-deadline-danger {
+  color: #a72d40;
+  background: var(--app2-red-gradient) !important;
+  border-color: rgba(191,55,70,.30) !important;
+}
+
+.assignment-workspace .assignment-deadline-warning {
+  color: #8f5d09;
+  background: var(--app2-amber-gradient) !important;
+  border-color: rgba(218,146,29,.30) !important;
+}
+
+.assignment-workspace .assignment-deadline-healthy {
+  color: #247d50;
+  background: var(--app2-green-gradient) !important;
+  border-color: rgba(43,151,92,.25) !important;
+}
+
+.assignment-workspace .assignment-research-link {
+  cursor: pointer;
+  color: color-mix(in srgb, var(--app2-blue) 88%, #111);
+  background: var(--app2-blue-gradient) !important;
+}
+
+/* Single authoritative tab strip */
+.assignment-workspace .assignment-phase4 {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.assignment-workspace .assignment-workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 7px;
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-panel);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"] {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid transparent;
+  border-radius: var(--app2-radius-button);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--app2-font-size-sm);
+  font-weight: 800;
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"]:hover {
+  background: color-mix(in srgb, var(--app2-blue) 7%, var(--surface-card, #fff));
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"].active,
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"][aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--assignment-accent) 30%, transparent);
+  background: var(--assignment-accent-gradient);
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--assignment-accent) 13%, transparent);
+}
+
+.assignment-workspace .assignment-workspace-tabs > button[role="tab"] b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  min-height: 22px;
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: var(--app2-radius-pill);
+  background: color-mix(in srgb, var(--assignment-accent) 13%, var(--surface-card, #fff));
+  font-size: var(--app2-font-size-xs);
+}
+
+.assignment-workspace .assignment-quick-add {
+  position: relative;
+  margin-left: auto;
+}
+
+.assignment-workspace .assignment-quick-add > button.primary {
+  min-height: 40px;
+  padding-inline: 14px;
+}
+
+.assignment-workspace .assignment-quick-add > div[role="menu"] {
+  position: absolute;
+  z-index: 120;
+  right: 0;
+  top: calc(100% + 7px);
+  display: grid;
+  min-width: 180px;
+  padding: 7px;
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  box-shadow: 0 18px 42px rgba(31,27,18,.18);
+}
+
+.assignment-workspace .assignment-quick-add > div[role="menu"] > * {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Compact context strip */
+.assignment-workspace .assignment-workspace-context-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.assignment-workspace .assignment-workspace-context-strip > span {
+  display: grid;
+  gap: 2px;
+  min-height: 69px;
+  align-content: center;
+  padding: 10px 12px;
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-workspace-context-strip small {
+  font-size: var(--app2-font-size-xs);
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  opacity: .64;
+}
+
+.assignment-workspace .assignment-workspace-context-strip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--app2-font-size-sm);
+}
+
+/* Attention cards use the same semantic dashboard gradients */
+.assignment-workspace .assignment-workspace-attention {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 14px;
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  box-shadow: var(--app2-shadow-card);
+}
+
+.assignment-workspace .assignment-workspace-attention > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.assignment-workspace .assignment-workspace-attention small {
+  font-size: var(--app2-font-size-xs);
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.assignment-workspace .assignment-workspace-attention strong {
+  font-size: var(--app2-font-size-md);
+}
+
+.assignment-workspace .assignment-workspace-attention p {
+  margin: 1px 0 0;
+  font-size: var(--app2-font-size-xs);
+  line-height: 1.4;
+  opacity: .72;
+}
+
+.assignment-workspace .assignment-workspace-attention-danger {
+  background: var(--app2-red-gradient);
+  border-color: rgba(191,55,70,.27);
+}
+
+.assignment-workspace .assignment-workspace-attention-warning {
+  background: var(--app2-amber-gradient);
+  border-color: rgba(218,146,29,.27);
+}
+
+.assignment-workspace .assignment-workspace-attention-info {
+  background: var(--app2-violet-gradient);
+  border-color: rgba(118,88,169,.24);
+}
+
+.assignment-workspace .assignment-workspace-attention-success {
+  background: var(--app2-green-gradient);
+  border-color: rgba(43,151,92,.25);
+}
+
+/* Tab content boundary */
+.assignment-workspace .assignment-workspace-tabpanel {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  outline: none;
+}
+
+/* Existing modular content gets one consistent visual language */
+.assignment-workspace :where(
+  .assignment-overview-v4-card,
+  .assignment-overview-summary,
+  .assignment-overview-people,
+  .assignment-overview-scope,
+  .assignment-overview-timeline,
+  .assignment-tasks-panel,
+  .assignment-evidence-panel,
+  .assignment-reports-panel,
+  .assignment-review-v3,
+  .phase4-activity,
+  .assignment-primary-report-card,
+  .assignment-source-simple,
+  .assignment-builder-identity,
+  .assignment-formal-report-review,
+  .task-review-routing-card
+) {
+  border: var(--app2-border-card);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-neutral-gradient);
+  box-shadow: var(--app2-shadow-card);
+}
+
+/* Headers inside workspace modules */
+.assignment-workspace :where(
+  .workspace-section-heading,
+  .assignment-reports-titlebar,
+  .assignment-review-v3-head,
+  .assignment-primary-report-card > header,
+  .assignment-source-simple > header,
+  .assignment-formal-report-review > header,
+  .task-review-routing-card > header
+) {
+  border-bottom-color: color-mix(in srgb, var(--border-default, #cdb170) 62%, transparent);
+  background: var(--app2-panel-header-gradient);
+}
+
+/* Status-driven sub-surfaces */
+.assignment-workspace :where(
+  .assignment-review-status,
+  .task-review-routing-status
+) {
+  border-radius: var(--app2-radius-pill);
+  padding: 5px 8px;
+  font-size: var(--app2-font-size-xs);
+  font-weight: 800;
+  background: var(--app2-violet-gradient);
+  border: 1px solid rgba(118,88,169,.22);
+}
+
+.assignment-workspace :where(
+  .assignment-builder-access.lead,
+  .assignment-builder-access.manager
+) {
+  background: var(--app2-green-gradient);
+  border-color: rgba(43,151,92,.22);
+}
+
+.assignment-workspace .assignment-builder-access.viewer {
+  background: var(--app2-neutral-gradient);
+}
+
+.assignment-workspace .assignment-report-notice {
+  border: 1px solid rgba(218,146,29,.25);
+  border-radius: var(--app2-radius-card);
+  background: var(--app2-amber-gradient);
+}
+
+/* Activity */
+.assignment-workspace .assignment-human-activity {
+  display: grid;
+  gap: 8px;
+}
+
+.assignment-workspace .assignment-human-activity > div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 11px;
+  border: var(--app2-border-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-card, #fff) 86%, transparent);
+}
+
+.assignment-workspace .assignment-human-activity > div span {
+  font-size: var(--app2-font-size-xs);
+  opacity: .68;
+}
+
+.assignment-workspace .assignment-activity-comment {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-workspace .assignment-workspace-head {
+    grid-template-columns: 1fr auto;
+  }
+
+  .assignment-workspace .assignment-workspace-back {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .assignment-workspace .assignment-phase4 {
+    padding: 10px;
+  }
+
+  .assignment-workspace .assignment-workspace-context-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-workspace .assignment-workspace-attention {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-workspace .assignment-workspace-attention > button {
+    width: 100%;
+  }
+}

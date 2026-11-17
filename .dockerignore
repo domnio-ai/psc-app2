@@ -6,3 +6,9 @@ backend/.env
 backend/uploads
 *.log
 *.tsbuildinfo
+
+# Local deployment secrets
+.env.training
+.env
+.env.production
+.env.production.*

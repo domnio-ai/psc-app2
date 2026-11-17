@@ -1,0 +1,77 @@
+﻿/* App2 Research Report Builder Templates V14 */
+.research-workspace[data-tab="Report"] .report-builder-head{
+  grid-template-columns:minmax(220px,1fr) minmax(250px,.72fr) auto auto!important;
+  align-items:end!important;
+}
+.research-workspace .research-builder-template-control{
+  display:grid!important;gap:5px!important;min-width:250px!important;
+}
+.research-workspace .research-builder-template-control>span{
+  color:var(--text)!important;font-size:12px!important;font-weight:800!important;
+}
+.research-workspace .research-builder-template-control select{
+  min-height:40px!important;width:100%!important;border:1px solid var(--rw-border)!important;
+  border-radius:8px!important;background:var(--surface)!important;color:var(--text)!important;font-size:12px!important;
+}
+.research-workspace .research-builder-template-control small{
+  color:var(--muted)!important;font-size:12px!important;
+}
+@media(max-width:1000px){
+  .research-workspace[data-tab="Report"] .report-builder-head{grid-template-columns:1fr!important}
+  .research-workspace .research-builder-template-control{width:100%!important}
+}
+
+/* APP2_RESEARCH_REPORT_BUILDER_V14_4_CONSOLIDATED_V1 */
+/* Formerly src/research-report-builder-templates-v14-4.css. Appended to preserve cascade order. */
+/* App2 Research Report Builder Templates V14.4
+   Makes the research template visible INSIDE the full-screen report editor. */
+
+.section-word-toolbar .report-template-tools{
+  min-width:420px!important;
+  display:grid!important;
+  grid-template-columns:minmax(240px,1fr) auto!important;
+  align-items:end!important;
+  gap:7px!important;
+  padding-inline:14px!important;
+}
+.section-word-toolbar .workspace-report-template-picker{
+  display:grid!important;
+  gap:4px!important;
+  color:var(--text-primary)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.section-word-toolbar .workspace-report-template-picker select{
+  min-width:240px!important;
+  min-height:38px!important;
+  border:1px solid #56616a!important;
+  border-radius:6px!important;
+  background:var(--surface-primary)!important;
+  color:var(--text-primary)!important;
+  font-size:12px!important;
+}
+.section-word-toolbar .report-template-tools>button{
+  min-height:38px!important;
+  padding:7px 12px!important;
+  border:0!important;
+  border-radius:6px!important;
+  background:#e8b52d!important;
+  color:#101820!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+.section-word-toolbar .report-template-tools>small{
+  grid-column:1/-1!important;
+  color:var(--text-secondary)!important;
+  font-size:12px!important;
+}
+@media(max-width:900px){
+  .section-word-toolbar .report-template-tools{
+    min-width:300px!important;
+    grid-template-columns:1fr!important;
+  }
+  .section-word-toolbar .workspace-report-template-picker select{
+    min-width:260px!important;
+  }
+}
+

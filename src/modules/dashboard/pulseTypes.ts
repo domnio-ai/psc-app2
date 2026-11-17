@@ -1,0 +1,4 @@
+export type PulseRow={id:string;key:string;title:string;status:string;module:string;type:string;destination:string;contextId:string;dueDate?:string;reviewKind?:'Task Report'|'Research Report'|'Generated Document'|'Knowledge';buckets:string[]}
+export type PulseNotification={id:string;title:string;body:string;entity_type:string;entity_id:string;created_at:string;read_at?:string|null;archived_at?:string|null}
+export type PulseCalendar={id:string;title:string;type:string;status:string;start_at:string;entity_id?:string;day:string}
+export type PulseData={generatedAt:string;scope:string;today:string;week:string;modules:Record<string,{rows:PulseRow[];counts:Record<string,number>}>;badges:Record<string,number>;unread:PulseNotification[];attention:PulseRow[];calendar:PulseCalendar[];calendarAll:import("../../api").CalendarItem[];calendarCounts:Record<string,number>;cardCounts?:Record<string,number>}

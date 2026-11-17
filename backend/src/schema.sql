@@ -1,9 +1,25 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE TABLE IF NOT EXISTS users(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),name VARCHAR(160) NOT NULL,email VARCHAR(255) NOT NULL UNIQUE,password_hash TEXT NOT NULL,role VARCHAR(40) NOT NULL CHECK(role IN('Administrator','Research Manager','Research Officer','Reviewer')),division VARCHAR(160) NOT NULL,status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK(status IN('Available','Busy','Away')),active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS users(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),name VARCHAR(160) NOT NULL,email VARCHAR(255) NOT NULL UNIQUE,password_hash TEXT NOT NULL,role VARCHAR(40) NOT NULL CHECK(role IN('System Admin','Director','Deputy Director','Assistant Director','Researcher')),division VARCHAR(160) NOT NULL,status VARCHAR(20) NOT NULL DEFAULT 'Available' CHECK(status IN('Available','Busy','Away')),active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK(role IN('System Admin','Director','Deputy Director','Assistant Director','Researcher'));
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS supervisor_id UUID REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_users_supervisor ON users(supervisor_id);
+UPDATE users
+SET supervisor_id=(SELECT id FROM users WHERE active=TRUE AND role='Assistant Director' LIMIT 1),
+    updated_at=NOW()
+WHERE active=TRUE
+  AND role='Researcher'
+  AND supervisor_id IS NULL
+  AND (SELECT COUNT(*) FROM users WHERE active=TRUE AND role='Assistant Director')=1;
 CREATE TABLE IF NOT EXISTS password_reset_tokens(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,token_hash TEXT NOT NULL UNIQUE,expires_at TIMESTAMPTZ NOT NULL,used_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS assignments(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),title VARCHAR(240) NOT NULL,description TEXT NOT NULL DEFAULT '',division VARCHAR(160) NOT NULL,status VARCHAR(30) NOT NULL DEFAULT 'Not Started' CHECK(status IN('Not Started','In Progress','Ready for Review','Completed','Overdue')),priority VARCHAR(20) NOT NULL DEFAULT 'Normal' CHECK(priority IN('Low','Normal','High','Critical')),due_date DATE,created_by UUID NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS objective TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS instructions TEXT NOT NULL DEFAULT '';
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS expected_output VARCHAR(300) NOT NULL DEFAULT 'Final Assignment Report';
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS start_date DATE;
 CREATE TABLE IF NOT EXISTS assignment_members(assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,user_id UUID NOT NULL REFERENCES users(id),member_role VARCHAR(30) NOT NULL DEFAULT 'Contributor' CHECK(member_role IN('Lead','Contributor','Reviewer')),assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(assignment_id,user_id));
 CREATE TABLE IF NOT EXISTS assignment_comments(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,author_id UUID NOT NULL REFERENCES users(id),body TEXT NOT NULL CHECK(char_length(body) BETWEEN 1 AND 4000),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS assignment_history(id BIGSERIAL PRIMARY KEY,assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,user_id UUID REFERENCES users(id),action VARCHAR(80) NOT NULL,details JSONB NOT NULL DEFAULT '{}',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
@@ -59,6 +75,19 @@ CREATE TABLE IF NOT EXISTS assignment_task_requests(
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE TABLE IF NOT EXISTS assignment_member_requests(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  requested_by UUID NOT NULL REFERENCES users(id),
+  requested_user_id UUID NOT NULL REFERENCES users(id),
+  reason TEXT NOT NULL CHECK(char_length(reason) BETWEEN 5 AND 2000),
+  status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK(status IN('Pending','Approved','Rejected','Withdrawn')),
+  reviewed_by UUID REFERENCES users(id),
+  review_comments TEXT NOT NULL DEFAULT '',
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 ALTER TABLE assignment_attachments DROP CONSTRAINT IF EXISTS assignment_attachments_size_bytes_check;
 ALTER TABLE assignment_attachments ADD CONSTRAINT assignment_attachments_size_bytes_check CHECK(size_bytes>0 AND size_bytes<=104857600);
 CREATE TABLE IF NOT EXISTS alerts(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),title VARCHAR(200) NOT NULL,body TEXT NOT NULL,severity VARCHAR(20) NOT NULL DEFAULT 'Information' CHECK(severity IN('Information','Important','Urgent')),audience_role VARCHAR(40),created_by UUID NOT NULL REFERENCES users(id),expires_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
@@ -68,6 +97,14 @@ ALTER TABLE alerts ADD COLUMN IF NOT EXISTS event_end TIMESTAMPTZ;
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id);
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS expiry_notified_at TIMESTAMPTZ;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS pinned_at TIMESTAMPTZ;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS pinned_by UUID REFERENCES users(id);
+UPDATE alerts SET expires_at=COALESCE(expires_at,created_at+INTERVAL '30 days');
+ALTER TABLE alerts ALTER COLUMN expires_at SET NOT NULL;
+CREATE TABLE IF NOT EXISTS alert_comments(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),alert_id UUID NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,user_id UUID NOT NULL REFERENCES users(id),body TEXT NOT NULL CHECK(char_length(body) BETWEEN 1 AND 2000),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS calendar_events(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),title VARCHAR(200) NOT NULL,description TEXT NOT NULL DEFAULT '',start_at TIMESTAMPTZ NOT NULL,end_at TIMESTAMPTZ,event_type VARCHAR(30) NOT NULL DEFAULT 'Meeting' CHECK(event_type IN('Meeting','Reminder','Deadline','Activity')),created_by UUID NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),CHECK(end_at IS NULL OR end_at>=start_at));
 CREATE TABLE IF NOT EXISTS audit_logs(id BIGSERIAL PRIMARY KEY,user_id UUID REFERENCES users(id),action VARCHAR(100) NOT NULL,entity_type VARCHAR(80) NOT NULL,entity_id TEXT,details JSONB NOT NULL DEFAULT '{}',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS knowledge_items(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),title VARCHAR(240) NOT NULL,description TEXT NOT NULL DEFAULT '',category VARCHAR(100) NOT NULL,tags TEXT[] NOT NULL DEFAULT '{}',author VARCHAR(200),document_date DATE,status VARCHAR(30) NOT NULL DEFAULT 'Draft' CHECK(status IN('Draft','Pending Approval','Published','Rejected','Archived')),created_by UUID NOT NULL REFERENCES users(id),approved_by UUID REFERENCES users(id),approved_at TIMESTAMPTZ,rejection_reason TEXT,current_version INTEGER NOT NULL DEFAULT 0,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS source_type VARCHAR(30) NOT NULL DEFAULT 'App2 Upload';
@@ -80,13 +117,16 @@ CREATE TABLE IF NOT EXISTS knowledge_downloads(id BIGSERIAL PRIMARY KEY,knowledg
 CREATE TABLE IF NOT EXISTS document_deletion_requests(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),knowledge_id UUID REFERENCES knowledge_items(id) ON DELETE SET NULL,knowledge_title VARCHAR(240) NOT NULL,requested_by UUID NOT NULL REFERENCES users(id),reason TEXT NOT NULL CHECK(char_length(reason) BETWEEN 5 AND 2000),status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK(status IN('Pending','Approved','Rejected')),reviewed_by UUID REFERENCES users(id),review_comments TEXT NOT NULL DEFAULT '',reviewed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 CREATE UNIQUE INDEX IF NOT EXISTS document_deletion_requests_pending_idx ON document_deletion_requests(knowledge_id) WHERE status='Pending' AND knowledge_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS document_deletion_requests_requester_idx ON document_deletion_requests(requested_by,created_at DESC);
-CREATE TABLE IF NOT EXISTS repository_entity_links(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,entity_type VARCHAR(20) NOT NULL CHECK(entity_type IN('assignment','task','research','report')),entity_id UUID NOT NULL,linked_by UUID NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(knowledge_id,entity_type,entity_id));
+CREATE TABLE IF NOT EXISTS repository_entity_links(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,entity_type VARCHAR(20) NOT NULL CHECK(entity_type IN('assignment','task','research','report','meeting')),entity_id UUID NOT NULL,linked_by UUID NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(knowledge_id,entity_type,entity_id));
 CREATE INDEX IF NOT EXISTS repository_entity_links_entity_idx ON repository_entity_links(entity_type,entity_id,created_at DESC);
 CREATE TABLE IF NOT EXISTS felix_document_index_jobs(id BIGSERIAL PRIMARY KEY,knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,version_number INTEGER NOT NULL CHECK(version_number>0),requested_by UUID NOT NULL REFERENCES users(id),status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK(status IN('Pending','Processing','Completed','Failed')),attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts>=0),next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),last_error TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),completed_at TIMESTAMPTZ,UNIQUE(knowledge_id,version_number));
 CREATE INDEX IF NOT EXISTS assignment_members_user_idx ON assignment_members(user_id);
 CREATE INDEX IF NOT EXISTS assignments_status_idx ON assignments(status);
 CREATE INDEX IF NOT EXISTS assignment_comments_assignment_idx ON assignment_comments(assignment_id,created_at);
 CREATE INDEX IF NOT EXISTS alerts_created_idx ON alerts(created_at DESC);
+CREATE INDEX IF NOT EXISTS alerts_pinned_idx ON alerts(is_pinned,pinned_at DESC) WHERE is_pinned=TRUE;
+CREATE INDEX IF NOT EXISTS alert_comments_alert_idx ON alert_comments(alert_id,created_at);
+CREATE INDEX IF NOT EXISTS calendar_events_start_idx ON calendar_events(start_at);
 CREATE INDEX IF NOT EXISTS audit_logs_created_idx ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx ON password_reset_tokens(user_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS assignment_history_assignment_idx ON assignment_history(assignment_id,created_at DESC);
@@ -100,6 +140,8 @@ CREATE INDEX IF NOT EXISTS assignment_tasks_section_idx ON assignment_tasks(assi
 CREATE INDEX IF NOT EXISTS assignment_reviews_assignment_idx ON assignment_reviews(assignment_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS assignment_task_requests_assignment_idx ON assignment_task_requests(assignment_id,status,created_at DESC);
 CREATE INDEX IF NOT EXISTS assignment_task_requests_requester_idx ON assignment_task_requests(requested_by,status,created_at DESC);
+CREATE INDEX IF NOT EXISTS assignment_member_requests_assignment_idx ON assignment_member_requests(assignment_id,status,created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS assignment_member_requests_pending_idx ON assignment_member_requests(assignment_id,requested_user_id) WHERE status='Pending';
 CREATE INDEX IF NOT EXISTS knowledge_items_status_category_idx ON knowledge_items(status,category);
 CREATE INDEX IF NOT EXISTS knowledge_items_search_idx ON knowledge_items USING GIN(to_tsvector('english',title||' '||description||' '||COALESCE(author,'')));
 CREATE INDEX IF NOT EXISTS knowledge_versions_item_idx ON knowledge_versions(knowledge_id,version_number DESC);
@@ -139,6 +181,11 @@ ALTER TABLE generated_document_sections ADD CONSTRAINT generated_document_sectio
 CREATE TABLE IF NOT EXISTS generated_document_section_locks(section_id UUID PRIMARY KEY REFERENCES generated_document_sections(id) ON DELETE CASCADE,document_id UUID NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,locked_by UUID NOT NULL REFERENCES users(id),locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL);
 CREATE INDEX IF NOT EXISTS generated_document_section_locks_expiry_idx ON generated_document_section_locks(expires_at);
 CREATE TABLE IF NOT EXISTS generated_document_versions(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),document_id UUID NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,version_number INTEGER NOT NULL,sections JSONB NOT NULL,change_note TEXT NOT NULL DEFAULT '',status VARCHAR(30) NOT NULL,template_version INTEGER NOT NULL,created_by UUID NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(document_id,version_number));
+ALTER TABLE generated_document_versions ADD COLUMN IF NOT EXISTS snapshot_sha256 VARCHAR(64);
+UPDATE generated_document_versions SET snapshot_sha256=encode(digest(convert_to(sections::text,'UTF8'),'sha256'),'hex') WHERE snapshot_sha256 IS NULL;
+ALTER TABLE generated_document_versions ALTER COLUMN snapshot_sha256 SET NOT NULL;
+UPDATE generated_document_versions v SET status=d.status FROM generated_documents d WHERE v.document_id=d.id AND v.version_number=d.version AND d.status IN('Submitted','Under Review','Approved','Final') AND v.status IS DISTINCT FROM d.status;
+CREATE INDEX IF NOT EXISTS generated_document_versions_status_idx ON generated_document_versions(document_id,status,version_number DESC);
 CREATE TABLE IF NOT EXISTS generated_document_comments(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),document_id UUID NOT NULL REFERENCES generated_documents(id) ON DELETE CASCADE,section_id UUID REFERENCES generated_document_sections(id) ON DELETE SET NULL,author_id UUID NOT NULL REFERENCES users(id),body TEXT NOT NULL CHECK(char_length(body) BETWEEN 1 AND 4000),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 ALTER TABLE generated_document_comments ADD COLUMN IF NOT EXISTS resolved BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE generated_document_comments ADD COLUMN IF NOT EXISTS version_number INTEGER NOT NULL DEFAULT 1;
@@ -268,22 +315,85 @@ CREATE TABLE IF NOT EXISTS research_report_versions(
 
 CREATE INDEX IF NOT EXISTS idx_research_report_versions_project
 ON research_report_versions(project_id,version_number);
-CREATE TABLE IF NOT EXISTS research_knowledge_links(project_id UUID NOT NULL REFERENCES research_projects(id) ON DELETE CASCADE,knowledge_item_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,PRIMARY KEY(project_id,knowledge_item_id));
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'Draft';
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS submitted_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS review_comments TEXT NOT NULL DEFAULT '';
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS parent_version_id UUID REFERENCES research_report_versions(id) ON DELETE SET NULL;
+ALTER TABLE research_report_versions ADD COLUMN IF NOT EXISTS snapshot_sha256 VARCHAR(64);
+UPDATE research_report_versions SET snapshot_sha256=encode(digest(convert_to(report_snapshot::text,'UTF8'),'sha256'),'hex') WHERE snapshot_sha256 IS NULL;
+ALTER TABLE research_report_versions ALTER COLUMN snapshot_sha256 SET NOT NULL;
+DO $$ BEGIN ALTER TABLE research_report_versions ADD CONSTRAINT research_report_versions_status_check CHECK(status IN('Draft','Submitted','Changes Requested','Approved','Rejected')); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE INDEX IF NOT EXISTS idx_research_report_versions_review ON research_report_versions(project_id,status,created_at DESC);
+CREATE TABLE IF NOT EXISTS research_assignment_requests(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES research_projects(id) ON DELETE CASCADE,
+  title VARCHAR(240) NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  division VARCHAR(160) NOT NULL,
+  due_date DATE,
+  priority VARCHAR(20) NOT NULL DEFAULT 'Normal' CHECK(priority IN('Low','Normal','High','Critical')),
+  member_ids UUID[] NOT NULL DEFAULT '{}',
+  requested_by UUID NOT NULL REFERENCES users(id),
+  status VARCHAR(30) NOT NULL DEFAULT 'Pending Approval' CHECK(status IN('Pending Approval','Approved','Rejected')),
+  decided_by UUID REFERENCES users(id),
+  decision_comment TEXT NOT NULL DEFAULT '',
+  assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  decided_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS research_assignment_requests_project_idx ON research_assignment_requests(project_id,status,created_at DESC);
+CREATE TABLE IF NOT EXISTS research_knowledge_links(project_id UUID NOT NULL REFERENCES research_projects(id) ON DELETE CASCADE,knowledge_item_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,linked_by UUID REFERENCES users(id),linked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),PRIMARY KEY(project_id,knowledge_item_id));
+ALTER TABLE research_knowledge_links ADD COLUMN IF NOT EXISTS linked_by UUID REFERENCES users(id);
+ALTER TABLE research_knowledge_links ADD COLUMN IF NOT EXISTS linked_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+CREATE INDEX IF NOT EXISTS research_knowledge_links_project_idx ON research_knowledge_links(project_id,linked_at DESC);
 CREATE INDEX IF NOT EXISTS research_projects_status_idx ON research_projects(status);
 CREATE TABLE IF NOT EXISTS document_locks(knowledge_id UUID PRIMARY KEY REFERENCES knowledge_items(id) ON DELETE CASCADE,locked_by UUID NOT NULL REFERENCES users(id),locked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW()+INTERVAL '2 hours');
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS retention_until DATE;
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES users(id);
 CREATE TABLE IF NOT EXISTS document_reviews(id BIGSERIAL PRIMARY KEY,knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,reviewer_id UUID REFERENCES users(id),actor_id UUID NOT NULL REFERENCES users(id),action VARCHAR(40) NOT NULL CHECK(action IN('SUBMITTED','ASSIGNED','APPROVED','REJECTED','RESUBMITTED')),comments TEXT NOT NULL DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS notifications(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,title VARCHAR(200) NOT NULL,body TEXT NOT NULL,entity_type VARCHAR(80),entity_id TEXT,read_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS close_reason VARCHAR(80);
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS important_at TIMESTAMPTZ;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS priority VARCHAR(20) NOT NULL DEFAULT 'Normal';
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS action VARCHAR(80);
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS target_workspace VARCHAR(80);
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS target_tab VARCHAR(80);
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS event_key VARCHAR(240);
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_priority_check;
+ALTER TABLE notifications ADD CONSTRAINT notifications_priority_check CHECK(priority IN('Critical','High','Normal','Informational'));
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_eligible BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_status VARCHAR(24) NOT NULL DEFAULT 'Not Required';
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_message_id TEXT;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS email_last_error TEXT;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS next_email_attempt_at TIMESTAMPTZ;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS reminder_kind VARCHAR(40);
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS notification_category VARCHAR(24) NOT NULL DEFAULT 'Information';
+DO $$ BEGIN ALTER TABLE notifications ADD CONSTRAINT notifications_category_check CHECK(notification_category IN('Action','Review','Reminder','Information')); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE notifications ADD CONSTRAINT notifications_email_status_check CHECK(email_status IN('Not Required','Pending','Sending','Sent','Retry','Suppressed','Failed')); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE INDEX IF NOT EXISTS document_locks_expiry_idx ON document_locks(expires_at);
 CREATE INDEX IF NOT EXISTS document_reviews_item_idx ON document_reviews(knowledge_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id,read_at,created_at DESC);
+CREATE INDEX IF NOT EXISTS notifications_inbox_idx ON notifications(user_id,archived_at,read_at,created_at DESC);
+CREATE INDEX IF NOT EXISTS notifications_important_idx ON notifications(user_id,important_at,created_at DESC) WHERE important_at IS NOT NULL AND archived_at IS NULL;
+CREATE INDEX IF NOT EXISTS notifications_lifecycle_idx ON notifications(user_id,closed_at,created_at DESC) WHERE closed_at IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_event_key_idx ON notifications(user_id,event_key) WHERE event_key IS NOT NULL;
 CREATE TABLE IF NOT EXISTS system_settings(id INTEGER PRIMARY KEY DEFAULT 1 CHECK(id=1),organization_name VARCHAR(200) NOT NULL DEFAULT 'Public Service Commission',department_name VARCHAR(200) NOT NULL DEFAULT 'Research Department',support_email VARCHAR(255) NOT NULL DEFAULT 'support@publicservice.go.ke',session_minutes INTEGER NOT NULL DEFAULT 480 CHECK(session_minutes BETWEEN 15 AND 1440),max_upload_mb INTEGER NOT NULL DEFAULT 100 CHECK(max_upload_mb BETWEEN 1 AND 500),default_retention_days INTEGER NOT NULL DEFAULT 2555 CHECK(default_retention_days BETWEEN 30 AND 7300),document_categories TEXT[] NOT NULL DEFAULT ARRAY['Policy','Report','Circular','Research Paper','Book','Template'],maintenance_mode BOOLEAN NOT NULL DEFAULT FALSE,email_notifications BOOLEAN NOT NULL DEFAULT TRUE,updated_by UUID REFERENCES users(id),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 INSERT INTO system_settings(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS user_preferences(user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,email_notifications BOOLEAN NOT NULL DEFAULT TRUE,in_app_notifications BOOLEAN NOT NULL DEFAULT TRUE,compact_layout BOOLEAN NOT NULL DEFAULT FALSE,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
-ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS theme_mode VARCHAR(20) NOT NULL DEFAULT 'Dark' CHECK(theme_mode IN('Dark','Light','System'));
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS important_email_notifications BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS deadline_reminders BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS theme_mode VARCHAR(20) NOT NULL DEFAULT 'Executive Gold';
 ALTER TABLE user_preferences DROP CONSTRAINT IF EXISTS user_preferences_theme_mode_check;
-ALTER TABLE user_preferences ADD CONSTRAINT user_preferences_theme_mode_check CHECK(theme_mode IN('Dark','Light','System','Gold Grey'));
+ALTER TABLE user_preferences ADD CONSTRAINT user_preferences_theme_mode_check CHECK(theme_mode IN('Dark','Light','System','Gold Grey','Navy Blue','PSC Slate','Low-Contrast Navy','Executive Gold','Sage Ivory'));
+ALTER TABLE user_preferences ALTER COLUMN theme_mode SET DEFAULT 'Executive Gold';
 ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS accent_color VARCHAR(20) NOT NULL DEFAULT 'Gold' CHECK(accent_color IN('Gold','Blue','Green'));
 
 
@@ -313,6 +423,10 @@ ON assignment_tasks(assignment_id,contribution_status,target_document_id,target_
 -- Generated task contribution report preview/submission
 ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS contribution_report_html TEXT NOT NULL DEFAULT '';
 ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS contribution_report_version INTEGER NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS task_report_versions(id UUID PRIMARY KEY DEFAULT gen_random_uuid(),task_id UUID NOT NULL REFERENCES assignment_tasks(id) ON DELETE CASCADE,version_number INTEGER NOT NULL CHECK(version_number>0),report_snapshot JSONB NOT NULL,html_snapshot TEXT NOT NULL,snapshot_sha256 VARCHAR(64) NOT NULL,status VARCHAR(30) NOT NULL CHECK(status IN('Submitted','Changes Requested','Approved','Rejected','Finalised')),submitted_by UUID NOT NULL REFERENCES users(id),submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),reviewer_id UUID NOT NULL REFERENCES users(id),reviewed_by UUID REFERENCES users(id),reviewed_at TIMESTAMPTZ,review_comments TEXT NOT NULL DEFAULT '',finalised_by UUID REFERENCES users(id),finalised_at TIMESTAMPTZ,UNIQUE(task_id,version_number));
+CREATE INDEX IF NOT EXISTS task_report_versions_task_idx ON task_report_versions(task_id,version_number DESC);
+CREATE INDEX IF NOT EXISTS task_report_versions_review_idx ON task_report_versions(reviewer_id,status,submitted_at DESC);
+INSERT INTO task_report_versions(task_id,version_number,report_snapshot,html_snapshot,snapshot_sha256,status,submitted_by,submitted_at,reviewer_id,reviewed_by,reviewed_at,review_comments) SELECT t.id,t.contribution_report_version,to_jsonb(t),COALESCE(t.contribution_report_html,''),encode(digest(convert_to(to_jsonb(t)::text,'UTF8'),'sha256'),'hex'),CASE WHEN t.contribution_status='Integrated' THEN 'Approved' ELSE 'Submitted' END,t.owner_id,COALESCE(t.contribution_ready_at,t.updated_at,t.created_at),t.reviewer_id,CASE WHEN t.contribution_status='Integrated' THEN t.contribution_integrated_by ELSE NULL END,CASE WHEN t.contribution_status='Integrated' THEN t.contribution_integrated_at ELSE NULL END,'Backfilled from the governed pre-versioning task report state.' FROM assignment_tasks t WHERE t.contribution_status IN('Ready for Integration','Integrated') AND t.contribution_report_version>0 AND t.owner_id IS NOT NULL AND t.reviewer_id IS NOT NULL ON CONFLICT(task_id,version_number) DO NOTHING;
 ALTER TABLE assignment_tasks ADD COLUMN IF NOT EXISTS contribution_report_generated_at TIMESTAMPTZ;
 
 
@@ -329,10 +443,19 @@ ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS directorate VARCHAR(160);
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS document_type VARCHAR(100) NOT NULL DEFAULT 'Document';
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS subject VARCHAR(300) NOT NULL DEFAULT '';
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS classification VARCHAR(20) NOT NULL DEFAULT 'INTERNAL';
-ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS felix_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS felix_enabled BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE knowledge_items ALTER COLUMN felix_enabled SET DEFAULT TRUE;
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id);
 ALTER TABLE knowledge_items ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+CREATE OR REPLACE FUNCTION enable_felix_for_published_document() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status='Published' THEN NEW.felix_enabled=TRUE; END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS knowledge_items_auto_enable_felix ON knowledge_items;
+CREATE TRIGGER knowledge_items_auto_enable_felix BEFORE INSERT OR UPDATE OF status ON knowledge_items FOR EACH ROW EXECUTE FUNCTION enable_felix_for_published_document();
 ALTER TABLE knowledge_items DROP CONSTRAINT IF EXISTS knowledge_items_classification_check;
 ALTER TABLE knowledge_items ADD CONSTRAINT knowledge_items_classification_check CHECK(classification IN('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED'));
 ALTER TABLE knowledge_versions ADD COLUMN IF NOT EXISTS storage_path TEXT;
@@ -377,3 +500,578 @@ ALTER TABLE report_decisions ADD COLUMN IF NOT EXISTS due_date DATE;
 CREATE INDEX IF NOT EXISTS assignments_reporting_idx ON assignments(created_at,status,division,priority,due_date);
 CREATE INDEX IF NOT EXISTS research_projects_reporting_idx ON research_projects(created_at,status);
 CREATE INDEX IF NOT EXISTS knowledge_items_reporting_idx ON knowledge_items(created_at,status,category,is_archived);
+
+-- Reconcile legacy workflow records so past work follows the same completion
+-- rules as new work. These statements are idempotent and safe on every setup.
+UPDATE assignment_members member
+SET member_role='Lead'
+WHERE member.user_id=(
+    SELECT candidate.user_id
+    FROM assignment_members candidate
+    WHERE candidate.assignment_id=member.assignment_id
+    ORDER BY candidate.assigned_at,candidate.user_id
+    LIMIT 1
+  )
+  AND NOT EXISTS(
+    SELECT 1
+    FROM assignment_members existing_lead
+    WHERE existing_lead.assignment_id=member.assignment_id
+      AND LOWER(TRIM(existing_lead.member_role))='lead'
+  );
+
+UPDATE assignment_tasks
+SET status='Completed',progress=100,updated_at=NOW()
+WHERE contribution_status='Accepted'
+  AND (status<>'Completed' OR progress<>100);
+
+UPDATE assignments a
+SET status='Completed',updated_at=NOW()
+WHERE a.status<>'Completed'
+  AND EXISTS(
+    SELECT 1
+    FROM generated_documents d
+    WHERE d.context='Assignment'
+      AND d.context_id=a.id
+      AND d.status='Final'
+  );
+
+
+-- APP2_RECORDS_MANAGEMENT_FOUNDATION_V1
+
+ALTER TABLE knowledge_items
+  ADD COLUMN IF NOT EXISTS record_number VARCHAR(80),
+  ADD COLUMN IF NOT EXISTS record_class VARCHAR(120) NOT NULL DEFAULT 'General Record',
+  ADD COLUMN IF NOT EXISTS records_lifecycle_state VARCHAR(40) NOT NULL DEFAULT 'Working Document',
+  ADD COLUMN IF NOT EXISTS review_due_at DATE,
+  ADD COLUMN IF NOT EXISTS legal_hold BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS legal_hold_reason TEXT,
+  ADD COLUMN IF NOT EXISTS declared_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS declared_by UUID REFERENCES users(id),
+  ADD COLUMN IF NOT EXISTS supersedes_id UUID REFERENCES knowledge_items(id),
+  ADD COLUMN IF NOT EXISTS disposition_action VARCHAR(40) NOT NULL DEFAULT 'Review',
+  ADD COLUMN IF NOT EXISTS disposition_notes TEXT;
+
+ALTER TABLE knowledge_items
+  DROP CONSTRAINT IF EXISTS knowledge_items_records_lifecycle_check;
+ALTER TABLE knowledge_items
+  ADD CONSTRAINT knowledge_items_records_lifecycle_check
+  CHECK(records_lifecycle_state IN(
+    'Working Document',
+    'Under Improvement',
+    'Under Review',
+    'Active Record',
+    'Superseded',
+    'Archived',
+    'Disposition Review'
+  ));
+
+ALTER TABLE knowledge_items
+  DROP CONSTRAINT IF EXISTS knowledge_items_disposition_action_check;
+ALTER TABLE knowledge_items
+  ADD CONSTRAINT knowledge_items_disposition_action_check
+  CHECK(disposition_action IN('Review','Destroy','Transfer','Permanent'));
+
+CREATE UNIQUE INDEX IF NOT EXISTS knowledge_items_record_number_idx
+  ON knowledge_items(record_number)
+  WHERE record_number IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS document_improvement_assignments(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,
+  assignee_id UUID NOT NULL REFERENCES users(id),
+  reviewer_id UUID NOT NULL REFERENCES users(id),
+  created_by UUID NOT NULL REFERENCES users(id),
+  improvement_type VARCHAR(40) NOT NULL
+    CHECK(improvement_type IN('Content Update','Policy Review','Legal Review','Metadata Improvement','Formatting','Annual Review','Other')),
+  reason TEXT NOT NULL,
+  due_date DATE,
+  status VARCHAR(30) NOT NULL DEFAULT 'Assigned'
+    CHECK(status IN('Assigned','In Progress','Submitted','Completed','Cancelled')),
+  starting_version INTEGER NOT NULL DEFAULT 1,
+  submitted_version INTEGER,
+  completed_version INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
+);
+
+ALTER TABLE document_improvement_assignments
+  ADD COLUMN IF NOT EXISTS submitted_version INTEGER;
+
+CREATE INDEX IF NOT EXISTS document_improvement_knowledge_idx
+  ON document_improvement_assignments(knowledge_id,status);
+CREATE INDEX IF NOT EXISTS document_improvement_assignee_idx
+  ON document_improvement_assignments(assignee_id,status);
+CREATE INDEX IF NOT EXISTS document_improvement_reviewer_idx
+  ON document_improvement_assignments(reviewer_id,status);
+
+UPDATE knowledge_items
+SET records_lifecycle_state=CASE
+  WHEN status='Published' THEN 'Active Record'
+  WHEN status='Pending Approval' THEN 'Under Review'
+  WHEN status='Archived' THEN 'Archived'
+  ELSE 'Working Document'
+END
+WHERE records_lifecycle_state='Working Document';
+
+
+-- APP2_REPOSITORY_RELATIONSHIPS_EVIDENCE_V1
+
+ALTER TABLE repository_entity_links
+  ADD COLUMN IF NOT EXISTS relationship_type VARCHAR(24) NOT NULL DEFAULT 'Related to',
+  ADD COLUMN IF NOT EXISTS pinned_version_id UUID REFERENCES knowledge_versions(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE repository_entity_links
+  DROP CONSTRAINT IF EXISTS repository_entity_links_relationship_type_check;
+ALTER TABLE repository_entity_links
+  ADD CONSTRAINT repository_entity_links_relationship_type_check
+  CHECK(relationship_type IN(
+    'Evidence for','Reference for','Source for','Supports',
+    'Produced by','Supersedes','Related to','Annex to'
+  ));
+
+CREATE INDEX IF NOT EXISTS repository_entity_links_relationship_idx
+  ON repository_entity_links(relationship_type,entity_type,entity_id);
+
+
+-- APP2_DOCUMENT_PROTECTION_V1
+
+CREATE TABLE IF NOT EXISTS document_access_policies(
+  knowledge_id UUID PRIMARY KEY REFERENCES knowledge_items(id) ON DELETE CASCADE,
+  reader_scope VARCHAR(30) NOT NULL DEFAULT 'INHERITED'
+    CHECK(reader_scope IN('INHERITED','TEAM','NAMED_USERS','REVIEWER_ONLY','MANAGEMENT_ONLY')),
+  allow_download BOOLEAN NOT NULL DEFAULT TRUE,
+  allow_copy BOOLEAN NOT NULL DEFAULT TRUE,
+  allow_print BOOLEAN NOT NULL DEFAULT TRUE,
+  allow_link BOOLEAN NOT NULL DEFAULT TRUE,
+  watermark BOOLEAN NOT NULL DEFAULT FALSE,
+  restriction_reason TEXT NOT NULL DEFAULT '',
+  expires_at TIMESTAMPTZ,
+  approved_by UUID REFERENCES users(id),
+  updated_by UUID NOT NULL REFERENCES users(id),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS document_access_grants(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  knowledge_id UUID NOT NULL REFERENCES knowledge_items(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  can_view BOOLEAN NOT NULL DEFAULT TRUE,
+  can_download BOOLEAN NOT NULL DEFAULT FALSE,
+  can_copy BOOLEAN NOT NULL DEFAULT FALSE,
+  can_print BOOLEAN NOT NULL DEFAULT FALSE,
+  can_link BOOLEAN NOT NULL DEFAULT FALSE,
+  granted_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(knowledge_id,user_id)
+);
+
+CREATE INDEX IF NOT EXISTS document_access_grants_knowledge_idx
+  ON document_access_grants(knowledge_id,user_id);
+
+
+-- APP2_REPOSITORY_RECORDS_COMPLETION_V2
+
+CREATE TABLE IF NOT EXISTS repository_record_sequences(
+  year INTEGER NOT NULL,
+  prefix VARCHAR(80) NOT NULL,
+  last_number INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY(year,prefix)
+);
+
+CREATE TABLE IF NOT EXISTS repository_retention_schedules(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(160) NOT NULL,
+  record_class VARCHAR(120) NOT NULL,
+  review_interval_months INTEGER CHECK(review_interval_months IS NULL OR review_interval_months BETWEEN 1 AND 240),
+  retention_years INTEGER CHECK(retention_years IS NULL OR retention_years BETWEEN 1 AND 100),
+  disposition_action VARCHAR(40) NOT NULL DEFAULT 'Review'
+    CHECK(disposition_action IN('Review','Destroy','Transfer','Permanent')),
+  description TEXT NOT NULL DEFAULT '',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS repository_retention_schedules_name_idx
+  ON repository_retention_schedules(name);
+
+ALTER TABLE knowledge_items
+  ADD COLUMN IF NOT EXISTS retention_schedule_id UUID REFERENCES repository_retention_schedules(id),
+  ADD COLUMN IF NOT EXISTS superseded_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS superseded_by UUID REFERENCES knowledge_items(id),
+  ADD COLUMN IF NOT EXISTS next_review_at DATE;
+
+CREATE TABLE IF NOT EXISTS repository_saved_views(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(100) NOT NULL,
+  filters JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id,name)
+);
+
+CREATE INDEX IF NOT EXISTS repository_saved_views_user_idx
+  ON repository_saved_views(user_id,updated_at DESC);
+CREATE INDEX IF NOT EXISTS knowledge_items_record_class_idx
+  ON knowledge_items(record_class,status,updated_at DESC);
+CREATE INDEX IF NOT EXISTS knowledge_items_next_review_idx
+  ON knowledge_items(next_review_at) WHERE next_review_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS knowledge_items_superseded_idx
+  ON knowledge_items(superseded_by) WHERE superseded_by IS NOT NULL;
+
+INSERT INTO repository_retention_schedules(name,record_class,review_interval_months,retention_years,disposition_action,description)
+VALUES
+ ('Administrative Standard','Administrative Records',24,7,'Review','Default administrative record schedule.'),
+ ('Policy Standard','Policies & Guidelines',24,7,'Review','Policy and guideline review every two years.'),
+ ('Meeting Record Standard','Meeting Records',NULL,7,'Review','Meeting minutes and formal proceedings.'),
+ ('Evidence Standard','Evidence & Supporting Records',NULL,7,'Review','Evidence retained for the governed business need and disposition review.'),
+ ('Research Knowledge Standard','Research & Knowledge',24,10,'Review','Research and institutional knowledge schedule.'),
+ ('Permanent Institutional Record','Permanent Record',60,NULL,'Permanent','Permanent preservation candidate.')
+ON CONFLICT(name) DO NOTHING;
+
+WITH missing AS(
+  SELECT id,EXTRACT(YEAR FROM COALESCE(document_date,created_at))::int yr,
+    ROW_NUMBER() OVER(ORDER BY created_at,id) rn
+  FROM knowledge_items
+  WHERE record_number IS NULL
+)
+UPDATE knowledge_items k
+SET record_number='PSC/LEGACY/'||missing.yr||'/'||LPAD(missing.rn::text,4,'0')
+FROM missing WHERE k.id=missing.id;
+
+
+CREATE TABLE IF NOT EXISTS app_email_messages(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sender_id UUID NOT NULL REFERENCES users(id),
+  subject VARCHAR(240) NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS app_email_recipients(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  message_id UUID NOT NULL REFERENCES app_email_messages(id) ON DELETE CASCADE,
+  recipient_id UUID NOT NULL REFERENCES users(id),
+  recipient_email VARCHAR(255) NOT NULL,
+  delivery_status VARCHAR(24) NOT NULL DEFAULT 'Pending'
+    CHECK(delivery_status IN('Pending','Sending','Sent','Retry','Failed','Suppressed')),
+  attempts INTEGER NOT NULL DEFAULT 0,
+  provider_message_id TEXT,
+  last_error TEXT,
+  next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  sent_at TIMESTAMPTZ,
+  UNIQUE(message_id,recipient_id)
+);
+CREATE INDEX IF NOT EXISTS app_email_messages_sender_created_idx ON app_email_messages(sender_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS app_email_recipients_queue_idx ON app_email_recipients(delivery_status,next_attempt_at)
+WHERE delivery_status IN('Pending','Retry');
+
+
+-- APP2 Messages V1 - Internal Messaging
+CREATE TABLE IF NOT EXISTS message_conversations(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind VARCHAR(12) NOT NULL CHECK(kind IN('Direct','Group')),
+  title VARCHAR(160),
+  direct_key VARCHAR(80),
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS message_conversations_direct_key_uidx
+  ON message_conversations(direct_key)
+  WHERE direct_key IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS message_conversation_members(
+  conversation_id UUID NOT NULL REFERENCES message_conversations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY(conversation_id,user_id)
+);
+
+CREATE INDEX IF NOT EXISTS message_conversation_members_user_idx
+  ON message_conversation_members(user_id,conversation_id);
+
+CREATE TABLE IF NOT EXISTS app_messages(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES message_conversations(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES users(id),
+  body TEXT NOT NULL CHECK(char_length(body) BETWEEN 1 AND 8000),
+  context_type VARCHAR(40),
+  context_id TEXT,
+  context_title VARCHAR(240),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS app_messages_conversation_created_idx
+  ON app_messages(conversation_id,created_at,id);
+
+
+-- APP2 Messages V1 R2.7 - Group Chat Management
+ALTER TABLE message_conversations
+  ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id);
+
+UPDATE message_conversations
+SET owner_id=created_by
+WHERE owner_id IS NULL;
+
+CREATE INDEX IF NOT EXISTS message_conversations_owner_idx
+  ON message_conversations(owner_id);
+
+CREATE TABLE IF NOT EXISTS message_conversation_events(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES message_conversations(id) ON DELETE CASCADE,
+  actor_id UUID NOT NULL REFERENCES users(id),
+  event_type VARCHAR(32) NOT NULL
+    CHECK(event_type IN('Group Renamed','Member Added','Member Removed')),
+  target_user_id UUID REFERENCES users(id),
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS message_conversation_events_conversation_idx
+  ON message_conversation_events(conversation_id,created_at,id);
+
+
+-- APP2 Messages V1 R2.8 - real-time delivery/read receipts
+CREATE TABLE IF NOT EXISTS message_receipts(
+  message_id UUID NOT NULL REFERENCES app_messages(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  delivered_at TIMESTAMPTZ,
+  read_at TIMESTAMPTZ,
+  PRIMARY KEY(message_id,user_id)
+);
+CREATE INDEX IF NOT EXISTS message_receipts_user_idx ON message_receipts(user_id,read_at,delivered_at);
+INSERT INTO message_receipts(message_id,user_id,delivered_at,read_at)
+SELECT m.id,cm.user_id,
+       CASE WHEN cm.last_read_at>=m.created_at THEN cm.last_read_at ELSE NULL END,
+       CASE WHEN cm.last_read_at>=m.created_at THEN cm.last_read_at ELSE NULL END
+FROM app_messages m
+JOIN message_conversation_members cm ON cm.conversation_id=m.conversation_id
+WHERE cm.user_id<>m.sender_id
+ON CONFLICT(message_id,user_id) DO NOTHING;
+
+
+-- APP2 Messages V1 R2.9 - Rich Messaging
+ALTER TABLE app_messages
+  ADD COLUMN IF NOT EXISTS reply_to_message_id UUID REFERENCES app_messages(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS app_messages_reply_to_idx
+  ON app_messages(reply_to_message_id);
+
+CREATE TABLE IF NOT EXISTS message_reactions(
+  message_id UUID NOT NULL REFERENCES app_messages(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  emoji VARCHAR(16) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY(message_id,user_id,emoji)
+);
+
+CREATE INDEX IF NOT EXISTS message_reactions_message_idx
+  ON message_reactions(message_id,created_at);
+
+CREATE TABLE IF NOT EXISTS message_attachments(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  message_id UUID NOT NULL REFERENCES app_messages(id) ON DELETE CASCADE,
+  conversation_id UUID NOT NULL REFERENCES message_conversations(id) ON DELETE CASCADE,
+  uploader_id UUID NOT NULL REFERENCES users(id),
+  original_name VARCHAR(255) NOT NULL,
+  stored_name VARCHAR(320) NOT NULL UNIQUE,
+  mime_type VARCHAR(160) NOT NULL,
+  size_bytes INTEGER NOT NULL CHECK(size_bytes>0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS message_attachments_conversation_idx
+  ON message_attachments(conversation_id,created_at);
+
+-- APP2_MEETINGS_V1_SCHEMA
+CREATE TABLE IF NOT EXISTS meetings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title varchar(240) NOT NULL,
+  meeting_type varchar(80) NOT NULL DEFAULT 'Departmental',
+  description text NOT NULL DEFAULT '',
+  start_at timestamptz NOT NULL,
+  end_at timestamptz,
+  venue varchar(300),
+  meeting_link text,
+  status varchar(40) NOT NULL DEFAULT 'Scheduled',
+  created_by uuid NOT NULL REFERENCES users(id),
+  chair_id uuid REFERENCES users(id),
+  secretary_id uuid REFERENCES users(id),
+  reviewer_id uuid REFERENCES users(id),
+  calendar_event_id uuid REFERENCES calendar_events(id) ON DELETE SET NULL,
+  schedule_approval_status varchar(32) NOT NULL DEFAULT 'Approved',
+  schedule_approver_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  schedule_approval_decided_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  schedule_approval_decided_at timestamptz,
+  schedule_approval_comments text,
+  schedule_approval_submitted_at timestamptz,
+  resource_links jsonb NOT NULL DEFAULT '[]'::jsonb,
+  completed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT meetings_time_check CHECK (end_at IS NULL OR end_at >= start_at)
+);
+CREATE INDEX IF NOT EXISTS idx_meetings_start_at ON meetings(start_at);
+CREATE INDEX IF NOT EXISTS idx_meetings_created_by ON meetings(created_by);
+
+CREATE TABLE IF NOT EXISTS meeting_participants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES users(id),
+  guest_name varchar(240),
+  guest_email varchar(320),
+  participant_role varchar(80) NOT NULL DEFAULT 'Member',
+  response_status varchar(40) NOT NULL DEFAULT 'Invited',
+  attendance_status varchar(40) NOT NULL DEFAULT 'Not marked',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id,user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_participants_meeting ON meeting_participants(meeting_id);
+
+CREATE TABLE IF NOT EXISTS meeting_schedule_approval_appointments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  subject_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  approver_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  appointed_by uuid NOT NULL REFERENCES users(id),
+  starts_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  reason text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT meeting_schedule_approval_appointments_distinct_users CHECK(subject_user_id<>approver_user_id),
+  CONSTRAINT meeting_schedule_approval_appointments_expiry CHECK(expires_at>starts_at)
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_schedule_appointments_subject_active
+  ON meeting_schedule_approval_appointments(subject_user_id,approver_user_id,expires_at DESC)
+  WHERE revoked_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS meeting_attachments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  original_filename varchar(500) NOT NULL,
+  stored_path text NOT NULL,
+  mime_type varchar(160) NOT NULL,
+  size_bytes bigint NOT NULL CHECK(size_bytes>0),
+  uploaded_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_attachments_meeting ON meeting_attachments(meeting_id,created_at);
+
+CREATE TABLE IF NOT EXISTS meeting_agenda_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  item_no integer NOT NULL,
+  title varchar(300) NOT NULL,
+  background text NOT NULL DEFAULT '',
+  owner_id uuid REFERENCES users(id),
+  duration_minutes integer,
+  status varchar(40) NOT NULL DEFAULT 'Planned',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id,item_no)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_transcripts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  status varchar(40) NOT NULL DEFAULT 'Queued',
+  original_filename varchar(500) NOT NULL,
+  stored_path text NOT NULL,
+  language varchar(40),
+  model_name varchar(120),
+  error_message text,
+  created_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  started_at timestamptz,
+  completed_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_transcripts_meeting ON meeting_transcripts(meeting_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS meeting_transcript_segments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  transcript_id uuid NOT NULL REFERENCES meeting_transcripts(id) ON DELETE CASCADE,
+  segment_no integer NOT NULL,
+  start_seconds numeric(12,3) NOT NULL DEFAULT 0,
+  end_seconds numeric(12,3) NOT NULL DEFAULT 0,
+  speaker_label varchar(120),
+  text text NOT NULL,
+  corrected_text text,
+  corrected_by uuid REFERENCES users(id),
+  corrected_at timestamptz,
+  UNIQUE(transcript_id,segment_no)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_minutes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  version_no integer NOT NULL DEFAULT 1,
+  status varchar(40) NOT NULL DEFAULT 'Draft',
+  content text NOT NULL DEFAULT '',
+  reviewer_id uuid REFERENCES users(id),
+  review_comments text,
+  approved_by uuid REFERENCES users(id),
+  approved_at timestamptz,
+  created_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id,version_no)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_decisions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  agenda_item_id uuid REFERENCES meeting_agenda_items(id) ON DELETE SET NULL,
+  decision_no integer NOT NULL,
+  text text NOT NULL,
+  recorded_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id,decision_no)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_actions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  title varchar(300) NOT NULL,
+  description text NOT NULL DEFAULT '',
+  owner_id uuid REFERENCES users(id),
+  due_date date,
+  status varchar(40) NOT NULL DEFAULT 'Open',
+  created_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_actions_owner ON meeting_actions(owner_id,status,due_date);
+
+-- App2 transactional outbox for best-effort Repository mirrors.
+-- Primary work and the pending sync job are committed together; Repository rendering
+-- happens after commit and is retried independently.
+CREATE TABLE IF NOT EXISTS repository_sync_queue (
+  id BIGSERIAL PRIMARY KEY,
+  job_kind TEXT NOT NULL CHECK (job_kind IN (
+    'assignment_draft', 'task_draft', 'task_report_draft',
+    'assignment_report_draft', 'research_report_draft'
+  )),
+  entity_id UUID NOT NULL,
+  parent_id UUID,
+  requested_by UUID NOT NULL,
+  actor_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'retry', 'done', 'dead')),
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  locked_at TIMESTAMPTZ,
+  repository_document_id UUID,
+  repository_version INTEGER,
+  last_error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_succeeded_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_repository_sync_queue_ready
+  ON repository_sync_queue(status, available_at, created_at);
+CREATE INDEX IF NOT EXISTS idx_repository_sync_queue_entity
+  ON repository_sync_queue(job_kind, entity_id, created_at DESC);

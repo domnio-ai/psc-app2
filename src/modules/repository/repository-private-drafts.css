@@ -1,0 +1,494 @@
+/* APP2 Repository Private Draft UX V1.26
+   Owns only private-draft presentation introduced by this patch. */
+
+.repository-private-draft-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:12px 0;
+  padding:12px 14px;
+  border:1px solid color-mix(in srgb,var(--border-color,#c8b77d) 76%,transparent);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 92%,var(--accent-primary,#c79d2d));
+}
+.repository-private-draft-summary>div:first-child{min-width:0}
+.repository-private-draft-summary small,
+.repository-private-draft-summary strong,
+.repository-private-draft-summary span{font-size:12px}
+.repository-private-draft-summary small{
+  display:block;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:var(--text-secondary,#656565);
+}
+.repository-private-draft-summary strong{
+  display:block;
+  margin-top:2px;
+  color:var(--text-primary,#1f2328);
+  font-size:14px;
+}
+.repository-private-draft-summary>div:first-child>span{
+  display:block;
+  margin-top:3px;
+  color:var(--text-secondary,#656565);
+  line-height:1.4;
+}
+.repository-private-draft-counts{
+  display:flex;
+  gap:8px;
+  flex:0 0 auto;
+}
+.repository-private-draft-counts button{
+  min-width:118px;
+  min-height:48px;
+  padding:7px 10px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:8px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-primary,#1f2328);
+  text-align:left;
+  cursor:pointer;
+}
+.repository-private-draft-counts button:hover,
+.repository-private-draft-counts button.active{
+  border-color:var(--accent-primary,#b58a1e);
+  background:color-mix(in srgb,var(--surface-primary,#fff) 90%,var(--accent-primary,#b58a1e));
+}
+.repository-private-draft-counts b{
+  display:block;
+  font-size:16px;
+}
+.repository-private-draft-counts span{
+  display:block;
+  margin-top:2px;
+  font-size:12px;
+  font-weight:750;
+}
+.repository-private-draft-badge{
+  display:inline-flex;
+  width:max-content;
+  margin-top:4px;
+  padding:3px 7px;
+  border:1px solid color-mix(in srgb,var(--accent-primary,#b58a1e) 72%,#7a631e);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 88%,var(--accent-primary,#b58a1e));
+  color:var(--text-primary,#1f2328);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.repository-private-draft-felix{
+  opacity:.7;
+  cursor:not-allowed;
+}
+.repository-table article:has(.repository-private-draft-badge){
+  box-shadow:inset 3px 0 0 var(--accent-primary,#b58a1e);
+}
+.repository-table article:has(.repository-private-draft-badge) .repository-accountability{
+  gap:3px;
+}
+.repository-table article:has(.repository-private-draft-badge) .repository-accountability small{
+  font-size:12px;
+  line-height:1.35;
+}
+@media(max-width:900px){
+  .repository-private-draft-summary{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .repository-private-draft-counts{width:100%}
+  .repository-private-draft-counts button{
+    flex:1 1 0;
+    min-width:0;
+  }
+}
+
+
+/* V1.28 - Private draft source action */
+.repository-private-draft-source{
+  width:max-content;
+  min-height:28px;
+  margin-top:5px;
+  padding:4px 8px;
+  border:1px solid color-mix(in srgb,var(--accent-primary,#b58a1e) 66%,var(--border-color,#c8b77d));
+  border-radius:6px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-primary,#1f2328);
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.repository-private-draft-source:hover{
+  background:color-mix(in srgb,var(--surface-primary,#fff) 90%,var(--accent-primary,#b58a1e));
+  border-color:var(--accent-primary,#b58a1e);
+}
+
+
+/* V1.29 - Draft governance and audit visibility */
+.repository-private-draft-facts{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:5px;
+  flex-wrap:wrap;
+}
+.repository-private-draft-facts span{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:2px 6px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:5px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  font-weight:750;
+}
+.repository-private-draft-audit{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:3px 12px;
+}
+.repository-private-draft-audit small{
+  min-width:0;
+  font-size:12px;
+  line-height:1.4;
+}
+.repository-supervised-draft-oversight{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:0 0 10px;
+  padding:9px 12px;
+  border:1px solid color-mix(in srgb,var(--accent-primary,#b58a1e) 60%,var(--border-color,#c8b77d));
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 94%,var(--accent-primary,#b58a1e));
+}
+.repository-supervised-draft-oversight strong{
+  flex:0 0 auto;
+  font-size:12px;
+  letter-spacing:.06em;
+}
+.repository-supervised-draft-oversight span{
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  line-height:1.4;
+}
+@media(max-width:900px){
+  .repository-private-draft-audit{
+    grid-template-columns:1fr;
+  }
+  .repository-supervised-draft-oversight{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
+
+/* V1.30 - Archived working draft history and final linkage */
+.repository-archived-draft-oversight{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:0 0 10px;
+  padding:9px 12px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 96%,#8b9198);
+}
+.repository-archived-draft-oversight strong{
+  flex:0 0 auto;
+  font-size:12px;
+  letter-spacing:.06em;
+}
+.repository-archived-draft-oversight span{
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  line-height:1.4;
+}
+.repository-archived-draft-badge{
+  display:inline-flex;
+  width:max-content;
+  margin-top:4px;
+  padding:3px 7px;
+  border:1px solid color-mix(in srgb,var(--border-color,#8e949b) 86%,#666);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 92%,#8e949b);
+  color:var(--text-primary,#1f2328);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.repository-archived-draft-audit{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:3px 12px;
+}
+.repository-archived-draft-audit small{
+  min-width:0;
+  font-size:12px;
+  line-height:1.4;
+}
+.repository-archived-final-link{
+  margin-top:5px;
+}
+.repository-archived-final-link small{
+  display:block;
+  font-size:12px;
+  line-height:1.4;
+}
+.repository-archived-final-primary,
+.repository-archived-history-action{
+  min-height:30px;
+  font-size:12px;
+  font-weight:800;
+}
+.repository-archived-history-action{
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:6px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-primary,#1f2328);
+}
+.repository-table article:has(.repository-archived-draft-badge){
+  opacity:.94;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--border-color,#8e949b) 86%,#555);
+}
+@media(max-width:900px){
+  .repository-archived-draft-oversight{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .repository-archived-draft-audit{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* V1.31 - Draft search, sorting and oversight refinement */
+.repository-draft-refinement{
+  display:grid;
+  grid-template-columns:minmax(220px,1.4fr) repeat(3,minmax(150px,1fr));
+  gap:9px;
+  align-items:end;
+  margin:0 0 10px;
+  padding:10px 12px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 97%,var(--accent-primary,#b58a1e));
+}
+.repository-draft-refinement-heading{
+  align-self:center;
+  min-width:0;
+}
+.repository-draft-refinement-heading strong{
+  display:block;
+  font-size:12px;
+  letter-spacing:.06em;
+}
+.repository-draft-refinement-heading span{
+  display:block;
+  margin-top:2px;
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  line-height:1.35;
+}
+.repository-draft-refinement label{
+  display:grid;
+  gap:4px;
+}
+.repository-draft-refinement label>span{
+  font-size:12px;
+  font-weight:800;
+  color:var(--text-secondary,#5d646b);
+}
+.repository-draft-refinement select{
+  min-height:34px;
+  width:100%;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:6px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-primary,#1f2328);
+  font-size:12px;
+}
+.repository-draft-filter-summary{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:3px 7px;
+  border:1px solid var(--accent-primary,#b58a1e);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 91%,var(--accent-primary,#b58a1e));
+  font-size:12px;
+  font-weight:800;
+}
+@media(max-width:1100px){
+  .repository-draft-refinement{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:720px){
+  .repository-draft-refinement{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* V1.32 - Repository draft management summary and visual signals */
+.repository-draft-manager-summary{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 10px;
+}
+.repository-draft-manager-summary button{
+  min-width:0;
+  min-height:62px;
+  padding:8px 10px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:8px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-primary,#1f2328);
+  text-align:left;
+  cursor:pointer;
+}
+.repository-draft-manager-summary button:hover{
+  border-color:var(--accent-primary,#b58a1e);
+  background:color-mix(in srgb,var(--surface-primary,#fff) 91%,var(--accent-primary,#b58a1e));
+}
+.repository-draft-manager-summary small{
+  display:block;
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.04em;
+  color:var(--text-secondary,#5d646b);
+}
+.repository-draft-manager-summary strong{
+  display:block;
+  margin-top:4px;
+  font-size:20px;
+  line-height:1;
+}
+.repository-draft-signals{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:5px;
+}
+.repository-draft-signals span{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:2px 6px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--surface-primary,#fff) 94%,#8e949b);
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  font-weight:800;
+}
+.repository-draft-revision-summary{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:3px 7px;
+  border:1px solid var(--border-color,#c8b77d);
+  border-radius:999px;
+  background:var(--surface-primary,#fff);
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  font-weight:800;
+}
+@media(max-width:1200px){
+  .repository-draft-manager-summary{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:720px){
+  .repository-draft-manager-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+
+/* V1.33 - Repository draft UX consolidation */
+.repository-draft-primary-nav{
+  padding:10px 12px;
+  border-width:1px;
+  border-radius:9px;
+}
+.repository-draft-primary-nav>div:first-child small{
+  letter-spacing:.07em;
+}
+.repository-draft-primary-nav>div:first-child strong{
+  margin-top:2px;
+}
+.repository-draft-primary-nav>div:first-child span{
+  max-width:760px;
+  line-height:1.4;
+}
+.repository-draft-manager-summary-compact{
+  gap:6px;
+}
+.repository-draft-manager-summary-compact button{
+  min-height:48px;
+  padding:6px 8px;
+}
+.repository-draft-manager-summary-compact small{
+  font-size:12px;
+  letter-spacing:0;
+  text-transform:none;
+}
+.repository-draft-manager-summary-compact strong{
+  margin-top:2px;
+  font-size:17px;
+}
+.repository-draft-governance-details{
+  margin-top:6px;
+  padding-top:5px;
+  border-top:1px solid color-mix(in srgb,var(--border-color,#c8b77d) 65%,transparent);
+}
+.repository-draft-governance-details summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:28px;
+  cursor:pointer;
+  list-style:none;
+  color:var(--text-secondary,#5d646b);
+}
+.repository-draft-governance-details summary::-webkit-details-marker{
+  display:none;
+}
+.repository-draft-governance-details summary span{
+  font-size:12px;
+  font-weight:850;
+}
+.repository-draft-governance-details summary small{
+  font-size:12px;
+  text-align:right;
+}
+.repository-draft-governance-details[open] summary{
+  margin-bottom:6px;
+  color:var(--text-primary,#1f2328);
+}
+.repository-draft-view-hint{
+  margin:-2px 0 8px;
+  padding:5px 8px;
+  border-left:3px solid var(--accent-primary,#b58a1e);
+  background:color-mix(in srgb,var(--surface-primary,#fff) 96%,var(--accent-primary,#b58a1e));
+  color:var(--text-secondary,#5d646b);
+  font-size:12px;
+  line-height:1.35;
+}
+.repository-draft-refinement{
+  padding:8px 10px;
+}
+@media(max-width:720px){
+  .repository-draft-governance-details summary{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:2px;
+  }
+}

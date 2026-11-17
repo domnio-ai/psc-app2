@@ -1,6 +1,7 @@
 .ai-message-content{
   min-width:0;
   width:100%;
+  overflow-wrap:anywhere;
 }
 
 /* =====================================
@@ -12,15 +13,15 @@
   flex-direction:column;
   height:calc(100vh - 150px);
   min-height:620px;
-  background:#202123;
-  border:1px solid #303234;
+  background:var(--surface-primary);
+  border:1px solid var(--border-default);
   border-radius:14px;
   overflow:hidden;
 }
 
 .ai-chat>header{
   flex:0 0 auto;
-  background:#1b1d1f;
+  background:var(--surface-primary);
 }
 
 .ai-chat-messages{
@@ -29,6 +30,7 @@
   min-height:0;
   max-height:none;
   overflow-y:auto;
+  overflow-x:hidden;
   padding:28px 24px 150px;
   scroll-behavior:smooth;
 }
@@ -36,6 +38,7 @@
 /* One clean conversation column */
 .ai-chat-messages article{
   display:flex;
+  box-sizing:border-box;
   width:100%;
   max-width:860px;
   margin:0 auto 26px;
@@ -51,9 +54,9 @@
   height:34px;
   place-items:center;
   border-radius:50%;
-  background:#2c2f31;
+  background:var(--surface-secondary);
   color:var(--yellow);
-  font-size:8px;
+  font-size:12px;
   font-weight:800;
 }
 
@@ -70,7 +73,7 @@
   border-radius:0;
   padding:0 0 8px;
   box-shadow:none;
-  color:#e4e4e4;
+  color:var(--text-primary);
 }
 
 /* User messages remain compact */
@@ -92,8 +95,8 @@
   margin:0;
   padding:11px 16px;
   border-radius:20px;
-  background:#343638;
-  color:#f5f5f5;
+  background:var(--surface-secondary);
+  color:var(--text-primary);
   line-height:1.5;
   white-space:pre-wrap;
 }
@@ -103,7 +106,9 @@
    =================== */
 
 .felix-answer-title{
-  margin:0 0 20px;
+  margin:0 0 16px;
+  padding-bottom:12px;
+  border-bottom:1px solid color-mix(in srgb,var(--yellow) 35%,transparent);
   color:var(--yellow);
   font-size:18px;
   line-height:1.25;
@@ -112,11 +117,13 @@
 }
 
 .felix-answer-section{
-  margin:22px 0 7px;
+  margin:20px 0 9px;
   color:#e7c95c;
   font-size:13px;
   line-height:1.35;
   font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
 }
 
 .felix-answer-body{
@@ -124,7 +131,7 @@
   padding:0 !important;
   border-radius:0 !important;
   background:transparent !important;
-  color:#e5e5e5 !important;
+  color:var(--text-primary) !important;
   font-size:14px;
   line-height:1.72;
 }
@@ -159,7 +166,7 @@
   padding:0 !important;
   border-radius:0 !important;
   background:transparent !important;
-  color:#e4e4e4 !important;
+  color:var(--text-primary) !important;
   font-size:14px;
   line-height:1.62;
 }
@@ -184,7 +191,7 @@
   padding:0 !important;
   border-radius:0 !important;
   background:transparent !important;
-  color:#e4e4e4 !important;
+  color:var(--text-primary) !important;
   font-size:14px;
   line-height:1.62;
 }
@@ -199,9 +206,9 @@
   padding:3px 7px;
   border:1px solid #4c452d;
   border-radius:6px;
-  background:#262318;
+  background:var(--surface-secondary);
   color:#d8bd5c;
-  font-size:8px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -209,7 +216,7 @@
   display:block;
   margin-top:14px !important;
   color:#8ce3af !important;
-  font-size:9px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -218,10 +225,10 @@
   margin-top:18px !important;
   padding:10px 0 !important;
   border:0 !important;
-  border-top:1px solid #383a3c !important;
+  border-top:1px solid var(--border-default) !important;
   border-radius:0 !important;
-  color:#92989b !important;
-  font-size:9px;
+  color:var(--text-secondary) !important;
+  font-size:12px;
 }
 
 .felix-references summary{
@@ -235,7 +242,7 @@
   margin-top:7px;
   padding:0;
   background:transparent;
-  color:#9da5a8;
+  color:var(--text-secondary);
   white-space:normal;
   overflow-wrap:anywhere;
   font:9px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
@@ -252,7 +259,7 @@
   border:1px solid #b9932d;
   border-radius:8px;
   background:#d8ad38;
-  color:#151515;
+  color:var(--text-primary);
   font-weight:750;
   cursor:pointer;
 }
@@ -265,7 +272,7 @@
   display:block;
   margin-top:9px;
   color:#74d9a0;
-  font-size:9px;
+  font-size:12px;
 }
 
 .felix-download-report{
@@ -286,7 +293,7 @@
   padding:10px;
   border:1px solid #3a3420;
   border-radius:8px;
-  background:#191914;
+  background:var(--surface-secondary);
 }
 
 /* =================
@@ -303,9 +310,9 @@
   margin:0 auto 16px;
   padding:9px 9px 9px 17px;
   gap:8px;
-  border:1px solid #505356;
+  border:1px solid var(--border-default);
   border-radius:28px;
-  background:#303236;
+  background:var(--surface-secondary);
   box-shadow:0 -12px 35px rgba(0,0,0,.25);
 }
 
@@ -319,7 +326,7 @@
   outline:0;
   border-radius:0;
   background:transparent;
-  color:#f4f4f4;
+  color:var(--text-primary);
   font-size:14px;
   line-height:1.45;
   resize:none;
@@ -332,7 +339,7 @@
 }
 
 .ai-chat-input textarea::placeholder{
-  color:#8c8f92;
+  color:var(--text-secondary);
 }
 
 /* Circular send button */
@@ -344,7 +351,7 @@
   border:0;
   border-radius:50%;
   background:var(--yellow);
-  color:#151515;
+  color:var(--text-primary);
   font-size:0;
   font-weight:800;
   cursor:pointer;
@@ -368,30 +375,10 @@
   max-width:860px;
   margin:-7px auto 12px;
   padding:0 15px;
-  color:#777;
+  color:var(--text-secondary);
   text-align:center;
-  font-size:8px;
+  font-size:12px;
   line-height:1.4;
-}
-
-/* =================
-   GOLD GREY THEME
-   ================= */
-
-[data-theme="gold-grey"] .ai-chat-messages article.assistant .felix-answer{
-  background:transparent;
-  color:#f5f2e9;
-}
-
-[data-theme="gold-grey"] .felix-answer-body,
-[data-theme="gold-grey"] .felix-answer-bullet>p,
-[data-theme="gold-grey"] .felix-answer-step>p{
-  color:#f5f2e9 !important;
-}
-
-[data-theme="gold-grey"] .ai-chat-input{
-  background:#3b3e41;
-  border-color:#747679;
 }
 
 /* ================
@@ -419,3 +406,90 @@
     width:calc(100% - 20px);
   }
 }
+
+.felix-answer-citation{
+  display:inline-flex;
+  margin-left:7px;
+  padding:2px 6px;
+  border:1px solid color-mix(in srgb,var(--yellow) 32%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--yellow) 8%,transparent);
+  color:var(--yellow);
+  font-size:12px;
+  font-style:normal;
+  font-weight:750;
+  white-space:nowrap;
+}
+
+.felix-document-lock{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:10px 18px 0;
+  padding:8px 10px;
+  border:1px solid color-mix(in srgb,var(--yellow) 55%,var(--border-default));
+  border-radius:8px;
+  background:color-mix(in srgb,var(--yellow) 8%,transparent);
+  color:var(--text-primary,var(--text-primary));
+  font-size:12px;
+}
+.felix-document-lock button{border:0;background:transparent;color:var(--yellow);font-size:12px;cursor:pointer;text-decoration:underline}
+.felix-evidence-scope{margin-top:12px;padding-top:9px;border-top:1px solid var(--border-default);color:var(--text-muted,var(--text-secondary));font-size:12px}
+.felix-evidence-scope summary{cursor:pointer;color:var(--yellow);font-weight:750}
+.felix-evidence-scope dl{display:grid;gap:4px;margin:8px 0 0}.felix-evidence-scope dl div{display:grid;grid-template-columns:100px 1fr;gap:8px}.felix-evidence-scope dt{color:var(--text-muted,var(--text-secondary))}.felix-evidence-scope dd{margin:0;color:var(--text-primary,var(--text-primary))}
+
+/* APP2_FELIX_EXPERT_CONSOLIDATED_V1 */
+/* Formerly src/felix-expert.css. Appended to preserve the previous cascade order. */
+.felix-mode-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom:1px solid var(--border-default);
+  background:var(--surface-primary);
+}
+.felix-mode-picker label { display: flex; align-items: center; gap: 9px; color:var(--text-secondary); font-size: 12px; }
+.felix-mode-picker select { padding: 7px 28px 7px 9px; border:1px solid var(--border-default); border-radius:7px; background:var(--surface-primary); color:var(--text-primary); }
+.felix-mode-picker > small { color:var(--text-secondary); font-size: 12px; }
+.felix-mode-label, .felix-confidence { display: block; margin: 0 0 5px; color:var(--yellow); font-size: 12px; }
+.felix-references { display: block; margin-top: 7px; padding: 7px 9px; border:1px solid var(--border-default); border-radius:7px; color:var(--text-secondary); font-size: 12px; }
+.felix-references summary { cursor: pointer; color:var(--yellow); }
+.felix-references code { display: block; margin-top: 6px; white-space: normal; overflow-wrap: anywhere; color:var(--text-secondary); font: 8px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+@media (max-width: 640px) { .felix-mode-picker { align-items: flex-start; flex-direction: column; } }
+.felix-finding { display: grid; gap: 5px; margin-top: 8px; padding: 9px; border:1px solid #3a3420; border-radius:7px; background:var(--surface-secondary); }
+.felix-finding strong { color:#e7c95c; font-size: 12px; }
+.felix-finding small { color:var(--text-secondary); font: 8px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.felix-finding button, .proposal-actions button { justify-self: start; padding: 6px 9px; border:0; border-radius:6px; background:var(--yellow); color:var(--text-primary); font-size: 12px; font-weight: 700; }
+.felix-finding button:disabled { opacity: .45; }
+.ai-chat-history details { margin-top: 6px; color:var(--text-secondary); font-size: 12px; }
+.ai-chat-history pre { max-height: 220px; overflow: auto; white-space: pre-wrap; color:var(--text-secondary); font: 8px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.proposal-actions { display: flex; gap: 6px; }
+.proposal-actions button:last-child { background:#714037; color:var(--button-primary-text); }
+
+/* App2 theme integration */
+.ai-chat-layout{color:var(--text-primary)}
+.ai-chat,.ai-chat-history{border-color:var(--border-default);background:var(--surface-primary);color:var(--text-primary);box-shadow:0 14px 34px rgba(0,0,0,.12)}
+.ai-chat>header{border-color:var(--border-default);background:linear-gradient(135deg,color-mix(in srgb,var(--accent-primary) 7%,var(--surface-secondary)),var(--surface-primary))}
+.ai-chat>header strong,.ai-chat-history h3{color:var(--text-primary)}
+.ai-chat>header small,.ai-chat-scope,.ai-chat-history article small,.ai-chat-history>p{color:var(--text-muted)}
+.felix-mode-picker{border-color:var(--border-default);background:var(--surface-secondary)}
+.felix-mode-picker label{color:var(--text-secondary)}.felix-mode-picker>small{color:var(--text-muted)}
+.felix-mode-picker select{border-color:var(--input-border);background:var(--input-background);color:var(--text-primary)}
+.ai-chat-messages{background:var(--surface-primary)}
+.ai-chat-messages article>span{background:var(--surface-elevated);color:var(--accent-primary)}
+.ai-chat-messages article.assistant .felix-answer,.felix-answer-body,.felix-answer-bullet>p,.felix-answer-step>p{color:var(--text-primary)!important}
+.felix-answer-title,.felix-answer-section,.felix-answer-step>strong{color:var(--accent-primary)}
+.ai-chat-messages article.user p{background:color-mix(in srgb,var(--accent-primary) 15%,var(--surface-secondary));color:var(--text-primary)}
+.felix-mode-label{border-color:var(--accent-secondary);background:color-mix(in srgb,var(--accent-primary) 9%,var(--surface-secondary));color:var(--accent-primary)}
+.felix-references{border-color:var(--border-default)!important;color:var(--text-secondary)!important}
+.felix-references summary{color:var(--accent-primary)!important}.felix-references code{color:var(--text-muted)}
+.felix-finding{border-color:var(--border-default);background:var(--surface-secondary)}
+.ai-chat-input{border-color:var(--input-border);background:var(--input-background);box-shadow:0 -12px 35px color-mix(in srgb,var(--app-background) 55%,transparent)}
+.ai-chat-input:focus-within{border-color:var(--accent-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 16%,transparent)}
+.ai-chat-input textarea{background:transparent!important;color:var(--text-primary)!important}.ai-chat-input textarea::placeholder{color:var(--text-muted)}
+.ai-chat-input button{background:var(--button-primary-bg);color:var(--button-primary-text)}
+.ai-chat-history article{border-color:var(--border-default)}
+.felix-answer-bullet::before{content:"•"}.ai-chat-input button::after{content:"↑"}
+

@@ -1,0 +1,34 @@
+/* App2 Research Report Reader V14.11
+   Reader is intentionally above the full-screen editor. */
+.modal-backdrop:has(.research-report-preview-modal){
+  z-index:22000!important;
+}
+.research-report-preview-modal{
+  position:relative!important;
+  z-index:22001!important;
+}
+.research-report-team-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.research-report-team-list p {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 12px;
+  border:1px solid var(--border);
+  border-left:4px solid var(--info);
+  border-radius:var(--radius, 8px);
+  background:var(--surface-raised, var(--surface));
+}
+
+.research-report-team-list span {
+  color:var(--text-secondary);
+}
+
+.research-assignment-request {
+  border-left:4px solid var(--warning) !important;
+}

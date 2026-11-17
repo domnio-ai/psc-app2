@@ -39,10 +39,35 @@ test('DOCX reader safely preserves headings, paragraphs and tables',async()=>{
   await fsp.writeFile(path.join(root,'sample.docx'),await Packer.toBuffer(document))
   const result=await renderReadableVersion(version('sample.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
   assert.equal(result.format,'docx')
-  assert.match(result.html,/<h1>Operations Guide<\/h1>/)
+  assert.match(result.html,/<h1(?: class="app2-docx-h1")?>Operations Guide<\/h1>/)
   assert.match(result.html,/<table>/)
   assert.doesNotMatch(result.html,/<script|<iframe/)
 })
+
+
+test('HTML Task Report Repository drafts preserve safe headings, formatting and tables',async()=>{
+  await fsp.writeFile(path.join(root,'task-report.html'),`<!doctype html><html><body><div class="app2-task-report-draft"><h1 class="app2-task-report-title">Task report</h1><h2 class="app2-task-report-section-title">Key findings</h2><p>A <strong>bold</strong> finding.</p><table class="app2-report-table"><tbody><tr><td>Evidence</td><td>Verified</td></tr></tbody></table><a href="javascript:alert(1)" onclick="alert(2)">Unsafe link</a><script>alert(3)</script></div></body></html>`);
+  const result=await renderReadableVersion(version('task-report.html','text/html; charset=utf-8'));
+  assert.equal(result.format,'html');
+  assert.match(result.html,/<h1 class="app2-task-report-title">Task report<\/h1>/);
+  assert.match(result.html,/<h2 class="app2-task-report-section-title">Key findings<\/h2>/);
+  assert.match(result.html,/<strong>bold<\/strong>/);
+  assert.match(result.html,/<table class="app2-report-table">/);
+  assert.doesNotMatch(result.html,/<script|onclick=|javascript:|alert\(1\)/i);
+});
+
+test('Meeting minutes Repository drafts retain safe document structure for the branded reader',async()=>{
+  await fsp.writeFile(path.join(root,'meeting-minutes.html'),`<!doctype html><html><head><style>.paper{color:red}</style></head><body><main class="paper"><header class="identity"><strong>PUBLIC SERVICE COMMISSION</strong></header><div class="draft-banner">WORKING DRAFT — NOT APPROVED</div><section class="meta"><p>Meeting: Board meeting</p></section><article class="content"><h1>Minutes</h1><h2>Decisions</h2><table><tbody><tr><td>Decision</td></tr></tbody></table></article><footer class="foot">Working copy</footer></main></body></html>`);
+  const result=await renderReadableVersion(version('meeting-minutes.html','text/html; charset=utf-8'));
+  assert.equal(result.format,'html');
+  assert.match(result.html,/<main class="paper">/);
+  assert.match(result.html,/<header class="identity">/);
+  assert.match(result.html,/<div class="draft-banner">/);
+  assert.match(result.html,/<section class="meta">/);
+  assert.match(result.html,/<article class="content">/);
+  assert.match(result.html,/<footer class="foot">/);
+  assert.doesNotMatch(result.html,/<style|color:red/i);
+});
 
 test('reader rejects a missing stored file',async()=>{
   await assert.rejects(()=>renderReadableVersion(version('missing.txt','text/plain')),error=>error.code==='ENOENT')

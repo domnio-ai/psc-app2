@@ -1,0 +1,72 @@
+/* Reader-only contrast guard: source document colors must remain legible on white paper. */
+.reader-stage article,
+.assignment-report-docx-reader,
+.assignment-report-internal-reader{
+  --document-heading:#0B2D4F;
+  --document-label:#123A60;
+  --document-text:#243447;
+  --document-secondary:#405367;
+  color:var(--document-text)!important;
+  -webkit-text-fill-color:var(--document-text)!important;
+}
+
+.reader-stage article :is(p,div,section,article,header,footer,main,aside,span,label,dt,dd,li,td,em,i,u),
+.assignment-report-docx-reader :is(p,div,section,article,header,footer,main,aside,span,label,dt,dd,li,td,em,i,u),
+.assignment-report-internal-reader :is(p,div,section,article,header,footer,main,aside,span,label,dt,dd,li,td,em,i,u){
+  color:var(--document-text)!important;
+  -webkit-text-fill-color:var(--document-text)!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+.reader-stage article :is(h1,h2,h3,h4,h5,h6),
+.assignment-report-docx-reader :is(h1,h2,h3,h4,h5,h6),
+.assignment-report-internal-reader :is(h1,h2,h3,h4,h5,h6){
+  color:var(--document-heading)!important;
+  -webkit-text-fill-color:var(--document-heading)!important;
+  opacity:1!important;
+}
+
+.reader-stage article :is(strong,b),
+.assignment-report-docx-reader :is(strong,b),
+.assignment-report-internal-reader :is(strong,b){
+  color:var(--document-label)!important;
+  -webkit-text-fill-color:var(--document-label)!important;
+  opacity:1!important;
+}
+
+.reader-stage article :is(.app2-docx-subtitle,.app2-docx-caption,figcaption),
+.assignment-report-docx-reader :is(.app2-docx-subtitle,.app2-docx-caption,figcaption),
+.assignment-report-internal-reader :is(.app2-docx-subtitle,.app2-docx-caption,figcaption){
+  color:var(--document-secondary)!important;
+  -webkit-text-fill-color:var(--document-secondary)!important;
+}
+
+.reader-stage article a,
+.assignment-report-docx-reader a,
+.assignment-report-internal-reader a{
+  color:#075F9E!important;
+  -webkit-text-fill-color:#075F9E!important;
+  text-decoration:underline!important;
+  text-underline-offset:2px;
+}
+
+.reader-stage article th,
+.assignment-report-docx-reader th,
+.assignment-report-internal-reader th{
+  color:var(--text-primary)!important;
+  -webkit-text-fill-color:var(--text-primary)!important;
+}
+
+.reader-stage article :is([style*="color"],[color]),
+.assignment-report-docx-reader :is([style*="color"],[color]),
+.assignment-report-internal-reader :is([style*="color"],[color]){
+  opacity:1!important;
+  text-shadow:none!important;
+}
+
+@media print{
+  .reader-stage article,
+  .assignment-report-docx-reader,
+  .assignment-report-internal-reader{color:#111827!important;-webkit-text-fill-color:#111827!important}
+}

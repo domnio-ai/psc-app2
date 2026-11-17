@@ -1,0 +1,271 @@
+/* APP2 interaction foundation — single owner for hover, active and focus mechanics.
+   Theme files provide colour tokens; feature styles provide layout only. */
+
+button,
+[role="button"],
+summary,
+a.app-action,
+a.button{
+  cursor:pointer;
+  font-weight:500!important;
+  letter-spacing:.01em!important;
+  text-transform:none!important;
+  text-shadow:none!important;
+  transition:transform .16s ease,box-shadow .22s ease,border-color .16s ease,background-color .16s ease,color .16s ease;
+}
+
+/* Button labels remain calm and readable even when older feature styles wrap
+   them in strong/b elements. Emphasis belongs to headings and workflow state,
+   not every clickable control. */
+:is(button,[role="button"],summary,a.app-action,a.button) :is(strong,b){
+  font-weight:500!important;
+  letter-spacing:inherit!important;
+  text-transform:none!important;
+}
+
+/* Neutral navigation/tab/workspace controls use opaque theme-owned fills. */
+:is(
+  .sidebar nav button,.quick-access button,.tabs button,.workspace-tabs button,.info-tabs button,.detail-tabs button,.section-tabs button,
+  .assignment-workspace-tabs button,.research-workspace-tabs button,.ribbon-tabs button,button[role="tab"],
+  .report-outline button,.workspace-section-outline>button,.workspace-document-overview-list>button,.task-header-document-list>button,
+  .research-wizard-steps>button,.section-word-toolbar button,.settings-tabs button,.theme-settings .theme-options button,.theme-settings .accent-options button
+):hover:not(:disabled){
+  background:var(--interaction-hover-bg,var(--surface-secondary))!important;
+  background-color:var(--interaction-hover-bg,var(--surface-secondary))!important;
+  background-image:none!important;
+  border-color:var(--interaction-hover-border,var(--accent-primary))!important;
+  color:var(--interaction-hover-text,var(--text-primary))!important;
+  opacity:1!important;
+  filter:none!important;
+  text-shadow:none!important;
+  transform:translateY(-2px);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--interaction-hover-border,var(--accent-primary)) 42%,transparent),
+             0 7px 16px color-mix(in srgb,var(--interaction-hover-border,var(--accent-primary)) 24%,transparent)!important;
+}
+
+:is(
+  .sidebar nav button.active,.tabs button.active,.workspace-tabs button.active,.info-tabs button.active,.detail-tabs button.active,.section-tabs button.active,
+  .assignment-workspace-tabs button.active,.research-workspace-tabs button.active,.ribbon-tabs button.active,button[aria-selected="true"],
+  .workspace-section-outline>button.active,.report-outline button.active,.settings-tabs button.active,
+  .theme-settings .theme-options button.selected,.theme-settings .accent-options button.selected
+){
+  position:relative;
+  isolation:isolate;
+  background:var(--interaction-active-bg,var(--surface-elevated))!important;
+  background-color:var(--interaction-active-bg,var(--surface-elevated))!important;
+  background-image:none!important;
+  border-color:var(--accent-primary)!important;
+  color:var(--interaction-hover-text,var(--text-primary))!important;
+  opacity:1!important;
+  filter:none!important;
+  text-shadow:none!important;
+}
+
+:is(
+  .sidebar nav button.active,.tabs button.active,.workspace-tabs button.active,.info-tabs button.active,.detail-tabs button.active,.section-tabs button.active,
+  .assignment-workspace-tabs button.active,.research-workspace-tabs button.active,.ribbon-tabs button.active,button[aria-selected="true"],
+  .workspace-section-outline>button.active,.report-outline button.active,.settings-tabs button.active,
+  .theme-settings .theme-options button.selected,.theme-settings .accent-options button.selected
+)::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  border:2px solid var(--interaction-focus,var(--focus-ring,var(--accent-primary)));
+  border-radius:inherit;
+  pointer-events:none;
+  opacity:.30;
+  transform:scale(.985);
+  animation:app2-breathe-ring 2.6s ease-in-out infinite;
+}
+
+:is(button,input,select,textarea,[role="button"],a):focus-visible{
+  outline:2px solid var(--interaction-focus,var(--focus-ring,var(--accent-primary)))!important;
+  outline-offset:3px;
+  filter:none!important;
+}
+
+@keyframes app2-breathe-ring{
+  0%,100%{opacity:.24;transform:scale(.985)}
+  50%{opacity:.72;transform:scale(1.035)}
+}
+
+/* Primary actions inherit the active theme instead of a fixed blue/gold palette. */
+:is(button.primary,.app-action-primary,.sign-in,.create-button,.save-button,button[class*="create-"],button[class*="save-"]):not(:disabled){
+  border-color:var(--button-primary-bg,var(--accent-primary))!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--button-primary-bg,var(--accent-primary)) 86%,white 14%),var(--button-primary-bg,var(--accent-primary)))!important;
+  color:var(--button-primary-text)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--button-primary-bg,var(--accent-primary)) 24%,transparent)!important;
+  font-weight:500!important;
+}
+:is(button.primary,.app-action-primary,.sign-in,.create-button,.save-button,button[class*="create-"],button[class*="save-"]):hover:not(:disabled){
+  background:var(--primary-hover,var(--button-primary-bg,var(--accent-primary)))!important;
+  color:var(--button-primary-text,var(--text-primary))!important;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--button-primary-bg,var(--accent-primary)) 22%,transparent),0 8px 18px color-mix(in srgb,var(--button-primary-bg,var(--accent-primary)) 24%,transparent)!important;
+}
+
+/* Semantic actions keep semantic meaning. */
+:is(button.success,button.final,button.approve,button[class*="complete-"],button[class*="approve-"],button[class*="finalize-"]):not(:disabled){
+  border-color:var(--success)!important;
+  background:var(--success)!important;
+  color:#fff!important;
+}
+
+.status-completed,.is-completed,.completed-card{
+  border-color:color-mix(in srgb,var(--success) 46%,var(--border-default))!important;
+  background:color-mix(in srgb,var(--success) 10%,var(--surface-primary))!important;
+  background-image:none!important;
+  box-shadow:inset 4px 0 var(--success)!important;
+}
+.status-overdue,.is-overdue,.overdue-card{box-shadow:inset 4px 0 var(--danger)!important}
+.status-due-soon,.is-due-soon,.attention-card{
+  border-color:color-mix(in srgb,var(--warning) 48%,var(--border-default))!important;
+  background:color-mix(in srgb,var(--warning) 10%,var(--surface-primary))!important;
+  background-image:none!important;
+  box-shadow:inset 4px 0 var(--warning)!important;
+}
+
+button:disabled,[role="button"][aria-disabled="true"]{cursor:not-allowed!important;opacity:.52!important;filter:saturate(.5)!important;box-shadow:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  button,[role="button"],summary,a.app-action,a.button{transition:none!important}
+  :is(button,[role="button"],summary,a):hover{transform:none!important}
+  :is(
+      .sidebar nav button.active,.tabs button.active,.workspace-tabs button.active,.info-tabs button.active,.detail-tabs button.active,.section-tabs button.active,
+      .assignment-workspace-tabs button.active,.research-workspace-tabs button.active,.ribbon-tabs button.active,button[aria-selected="true"],
+      .workspace-section-outline>button.active,.report-outline button.active,.settings-tabs button.active,
+      .theme-settings .theme-options button.selected,.theme-settings .accent-options button.selected
+    )::after{animation:none!important;opacity:.48!important;transform:none!important}
+}
+
+/* Global search options share the canonical neutral interaction surface. */
+.header-search-results button:hover,
+.header-search-results button:focus-visible {
+  background:var(--interaction-hover-bg,var(--surface-secondary))!important;
+  color:var(--interaction-hover-text,var(--text-primary))!important;
+}
+
+/* APP2 DROPDOWN THEME ISOLATION
+   Native select popups must follow the active App2 theme instead of retaining
+   a previously active dark palette. Keep this centralized in the canonical
+   interaction stylesheet so individual modules do not need competing fixes. */
+select,
+select option,
+select optgroup {
+  background-color: var(--input-background, var(--surface-primary)) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Explicit browser color-scheme for App2 light themes. This controls native
+   dropdown popup/chrome rendering on Windows/Chromium in addition to the
+   authored option colors above. */
+html[data-theme="light"],
+html[data-theme="executive-gold"],
+html[data-theme="sage-ivory"],
+html[data-theme="psc-slate"] {
+  color-scheme: light;
+}
+
+html[data-theme="light"] select,
+html[data-theme="light"] select option,
+html[data-theme="light"] select optgroup,
+html[data-theme="executive-gold"] select,
+html[data-theme="executive-gold"] select option,
+html[data-theme="executive-gold"] select optgroup,
+html[data-theme="sage-ivory"] select,
+html[data-theme="sage-ivory"] select option,
+html[data-theme="sage-ivory"] select optgroup,
+html[data-theme="psc-slate"] select,
+html[data-theme="psc-slate"] select option,
+html[data-theme="psc-slate"] select optgroup {
+  color-scheme: light;
+  background-color: var(--input-background, var(--surface-primary)) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Preserve intentional dark native controls only while a dark App2 theme is
+   actually active. */
+html[data-theme="dark"],
+html[data-theme="navy-blue"],
+html[data-theme="low-contrast-navy"],
+html[data-theme="gold-grey"] {
+  color-scheme: dark;
+}
+
+/* App2 stabilization: hover feedback must be an opaque surface.
+   These selectors previously used rgba()/transparent mixes and allowed the
+   content beneath the hovered row/control to bleed through. */
+:is(
+  .assignment-overview-v4-tasklist>button,
+  .task-table-row,
+  .task-workspace-polished .task-workspace-filters button,
+  .task-assignee-workload>div>button,
+  .assignment-row,
+  .dashboard-action-alerts>div>button
+):hover {
+  background:color-mix(in srgb,var(--accent-primary) 12%,var(--surface-primary))!important;
+  background-image:none!important;
+  opacity:1!important;
+  filter:none!important;
+}
+
+.task-assignee-workload>div>button.selected {
+  background:color-mix(in srgb,var(--accent-primary) 14%,var(--surface-primary))!important;
+  background-image:none!important;
+  opacity:1!important;
+}
+
+/* APP2-OPAQUE-HOVER-V2-20260824
+   Canonical opaque hover layer. This file is loaded last, so old translucent
+   feature rules cannot bleed through. Theme-owned interaction tokens remain authoritative. */
+:is(
+  .assignment-row,
+  .assignment-list-view>article,
+  .assignment-calendar-view>button,
+  .assignment-overview-v4-tasklist>button,
+  .task-table-row,
+  .task-assignee-workload>div>button,
+  .dashboard-action-alerts>div>button,
+  .notification-list>button,
+  .audit-list>button,
+  .user-table>article,
+  .user-table button,
+  .directory-list>button,
+  .review-queue>button,
+  .report-outline button,
+  .workspace-section-outline>button,
+  .workspace-document-overview-list>button,
+  .task-header-document-list>button,
+  .quick-links button,
+  .account-menu>button,
+  .app-context-menu button
+):hover {
+  background:var(--interaction-hover-bg,var(--surface-secondary))!important;
+  background-color:var(--interaction-hover-bg,var(--surface-secondary))!important;
+  background-image:none!important;
+  color:var(--interaction-hover-text,var(--text-primary))!important;
+  border-color:var(--interaction-hover-border,var(--accent-primary))!important;
+  opacity:1!important;
+  filter:none!important;
+  backdrop-filter:none!important;
+}
+
+.external-assignment-action-status{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:12px 0 8px;
+  padding:10px 12px;
+  border:1px solid var(--border-strong,var(--border-default));
+  border-radius:8px;
+  background:var(--surface-secondary)!important;
+  color:var(--text-primary)!important;
+  opacity:1!important;
+}
+.external-assignment-action-status strong{color:var(--text-primary)!important;font-size:12px}
+.external-assignment-action-spinner{
+  width:14px;height:14px;flex:0 0 14px;border-radius:50%;
+  border:2px solid var(--border-strong,var(--border-default));
+  border-top-color:var(--accent-primary);
+  animation:app2-external-submit-spin .8s linear infinite;
+}
+@keyframes app2-external-submit-spin{to{transform:rotate(360deg)}}

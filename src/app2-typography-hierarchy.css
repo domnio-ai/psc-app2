@@ -1,0 +1,147 @@
+/* App2 typography hierarchy — headings, values and explanatory copy are visually distinct. */
+:root{
+  --app2-typeface:"Segoe UI",Inter,Arial,sans-serif;
+  --app2-heading-blue:#83c5ff;
+  --app2-heading-gold:#f2c94c;
+  --app2-heading-green:#67d99a;
+  --app2-copy:#c4d0dc;
+  --app2-copy-muted:#91a4b8;
+}
+
+.app-shell,.dashboard-content,.assignment-workspace,.research-workspace,
+.document-management-view,.notification-management-view,.settings-management-view{
+  font-family:var(--app2-typeface);
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+
+.assignment-overview-v4-title small,
+.assignment-overview-v4-next small,
+.assignment-overview-v4-card>header small,
+.assignment-reports-titlebar p,
+.dashboard-ops-card>header small,
+.dashboard-kpi small{
+  color:var(--app2-heading-gold)!important;
+  font-family:var(--app2-typeface)!important;
+  font-size:12px!important;
+  font-weight:850!important;
+  line-height:1.2!important;
+  letter-spacing:.11em!important;
+  text-transform:uppercase;
+}
+
+.assignment-overview-v4-title h2,
+.assignment-page-head h2,.research-page-head h2,.document-page-head h2,
+.assignment-reports-titlebar h2{
+  color:var(--app2-heading-blue)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:760!important;
+  letter-spacing:-.025em;
+  line-height:1.15!important;
+}
+
+.assignment-overview-v4-title p,
+.assignment-overview-v4-next p,
+.assignment-overview-v4-empty span,
+.assignment-overview-v4-activity small,
+.assignment-reports-titlebar span,
+.assignment-primary-report-card>p{
+  color:var(--app2-copy)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:430!important;
+  line-height:1.45!important;
+  letter-spacing:.005em;
+}
+
+.assignment-overview-v4-details dt{
+  color:#91c9f8!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:.025em;
+}
+.assignment-overview-v4-details dd{
+  color:#f7d770!important;
+  font-size:14px!important;
+  font-weight:780!important;
+  line-height:1.25!important;
+}
+
+.assignment-overview-v4-next{
+  border-left:4px solid var(--app2-heading-gold)!important;
+  background:linear-gradient(100deg,rgba(242,201,76,.1),rgba(36,119,212,.09) 58%,rgba(39,143,87,.07))!important;
+}
+.assignment-overview-v4-next strong{
+  color:var(--app2-heading-blue)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:760!important;
+  line-height:1.25!important;
+}
+
+.assignment-overview-v4-metrics small{
+  color:#8fc8f5!important;
+  font-size:12px!important;
+  font-weight:720!important;
+  letter-spacing:.025em;
+}
+.assignment-overview-v4-metrics strong{
+  color:#f4cf64!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:800!important;
+  line-height:1.15!important;
+}
+.assignment-overview-v4-metrics span{color:var(--app2-copy-muted)!important;font-weight:500}
+.assignment-overview-v4-metrics>div:first-child strong,
+.assignment-overview-v4-metrics>div:nth-child(2) strong,
+.assignment-overview-v4-metrics>div:nth-child(3) strong{color:var(--app2-heading-green)!important}
+.assignment-overview-v4-progress strong{color:#ffd55a!important}
+
+.assignment-overview-v4-card>header{
+  background:linear-gradient(90deg,rgba(36,119,212,.13),transparent 68%)!important;
+  border-bottom-color:rgba(131,197,255,.24)!important;
+}
+.assignment-overview-v4-card>header h3,
+.dashboard-ops-card>header h3,
+.panel-title h2,.panel-title h3{
+  color:var(--app2-heading-blue)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:760!important;
+  line-height:1.2!important;
+  letter-spacing:-.012em;
+}
+
+.assignment-overview-v4-tasklist strong,
+.assignment-overview-v4-final-report strong,
+.assignment-overview-v4-team strong,
+.assignment-overview-v4-activity strong,
+.assignment-overview-v4-empty strong{
+  color:#f3cd61!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:740!important;
+  line-height:1.25!important;
+}
+.assignment-overview-v4-tasklist small,
+.assignment-overview-v4-final-report small,
+.assignment-overview-v4-team small,
+.assignment-overview-v4-activity>span{
+  color:var(--app2-copy-muted)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:450!important;
+  line-height:1.35!important;
+}
+.assignment-overview-v4-tasklist em{color:var(--app2-heading-green)!important;font-weight:750!important}
+.assignment-overview-v4-team>div>b{
+  border:1px solid rgba(131,197,255,.42);
+  background:linear-gradient(135deg,rgba(36,119,212,.38),rgba(39,143,87,.2))!important;
+  color:var(--text-primary)!important;
+}
+
+.assignment-primary-report-card h3,.assignment-source-simple>header strong{
+  color:var(--app2-heading-blue)!important;
+  font-family:var(--app2-typeface)!important;
+  font-weight:760!important;
+}
+
+@media(max-width:700px){
+  .assignment-overview-v4-title h2{font-size:22px!important}
+  .assignment-overview-v4-details dd{font-size:13px!important}
+}

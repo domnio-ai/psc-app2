@@ -1,0 +1,324 @@
+import { useMemo, useState } from "react";
+import type { ApiAssignmentTask, GeneratedDocumentSummary, KnowledgeItem } from "../../../api";
+
+import "../assignment-reports-v5.css";
+type ReviewerOption = { id: string; name: string; role: string };
+type ReportKind = "Progress" | "Final";
+
+type Props = {
+  assignmentTitle: string;
+  tasks: ApiAssignmentTask[];
+  documents: GeneratedDocumentSummary[];
+  knowledge: KnowledgeItem[];
+  reviewers: ReviewerOption[];
+  currentUserId?: string;
+  canManage: boolean;
+  isCurrentUserLead: boolean;
+  canOverrideAsManager: boolean;
+  assignmentLeadName?: string;
+  onCompile: (kind: ReportKind, taskIds: string[], knowledgeIds: string[]) => Promise<void>;
+  onOpen: (id: string) => void | Promise<void>;
+  onPreview: (id: string) => void;
+  onOpenTask: (task: ApiAssignmentTask) => void;
+  onOpenRepository: (id: string) => void;
+  onSubmit: (id: string, reviewerId: string, comments: string) => Promise<void>;
+  onReview: (id: string, decision: "Changes Requested" | "Rejected" | "Approved", comments: string) => Promise<void>;
+  onDiscardImport?: (id: string) => Promise<void>;
+};
+
+const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString("en-KE") : "—";
+const normalize = (value: string) => String(value || "").replaceAll("\u00c3\u00a2\u00e2\u201a\u00ac\u201d", "—").replaceAll("\u00c3\u201a\u00c2\u00b7", "·").replaceAll("\u00c2\u00b7", "·");
+
+export default function AssignmentReportsPanel({
+  tasks,
+  documents,
+  knowledge,
+  reviewers,
+  currentUserId,
+  canManage,
+  isCurrentUserLead,
+  canOverrideAsManager,
+  assignmentLeadName,
+  onCompile,
+  onOpen,
+  onPreview,
+  onOpenTask,
+  onOpenRepository,
+  onSubmit,
+  onReview,
+  onDiscardImport,
+}: Props) {
+  const [reviewerByReport, setReviewerByReport] = useState<Record<string, string>>({});
+  const [noteByReport, setNoteByReport] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState("");
+  const [notice, setNotice] = useState("");
+  const [showOtherReports, setShowOtherReports] = useState(false);
+
+  const taskFinalReportByTaskId = useMemo(() => {
+    const rows = new Map<string, KnowledgeItem>();
+    for (const item of knowledge) {
+      if (item.status !== "Published" || item.document_type !== "Task Final Report") continue;
+      for (const link of item.origin_links || []) {
+        if (link.type === "task" && !rows.has(link.id)) rows.set(link.id, item);
+      }
+    }
+    return rows;
+  }, [knowledge]);
+
+  const approvedSources = useMemo(
+    () => tasks.filter((task) => task.contribution_status === "Accepted" && Boolean(task.repository_document_id || taskFinalReportByTaskId.get(task.id)?.id)),
+    [tasks, taskFinalReportByTaskId],
+  );
+  const allSourcesReady = approvedSources.length === tasks.length;
+  const directAssignment = tasks.length === 0;
+
+  const finalCandidates = documents
+    .filter((item) => item.template_key === "assignment-final-report" || /Final Assignment Report/i.test(item.title || ""))
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  const primaryReport = finalCandidates[0] || null;
+  const otherReports = documents.filter((item) => !primaryReport || item.id !== primaryReport.id);
+
+  const run = async (key: string, work: () => Promise<void>) => {
+    setBusy(key);
+    setNotice("");
+    try { await work(); }
+    catch (error) {
+      const message = error instanceof Error ? error.message : "The report action could not be completed.";
+      setNotice(
+        /Only the Assignment Lead or an authorised manager can compile/i.test(message)
+          ? `This action is not available to your account. ${assignmentLeadName || "The appointed Assignment Lead"} is the primary report builder.`
+          : message,
+      );
+    }
+    finally { setBusy(""); }
+  };
+
+  const reportReviewer = primaryReport ? reviewerByReport[primaryReport.id] || "" : "";
+  const reportNote = primaryReport ? noteByReport[primaryReport.id] || "" : "";
+  const draftStage = Boolean(primaryReport && ["Draft", "Revised", "Changes Requested", "Rejected"].includes(primaryReport.status));
+  const canAuthorReport = Boolean(canManage || (primaryReport?.created_by && primaryReport.created_by === currentUserId));
+  const importedDraft = Boolean(draftStage && primaryReport?.external_import_id);
+  const isAssignedReviewer = Boolean(
+    primaryReport?.reviewer_id &&
+    currentUserId &&
+    String(primaryReport.reviewer_id).trim().toLowerCase() === String(currentUserId).trim().toLowerCase()
+  );
+
+  return (
+    <section className="assignment-reports-panel assignment-reports-simple-v3">
+      <header className="assignment-reports-titlebar">
+        <div>
+          <p>ASSIGNMENT REPORTING</p>
+          <h2>Final Assignment Report</h2>
+          <span>Prepare one report, send it for review, then publish the approved final copy.</span>
+        </div>
+      </header>
+
+      <section className="assignment-builder-identity" aria-label="Report builder responsibility">
+        <div className="assignment-builder-identity-primary">
+          <small>PRIMARY REPORT BUILDER</small>
+          <strong>{assignmentLeadName || "No Assignment Lead assigned"}</strong>
+          <span>{assignmentLeadName ? "Assignment Lead · responsible for compiling and submitting the final report" : "A manager must appoint an Assignment Lead"}</span>
+        </div>
+        <div className={`assignment-builder-access ${isCurrentUserLead ? "lead" : canOverrideAsManager ? "manager" : "viewer"}`}>
+          <small>YOUR ACCESS</small>
+          <strong>{isCurrentUserLead ? "You are the assigned report builder" : canOverrideAsManager ? "Manager override" : "View only"}</strong>
+          <span>{isCurrentUserLead ? "You may create and edit the report." : canOverrideAsManager ? `You may compile on behalf of ${assignmentLeadName || "the Assignment Lead"}.` : `REDESY is waiting for ${assignmentLeadName || "an appointed Assignment Lead"}.`}</span>
+        </div>
+      </section>
+
+      {notice && <div className="assignment-report-notice">{notice}</div>}
+
+      <section className="assignment-source-simple">
+        <header>
+          <div>
+            <strong>{directAssignment ? "Direct assignment reporting" : "Approved task report sources"}</strong>
+            <small>{directAssignment ? "No task reports are required for this assignment" : `${approvedSources.length} of ${tasks.length} task report${tasks.length === 1 ? "" : "s"} ready`}</small>
+          </div>
+          <b>{approvedSources.length}/{tasks.length}</b>
+        </header>
+        <div className="assignment-source-simple-list">
+          {tasks.map((task) => {
+            const repositoryId = task.repository_document_id || taskFinalReportByTaskId.get(task.id)?.id || null;
+            const final = task.contribution_status === "Accepted" && Boolean(repositoryId);
+            return (
+              <article key={task.id}>
+                <span>
+                  <strong>{task.contribution_title || task.title}</strong>
+                  <small>{task.owner_name || "Researcher"} · {final ? "Final approved source" : "Not yet final"}</small>
+                </span>
+                {final && repositoryId ? (
+                  <button type="button" onClick={() => onOpenRepository(repositoryId)}>Read Final Report</button>
+                ) : (
+                  <button type="button" onClick={() => onOpenTask(task)}>Open Task</button>
+                )}
+              </article>
+            );
+          })}
+          {!tasks.length && <p>This assignment can be completed directly. The Assignment Lead may compile the Final Assignment Report from the assignment brief and repository evidence.</p>}
+        </div>
+      </section>
+
+      {!primaryReport && (
+        <section className="assignment-primary-report-card">
+          <header><div><small>FINAL REPORT</small><h3>No Final Assignment Report draft yet</h3></div></header>
+          <p>{directAssignment ? "No tasks are required. Create the assignment draft and complete the work directly in the report builder." : allSourcesReady ? "All task reports are final. Create the assignment draft and start writing." : "The Final Assignment Report becomes available when every required task has a published final report."}</p>
+          <div className="assignment-primary-report-actions">
+            <button
+              type="button"
+              className="primary"
+              disabled={!(isCurrentUserLead || canOverrideAsManager) || !allSourcesReady || busy === "compile-final"}
+              onClick={() => run("compile-final", () => onCompile("Final", approvedSources.map((task) => task.id), []))}
+            >
+              {busy === "compile-final"
+                ? "Creating..."
+                : isCurrentUserLead
+                  ? "Create My Final Assignment Draft"
+                  : canOverrideAsManager
+                    ? `Compile for ${assignmentLeadName || "Assignment Lead"}`
+                    : "Create Final Assignment Draft"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {primaryReport && (
+        <section className="assignment-primary-report-card">
+          <header>
+            <div>
+              <small>FINAL ASSIGNMENT REPORT</small>
+              <h3>{normalize(primaryReport.title)}</h3>
+            </div>
+            <b>{primaryReport.status}</b>
+          </header>
+          <div className="assignment-primary-report-meta">
+            <span>Version {primaryReport.version}</span>
+            <span>Reviewer: {primaryReport.reviewer_name || "Not assigned"}</span>
+            <span>Updated {formatDate(primaryReport.updated_at)}</span>
+            <span>{approvedSources.length} approved task sources</span>
+          </div>
+
+          {importedDraft ? (
+            <div className="assignment-import-handoff">
+              <header>
+                <div>
+                  <small>IMPORTED REPORT READY FOR REVIEW</small>
+                  <h4>{primaryReport.external_import_name}</h4>
+                  <p>The authoring workspace is closed. Read the imported report, select a reviewer, submit it, or discard this import.</p>
+                </div>
+                <b>v{primaryReport.external_import_version || 1}</b>
+              </header>
+              <div className="assignment-import-handoff-actions">
+                <button type="button" onClick={() => onPreview(primaryReport.id)}>Read Imported Report</button>
+                <select value={reportReviewer} onChange={(event) => setReviewerByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}>
+                  <option value="">{reviewers.length ? "Select reviewer" : "No eligible reviewers available"}</option>
+                  {reviewers.filter((reviewer) => reviewer.id !== currentUserId).map((reviewer) => (
+                    <option key={reviewer.id} value={reviewer.id}>{reviewer.name} — {reviewer.role}</option>
+                  ))}
+                </select>
+                        {!reviewers.length && <small>Ask an authorised assignment manager to add a reviewer to the assignment team or correct the reporting line. The author cannot review their own report.</small>}
+                <input value={reportNote} onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))} placeholder="Submission note (optional)" />
+                <button type="button" className="primary" disabled={!reportReviewer || busy === "submit-import"} onClick={() => run("submit-import", () => onSubmit(primaryReport.id, reportReviewer, reportNote))}>Submit for Review</button>
+                <button type="button" className="danger" disabled={busy === "discard-import"} onClick={() => run("discard-import", () => onDiscardImport ? onDiscardImport(primaryReport.id) : Promise.resolve())}>Discard Import</button>
+              </div>
+            </div>
+          ) : (
+            <div className="assignment-primary-report-actions">
+              {draftStage && canAuthorReport && (
+                <>
+                  <button type="button" className="primary" onClick={() => onOpen(primaryReport.id)}>Continue Editing</button>
+                  <button type="button" onClick={() => onPreview(primaryReport.id)}>Preview</button>
+                  <select value={reportReviewer} onChange={(event) => setReviewerByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}>
+                    <option value="">{reviewers.length ? "Select reviewer" : "No eligible reviewers available"}</option>
+                    {reviewers.filter((reviewer) => reviewer.id !== currentUserId).map((reviewer) => (
+                      <option key={reviewer.id} value={reviewer.id}>{reviewer.name} — {reviewer.role}</option>
+                    ))}
+                  </select>
+                  {!reviewers.length && <small>Ask an authorised assignment manager to add a reviewer to the assignment team or correct the reporting line. The author cannot review their own report.</small>}
+                  <input value={reportNote} onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))} placeholder="Submission note (optional)" />
+                  <button type="button" className="primary" disabled={!reportReviewer || busy === "submit"} onClick={() => run("submit", () => onSubmit(primaryReport.id, reportReviewer, reportNote))}>Submit for Review</button>
+                </>
+              )}
+              {["Submitted", "Under Review"].includes(primaryReport.status) && (
+                <>
+                  <button type="button" className="primary" onClick={() => onPreview(primaryReport.id)}>Read Submitted Report</button>
+                  {isAssignedReviewer ? (
+                    <div className="assignment-reviewer-decision">
+                      <strong>Your review is required</strong>
+                      <label>
+                        <span>Reviewer comments</span>
+                        <textarea
+                          rows={3}
+                          value={reportNote}
+                          onChange={(event) => setNoteByReport((current) => ({ ...current, [primaryReport.id]: event.target.value }))}
+                          placeholder="Add comments. Required when requesting changes or rejecting."
+                        />
+                      </label>
+                      <div className="assignment-reviewer-decision-actions">
+                        <button
+                          type="button"
+                          className="primary"
+                          disabled={Boolean(busy)}
+                          onClick={() => run("approve", () => onReview(primaryReport.id, "Approved", reportNote.trim()))}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={Boolean(busy) || !reportNote.trim()}
+                          title={!reportNote.trim() ? "Enter reviewer comments before requesting changes." : undefined}
+                          onClick={() => run("changes", () => onReview(primaryReport.id, "Changes Requested", reportNote.trim()))}
+                        >
+                          Request Changes
+                        </button>
+                        <button
+                          type="button"
+                          className="danger"
+                          disabled={Boolean(busy) || !reportNote.trim()}
+                          title={!reportNote.trim() ? "Enter reviewer comments before rejecting the report." : undefined}
+                          onClick={() => run("reject", () => onReview(primaryReport.id, "Rejected", reportNote.trim()))}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <span>Waiting for {primaryReport.reviewer_name || "reviewer"}</span>
+                  )}
+                </>
+              )}
+              {primaryReport.status === "Approved" && (
+                <>
+                  <button type="button" onClick={() => onPreview(primaryReport.id)}>Read Approved Report</button>
+                  <span className="app-attention-notice" role="status">Approved. Final publication is completed automatically with the reviewer’s decision.</span>
+                </>
+              )}
+              {["Changes Requested", "Rejected"].includes(primaryReport.status) && (
+                <button type="button" onClick={() => onPreview(primaryReport.id)}>
+                  Preview Reviewed Report
+                </button>
+              )}
+              {primaryReport.status === "Final" && (
+                <button type="button" className="primary" onClick={() => primaryReport.repository_document_id ? onOpenRepository(primaryReport.repository_document_id) : onPreview(primaryReport.id)}>Read Final Report</button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {otherReports.length > 0 && (
+        <details className="assignment-report-evidence-picker" open={showOtherReports} onToggle={(event) => setShowOtherReports((event.currentTarget as HTMLDetailsElement).open)}>
+          <summary>Other reports ({otherReports.length})</summary>
+          <div>
+            {otherReports.map((report) => (
+              <article key={report.id}>
+                <span><strong>{normalize(report.title)}</strong><small>{report.template_name} · {report.status}</small></span>
+                <button type="button" onClick={() => onPreview(report.id)}>Read</button>
+              </article>
+            ))}
+          </div>
+        </details>
+      )}
+    </section>
+  );
+}

@@ -1,0 +1,893 @@
+/*
+ * APP2 TASK REPORT BUILDER V1 - REFINED PERFORMANCE THEME
+ * Canonical task-specific presentation.
+ * Loaded after shared Report Builder styles; owns only task-report surfaces.
+ */
+
+.task-report-builder-v1 {
+  --trb-gold: var(--task-accent, #b8860b);
+  --trb-gold-soft: color-mix(in srgb, var(--trb-gold) 12%, #ffffff);
+  --trb-blue: var(--app2-blue, #2c67aa);
+  --trb-green: var(--app2-green, #2b975c);
+  --trb-amber: var(--app2-amber, #da921d);
+  --trb-violet: var(--app2-violet, #7658a9);
+  --trb-card: var(--surface-card, #ffffff);
+  --trb-soft: var(--surface-secondary, #f4f6f8);
+  --trb-border: var(--border-default, #d7dce5);
+  --trb-text: var(--text-primary, #172033);
+  --trb-muted: var(--text-secondary, #667085);
+}
+
+/* Compact task-report chrome: title, governance, ribbon, editor, footer. */
+.app2-report-builder .task-report-builder-v1 {
+  background: var(--trb-soft) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 > header {
+  flex: 0 0 42px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 5px 9px !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--trb-gold) 28%, var(--trb-border)) !important;
+  background:
+    linear-gradient(
+      96deg,
+      color-mix(in srgb, var(--trb-blue) 88%, #132f4c),
+      color-mix(in srgb, var(--trb-blue) 76%, #264b70)
+    ) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 > header > div:first-child {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.app2-report-builder .task-report-builder-v1 > header h2 {
+  flex: 0 1 auto !important;
+  max-width: 46vw !important;
+  overflow: hidden !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.app2-report-builder .task-report-builder-v1 > header p {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: rgba(255,255,255,.82) !important;
+  font-size: 11px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .section-editability,
+.app2-report-builder .task-report-builder-v1 .section-status,
+.app2-report-builder .task-report-builder-v1 .section-window-actions button,
+.app2-report-builder .task-report-builder-v1 .section-return-button {
+  min-height: 28px !important;
+  height: 28px !important;
+  font-size: 11px !important;
+}
+
+/* Governance becomes a compact command-center strip instead of a tall form. */
+.task-report-governance-bar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 430px) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--trb-border);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--trb-gold) 6%, var(--trb-card)),
+      var(--trb-card)
+    );
+}
+
+.task-report-reviewer-picker label {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+.task-report-reviewer-picker label > span {
+  color: var(--trb-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.task-report-reviewer-picker select {
+  width: 100%;
+  min-height: 32px;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--trb-gold) 38%, var(--trb-border));
+  border-radius: 7px;
+  background: var(--trb-card);
+  color: var(--trb-text);
+  font-size: 11px;
+}
+
+.task-report-reviewer-picker small {
+  display: none;
+}
+
+.task-report-governance-state {
+  min-width: 0;
+}
+
+.task-report-governance-state .task-report-review-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(105px, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+
+.task-report-governance-state .task-report-review-meta > span {
+  min-width: 0;
+  min-height: 42px;
+  display: grid;
+  align-content: center;
+  padding: 5px 7px;
+  border: 1px solid var(--trb-border);
+  border-top: 3px solid var(--trb-blue);
+  border-radius: 7px;
+  background: var(--trb-card);
+}
+
+.task-report-governance-state .task-report-review-meta > span:nth-child(2) {
+  border-top-color: var(--trb-violet);
+}
+.task-report-governance-state .task-report-review-meta > span:nth-child(3) {
+  border-top-color: var(--trb-green);
+}
+.task-report-governance-state .task-report-review-meta > span:nth-child(4) {
+  border-top-color: var(--trb-amber);
+}
+
+.task-report-governance-state .task-report-review-meta small {
+  display: block;
+  margin: 0 0 1px;
+  color: var(--trb-muted);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.task-report-governance-state .task-report-review-meta strong {
+  display: block;
+  overflow: hidden;
+  color: var(--trb-text);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-report-governance-state .task-report-review-meta > .ready {
+  border-top-color: var(--trb-green);
+  background: var(--app2-green-gradient);
+}
+
+.task-report-governance-state .task-report-review-meta > .action-required {
+  border-top-color: var(--trb-amber);
+  background: var(--app2-amber-gradient);
+}
+
+/* The ribbon is one compact command system, with no large blank gold band. */
+.app2-report-builder .task-report-builder-v1 .document-ribbon {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-rows: 44px auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border-bottom: 1px solid var(--trb-border) !important;
+  background: var(--trb-card) !important;
+  overflow: visible !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-command-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+  grid-template-rows: 36px 56px !important;
+  grid-template-areas:
+    "tabs tabs"
+    "workflow actions" !important;
+  align-items: stretch !important;
+  height: 92px !important;
+  min-height: 92px !important;
+  max-height: 92px !important;
+  border-bottom: 1px solid var(--trb-border) !important;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--trb-gold) 11%, var(--trb-card)),
+      var(--trb-card)
+    ) !important;
+  overflow: hidden !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs {
+  display: flex !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 3px !important;
+  overflow: hidden !important;
+  max-height: 36px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs button {
+  min-width: 72px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 5px 11px !important;
+  color: var(--trb-muted) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  max-height: 36px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs button.active {
+  color: var(--trb-text) !important;
+  background: color-mix(in srgb, var(--trb-gold) 12%, var(--trb-card)) !important;
+  box-shadow: inset 0 -3px 0 var(--trb-gold) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-command-workflow-slot {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 3px 5px !important;
+  overflow: hidden !important;
+  max-height: 56px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-command-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 3px 6px !important;
+  border-left: 1px solid var(--trb-border) !important;
+  background: transparent !important;
+  max-height: 56px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-command-actions button {
+  min-width: 86px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-action-save:not(:disabled) {
+  background: color-mix(in srgb, var(--trb-gold) 88%, #8a6500) !important;
+  border-color: var(--trb-gold) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-action-preview:not(:disabled) {
+  background: var(--trb-blue) !important;
+  border-color: var(--trb-blue) !important;
+}
+
+/* Home toolbar: single compact line. */
+.app2-report-builder .task-report-builder-v1 .section-word-toolbar[data-active-tab="Home"] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  padding: 5px 7px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--trb-gold) 8%, var(--trb-card)),
+      var(--trb-card)
+    ) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .section-word-toolbar[data-active-tab="Home"] :is(button,select,input) {
+  min-height: 32px !important;
+  height: 32px !important;
+  font-size: 11px !important;
+}
+
+/* Other ribbon tabs stay compact and never reserve a blank 70px panel. */
+.app2-report-builder .task-report-builder-v1 .section-word-toolbar:not([data-active-tab="Home"]):not([data-active-tab="Review"]) {
+  min-height: 48px !important;
+  max-height: 58px !important;
+  height: auto !important;
+  padding: 5px 7px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  background: var(--trb-card) !important;
+}
+
+/* Review workflow remains compact. */
+.app2-report-builder .task-report-builder-v1 .section-word-toolbar[data-active-tab="Review"] {
+  min-height: 58px !important;
+  max-height: 66px !important;
+  height: auto !important;
+  padding: 5px 7px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-review-workflow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .assignment-report-submit-inline {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .assignment-report-submit-inline .report-action-submit {
+  width: auto !important;
+  min-width: 145px !important;
+  max-width: 250px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-progress-compact {
+  display: none !important;
+}
+
+/* Document stage: stable A4 canvas, less expensive paint area and clearer hierarchy. */
+.app2-report-builder .task-report-builder-v1 .section-document-stage {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--trb-blue) 4%, #eef2f7),
+      #eef2f7
+    ) !important;
+  contain: layout paint !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .section-document-stage > main {
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 18px 24px 28px !important;
+  overscroll-behavior: contain !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .a4-document-page {
+  width: min(100%, 1040px) !important;
+  min-height: 1180px !important;
+  margin: 0 auto !important;
+  padding: 70px 76px 76px !important;
+  border: 1px solid #d9dee7 !important;
+  border-radius: 3px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 22px rgba(31,38,48,.08) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .report-lexical-host {
+  min-height: 860px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .app2-lexical-editor-engine,
+.app2-report-builder .task-report-builder-v1 .app2-lexical-document {
+  min-height: 840px !important;
+}
+
+/* Blank mode remains a single freeform document. */
+.app2-report-builder .task-report-builder-v1 .section-document-stage.blank-document-mode {
+  grid-template-columns: minmax(0,1fr) !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .section-document-stage.blank-document-mode .workspace-section-outline {
+  display: none !important;
+}
+
+/* Footer is compact and readable. */
+.app2-report-builder .task-report-builder-v1 > footer {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 4px 8px !important;
+  border-top: 1px solid var(--trb-border) !important;
+  background: var(--trb-card) !important;
+  color: var(--trb-muted) !important;
+  font-size: 10px !important;
+}
+
+/* Preview reviewer dock. */
+.task-report-preview-reviewer-dock {
+  position: fixed;
+  right: 24px;
+  bottom: 56px;
+  z-index: 2147483000;
+  width: min(400px, calc(100vw - 48px));
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--trb-gold, #b8860b) 45%, #d7dce5);
+  border-radius: 10px;
+  background: var(--surface-card, #fff);
+  box-shadow: 0 10px 26px rgba(0,0,0,.16);
+}
+
+@media (max-width: 1180px) {
+  .app2-report-builder .task-report-builder-v1 .report-command-row {
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+    overflow: hidden !important;
+}
+}
+
+@media (max-width: 980px) {
+  .task-report-governance-bar {
+    grid-template-columns: 1fr;
+  }
+  .task-report-governance-state .task-report-review-meta {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .app2-report-builder .task-report-builder-v1 .a4-document-page {
+    padding: 48px 42px 56px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .task-report-governance-state .task-report-review-meta {
+    grid-template-columns: 1fr;
+  }
+  .app2-report-builder .task-report-builder-v1 .a4-document-page {
+    min-height: 900px !important;
+    padding: 34px 26px 42px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app2-report-builder .task-report-builder-v1 *,
+  .task-report-governance-bar * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+
+/* APP2 TASK REPORT BUILDER V1.0.2 - persistent primary actions */
+.task-report-governance-state {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) max-content;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-report-primary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.task-report-primary-actions button {
+  min-width: 104px;
+  min-height: 34px;
+  height: 34px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.task-report-save-primary:not(:disabled) {
+  color: #fff;
+  border-color: var(--trb-gold);
+  background: color-mix(in srgb, var(--trb-gold) 88%, #8a6500);
+}
+
+.task-report-preview-primary:not(:disabled) {
+  color: #fff;
+  border-color: var(--trb-blue);
+  background: var(--trb-blue);
+}
+
+.app2-report-builder .task-report-builder-v1 .report-command-actions:empty {
+  display: none !important;
+}
+
+/* V8: Removed obsolete late command-row override. */
+
+.app2-report-builder .task-report-builder-v1 .ribbon-tabs {
+  min-width: 0 !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .section-word-toolbar button {
+  pointer-events: auto !important;
+}
+
+@media(max-width:980px) {
+  .task-report-governance-state {
+    grid-template-columns: 1fr;
+  }
+  .task-report-primary-actions {
+    justify-content: stretch;
+  }
+  .task-report-primary-actions button {
+    flex: 1 1 0;
+  }
+}
+
+
+
+.task-report-builder-v1 .section-workflow-message.success {
+  border: 1px solid color-mix(in srgb,var(--trb-green) 32%,var(--trb-border));
+  background: var(--app2-green-gradient);
+}
+
+.task-report-builder-v1 .section-workflow-message.error {
+  border: 1px solid color-mix(in srgb,#bf3746 34%,var(--trb-border));
+  background: var(--app2-red-gradient);
+}
+
+/* APP2 TASK REPORT BUILDER V1.0.4 - core Save/Preview reliability */
+.task-report-builder-v1 .section-workflow-message {
+  display: block !important;
+  margin: 4px 0 0;
+  min-height: 28px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.task-report-builder-v1 .section-workflow-message.info {
+  border: 1px solid color-mix(in srgb,var(--trb-blue) 26%,var(--trb-border));
+  background: var(--app2-blue-gradient);
+}
+/* APP2 TASK REPORT BUILDER V1.0.5 - runtime action feedback */
+.task-report-governance-state {
+  grid-template-columns: minmax(0, 1fr) max-content !important;
+}
+
+.task-report-action-feedback {
+  grid-column: 1 / -1;
+  min-height: 28px;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--trb-border);
+  border-radius: 7px;
+  background: var(--trb-card);
+  color: var(--trb-text);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.task-report-action-feedback.info {
+  border-color: color-mix(in srgb, var(--trb-blue) 28%, var(--trb-border));
+  background: var(--app2-blue-gradient);
+}
+
+.task-report-action-feedback.success {
+  border-color: color-mix(in srgb, var(--trb-green) 34%, var(--trb-border));
+  background: var(--app2-green-gradient);
+}
+
+.task-report-action-feedback.error {
+  border-color: color-mix(in srgb, #bf3746 36%, var(--trb-border));
+  background: var(--app2-red-gradient);
+}
+
+/* Task Report save state: keep persistence feedback visible without using
+   the action-message area for every background save. */
+.task-report-save-status {
+  margin-top: 0.45rem;
+  min-height: 1.1rem;
+  color: var(--text-secondary, #525b65);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.task-report-save-status.saving,
+.task-report-save-status.unsaved {
+  color: var(--text-primary, #28313a);
+}
+.task-report-save-status.saved {
+  color: var(--status-success-text, #2f6b47);
+}
+.task-report-save-status.error,
+.task-report-save-status.conflict {
+  color: var(--status-danger-text, #8a2f2f);
+}
+
+
+/* APP2_UNIFIED_BLANK_REPORT_FRAME_V1: presentation only; not part of blank_content. */
+.task-report-document-frame {
+  margin: 0 0 20px;
+  color: #263b50;
+  font-family: Arial, "Segoe UI", sans-serif;
+}
+.task-report-document-frame .app2-task-report-kicker {
+  margin: 0 0 13px;
+  color: #92712b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.task-report-document-frame .app2-task-report-title {
+  margin: 0 0 22px;
+  padding: 0 0 16px;
+  border-bottom: 3px solid #c89b2c;
+  color: #10365f;
+  font-family: Georgia, serif;
+  font-size: 30px;
+  line-height: 1.2;
+}
+.task-report-document-frame .app2-task-report-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin: 0 0 26px;
+  padding: 13px 15px;
+  border: 1px solid #d5e0ea;
+  border-radius: 9px;
+  background: #f7fafc;
+}
+.task-report-document-frame .app2-task-report-meta-item {
+  display: grid;
+  grid-template-columns: minmax(135px, .35fr) minmax(0, 1fr);
+  gap: 12px;
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.task-report-document-frame .app2-task-report-meta-item strong {
+  color: #163d66;
+}
+.task-report-document-frame .app2-task-report-section {
+  margin: 26px 0 0;
+}
+.task-report-document-frame .app2-task-report-section-title {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 5px solid #c89b2c;
+  border-radius: 0 8px 8px 0;
+  background: #f3f8fc;
+  color: #10365f;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  line-height: 1.25;
+}
+@media (max-width: 700px) {
+  .task-report-document-frame .app2-task-report-meta-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+}
+/* APP2_REVIEWER_DOCK_DISABLED_V1 */
+.task-report-preview-reviewer-dock {
+  display: none !important;
+}
+/* APP2_PSC_REPORT_GOLD_BRAND_V1 */
+.app2-psc-report-brand{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  margin:0 auto 24px;padding:12px 0;color:#8B6914;
+  font-family:Arial,sans-serif;text-align:left
+}
+.app2-psc-report-brand img{
+  display:block;width:auto;height:auto;max-width:118px;max-height:54px;object-fit:contain
+}
+.app2-psc-report-brand strong{
+  display:block;color:#8B6914;font-size:13px;font-weight:700;letter-spacing:.05em
+}
+.app2-psc-report-brand span{
+  display:block;margin-top:4px;color:#80600D;font-size:10px;letter-spacing:.12em
+}
+.app2-task-report-section-title{
+  color:#8B6914!important;border-bottom:2px solid #C89B2C
+}
+/* APP2_TASK_REPORT_TEMPLATE_LAYOUT_V1 */
+.app2-report-builder .task-report-builder-v1 .task-report-template-details-toggle {
+  margin-left: 8px !important;
+  padding: 6px 10px !important;
+  border: 1px solid #C89B2C !important;
+  border-radius: 6px !important;
+  background: #fffaf0 !important;
+  color: #785800 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-template-details-toggle:hover {
+  background: #f6e7bc !important;
+}
+/* APP2_TASK_REPORT_GOVERNANCE_COMPACT_V1 */
+.app2-report-builder .task-report-builder-v1 .task-report-governance-bar {
+  display:grid!important;
+  grid-template-columns:minmax(190px,260px) minmax(0,1fr)!important;
+  align-items:center!important;gap:6px!important;
+  min-height:0!important;padding:4px 8px!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-reviewer-picker,
+.app2-report-builder .task-report-builder-v1 .task-report-governance-state {
+  min-width:0!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-reviewer-picker label {
+  display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;
+  align-items:center!important;gap:6px!important;margin:0!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-reviewer-picker label>span {
+  margin:0!important;font-size:9px!important;white-space:nowrap!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-reviewer-picker select {
+  min-width:0!important;min-height:30px!important;height:30px!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-governance-state {
+  display:grid!important;
+  grid-template-columns:minmax(130px,1fr) minmax(0,1fr) max-content!important;
+  grid-template-rows:32px!important;align-items:center!important;gap:5px!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-review-meta {
+  grid-column:1!important;grid-row:1!important;
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:4px!important;min-width:0!important;margin:0!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-review-meta>span:nth-child(-n+2) {
+  display:none!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-review-meta>span:nth-child(n+3) {
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  min-width:0!important;min-height:29px!important;height:29px!important;
+  box-sizing:border-box!important;padding:3px 6px!important;border-radius:5px!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-review-meta>span:nth-child(n+3) small {
+  margin:0!important;font-size:8px!important;line-height:1.05!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-review-meta>span:nth-child(n+3) strong {
+  min-width:0!important;font-size:10px!important;line-height:1.15!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions {
+  grid-column:3!important;grid-row:1!important;display:flex!important;
+  align-items:center!important;justify-content:flex-end!important;gap:5px!important;
+  min-width:max-content!important;margin:0!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions button {
+  min-width:78px!important;width:auto!important;min-height:29px!important;height:29px!important;
+  padding:4px 8px!important;border-radius:5px!important;font-size:11px!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-action-feedback,
+.app2-report-builder .task-report-builder-v1 .task-report-save-status {
+  grid-column:2!important;grid-row:1!important;min-width:0!important;
+  min-height:0!important;height:auto!important;margin:0!important;padding:2px 5px!important;
+  font-size:10px!important;line-height:1.2!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-action-feedback {
+  border:0!important;background:transparent!important;color:var(--trb-muted)!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-governance-state:has(.task-report-action-feedback) .task-report-save-status:not(.error):not(.conflict) {
+  display:none!important;
+}
+.app2-report-builder .task-report-builder-v1 .task-report-action-feedback.error,
+.app2-report-builder .task-report-builder-v1 .task-report-save-status.error,
+.app2-report-builder .task-report-builder-v1 .task-report-save-status.conflict {
+  grid-column:1/-1!important;grid-row:2!important;min-height:0!important;
+  max-height:none!important;height:auto!important;padding:5px 7px!important;
+  border:1px solid var(--trb-border)!important;background:var(--trb-card)!important;
+  white-space:normal!important;overflow:visible!important;overflow-wrap:anywhere!important;
+}
+@media(max-width:1100px) {
+  .app2-report-builder .task-report-builder-v1 .task-report-governance-bar {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-governance-state {
+    grid-template-columns:minmax(120px,1fr) max-content!important;
+    grid-template-rows:auto auto!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-review-meta {
+    grid-column:1!important;grid-row:1!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-primary-actions {
+    grid-column:2!important;grid-row:1!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-action-feedback,
+  .app2-report-builder .task-report-builder-v1 .task-report-save-status {
+    grid-column:1/-1!important;grid-row:2!important;
+  }
+}
+@media(max-width:620px) {
+  .app2-report-builder .task-report-builder-v1 .task-report-reviewer-picker label {
+    grid-template-columns:minmax(0,1fr)!important;gap:3px!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-governance-state {
+    grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-review-meta,
+  .app2-report-builder .task-report-builder-v1 .task-report-primary-actions,
+  .app2-report-builder .task-report-builder-v1 .task-report-action-feedback,
+  .app2-report-builder .task-report-builder-v1 .task-report-save-status {
+    grid-column:1!important;grid-row:auto!important;
+  }
+  .app2-report-builder .task-report-builder-v1 .task-report-primary-actions button {
+    flex:1 1 0!important;
+  }
+}
+
+/* APP2_TASK_REPORT_SAVE_BUTTON_STATES_V10
+   One canonical Save Draft style block: PSC gold, readable text, visible focus. */
+.app2-report-builder .task-report-builder-v1 .task-report-governance-bar,
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions,
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary {
+  animation: none !important;
+  transition: none !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary,
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:visited {
+  color: #2c2414 !important;
+  -webkit-text-fill-color: #2c2414 !important;
+  background: #c89b2c !important;
+  background-color: #c89b2c !important;
+  background-image: none !important;
+  border: 1px solid #96701a !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+  text-shadow: none !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:hover:not(:disabled),
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:focus:not(:disabled),
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:active:not(:disabled) {
+  color: #241c0a !important;
+  -webkit-text-fill-color: #241c0a !important;
+  background: #b88c22 !important;
+  background-color: #b88c22 !important;
+  border-color: #785a14 !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:focus-visible:not(:disabled) {
+  outline: 2px solid #6f5313 !important;
+  outline-offset: 2px !important;
+}
+
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:disabled,
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:disabled:hover,
+.app2-report-builder .task-report-builder-v1 .task-report-primary-actions > button.task-report-save-primary:disabled:focus {
+  color: #554a30 !important;
+  -webkit-text-fill-color: #554a30 !important;
+  background: #dfcf9f !important;
+  background-color: #dfcf9f !important;
+  border-color: #b7a066 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  cursor: not-allowed !important;
+}

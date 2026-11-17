@@ -1,0 +1,149 @@
+/* APP2 Assignment Reports V5 — authoritative layout stylesheet */
+
+.assignment-workspace .assignment-reports-panel,
+.assignment-workspace .assignment-reports-simple-v3 {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar {
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border-radius: 11px !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar h2 {
+  margin: 1px 0 2px !important;
+  font-size: 20px !important;
+}
+
+.assignment-workspace .assignment-reports-titlebar span {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.assignment-workspace .assignment-primary-report-card {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border-radius: 11px !important;
+  overflow: hidden !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  padding: 10px 12px !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header > div:first-child {
+  min-width: 0;
+}
+
+.assignment-workspace .assignment-primary-report-card > header h3 {
+  margin: 2px 0 0 !important;
+  max-width: none !important;
+  font-size: 17px !important;
+  line-height: 1.35 !important;
+}
+
+.assignment-workspace .assignment-primary-report-card > header > :last-child,
+.assignment-workspace .assignment-primary-report-status,
+.assignment-workspace .report-status-pill {
+  white-space: nowrap !important;
+  min-width: max-content !important;
+  align-self: start !important;
+}
+
+.assignment-workspace .assignment-primary-report-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px 12px !important;
+  padding: 8px 12px !important;
+  font-size: 11px !important;
+  border-top: 1px solid color-mix(in srgb, var(--border-default, #d8dce3) 65%, transparent);
+}
+
+.assignment-workspace .assignment-primary-report-actions {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 10px 12px 12px !important;
+}
+
+.assignment-workspace .assignment-primary-report-actions > span,
+.assignment-workspace .assignment-primary-report-actions > p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  opacity: .76;
+}
+
+.assignment-workspace
+  .assignment-reports-simple-v3:has(.assignment-primary-report-card)
+  .assignment-builder-identity,
+.assignment-workspace
+  .assignment-reports-panel:has(.assignment-primary-report-card)
+  .assignment-builder-identity {
+  display: none !important;
+}
+
+.assignment-workspace .assignment-source-simple,
+.assignment-workspace .assignment-import-handoff,
+.assignment-workspace .assignment-reviewer-decision,
+.assignment-workspace .assignment-report-review-actions,
+.assignment-workspace .assignment-finalize-actions {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)),
+.assignment-workspace .assignment-felix-utility:not(:has(> div)),
+.assignment-workspace .assignment-workspace-felix:not(:has(> div)) {
+  width: fit-content !important;
+  max-width: max-content !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) > header,
+.assignment-workspace .assignment-felix-utility:not(:has(> div)) > header {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.assignment-workspace .assignment-felix-context:not(:has(> div)) button,
+.assignment-workspace .assignment-felix-utility:not(:has(> div)) button {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 760px) {
+  .assignment-workspace .assignment-primary-report-card > header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .assignment-workspace .assignment-primary-report-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .assignment-workspace .assignment-primary-report-actions > * {
+    width: 100% !important;
+  }
+}

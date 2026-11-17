@@ -1,0 +1,146 @@
+/* APP2 Executive Gold — canonical theme owner.
+   Palette and theme tokens only; interaction mechanics live in app2-interactive-visuals.css. */
+html[data-theme="executive-gold"]{
+  color-scheme:light;
+  --app-background:#F7F1E3;
+  --surface-page:#F7F1E3;
+  --surface-primary:#FFFDF8;
+  --surface-secondary:#EADCB7;
+  --surface-elevated:#DEC88F;
+  --text-primary:#2A2824;
+  --text-secondary:#575146;
+  --text-muted:#746B5D;
+  --border-default:#C7AF79;
+  --border-strong:#A98845;
+  --sidebar-background:#C5A24D;
+  --header-background:#FFF9EC;
+  --input-background:#FFFDF7;
+  --input-border:#B79A5C;
+  --accent-primary:#8F651B;
+  --button-primary-bg:#9E741F;
+  --button-primary-text:#FFFFFF;
+  --focus-ring:#9A6B16;
+  --success:#34704F;
+  --warning:#936A16;
+  --danger:#A8483E;
+  --info:#4E708D;
+  --yellow:#B8892F;
+  --orange:#936A16;
+  --green:#34704F;
+  --blue:#4E708D;
+  --primary:#9E741F;
+  --primary-hover:#745113;
+  --secondary:#7A6741;
+  --bg:#F7F1E3;
+  --bg-2:#FFFDF8;
+  --panel:#FFFDF8;
+  --panel-2:#EADCB7;
+  --line:#C7AF79;
+  --muted:#746B5D;
+  --text:#2A2824;
+  --input-bg:#FFFDF7;
+  --app2-heading-blue:#594A32;
+  --app2-heading-gold:#8D6721;
+  --app2-heading-green:#34704F;
+  --app2-copy:#575146;
+  --app2-copy-muted:#746B5D;
+  --repository-surface:#FFFDF8;
+  --repository-row:#FFFDF8;
+  --repository-row-hover:#EFDFAF;
+  --repository-head:#E3CE96;
+  --repository-text:#2A2824;
+  --repository-muted:#5F574A;
+  --repository-border:#D6C7AA;
+  --repository-track:#E5D5AD;
+  --border:var(--border-default);
+  --surface-raised:var(--surface-elevated);
+  --accent:var(--accent-primary);
+  --surface:var(--surface-primary);
+  --surface-strong:var(--surface-secondary);
+  --surface-muted:var(--surface-secondary);
+  --surface-2:var(--surface-secondary);
+  --border-subtle:var(--border-default);
+  --muted-text:var(--text-secondary);
+  --sidebar-control-bg:#F9EFD2;
+  --sidebar-control-border:#A77A27;
+  --sidebar-text:#35270E;
+  --sidebar-muted:#5E4A23;
+  --interaction-hover-bg:#E2CA84;
+  --interaction-hover-border:#A8741A;
+  --interaction-hover-text:#35270E;
+  --interaction-active-bg:#D4B65D;
+  --interaction-focus:#9A6B16;
+}
+
+html[data-theme="executive-gold"],
+html[data-theme="executive-gold"] body,
+html[data-theme="executive-gold"] #root,
+html[data-theme="executive-gold"] .dashboard-shell,
+html[data-theme="executive-gold"] .app-shell,
+html[data-theme="executive-gold"] .dashboard-shell>main,
+html[data-theme="executive-gold"] .dashboard-content{
+  background:var(--app-background)!important;
+  background-image:none!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="executive-gold"] .sidebar{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sidebar-background) 90%,white 10%),var(--sidebar-background))!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:10px 0 28px color-mix(in srgb,var(--sidebar-background) 28%,transparent)!important;
+}
+html[data-theme="executive-gold"] .sidebar :is(.brand strong,.brand span){color:var(--sidebar-text)!important}
+html[data-theme="executive-gold"] .sidebar :is(.brand small,.nav-section-title,.sidebar-footer small){color:var(--sidebar-muted)!important}
+html[data-theme="executive-gold"] .sidebar :is(nav button,.quick-access button){
+  background:var(--sidebar-control-bg)!important;
+  background-image:none!important;
+  border-color:var(--sidebar-control-border)!important;
+  color:var(--sidebar-text)!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+
+html[data-theme="executive-gold"] .topbar{
+  background:var(--header-background)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="executive-gold"] .topbar :is(.title h1,.user strong){color:var(--text-primary)!important}
+html[data-theme="executive-gold"] .topbar :is(.title p,.user small,.live-time,.live-time span,.live-time small){color:var(--text-secondary)!important}
+html[data-theme="executive-gold"] :is(.header-search,.topbar .user){
+  background:var(--surface-secondary)!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="executive-gold"] :is(
+  .panel,.card,.stat-card,.command-card,.settings-panel,.settings-card,.management-area,
+  .assignment-card,.research-card,.document-card,.repository-card,.report-card,
+  .workspace-card,.workspace-header,.calendar-panel,.notification-card,.notice-card,
+  .document-management-view .repository-table,.review-queue,.deletion-approval-queue,
+  .modal-card,.dialog-card,.drawer,.account-menu,.app-context-menu,.login-card
+){
+  background:var(--surface-primary)!important;
+  background-image:none!important;
+  border-color:var(--border-default)!important;
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="executive-gold"] :is(input,textarea,select){
+  background:var(--input-background)!important;
+  border-color:var(--input-border)!important;
+  color:var(--text-primary)!important;
+}
+html[data-theme="executive-gold"] :is(input,textarea)::placeholder{color:var(--text-muted)!important;opacity:1}
+html[data-theme="executive-gold"] :is(.muted,.meta,.secondary,small){color:var(--text-secondary)}
+html[data-theme="executive-gold"] :is(h1,h2,h3,h4,h5,h6,strong,b,legend){color:var(--text-primary)}
+html[data-theme="executive-gold"] :is(table,.data-table,.report-table){background:var(--surface-primary);color:var(--text-primary)}
+html[data-theme="executive-gold"] :is(th,.table-head){background:var(--surface-secondary);color:var(--text-secondary);border-color:var(--border-default)}
+html[data-theme="executive-gold"] td{border-color:var(--border-default)}
+html[data-theme="executive-gold"] .repository-table>article{
+  background:var(--repository-row,var(--surface-primary))!important;
+  background-image:none!important;
+  filter:none!important;
+  color:var(--repository-text,var(--text-primary))!important;
+}

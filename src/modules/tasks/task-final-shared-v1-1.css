@@ -1,0 +1,205 @@
+/* APP2 Tasks Final Shared Shell V1.1
+   Cross-screen presentation only. Accepted screen logic remains untouched.
+*/
+
+.task-workspace-backdrop.task-workspace-fullscreen {
+  overflow: hidden !important;
+}
+
+.task-workspace-modal.task-workspace-screen {
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  align-content: start;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
+}
+
+.task-workspace-screen > .task-workspace-modal-header.task-screen-header {
+  margin: 0 !important;
+}
+
+.task-workspace-screen > .task-workspace-meta.task-screen-meta {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+.task-workspace-screen > .task-workspace-body.task-screen-body {
+  align-self: start;
+  min-height: 0 !important;
+  margin-top: 8px !important;
+}
+
+.task-workspace-screen > .task-workspace-footer.task-screen-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 32;
+  min-height: 0 !important;
+  margin-top: auto;
+  padding: 7px 12px !important;
+  border-top: var(--app2-border-soft);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--surface-card, #fff) 97%, var(--task-accent) 2%),
+      var(--surface-card, #fff)
+    );
+  box-shadow: 0 -4px 16px rgba(27,31,36,.035);
+}
+
+.task-workspace-screen > .task-workspace-footer.task-screen-footer:empty {
+  display: none !important;
+}
+
+.task-workspace-screen > .task-workspace-footer.task-screen-footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-workspace-screen .task-completion-rule {
+  max-width: 620px;
+}
+
+.task-workspace-screen .task-header-popover {
+  z-index: 70 !important;
+  max-height: min(64vh, 520px);
+  overflow: auto;
+}
+
+.task-workspace-screen :where(
+  .task-header-work-popover,
+  .task-header-documents-popover,
+  .task-header-admin-popover
+) {
+  box-shadow: 0 14px 34px rgba(28, 32, 38, .14);
+}
+
+.task-workspace-screen :where(
+  .task-review-result,
+  .task-delete-locked,
+  .task-workspace-notice,
+  .task-workspace-error,
+  .task-report-owner-feedback
+) {
+  min-height: 0 !important;
+}
+
+.task-workspace-screen :where(
+  .task-workspace-readonly,
+  .task-report-preview,
+  .task-report-sections,
+  .task-workspace-details,
+  .task-management-card,
+  .task-review-decision-card,
+  .task-review-rejected-card,
+  .task-report-work-panel
+) {
+  min-height: 0 !important;
+}
+
+.task-workspace-screen :where(
+  button,
+  summary,
+  input,
+  select,
+  textarea,
+  [role="button"]
+):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--task-accent) 26%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .task-workspace-screen .task-header-tools {
+    align-items: stretch;
+  }
+
+  .task-workspace-screen .task-header-popover {
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 760px) {
+  .task-workspace-modal.task-workspace-screen {
+    grid-template-rows: auto auto auto auto;
+    height: 100vh;
+  }
+
+  .task-workspace-screen > .task-workspace-footer.task-screen-footer {
+    position: static;
+  }
+}
+
+/* APP2_TASK_WORKSPACE_SCROLL_FLOW_V1
+   Restore one stable page scroll and keep the footer in document flow. */
+.task-workspace-backdrop.task-workspace-fullscreen {
+  display: block !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+.task-workspace-backdrop.task-workspace-fullscreen > .task-workspace-screen {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+.task-workspace-screen > .task-workspace-modal-header.task-screen-header {
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 70 !important;
+}
+
+.task-workspace-screen > .task-workspace-meta.task-screen-meta,
+.task-workspace-screen > .task-overview-details {
+  flex: 0 0 auto !important;
+}
+
+.task-workspace-screen > .task-workspace-body.task-screen-body {
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  margin: 8px auto 14px !important;
+  padding-bottom: 18px !important;
+}
+
+.task-workspace-screen > .task-workspace-footer.task-screen-footer {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  flex: 0 0 auto !important;
+  margin-top: 8px !important;
+  z-index: 2 !important;
+}
+
+.task-workspace-screen {
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+}
+
+.task-workspace-screen button:not(:disabled):hover {
+  transform: none !important;
+}

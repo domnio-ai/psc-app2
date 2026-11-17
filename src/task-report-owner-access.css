@@ -1,0 +1,43 @@
+/* Task owner report entry-point recovery. Keep this narrow and theme-neutral. */
+.task-minimal-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.task-minimal-actions>button{
+  min-height:36px;
+  font-size:14px;
+}
+.task-report-owner-action,
+.task-header-report-jump{
+  border:2px solid currentColor!important;
+  font-weight:800!important;
+}
+.task-report-owner-action{
+  min-width:124px;
+}
+.task-header-report-jump{
+  min-height:38px;
+  padding:8px 13px;
+  border-radius:9px;
+  white-space:nowrap;
+}
+#task-report-editor{
+  scroll-margin-top:86px;
+}
+#task-report-editor input,
+#task-report-editor textarea,
+#task-report-editor button,
+#task-report-editor select{
+  font-size:14px;
+}
+#task-report-editor textarea{
+  line-height:1.55;
+}
+@media(max-width:900px){
+  .task-minimal-actions{justify-content:flex-start}
+  .task-minimal-actions>button{flex:1 1 130px}
+  .task-header-report-jump{width:100%}
+}

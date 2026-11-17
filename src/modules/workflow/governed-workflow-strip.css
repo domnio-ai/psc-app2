@@ -1,0 +1,56 @@
+/*
+ APP2 Governed Workflow V1
+ Shared lifecycle presentation for Tasks, Assignments and Research.
+ Presentation only; backend workflow authority remains unchanged.
+*/
+.governed-workflow-strip{
+  --gw-blue:var(--app2-blue,#2c67aa);
+  --gw-green:var(--app2-green,#2b975c);
+  --gw-amber:var(--app2-amber,#da921d);
+  --gw-red:var(--app2-red,#bf3746);
+  --gw-card:var(--surface-card,var(--surface-primary,#fff));
+  --gw-border:var(--border-default,#d8dce3);
+  --gw-muted:var(--text-secondary,#626b78);
+  --gw-text:var(--text-primary,#182233);
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:7px;
+  margin:9px 0
+}
+.governed-workflow-stage{
+  min-width:0;
+  min-height:82px;
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:8px;
+  align-items:start;
+  padding:10px;
+  border:1px solid var(--gw-border);
+  border-top:4px solid #98a2b3;
+  border-radius:10px;
+  background:var(--gw-card);
+  color:var(--gw-text);
+  text-align:left
+}
+button.governed-workflow-stage{cursor:pointer;font:inherit}
+.governed-workflow-number{
+  width:26px;height:26px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--gw-border);background:var(--gw-card);
+  color:var(--gw-muted);font-size:10px;font-weight:900
+}
+.governed-workflow-copy{min-width:0;display:grid;gap:3px}
+.governed-workflow-copy strong{font-size:11px}
+.governed-workflow-copy small{color:var(--gw-muted);font-size:9px;line-height:1.35}
+.governed-workflow-stage.complete{border-top-color:var(--gw-green);background:var(--app2-green-gradient)}
+.governed-workflow-stage.complete .governed-workflow-number{color:var(--gw-green)}
+.governed-workflow-stage.current{border-top-color:var(--gw-blue);background:var(--app2-blue-gradient)}
+.governed-workflow-stage.current .governed-workflow-number{color:var(--gw-blue)}
+.governed-workflow-stage.returned{border-top-color:var(--gw-amber);background:var(--app2-amber-gradient)}
+.governed-workflow-stage.returned .governed-workflow-number{color:var(--gw-amber)}
+.governed-workflow-stage.blocked{border-top-color:var(--gw-red);background:var(--app2-red-gradient)}
+.governed-workflow-stage.blocked .governed-workflow-number{color:var(--gw-red)}
+.governed-workflow-stage.upcoming{color:var(--gw-muted);background:color-mix(in srgb,var(--gw-card) 97%,#eef1f5)}
+.governed-workflow-strip.compact .governed-workflow-stage{min-height:52px;grid-template-columns:24px minmax(0,1fr);align-items:center;padding:7px 8px}
+.governed-workflow-strip.compact .governed-workflow-number{width:22px;height:22px}
+@media(max-width:980px){.governed-workflow-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.governed-workflow-strip{grid-template-columns:1fr}}

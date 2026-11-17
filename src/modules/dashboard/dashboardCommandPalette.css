@@ -1,0 +1,90 @@
+/* APP2 DASHBOARD COMMAND PALETTE V2.3 */
+.pulse-command-launcher{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--dash-border);border-radius:9px;background:var(--dash-surface);color:var(--dash-text);cursor:pointer;font:inherit}
+.pulse-command-launcher span{font-size:12px;font-weight:700}
+.pulse-command-launcher kbd,.pulse-command-palette kbd{padding:2px 5px;border:1px solid var(--dash-border);border-radius:5px;background:var(--dash-soft);color:var(--dash-muted);font:600 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}
+.pulse-command-launcher:hover,.pulse-command-launcher:focus-visible{border-color:var(--dash-accent);outline:2px solid var(--dash-accent);outline-offset:2px}
+.pulse-command-backdrop{position:fixed;inset:0;z-index:9999;display:grid;place-items:start center;padding:10vh 18px 24px;background:#0008;backdrop-filter:blur(3px)}
+.pulse-command-palette{width:min(720px,100%);max-height:min(72vh,680px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--dash-border);border-radius:16px;background:var(--dash-surface);color:var(--dash-text);box-shadow:0 24px 70px #0005}
+.pulse-command-palette>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 16px 10px}
+.pulse-command-palette>header strong{display:block;font-size:17px}
+.pulse-command-palette>header span{display:block;margin-top:3px;color:var(--dash-muted);font-size:12px}
+.pulse-command-palette>header>button{border:0;background:transparent;color:var(--dash-text);font-size:24px;line-height:1;cursor:pointer}
+.pulse-command-search{display:block;padding:0 16px 12px}
+.pulse-command-search>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.pulse-command-search input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--dash-border);border-radius:10px;background:var(--dash-soft);color:var(--dash-text);font:inherit}
+.pulse-command-search input:focus{outline:2px solid var(--dash-accent);outline-offset:2px;border-color:var(--dash-accent)}
+.pulse-command-results{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 16px 14px;scrollbar-width:thin}
+.pulse-command-results h3{margin:10px 0 7px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--dash-muted)}
+.pulse-command-workspaces,.pulse-command-records{display:flex;flex-direction:column;gap:6px}
+.pulse-command-workspaces article{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.pulse-command-primary,.pulse-command-secondary,.pulse-command-records button{border:1px solid var(--dash-border);border-radius:9px;background:var(--dash-surface);color:var(--dash-text);cursor:pointer;text-align:left}
+.pulse-command-primary{padding:9px 10px}.pulse-command-primary span,.pulse-command-records strong{display:block;font-size:12px}
+.pulse-command-primary small,.pulse-command-records span,.pulse-command-records small{display:block;color:var(--dash-muted);font-size:10px}
+.pulse-command-secondary{padding:8px 10px;font-size:10px;font-weight:700;white-space:nowrap}
+.pulse-command-records button{padding:9px 10px;display:grid;grid-template-columns:minmax(80px,.3fr) minmax(0,1fr) auto;gap:10px;align-items:center}
+.pulse-command-records strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pulse-command-primary:hover,.pulse-command-primary:focus-visible,.pulse-command-secondary:hover,.pulse-command-secondary:focus-visible,.pulse-command-records button:hover,.pulse-command-records button:focus-visible{border-color:var(--dash-accent);outline:2px solid var(--dash-accent);outline-offset:1px}
+.pulse-command-empty{padding:28px 14px;text-align:center;border:1px dashed var(--dash-border);border-radius:10px}
+.pulse-command-empty strong,.pulse-command-empty span{display:block}.pulse-command-empty span{margin-top:5px;color:var(--dash-muted);font-size:11px}
+.pulse-command-palette>footer{display:flex;gap:14px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--dash-border);color:var(--dash-muted);font-size:10px}
+@media(max-width:620px){.pulse-command-backdrop{padding:7vh 10px 14px}.pulse-command-records button{grid-template-columns:1fr}.pulse-command-secondary{font-size:9px}.pulse-command-launcher kbd{display:none}}
+@media(forced-colors:active){.pulse-command-backdrop{background:Canvas}.pulse-command-palette,.pulse-command-launcher,.pulse-command-primary,.pulse-command-secondary,.pulse-command-records button{background:Canvas;border:1px solid CanvasText}}
+
+
+/* APP2 DASHBOARD COMMAND PALETTE V2.3.1 - SHORTCUT TOOLTIP */
+.pulse-command-launcher-wrap{position:relative;display:inline-flex}
+.pulse-command-tooltip{
+ position:absolute;
+ z-index:10020;
+ right:0;
+ top:calc(100% + 8px);
+ width:220px;
+ padding:9px 10px;
+ border:1px solid var(--dash-border);
+ border-radius:9px;
+ background:var(--dash-surface);
+ color:var(--dash-text);
+ box-shadow:0 10px 28px #0002;
+ opacity:0;
+ visibility:hidden;
+ transform:translateY(-3px);
+ pointer-events:none;
+ transition:opacity .14s ease,transform .14s ease,visibility .14s ease;
+}
+.pulse-command-tooltip::before{
+ content:"";
+ position:absolute;
+ right:18px;
+ top:-5px;
+ width:8px;
+ height:8px;
+ border-left:1px solid var(--dash-border);
+ border-top:1px solid var(--dash-border);
+ background:var(--dash-surface);
+ transform:rotate(45deg);
+}
+.pulse-command-tooltip strong{display:block;margin-bottom:6px;font-size:11px}
+.pulse-command-tooltip>span{display:flex;align-items:center;gap:7px;margin-top:4px;color:var(--dash-muted);font-size:10px}
+.pulse-command-launcher-wrap:hover .pulse-command-tooltip,
+.pulse-command-launcher-wrap:focus-within .pulse-command-tooltip{
+ opacity:1;
+ visibility:visible;
+ transform:translateY(0);
+}
+@media(max-width:620px){
+ .pulse-command-tooltip{right:auto;left:0;width:205px}
+ .pulse-command-tooltip::before{right:auto;left:22px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pulse-command-tooltip{transition:none}
+}
+@media(forced-colors:active){
+ .pulse-command-tooltip,.pulse-command-tooltip::before{background:Canvas;border-color:CanvasText}
+}
+
+
+/* APP2 DASHBOARD COMMAND PALETTE V2.5 - ACCESSIBILITY HARDENING */
+.pulse-command-launcher,.pulse-command-palette button{min-height:44px}
+.pulse-command-palette button:focus-visible,.pulse-command-search input:focus-visible{outline:3px solid var(--dash-accent);outline-offset:2px}
+@media(max-width:620px){.pulse-command-palette{max-height:82vh}.pulse-command-results{padding-bottom:18px}}
+@media(prefers-reduced-motion:reduce){.pulse-command-backdrop{backdrop-filter:none}.pulse-command-tooltip{transition:none}}

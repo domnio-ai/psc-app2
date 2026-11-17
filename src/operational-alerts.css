@@ -1,0 +1,192 @@
+/* Shared high-visibility alerts for all App2 roles. */
+.notification-button.has-unread{border-color:#f4b942!important;background:linear-gradient(135deg,#5a3508,#f0a000)!important;color:var(--text-primary)!important;box-shadow:0 0 0 3px rgba(240,160,0,.2),0 0 18px rgba(240,160,0,.38);animation:notificationBellPulse 1.8s ease-in-out infinite}
+.notification-button.has-unread b{background:#d92d20!important;color:var(--text-primary)!important;box-shadow:0 0 0 3px rgba(217,45,32,.24)}
+.actionable-notification-list>article{overflow:hidden;border-left:5px solid var(--border-strong);border-radius:10px;background:var(--surface-primary);transition:transform .16s ease,box-shadow .16s ease}
+.actionable-notification-list>article:hover{transform:translateY(-1px)}
+.actionable-notification-list>article.notification-attention{border-color:#d6a014;background:linear-gradient(105deg,rgba(246,178,20,.20),rgba(246,178,20,.05) 48%,var(--surface-primary))}
+.actionable-notification-list>article.notification-warning{border-color:#f08c00;background:linear-gradient(105deg,rgba(240,140,0,.24),rgba(240,140,0,.06) 52%,var(--surface-primary))}
+.actionable-notification-list>article.notification-danger{border-color:#e5484d;background:linear-gradient(105deg,rgba(229,72,77,.25),rgba(229,72,77,.06) 52%,var(--surface-primary))}
+.actionable-notification-list>article.notification-success{border-color:#2fa36b;background:linear-gradient(105deg,rgba(47,163,107,.22),rgba(47,163,107,.05) 52%,var(--surface-primary))}
+.actionable-notification-list>article.unread.notification-attention{animation:newNotificationGlow 2s ease-in-out infinite}
+.actionable-notification-list>article.notification-danger strong{color:#ff8589}.actionable-notification-list>article.notification-warning strong{color:#ffb84d}.actionable-notification-list>article.notification-success strong{color:#68d59b}
+.actionable-notification-list>article.notification-attention strong{color:#ffd45c}
+.actionable-notification-list>article.notification-attention .notification-summary small,
+.actionable-notification-list>article.notification-warning .notification-summary small{color:color-mix(in srgb,#ffc247 86%,var(--text-primary))!important;font-weight:700}
+.actionable-notification-list>article.notification-danger .notification-summary small{color:color-mix(in srgb,#ff7479 88%,var(--text-primary))!important;font-weight:700}
+.actionable-notification-list>article.notification-success .notification-summary small{color:color-mix(in srgb,#57cb8b 82%,var(--text-primary))!important;font-weight:650}
+.app-attention-notice,
+.assignment-review-returned-note,
+.task-report-access-notice.review,
+.task-report-access-notice.waiting{
+  border:2px solid var(--warning)!important;
+  border-left-width:6px!important;
+  background:color-mix(in srgb,var(--warning) 18%,var(--surface-primary))!important;
+  color:color-mix(in srgb,var(--warning) 78%,var(--text-primary))!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--warning) 12%,transparent)!important;
+  font-weight:700!important;
+}
+.app-attention-notice strong,
+.assignment-review-returned-note strong,
+.task-report-access-notice.review strong,
+.task-report-access-notice.waiting strong{color:color-mix(in srgb,#ffc247 84%,var(--text-primary))!important;font-weight:900!important}
+.notification-detail.notification-attention,
+.notification-detail.notification-warning{border-top:5px solid var(--warning)!important}
+.notification-detail.notification-danger{border-top:5px solid var(--danger)!important}
+.notification-detail.notification-success{border-top:5px solid var(--success)!important}
+.notification-detail.notification-attention h3,
+.notification-detail.notification-warning h3{color:color-mix(in srgb,#ffc247 82%,var(--text-primary))!important}
+.notification-detail.notification-danger h3{color:color-mix(in srgb,#ff7479 84%,var(--text-primary))!important}
+.notification-detail.notification-success h3{color:color-mix(in srgb,#57cb8b 80%,var(--text-primary))!important}
+.dashboard-work-list>button:has(.risk-dot.overdue),.deadline-item.deadline-overdue{border-left:5px solid #e5484d!important;background:linear-gradient(100deg,rgba(229,72,77,.23),rgba(229,72,77,.05) 58%,transparent)!important}
+.dashboard-work-list>button:has(.risk-dot.almost-due),.deadline-item.deadline-almost-due{border-left:5px solid #f08c00!important;background:linear-gradient(100deg,rgba(240,140,0,.22),rgba(240,140,0,.05) 58%,transparent)!important}
+.dashboard-work-list>button:has(.risk-dot.completed),.deadline-item.deadline-completed,.manager-completed-work-list>button,.manager-completed-work-list>article{border-left:5px solid #2fa36b!important;background:linear-gradient(100deg,rgba(47,163,107,.20),rgba(47,163,107,.04) 58%,transparent)!important}
+.dashboard-work-list>button:has(.risk-dot.new){border-left:5px solid #d6a014!important;background:linear-gradient(100deg,rgba(214,160,20,.14),transparent 60%)!important}
+.dashboard-action-alerts .new-action-notification{background:linear-gradient(105deg,rgba(240,140,0,.24),rgba(240,140,0,.05))!important;animation:dashboardActionGlow 2s ease-in-out infinite}
+.deadline-item.deadline-overdue time{color:#ff7a7f!important}.deadline-item.deadline-almost-due time{color:#ffb84d!important}.deadline-item.deadline-completed time{color:#68d59b!important}
+.dashboard-kpi.danger{border-top:4px solid #e5484d!important;background:linear-gradient(145deg,rgba(229,72,77,.24),var(--surface-primary) 70%)!important}.dashboard-kpi.danger strong{color:#ff7479!important}
+@keyframes notificationBellPulse{0%,100%{transform:rotate(0) scale(1)}10%{transform:rotate(-7deg) scale(1.05)}20%{transform:rotate(7deg) scale(1.05)}30%{transform:rotate(0) scale(1)}50%{box-shadow:0 0 0 3px rgba(240,160,0,.16),0 0 8px rgba(240,160,0,.25)}}
+@keyframes newNotificationGlow{0%,100%{box-shadow:0 0 0 0 rgba(246,178,20,.12)}50%{box-shadow:0 0 0 4px rgba(246,178,20,.16),0 0 20px rgba(246,178,20,.16)}}
+@keyframes dashboardActionGlow{0%,100%{box-shadow:inset 0 0 0 0 rgba(240,140,0,.1)}50%{box-shadow:inset 0 0 24px rgba(240,140,0,.20)}}
+@media(prefers-reduced-motion:reduce){.notification-button.has-unread,.actionable-notification-list>article.unread.notification-attention,.dashboard-action-alerts .new-action-notification{animation:none}}
+
+/* APP2_NOTIFICATION_CONTRAST_FIX_V1 */
+/*
+  Light-theme readability correction.
+  Do not fade entire notification/alert rows. Accent colours remain structural
+  (border/dot/background tint); primary text uses the theme's readable text colours.
+*/
+html[data-theme="executive-gold"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+),
+html[data-theme="sage-ivory"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+),
+html[data-theme="gold-grey"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+),
+html[data-theme="light"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+){
+  color:var(--text-primary)!important;
+  background:color-mix(in srgb,var(--warning) 10%,var(--surface-primary))!important;
+  border-color:color-mix(in srgb,var(--warning) 78%,var(--text-primary))!important;
+  opacity:1!important;
+}
+
+html[data-theme="executive-gold"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+) strong,
+html[data-theme="sage-ivory"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+) strong,
+html[data-theme="gold-grey"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+) strong,
+html[data-theme="light"] :is(
+  .app-attention-notice,
+  .assignment-review-returned-note,
+  .task-report-access-notice.review,
+  .task-report-access-notice.waiting
+) strong{
+  color:var(--text-primary)!important;
+}
+
+html[data-theme="executive-gold"] .actionable-notification-list>article,
+html[data-theme="sage-ivory"] .actionable-notification-list>article,
+html[data-theme="gold-grey"] .actionable-notification-list>article,
+html[data-theme="light"] .actionable-notification-list>article{
+  color:var(--text-primary)!important;
+  opacity:1!important;
+  filter:none!important;
+}
+
+html[data-theme="executive-gold"] .actionable-notification-list .notification-summary strong,
+html[data-theme="sage-ivory"] .actionable-notification-list .notification-summary strong,
+html[data-theme="gold-grey"] .actionable-notification-list .notification-summary strong,
+html[data-theme="light"] .actionable-notification-list .notification-summary strong{
+  color:var(--text-primary)!important;
+  opacity:1!important;
+}
+
+html[data-theme="executive-gold"] .actionable-notification-list .notification-summary small,
+html[data-theme="sage-ivory"] .actionable-notification-list .notification-summary small,
+html[data-theme="gold-grey"] .actionable-notification-list .notification-summary small,
+html[data-theme="light"] .actionable-notification-list .notification-summary small{
+  color:var(--text-secondary)!important;
+  opacity:1!important;
+  font-weight:650!important;
+}
+
+html[data-theme="executive-gold"] .actionable-notification-list .notification-summary time,
+html[data-theme="sage-ivory"] .actionable-notification-list .notification-summary time,
+html[data-theme="gold-grey"] .actionable-notification-list .notification-summary time,
+html[data-theme="light"] .actionable-notification-list .notification-summary time{
+  color:var(--text-secondary)!important;
+  opacity:1!important;
+}
+
+html[data-theme="executive-gold"] :is(
+  .notification-detail.notification-attention,
+  .notification-detail.notification-warning,
+  .notification-detail.notification-danger,
+  .notification-detail.notification-success
+) h3,
+html[data-theme="sage-ivory"] :is(
+  .notification-detail.notification-attention,
+  .notification-detail.notification-warning,
+  .notification-detail.notification-danger,
+  .notification-detail.notification-success
+) h3,
+html[data-theme="gold-grey"] :is(
+  .notification-detail.notification-attention,
+  .notification-detail.notification-warning,
+  .notification-detail.notification-danger,
+  .notification-detail.notification-success
+) h3,
+html[data-theme="light"] :is(
+  .notification-detail.notification-attention,
+  .notification-detail.notification-warning,
+  .notification-detail.notification-danger,
+  .notification-detail.notification-success
+) h3{
+  color:var(--text-primary)!important;
+  opacity:1!important;
+}
+
+/* Read items may be visually quieter, but never low-contrast. */
+html[data-theme="executive-gold"] .actionable-notification-list>article:not(.unread),
+html[data-theme="sage-ivory"] .actionable-notification-list>article:not(.unread),
+html[data-theme="gold-grey"] .actionable-notification-list>article:not(.unread),
+html[data-theme="light"] .actionable-notification-list>article:not(.unread){
+  opacity:1!important;
+}
+
+html[data-theme="executive-gold"] .actionable-notification-list>article:hover,
+html[data-theme="sage-ivory"] .actionable-notification-list>article:hover,
+html[data-theme="gold-grey"] .actionable-notification-list>article:hover,
+html[data-theme="light"] .actionable-notification-list>article:hover{
+  background-color:var(--surface-secondary)!important;
+  color:var(--text-primary)!important;
+  opacity:1!important;
+}

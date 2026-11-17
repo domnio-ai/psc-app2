@@ -1,13 +1,16 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import dotenv from 'dotenv'
 import {getReportDefinition,reportCategories,reportRegistry} from '../src/reports/report-registry.js'
-import {canAccessReport,reportPermissions,reportScope} from '../src/reports/report-service.js'
+dotenv.config({path:'backend/.env'})
+const {canAccessReport,reportPermissions,reportScope}=await import('../src/reports/report-service.js')
 
 const app=fs.readFileSync(new URL('../src/app.js',import.meta.url),'utf8')
+const routes=fs.readFileSync(new URL('../src/reports/report-routes.js',import.meta.url),'utf8')
 const service=fs.readFileSync(new URL('../src/reports/report-service.js',import.meta.url),'utf8')
 const schema=fs.readFileSync(new URL('../src/schema.sql',import.meta.url),'utf8')
-const frontend=fs.readFileSync(new URL('../../src/ReportsModule.tsx',import.meta.url),'utf8')
+const frontend=fs.readFileSync(new URL('../../src/modules/reports/ReportsModule.tsx',import.meta.url),'utf8')
 const user=(role,division='Research & Policy',id='11111111-1111-1111-1111-111111111111')=>({id,role,division})
 
 test('report catalogue uses a centralized registry with required categories',()=>{
@@ -17,17 +20,17 @@ test('report catalogue uses a centralized registry with required categories',()=
 })
 
 test('operational and executive visibility follows role permissions',()=>{
-  assert.ok(canAccessReport(user('Research Officer'),getReportDefinition('assignment-status')))
-  assert.equal(canAccessReport(user('Research Officer'),getReportDefinition('executive-performance-overview')),false)
-  assert.ok(canAccessReport(user('Research Manager'),getReportDefinition('executive-performance-overview')))
-  assert.ok(reportPermissions(user('Administrator')).includes('VIEW_AUDIT_REPORTS'))
+  assert.ok(canAccessReport(user('Researcher'),getReportDefinition('assignment-status')))
+  assert.equal(canAccessReport(user('Researcher'),getReportDefinition('executive-performance-overview')),false)
+  assert.ok(canAccessReport(user('Deputy Director'),getReportDefinition('executive-performance-overview')))
+  assert.ok(reportPermissions(user('System Admin')).includes('VIEW_AUDIT_REPORTS'))
   assert.equal(reportPermissions(user('Reviewer')).includes('VIEW_AUDIT_REPORTS'),false)
 })
 
 test('data scope separates organisation, directorate and own work',()=>{
-  assert.equal(reportScope(user('Administrator')).type,'ORGANISATION')
-  assert.deepEqual(reportScope(user('Reviewer','Quality Assurance')),{type:'DIRECTORATE',division:'Quality Assurance',userId:null})
-  assert.equal(reportScope(user('Research Officer')).type,'OWN')
+  assert.equal(reportScope(user('System Admin')).type,'ORGANISATION')
+  assert.deepEqual(reportScope(user('Reviewer','Quality Assurance')),{type:'OWN',division:'Quality Assurance',userId:'11111111-1111-1111-1111-111111111111'})
+  assert.equal(reportScope(user('Researcher')).type,'OWN')
   assert.match(service,/Requested directorate is outside your permitted scope/)
   assert.match(service,/EXISTS\(SELECT 1 FROM assignment_members/)
 })
@@ -41,12 +44,19 @@ test('KPI definitions use actual assignment lifecycle fields',()=>{
 })
 
 test('report APIs, pagination, favourites and invalid report handling are wired',()=>{
-  for(const route of ['/api/reports','/api/reports/categories','/api/reports/:key/data','/api/reports/:key/favourite'])assert.ok(app.includes(route))
+  assert.match(app,/registerReportRoutes\(app/)
+  for(const route of ['/api/reports','/api/reports/categories','/api/reports/:key/data','/api/reports/:key/favourite'])assert.ok(routes.includes(route))
   assert.match(schema,/user_report_favourites/)
   assert.match(service,/Report not found/)
   assert.match(service,/pageSize\s*=\s*Math\.min\(100/)
 })
 
 test('frontend supplies list, card, filters, graphs, drill-down and detailed table',()=>{
-  for(const marker of ['report-catalogue-${view.toLowerCase()}','Apply filters','ReportVisual','drill(','ReportTable','Favourites'])assert.ok(frontend.includes(marker))
+  const catalogue=fs.readFileSync(new URL('../../src/modules/reports/components/ReportCataloguePanel.tsx',import.meta.url),'utf8')
+  const table=fs.readFileSync(new URL('../../src/modules/reports/components/ReportTable.tsx',import.meta.url),'utf8')
+  const visual=fs.readFileSync(new URL('../../src/modules/reports/components/ReportVisual.tsx',import.meta.url),'utf8')
+  for(const marker of ['ReportCataloguePanel','ReportVisual','ReportTable','drill(','Apply filters'])assert.ok(frontend.includes(marker),marker)
+  assert.match(catalogue,/Favourites/)
+  assert.match(table,/<table/)
+  assert.match(visual,/<svg/)
 })

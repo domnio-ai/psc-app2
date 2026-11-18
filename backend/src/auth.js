@@ -5,7 +5,7 @@ import {canManageEntity,canManageUser,isTeamScopeRole,managedUserIds} from './sc
 export const roles=['System Admin','Director','Deputy Director','Assistant Director','Researcher']
 export const managementRoles=['System Admin','Director','Deputy Director','Assistant Director']
 export const isManagementRole=role=>managementRoles.includes(role)
-export const createToken=user=>jwt.sign({sub:user.id,email:user.email,role:user.role,ver:user.token_version},config.jwtSecret,{expiresIn:config.jwtExpiresIn,issuer:'psc-app2',audience:'psc-app2-web'})
+export const createToken=(user,expiresIn=config.jwtExpiresIn)=>jwt.sign({sub:user.id,email:user.email,role:user.role,ver:user.token_version},config.jwtSecret,{expiresIn,issuer:'psc-app2',audience:'psc-app2-web'})
 export async function authenticate(req,res,next){try{const token=req.headers.authorization?.replace(/^Bearer\s+/i,'');if(!token)return res.status(401).json({error:'Authentication required.'});const payload=jwt.verify(token,config.jwtSecret,{issuer:'psc-app2',audience:'psc-app2-web'});const result=await query(`SELECT u.id,u.name,u.email,u.role,u.division,u.status,u.token_version,u.must_change_password,u.supervisor_id,
   supervisor.name supervisor_name,supervisor.role supervisor_role
   FROM users u LEFT JOIN users supervisor ON supervisor.id=u.supervisor_id

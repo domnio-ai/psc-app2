@@ -100,6 +100,7 @@ const createSessionToken=async user=>{
 }
 
 const app=express()
+if(config.trustProxyHops>0)app.set('trust proxy',config.trustProxyHops)
 app.disable('x-powered-by')
 app.use(helmet())
 app.use(cors({origin(origin,callback){if(!origin||config.frontendOrigins.includes(origin))return callback(null,true);callback(new Error('This browser origin is not permitted to access REDESY.'))},exposedHeaders:['Content-Disposition']}))

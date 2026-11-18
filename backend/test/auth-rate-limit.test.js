@@ -69,3 +69,17 @@ test('login and password-reset endpoints use authentication rate limits', async 
   assert.match(app, /createAuthRateLimiter\(\{windowMs:15\*60\*1000,maxIpAttempts:100,maxIdentityAttempts:10\}\)/)
   assert.match(app, /createAuthRateLimiter\(\{windowMs:15\*60\*1000,maxIpAttempts:60,maxIdentityAttempts:5\}\)/)
 })
+
+test('Docker deployments trust only the explicitly configured Nginx proxy hop', async () => {
+  const [app, config, trainingCompose, productionCompose] = await Promise.all([
+    readFile(new URL('../src/app.js', import.meta.url), 'utf8'),
+    readFile(new URL('../src/config.js', import.meta.url), 'utf8'),
+    readFile(new URL('../../docker-compose.yml', import.meta.url), 'utf8'),
+    readFile(new URL('../../docker-compose.production.yml', import.meta.url), 'utf8'),
+  ])
+  assert.match(config, /TRUST_PROXY_HOPS\|\|0/)
+  assert.match(config, /TRUST_PROXY_HOPS must be an integer/)
+  assert.match(app, /if\(config\.trustProxyHops>0\)app\.set\('trust proxy',config\.trustProxyHops\)/)
+  assert.match(trainingCompose, /TRUST_PROXY_HOPS: "1"/)
+  assert.match(productionCompose, /TRUST_PROXY_HOPS: "1"/)
+})

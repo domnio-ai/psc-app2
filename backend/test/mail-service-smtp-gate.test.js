@@ -53,7 +53,9 @@ test('enabled SMTP verifies and sends through the supplied transport factory', a
   })
 
   assert.equal(service.mailStatus().ready, true)
-  const result = await service.sendMail(message)
+  const customHtml = '<div><a href="https://example.test/reset#token">Reset password</a></div>'
+  const result = await service.sendMail({ ...message, html: customHtml })
   assert.equal(result.messageId, 'offline-test-message')
+  assert.equal(calls.find(call => call.kind === 'send').mail.html, customHtml)
   assert.deepEqual(calls.map(call => call.kind), ['create', 'verify', 'send'])
 })

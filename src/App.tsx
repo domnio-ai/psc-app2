@@ -1976,6 +1976,21 @@ export default function App() {
     api.onUnauthorized(() =>
       clearSession("Your session expired. Please sign in again."),
     );
+    const resetLinkToken = new URLSearchParams(window.location.hash.slice(1)).get("resetToken") || "";
+    if (/^[a-f0-9]{64}$/i.test(resetLinkToken)) {
+      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      setUser(null);
+      setToken("");
+      setPasswordMode("forgot");
+      setResetToken(resetLinkToken);
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordMessage("Enter a new password to complete the reset.");
+      setAuthLoading(false);
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+      return () => api.onUnauthorized(null);
+    }
     const stored = readStoredSession();
     if (!stored || tokenExpiresAt(stored.token) <= Date.now()) {
       clearSession(stored ? "Your session expired. Please sign in again." : "");
@@ -8927,15 +8942,19 @@ export default function App() {
                 account.
               </p>
               <form onSubmit={resetPassword}>
-                <label>
-                  Email address
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                </label>
+                {!resetToken ? (
+                  <label>
+                    Email address
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      required
+                    />
+                  </label>
+                ) : (
+                  <p>Enter a new password to complete the reset.</p>
+                )}
                 {resetToken && (
                   <>
                     <label>
@@ -9912,7 +9931,8 @@ export default function App() {
                           </label>
                           <div className="form-triple">
                             <label>
-                              Session minutes
+                              Session minutes (new sign-ins)
+                              <small>Applies to sessions created after this setting is saved.</small>
                               <input
                                 type="number"
                                 min={15}

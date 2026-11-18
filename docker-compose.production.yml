@@ -23,6 +23,7 @@ services:
     environment:
       PORT: 8000
       NODE_ENV: production
+      TRUST_PROXY_HOPS: "1"
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set public HTTPS origin in .env.production}
       EXPOSE_LOGIN_DIRECTORY: "false"
       FELIX_INDEX_WORKER_ENABLED: ${FELIX_INDEX_WORKER_ENABLED:-false}

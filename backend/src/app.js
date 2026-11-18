@@ -20,6 +20,8 @@ import {audit} from './audit.js'
 import {query,transaction} from './db.js'
 import {mailStatus,sendMail} from './mailer.js'
 import {createAdminEmailCooldown} from './admin-email-rate-limit.js'
+import {createAuthRateLimiter} from './auth-rate-limit.js'
+import {sessionExpiryFromMinutes} from './session-expiry.js'
 import {deliverPendingInternalEmails,deliverPendingNotificationEmails,scheduleNotificationMaintenance,syncImportantNotificationReminders} from './notification-email-service.js'
 import {enqueueFelixDocumentIndex} from './felix-index-worker.js'
 import {deleteStoredDocument,resolveDocumentPath,storeDocument,validateDocumentUpload} from './document-storage.js'
@@ -92,7 +94,13 @@ const syncAssignmentStatusFromTasks=async(client,assignmentId,userId)=>{
   return nextStatus
 }
 
+const createSessionToken=async user=>{
+  const setting=(await query('SELECT session_minutes FROM system_settings WHERE id=1')).rows[0]
+  return createToken(user,sessionExpiryFromMinutes(setting?.session_minutes,config.jwtExpiresIn))
+}
+
 const app=express()
+if(config.trustProxyHops>0)app.set('trust proxy',config.trustProxyHops)
 app.disable('x-powered-by')
 app.use(helmet())
 app.use(cors({origin(origin,callback){if(!origin||config.frontendOrigins.includes(origin))return callback(null,true);callback(new Error('This browser origin is not permitted to access REDESY.'))},exposedHeaders:['Content-Disposition']}))
@@ -1253,16 +1261,58 @@ app.get('/api/documents/:id/felix-record-context',authenticate,async(req,res,nex
 app.get('/api/health',async(_req,res,next)=>{try{await query('SELECT 1');res.setHeader('Cache-Control','no-store');res.json({status:'healthy',service:'psc-app2-api',database:'connected',capabilities:{pscTaskReportPdf:true,pdfErrorDiagnostics:'v4'}})}catch(error){next(error)}})
 registerReportRoutes(app,{validate,governedDate})
 registerLeaveManagementRoutes(app,{authenticate,validate})
+const loginRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:100,maxIdentityAttempts:10})
+const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5})
 app.get('/api/auth/login-directory',async(_req,res,next)=>{try{if(!config.exposeLoginDirectory)return res.json([]);res.set('Cache-Control','no-store');res.json((await query('SELECT name,email,role FROM users WHERE active=TRUE ORDER BY name,email')).rows)}catch(error){next(error)}})
-app.post('/api/auth/login',validate(loginSchema),async(req,res,next)=>{try{const result=await query(`SELECT u.id,u.name,u.email,u.password_hash,u.role,u.division,u.status,u.active,u.token_version,u.must_change_password,u.supervisor_id,
+app.post('/api/auth/login',loginRateLimit,validate(loginSchema),async(req,res,next)=>{try{const result=await query(`SELECT u.id,u.name,u.email,u.password_hash,u.role,u.division,u.status,u.active,u.token_version,u.must_change_password,u.supervisor_id,
   supervisor.name supervisor_name,supervisor.role supervisor_role
   FROM users u LEFT JOIN users supervisor ON supervisor.id=u.supervisor_id
-  WHERE lower(u.email)=lower($1)`,[req.validated.email]);const user=result.rows[0];if(!user||!user.active||!await bcrypt.compare(req.validated.password,user.password_hash)){await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'LOGIN_FAILED','session',$2,$3)",[user?.id||null,user?.id||null,JSON.stringify({email:req.validated.email})]);return res.status(401).json({error:'Login unsuccessful. Verify your official PSC email and password. If the problem continues, recover your password or ask an administrator to confirm that your account is active.'})}delete user.password_hash;await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1::uuid,'LOGIN_SUCCEEDED','session',$1::uuid::text,$2)",[user.id,JSON.stringify({email:user.email,role:user.role})]);res.json({token:createToken(user),user})}catch(error){next(error)}})
+  WHERE lower(u.email)=lower($1)`,[req.validated.email]);const user=result.rows[0];if(!user||!user.active||!await bcrypt.compare(req.validated.password,user.password_hash)){await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'LOGIN_FAILED','session',$2,$3)",[user?.id||null,user?.id||null,JSON.stringify({email:req.validated.email})]);return res.status(401).json({error:'Login unsuccessful. Verify your official PSC email and password. If the problem continues, recover your password or ask an administrator to confirm that your account is active.'})}delete user.password_hash;await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1::uuid,'LOGIN_SUCCEEDED','session',$1::uuid::text,$2)",[user.id,JSON.stringify({email:user.email,role:user.role})]);res.json({token:await createSessionToken(user),user})}catch(error){next(error)}})
 app.get('/api/auth/me',authenticate,(req,res)=>res.json(req.user))
 app.post('/api/auth/logout',authenticate,async(req,res,next)=>{try{await transaction(async client=>{await client.query('UPDATE users SET token_version=token_version+1,updated_at=NOW() WHERE id=$1',[req.user.id]);await audit(client,req.user.id,'LOGOUT','session',req.user.id,{})});res.status(204).end()}catch(error){next(error)}})
-app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:createToken(updated),user:updated})}catch(error){next(error)}})
-app.post('/api/auth/forgot-password',validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{const user=(await query('SELECT id FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0];let resetToken;if(user){resetToken=crypto.randomBytes(32).toString('hex');const tokenHash=crypto.createHash('sha256').update(resetToken).digest('hex');await transaction(async client=>{await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[user.id]);await client.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 minutes')",[user.id,tokenHash])})}const response={message:'If the account exists, password reset instructions have been prepared.'};if(config.environment!=='production'&&resetToken)response.resetToken=resetToken;res.json(response)}catch(error){next(error)}})
-app.post('/api/auth/reset-password',validate(z.object({token:z.string().length(64),newPassword:passwordSchema})),async(req,res,next)=>{try{const tokenHash=crypto.createHash('sha256').update(req.validated.token).digest('hex');const result=await transaction(async client=>{const reset=(await client.query('SELECT id,user_id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW() FOR UPDATE',[tokenHash])).rows[0];if(!reset)return null;const hash=await bcrypt.hash(req.validated.newPassword,12);await client.query('UPDATE users SET password_hash=$1,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,reset.user_id]);await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE id=$1',[reset.id]);return true});if(!result)return res.status(400).json({error:'This password reset link is invalid or has expired.'});res.json({message:'Password updated. You can now sign in.'})}catch(error){next(error)}})
+app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:await createSessionToken(updated),user:updated})}catch(error){next(error)}})
+app.post('/api/auth/forgot-password',passwordResetRateLimit,validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{
+  const user=(await query('SELECT id,email FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0]
+  let resetToken=null
+  if(user){
+    resetToken=crypto.randomBytes(32).toString('hex')
+    const tokenHash=crypto.createHash('sha256').update(resetToken).digest('hex')
+    await transaction(async client=>{
+      await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[user.id])
+      await client.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 minutes')",[user.id,tokenHash])
+    })
+    if(config.environment==='production'){
+      try{
+        const resetUrl=new URL('/',config.frontendOrigin)
+        resetUrl.hash=new URLSearchParams({resetToken}).toString()
+        const delivery=await sendMail({
+          to:user.email,
+          subject:'Reset your PSC REDESY password',
+          text:`A password reset was requested for your PSC REDESY account.
+
+Open this secure, single-use link within 30 minutes:
+${resetUrl.toString()}
+
+If you did not request this change, you can ignore this email. Your password will remain unchanged.`,
+          html:`<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC REDESY</h2><p>A password reset was requested for your PSC REDESY account.</p><p><a href="${escapeHtml(resetUrl.toString())}" style="display:inline-block;background:#8a6a00;color:#fff;padding:12px 20px;text-decoration:none;border-radius:4px">Reset password</a></p><p>This link can be used once and expires in 30 minutes.</p><p>If you did not request this change, ignore this email. Your password will remain unchanged.</p></div>`
+        })
+        const accepted=(delivery.accepted||[]).some(recipient=>String(recipient).toLowerCase()===String(user.email).toLowerCase())
+        if(!accepted)throw Object.assign(new Error('SMTP did not accept the reset email recipient.'),{code:'EMAIL_RECIPIENT_NOT_ACCEPTED'})
+      }catch(error){
+        try{
+          await query('UPDATE password_reset_tokens SET used_at=NOW() WHERE token_hash=$1 AND used_at IS NULL',[tokenHash])
+        }catch(invalidationError){
+          console.error('PASSWORD_RESET_TOKEN_INVALIDATION_FAILED',{userId:user.id,code:invalidationError?.code||'DATABASE_ERROR'})
+        }
+        console.error('PASSWORD_RESET_EMAIL_FAILED',{userId:user.id,code:error?.code||'EMAIL_DELIVERY_FAILED'})
+      }
+    }
+  }
+  const response={message:'If the account exists, password reset instructions will be sent to its registered email address.'}
+  if(config.environment!=='production'&&resetToken)response.resetToken=resetToken
+  res.json(response)
+}catch(error){next(error)}})
+app.post('/api/auth/reset-password',passwordResetRateLimit,validate(z.object({token:z.string().length(64),newPassword:passwordSchema})),async(req,res,next)=>{try{const tokenHash=crypto.createHash('sha256').update(req.validated.token).digest('hex');const result=await transaction(async client=>{const reset=(await client.query('SELECT id,user_id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW() FOR UPDATE',[tokenHash])).rows[0];if(!reset)return null;const hash=await bcrypt.hash(req.validated.newPassword,12);await client.query('UPDATE users SET password_hash=$1,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,reset.user_id]);await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE id=$1',[reset.id]);return true});if(!result)return res.status(400).json({error:'This password reset link is invalid or has expired.'});res.json({message:'Password updated. You can now sign in.'})}catch(error){next(error)}})
 
 const supervisorRoleFor={"Deputy Director":"Director","Assistant Director":"Deputy Director","Researcher":"Assistant Director"}
 const validateSupervisor=async(client,role,supervisorId,userId=null)=>{const required=supervisorRoleFor[role];if(!required){if(supervisorId)throw Object.assign(new Error(`${role} does not use this reporting tier.`),{statusCode:400});return null}if(!supervisorId)throw Object.assign(new Error(`${role} must report to an active ${required}.`),{statusCode:400});if(supervisorId===userId)throw Object.assign(new Error('A user cannot report to themselves.'),{statusCode:400});const supervisor=(await client.query('SELECT id,name,role,active FROM users WHERE id=$1',[supervisorId])).rows[0];if(!supervisor||!supervisor.active||supervisor.role!==required)throw Object.assign(new Error(`${role} must report to an active ${required}.`),{statusCode:400});return supervisor}

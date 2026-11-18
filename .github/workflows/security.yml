@@ -2,9 +2,9 @@ name: Security checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'security-hardening/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'publication/**']
   schedule:
     - cron: "30 3 * * 1"
   workflow_dispatch:
@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  dependency-audit:
-    name: Dependency audit
+  frontend-validation:
+    name: Frontend build
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -29,9 +29,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci
@@ -39,8 +37,19 @@ jobs:
       - name: Compile frontend
         run: npm run build
 
-      - name: Audit frontend dependencies
-        run: npm audit --audit-level=high
+  backend-validation:
+    name: Backend checks and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install backend dependencies
         working-directory: backend
@@ -49,6 +58,48 @@ jobs:
       - name: Validate backend source
         working-directory: backend
         run: npm run check
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+
+  frontend-dependency-audit:
+    name: Frontend dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Audit frontend dependencies
+        run: npm audit --audit-level=high
+
+  backend-dependency-audit:
+    name: Backend dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
 
       - name: Audit backend dependencies
         working-directory: backend

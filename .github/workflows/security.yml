@@ -2,9 +2,9 @@ name: Security checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'security-hardening/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'publication/**']
   schedule:
     - cron: "30 3 * * 1"
   workflow_dispatch:
@@ -49,6 +49,10 @@ jobs:
       - name: Validate backend source
         working-directory: backend
         run: npm run check
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
 
       - name: Audit backend dependencies
         working-directory: backend

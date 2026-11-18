@@ -37,3 +37,8 @@ test("login screen consumes reset tokens from fragments and removes them from br
   assert.ok(frontend.includes("window.location.pathname"));
   assert.match(frontend, /!resetToken\s*\?\s*\([\s\S]*?type="email"[\s\S]*?required[\s\S]*?\)\s*:\s*\(/);
 });
+
+test("password reset email renders a clickable link and keeps the token in the URL fragment", () => {
+  assert.match(resetRoute, /href="\$\{escapeHtml\(resetUrl\.toString\(\)\)\}"/);
+  assert.match(resetRoute, /Reset password/);
+});

@@ -1292,7 +1292,8 @@ app.post('/api/auth/forgot-password',passwordResetRateLimit,validate(z.object({e
 Open this secure, single-use link within 30 minutes:
 ${resetUrl.toString()}
 
-If you did not request this change, you can ignore this email. Your password will remain unchanged.`
+If you did not request this change, you can ignore this email. Your password will remain unchanged.`,
+          html:`<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC REDESY</h2><p>A password reset was requested for your PSC REDESY account.</p><p><a href="${escapeHtml(resetUrl.toString())}" style="display:inline-block;background:#8a6a00;color:#fff;padding:12px 20px;text-decoration:none;border-radius:4px">Reset password</a></p><p>This link can be used once and expires in 30 minutes.</p><p>If you did not request this change, ignore this email. Your password will remain unchanged.</p></div>`
         })
         const accepted=(delivery.accepted||[]).some(recipient=>String(recipient).toLowerCase()===String(user.email).toLowerCase())
         if(!accepted)throw Object.assign(new Error('SMTP did not accept the reset email recipient.'),{code:'EMAIL_RECIPIENT_NOT_ACCEPTED'})

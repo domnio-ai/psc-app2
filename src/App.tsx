@@ -9931,7 +9931,8 @@ export default function App() {
                           </label>
                           <div className="form-triple">
                             <label>
-                              Session minutes
+                              Session minutes (new sign-ins)
+                              <small>Applies to sessions created after this setting is saved.</small>
                               <input
                                 type="number"
                                 min={15}

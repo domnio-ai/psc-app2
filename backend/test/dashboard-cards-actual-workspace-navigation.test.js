@@ -51,3 +51,8 @@ test("request-level navigation still validates refreshed permission-scoped reque
   assert.match(tasks, /request && request\.can_decide && request\.status === "Pending"/);
   assert.match(tasks, /request && request\.is_mine/);
 });
+
+test("sidebar Notifications opens the full notification workspace", () => {
+  assert.match(app, /const navigateSidebar = \(destination:string\) => \{\s*dashboardReturnRef\.current=null;\s*if\(destination==='Notifications'\)\{navigateTo\('Notifications'\);return;\}/);
+  assert.doesNotMatch(app, /const shared=\[[^\]]*'Notifications'/);
+});

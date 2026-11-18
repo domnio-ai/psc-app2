@@ -460,24 +460,6 @@
   background:var(--nc-card);
   box-shadow:var(--app2-shadow-card,0 7px 20px rgba(31,38,48,.045))
 }
-.notification-message-open .notification-mailbox-grid{grid-template-columns:minmax(0,1fr)}
-.notification-message-open .notification-folder-rail,
-.notification-message-open .notification-message-column{display:none}
-.notification-message-open .notification-reading-pane{position:relative;top:auto;width:100%;height:auto;min-height:0;max-height:none;overflow:visible;border-radius:15px}
-.notification-message-open .notification-reading-content{max-width:1000px;min-height:min(68vh,720px);margin:0 auto;padding:clamp(22px,5vw,64px)}
-.notification-message-open .notification-reading-content>header{align-items:center;padding-bottom:18px;border-bottom:1px solid var(--nc-border)}
-.notification-message-open .notification-reading-content h3{margin-top:8px;font-size:clamp(26px,4vw,38px);line-height:1.18}
-.notification-message-open .notification-reading-content>header small{font-size:11px}
-.notification-message-open .notification-reading-close{width:auto;height:auto;min-height:38px;padding:8px 12px;color:var(--nc-text);font-weight:800}
-.notification-message-open .notification-reading-badges{margin:18px 0}
-.notification-message-open .notification-reading-body{margin:22px 0;padding:22px 24px;font-size:16px;line-height:1.8}
-.notification-message-open .notification-reading-content>time{display:block;margin:12px 0 20px;font-size:12px}
-.notification-message-open .notification-reading-summary{margin:22px 0}
-.notification-message-open .notification-reading-summary span,.notification-message-open .notification-reading-details dt{font-size:10px}
-.notification-message-open .notification-reading-summary strong,.notification-message-open .notification-reading-details dd{font-size:13px}
-.notification-message-open .notification-reading-details>div{padding:13px 15px}
-.notification-message-open .notification-reading-actions{position:static;margin:26px 0 0;padding:15px 0 0;gap:9px;background:transparent}
-.notification-message-open .notification-reading-actions button{min-height:42px;padding:9px 14px;font-size:12px}
 .notification-reading-empty{
   height:100%;
   display:grid;
@@ -765,7 +747,7 @@
   .notification-mailbox-grid{grid-template-columns:150px minmax(0,1fr)}
   .notification-reading-pane{position:fixed;inset:80px 16px 16px auto;z-index:1400;width:min(500px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 96px);display:none}
   .notification-reading-pane.open{display:block}
-  .notification-message-open .notification-reading-pane{position:relative;inset:auto;width:100%;height:auto;max-height:none;display:block;z-index:auto}
+  .notification-message-open .notification-reading-pane{position:relative;inset:auto;grid-column:1/-1;width:100%;height:auto;min-height:0;max-height:none;display:block;z-index:auto}
 }
 @media(max-width:620px){
   .notification-mailbox-header{align-items:stretch;flex-direction:column}

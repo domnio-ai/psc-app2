@@ -17,7 +17,7 @@ export const createMailService = (smtp, createTransport) => {
     };
   };
 
-  const sendMail = async ({ to, subject, text, attachments = [] }) => {
+  const sendMail = async ({ to, subject, text, html = null, attachments = [] }) => {
     if (!mailStatus().ready) {
       throw Object.assign(new Error("Email delivery is not enabled or SMTP configuration is incomplete."), { statusCode: 503 });
     }
@@ -36,7 +36,7 @@ export const createMailService = (smtp, createTransport) => {
         subject,
         text,
         attachments,
-        html: `<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC REDESY</h2><p>${String(text ?? "").replace(/[&<>]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character])}</p><hr><small>Public Service Commission Research Department</small></div>`,
+        html: html || `<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC REDESY</h2><p>${String(text ?? "").replace(/[&<>]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character])}</p><hr><small>Public Service Commission Research Department</small></div>`,
       });
       return { messageId: info.messageId, accepted: info.accepted };
     } catch {

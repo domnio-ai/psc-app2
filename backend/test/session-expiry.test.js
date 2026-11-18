@@ -30,3 +30,12 @@ test('login and password-change tokens use the saved system session duration', a
   assert.match(app, /token:await createSessionToken\(user\)/)
   assert.match(app, /token:await createSessionToken\(updated\)/)
 })
+
+test('session timeout administration identifies that the setting applies to new sign-ins', async () => {
+  const frontend = await (await import('node:fs/promises')).readFile(
+    new URL('../../src/App.tsx', import.meta.url),
+    'utf8',
+  )
+  assert.ok(frontend.includes('Session minutes (new sign-ins)'))
+  assert.ok(frontend.includes('Applies to sessions created after this setting is saved.'))
+})

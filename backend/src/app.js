@@ -1261,7 +1261,46 @@ app.post('/api/auth/login',validate(loginSchema),async(req,res,next)=>{try{const
 app.get('/api/auth/me',authenticate,(req,res)=>res.json(req.user))
 app.post('/api/auth/logout',authenticate,async(req,res,next)=>{try{await transaction(async client=>{await client.query('UPDATE users SET token_version=token_version+1,updated_at=NOW() WHERE id=$1',[req.user.id]);await audit(client,req.user.id,'LOGOUT','session',req.user.id,{})});res.status(204).end()}catch(error){next(error)}})
 app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:createToken(updated),user:updated})}catch(error){next(error)}})
-app.post('/api/auth/forgot-password',validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{const user=(await query('SELECT id FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0];let resetToken;if(user){resetToken=crypto.randomBytes(32).toString('hex');const tokenHash=crypto.createHash('sha256').update(resetToken).digest('hex');await transaction(async client=>{await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[user.id]);await client.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 minutes')",[user.id,tokenHash])})}const response={message:'If the account exists, password reset instructions have been prepared.'};if(config.environment!=='production'&&resetToken)response.resetToken=resetToken;res.json(response)}catch(error){next(error)}})
+app.post('/api/auth/forgot-password',validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{
+  const user=(await query('SELECT id,email FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0]
+  let resetToken=null
+  if(user){
+    resetToken=crypto.randomBytes(32).toString('hex')
+    const tokenHash=crypto.createHash('sha256').update(resetToken).digest('hex')
+    await transaction(async client=>{
+      await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[user.id])
+      await client.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 minutes')",[user.id,tokenHash])
+    })
+    if(config.environment==='production'){
+      try{
+        const resetUrl=new URL('/',config.frontendOrigin)
+        resetUrl.hash=new URLSearchParams({resetToken}).toString()
+        const delivery=await sendMail({
+          to:user.email,
+          subject:'Reset your PSC REDESY password',
+          text:`A password reset was requested for your PSC REDESY account.
+
+Open this secure, single-use link within 30 minutes:
+${resetUrl.toString()}
+
+If you did not request this change, you can ignore this email. Your password will remain unchanged.`
+        })
+        const accepted=(delivery.accepted||[]).some(recipient=>String(recipient).toLowerCase()===String(user.email).toLowerCase())
+        if(!accepted)throw Object.assign(new Error('SMTP did not accept the reset email recipient.'),{code:'EMAIL_RECIPIENT_NOT_ACCEPTED'})
+      }catch(error){
+        try{
+          await query('UPDATE password_reset_tokens SET used_at=NOW() WHERE token_hash=$1 AND used_at IS NULL',[tokenHash])
+        }catch(invalidationError){
+          console.error('PASSWORD_RESET_TOKEN_INVALIDATION_FAILED',{userId:user.id,code:invalidationError?.code||'DATABASE_ERROR'})
+        }
+        console.error('PASSWORD_RESET_EMAIL_FAILED',{userId:user.id,code:error?.code||'EMAIL_DELIVERY_FAILED'})
+      }
+    }
+  }
+  const response={message:'If the account exists, password reset instructions will be sent to its registered email address.'}
+  if(config.environment!=='production'&&resetToken)response.resetToken=resetToken
+  res.json(response)
+}catch(error){next(error)}})
 app.post('/api/auth/reset-password',validate(z.object({token:z.string().length(64),newPassword:passwordSchema})),async(req,res,next)=>{try{const tokenHash=crypto.createHash('sha256').update(req.validated.token).digest('hex');const result=await transaction(async client=>{const reset=(await client.query('SELECT id,user_id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW() FOR UPDATE',[tokenHash])).rows[0];if(!reset)return null;const hash=await bcrypt.hash(req.validated.newPassword,12);await client.query('UPDATE users SET password_hash=$1,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,reset.user_id]);await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE id=$1',[reset.id]);return true});if(!result)return res.status(400).json({error:'This password reset link is invalid or has expired.'});res.json({message:'Password updated. You can now sign in.'})}catch(error){next(error)}})
 
 const supervisorRoleFor={"Deputy Director":"Director","Assistant Director":"Deputy Director","Researcher":"Assistant Director"}

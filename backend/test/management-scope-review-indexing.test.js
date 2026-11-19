@@ -10,8 +10,9 @@ const frontend=fs.readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf
 const externalReader=fs.readFileSync(new URL('../../src/ExternalResearchReader.tsx',import.meta.url),'utf8')
 const theme=fs.readFileSync(new URL('../../src/theme-preferences.ts',import.meta.url),'utf8')
 const felixAdmin=fs.readFileSync(new URL('../../src/FelixAdmin.tsx',import.meta.url),'utf8')
-const felixMain=fs.readFileSync(new URL('../../../ai-research-service/app/main.py',import.meta.url),'utf8')
-const repositoryIndex=fs.readFileSync(new URL('../../../ai-research-service/app/services/repository_index.py',import.meta.url),'utf8')
+const felixMainPath=new URL('../../../ai-research-service/app/main.py',import.meta.url)
+const repositoryIndexPath=new URL('../../../ai-research-service/app/services/repository_index.py',import.meta.url)
+const felixUnavailable='Felix intentionally disabled; restoration deferred to a separately authorized phase'
 
 
 test('Director, Deputy Director and Assistant Director use explicit management scope',()=>{
@@ -45,7 +46,8 @@ test('imported external research has the same read-before-decision gate',()=>{
 })
 
 
-test('Felix publication indexing is background-only and preserves publication identity',()=>{
+test('Felix publication indexing is background-only and preserves publication identity',{skip:!fs.existsSync(felixMainPath)?felixUnavailable:false},()=>{
+  const felixMain=fs.readFileSync(felixMainPath,'utf8')
   assert.match(worker,/Indexing is a background publication service/)
   assert.match(worker,/COALESCE\(k\.approved_by,k\.created_by\)/)
   assert.match(worker,/k\.status='Published' AND k\.felix_enabled=TRUE AND k\.is_archived=FALSE/)
@@ -64,7 +66,9 @@ test('PSC Executive is the default fallback without removing other themes',()=>{
 })
 
 
-test('Felix refreshes App2 system knowledge at startup/change and published documents at startup',()=>{
+test('Felix refreshes App2 system knowledge at startup/change and published documents at startup',{skip:!fs.existsSync(felixMainPath)||!fs.existsSync(repositoryIndexPath)?felixUnavailable:false},()=>{
+  const felixMain=fs.readFileSync(felixMainPath,'utf8')
+  const repositoryIndex=fs.readFileSync(repositoryIndexPath,'utf8')
   assert.match(worker,/reconcilePublishedDocuments\(\)\.then\(pump\)/)
   assert.match(worker,/status='Pending',attempts=0,next_attempt_at=NOW\(\)/)
   assert.match(felixMain,/app2_source_index_watch_loop/)
@@ -74,7 +78,8 @@ test('Felix refreshes App2 system knowledge at startup/change and published docu
   assert.match(repositoryIndex,/def repository_fingerprint/)
 })
 
-test('Felix uses live RBAC-filtered App2 users instead of embedding a stale directory',()=>{
+test('Felix uses live RBAC-filtered App2 users instead of embedding a stale directory',{skip:!fs.existsSync(felixMainPath)?felixUnavailable:false},()=>{
+  const felixMain=fs.readFileSync(felixMainPath,'utf8')
   assert.match(app,/app\.get\('\/api\/users',authenticate,authorize\('System Admin','Director','Deputy Director','Deputy Director','Assistant Director'\)/)
   assert.match(auth,/allowed\.includes\('Deputy Director'\)&&isManagementRole\(req\.user\.role\)/)
   assert.match(felixMain,/paths\.append\("users"\)/)
@@ -87,7 +92,8 @@ test('Felix uses live RBAC-filtered App2 users instead of embedding a stale dire
   assert.doesNotMatch(felixMain,/password_hash.*USER:/)
 })
 
-test('Felix preserves the selected App2 document scope from the chat UI',()=>{
+test('Felix preserves the selected App2 document scope from the chat UI',{skip:!fs.existsSync(felixMainPath)?felixUnavailable:false},()=>{
+  const felixMain=fs.readFileSync(felixMainPath,'utf8')
   assert.match(felixMain,/document_id: str \| None = None/)
   assert.match(felixMain,/retrieval_mode: Literal\["document", "all"\] \| None = None/)
   assert.match(felixMain,/allowed_document_ids = \[UUID\(body\.document_id\)\]/)

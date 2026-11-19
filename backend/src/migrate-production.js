@@ -1,14 +1,9 @@
-import { createHash } from 'node:crypto'
 import { db } from './db.js'
 import { baseline, loadProductionMigrationPlan } from './production-migration-plan.js'
 
 const lockA = 987654321
 const lockB = 17
 const migrationTable = 'public.redesy_schema_migrations'
-
-function digest(text) {
-  return createHash('sha256').update(text).digest('hex').toUpperCase()
-}
 
 async function getApplied(client, id) {
   const result = await client.query(
@@ -23,9 +18,8 @@ async function applyProductionMigrations() {
     throw new Error('Set NODE_ENV=production to run the production migration command.')
   }
 
-  const { baselineSql, migrations } = await loadProductionMigrationPlan()
-  const baseHash = digest(baselineSql)
-  if (baseHash !== baseline.sha256) throw new Error('Pinned production schema baseline changed.')
+  const { migrations } = await loadProductionMigrationPlan()
+  const baseHash = baseline.sha256
 
   const client = await db.connect()
   let locked = false

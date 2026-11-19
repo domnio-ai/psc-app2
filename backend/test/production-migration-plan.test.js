@@ -5,9 +5,10 @@ import { baseline, loadProductionMigrationPlan, migrationSources, unwrapTransact
 
 test('production migration manifest matches its pinned PostgreSQL 17 audit sources', async () => {
   const plan = await loadProductionMigrationPlan()
-  const actualBaseline = createHash('sha256').update(plan.baselineSql).digest('hex').toUpperCase()
+  const actualBaselineLf = createHash('sha256').update(plan.baselineSql, 'utf8').digest('hex').toUpperCase()
+  const actualBaselineCrlf = createHash('sha256').update(plan.baselineSql.replace(/\n/g, '\r\n'), 'utf8').digest('hex').toUpperCase()
 
-  assert.equal(actualBaseline, baseline.sha256)
+  assert.ok([actualBaselineLf, actualBaselineCrlf].includes(baseline.sha256), 'baseline pin must match an LF or CRLF representation')
   assert.equal(plan.migrations.length, migrationSources.length + 1)
   assert.deepEqual(
     plan.migrations.map(({ id }) => id),

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const css=readFileSync("src/modules/messages/messages.css","utf8");
+const css=readFileSync("src/modules/messages/messages.css","utf8").replace(/\r\n/g,"\n");
 
 test("messages layout is reduced and centered",()=>{
   assert.match(css,/APP2 MESSAGES V1 R2\.8\.3 - VISUAL POLISH \+ SAFE COMPOSER/);

@@ -33,12 +33,14 @@ export const embeddedMeetingMigration = {
 }
 
 async function readPinnedSource(entry, root) {
-  const source = await fs.readFile(path.join(root, entry.file))
-  const actual = createHash('sha256').update(source).digest('hex').toUpperCase()
-  if (actual !== entry.sha256) {
+  const original = await fs.readFile(path.join(root, entry.file), 'utf8')
+  const source = original.replace(/\r\n/g, '\n')
+  const actualLf = createHash('sha256').update(source, 'utf8').digest('hex').toUpperCase()
+  const actualCrlf = createHash('sha256').update(source.replace(/\n/g, '\r\n'), 'utf8').digest('hex').toUpperCase()
+  if (actualLf !== entry.sha256 && actualCrlf !== entry.sha256) {
     throw new Error(`Pinned migration source changed: ${entry.file}`)
   }
-  return source.toString('utf8')
+  return source
 }
 
 export function unwrapTransaction(sql) {

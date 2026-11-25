@@ -11,7 +11,7 @@ permissions:
 jobs:
   preview-and-test:
     name: Trial compatible dependency updates and app2 tests
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 30
     steps:
       - name: Check out isolated security branch
@@ -19,27 +19,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Generate candidate dependency manifests and validate production build
-        id: generate-candidates
-        run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/workspace" \
-            -w /workspace \
-            node:22-alpine sh -euxc '
-              npm pkg set "dependencies.vite=^7.3.7"
-              npm pkg set "overrides.postcss.source-map-js=1.2.4"
-              npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-              npm ci --ignore-scripts --no-audit --no-fund
-              npm ls vite postcss source-map-js
-              npm run build -- --configLoader runner
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
 
-              cd backend
-              npm pkg set "overrides.exceljs.uuid=11.1.1"
-              npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-              npm ci --ignore-scripts --no-audit --no-fund
-              npm ls uuid --all
-              npm run check
-            '
+      - name: Generate candidate dependency manifests and validate frontend build
+        shell: pwsh
+        run: |
+          npm pkg set "dependencies.vite=^7.3.7"
+          npm pkg set "overrides.postcss.source-map-js=1.2.4"
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ls vite postcss source-map-js
+          npm run build -- --configLoader runner
+
+          Push-Location backend
+          try {
+            npm pkg set "overrides.exceljs.uuid=11.1.1"
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            npm ci --ignore-scripts --no-audit --no-fund
+            npm ls uuid --all
+            npm run check
+          }
+          finally {
+            Pop-Location
+          }
 
       - name: Upload candidate manifests and lockfiles for review
         if: always()
@@ -54,20 +59,16 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-      - name: Run app2 backend regression suite with required PDF fonts and test configuration
-        if: always() && steps.generate-candidates.outcome == 'success'
+      - name: Run app2 backend regression suite on Windows
+        shell: pwsh
+        env:
+          DATABASE_URL: postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test
+          JWT_SECRET: app2-ci-test-only-secret-not-used-outside-this-run
         run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/workspace" \
-            -w /workspace/backend \
-            node:22-alpine sh -euxc '
-              apk add --no-cache fontconfig ttf-liberation
-              FONT_DIR="$(dirname "$(find /usr/share/fonts -name LiberationSerif-Regular.ttf -print -quit)")"
-              test -f "$FONT_DIR/LiberationSerif-Regular.ttf"
-              test -f "$FONT_DIR/LiberationSerif-Bold.ttf"
-              test -f "$FONT_DIR/LiberationSerif-Italic.ttf"
-              test -f "$FONT_DIR/LiberationSerif-BoldItalic.ttf"
-              export DATABASE_URL="postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test"
-              export JWT_SECRET="app2-ci-test-only-secret-not-used-outside-this-run"
-              npm test
-            '
+          Push-Location backend
+          try {
+            npm test
+          }
+          finally {
+            Pop-Location
+          }

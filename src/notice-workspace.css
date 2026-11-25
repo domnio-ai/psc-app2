@@ -498,3 +498,83 @@
 @media(forced-colors:active){
   .notice-public-grid article,.notice-overview-stats span{background:Canvas;border:1px solid CanvasText}
 }
+
+/* Notice audience controls and formal acknowledgement */
+.notice-audience-add{
+  justify-self:start;
+  min-height:32px;
+  padding:6px 11px;
+  border:1px solid var(--nw-border);
+  border-radius:8px;
+  background:var(--nw-card);
+  color:var(--nw-text);
+  font-size:10px;
+  font-weight:850
+}
+.notice-audience-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px
+}
+.notice-audience-list>span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 8px;
+  border:1px solid var(--nw-border);
+  border-radius:999px;
+  background:var(--nw-card);
+  color:var(--nw-text);
+  font-size:9px;
+  font-weight:800
+}
+.notice-audience-list button{
+  width:19px;
+  height:19px;
+  border:0;
+  border-radius:50%;
+  background:var(--nw-border);
+  color:var(--nw-text);
+  font-weight:900
+}
+.notice-acknowledgement-option{
+  display:flex!important;
+  align-items:flex-start;
+  gap:9px;
+  padding:10px;
+  border:1px solid var(--nw-border);
+  border-radius:9px;
+  background:var(--nw-card)
+}
+.notice-acknowledgement-option>input{
+  width:16px;
+  min-width:16px;
+  height:16px;
+  margin-top:2px
+}
+.notice-acknowledgement-option span{display:grid;gap:4px}
+.notice-acknowledgement-option strong{color:var(--nw-text);font-size:10px}
+.notice-acknowledgement-option small{color:var(--nw-muted);font-size:9px;font-weight:500;line-height:1.45}
+.notice-acknowledgement{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+  padding:12px;
+  border:1px solid var(--nw-border);
+  border-radius:10px;
+  background:var(--nw-card)
+}
+.notice-acknowledgement strong{font-size:11px;color:var(--nw-text)}
+.notice-acknowledgement p{margin:3px 0 0;color:var(--nw-muted);font-size:10px}
+.notice-acknowledgement button{
+  justify-self:start;
+  min-height:35px;
+  padding:7px 12px;
+  border:1px solid color-mix(in srgb,var(--nw-violet) 36%,var(--nw-border));
+  border-radius:8px;
+  background:var(--app2-violet-gradient);
+  color:var(--nw-text);
+  font-size:10px;
+  font-weight:850
+}
+.notice-acknowledgement-confirmed{font-weight:800;color:var(--nw-text)!important}

@@ -1,5 +1,6 @@
 export const reportCategories = [
   "Assignments",
+  "Workforce",
   "Performance",
   "Workload",
   "Strategic",
@@ -89,6 +90,17 @@ const implemented = {
       "document_category",
     ],
     provider: "documentActivity",
+    frequency: "Live",
+  },
+  "leave-register-utilisation": {
+    title: "Leave Register & Utilisation",
+    description:
+      "Permission-scoped leave requests, decision status and approved weekday utilisation over the selected period.",
+    category: "Workforce",
+    level: "BOTH",
+    permission: "VIEW_OPERATIONAL_REPORTS",
+    filters: ["period", "date_range", "directorate", "status", "leave_type"],
+    provider: "leaveUtilisation",
     frequency: "Live",
   },
   "felix-usage-quality": {

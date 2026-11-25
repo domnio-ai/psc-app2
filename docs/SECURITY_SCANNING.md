@@ -43,9 +43,11 @@ OSV-Scanner runs as a separate CI job and reports dependency findings in its job
 High/critical Trivy findings and scanner findings configured as errors fail
 their respective jobs. Existing npm audit remains a separate check.
 
-The Gitleaks job fetches full Git history and checks all available refs. It can
-therefore find historical credentials that are no longer in the current files.
-A confirmed exposed credential must be revoked or rotated; deleting it from
+The Gitleaks job fetches full Git history and scans the complete history reachable
+from the checked-out branch. It can therefore find historical credentials that
+are no longer in the current files. It does not scan unrelated branch-only history
+in this automated job; run the documented local all-refs command for that broader
+audit. A confirmed exposed credential must be revoked or rotated; deleting it from
 the latest source tree is not sufficient.
 
 ## Run the local container scans from PowerShell

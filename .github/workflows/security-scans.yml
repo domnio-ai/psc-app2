@@ -236,3 +236,70 @@ jobs:
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy.sarif
+
+  web-container:
+    name: Build and smoke-test the unprivileged frontend container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build frontend container
+        run: docker build --pull --tag app2-web:ci .
+
+      - name: Verify frontend container uses the unprivileged UID and GID
+        shell: bash
+        run: |
+          actual_user="$(docker image inspect app2-web:ci --format '{{.Config.User}}')"
+          echo "Frontend container user: ${actual_user}"
+          test "${actual_user}" = "101:101"
+
+      - name: Smoke-test frontend on its internal unprivileged port
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name app2-web-ci --publish 18080:8080 app2-web:ci
+          trap 'docker rm --force app2-web-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:18080/ -o /dev/null; then
+              echo "Frontend responded successfully on the mapped host port."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Frontend did not become ready on port 18080."
+          docker logs app2-web-ci
+          exit 1
+
+      - name: Validate training and production Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          export POSTGRES_DB=app2_test POSTGRES_USER=app2_test POSTGRES_PASSWORD=ci-only-password
+          export FRONTEND_ORIGIN=http://127.0.0.1:8080 DATABASE_SSL=false
+          export JWT_SECRET=ci-only-jwt-secret-value-with-sufficient-length JWT_EXPIRES_IN=8h
+          export DOCUMENT_STORAGE_PATH=/tmp/app2-documents MAX_UPLOAD_MB=100
+          export APP_BIND_ADDRESS=127.0.0.1 APP_PORT=8080
+          docker compose -f docker-compose.yml config --quiet
+          export FRONTEND_ORIGIN=https://app2.example.invalid
+          docker compose -f docker-compose.production.yml config --quiet
+
+      - name: Scan built frontend image for HIGH and CRITICAL vulnerabilities
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            aquasec/trivy:0.76.2 \
+            image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+              --format sarif --output /workspace/trivy-image.sarif app2-web:ci
+
+      - name: Upload frontend image scan results to GitHub code scanning
+        if: always() && hashFiles('trivy-image.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: trivy-image.sarif

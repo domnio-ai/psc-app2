@@ -10788,7 +10788,7 @@ export default function App() {
                   items={[
                     ...calendarRows,
                     ...noticeRows
-                      .filter((item) => item.status === "Published" && item.expires_at && (!item.audience_role || item.audience_role === user.role))
+                      .filter((item) => item.status === "Published" && item.expires_at)
                       .map((item) => ({
                         id: `expiry-${item.id}`,
                         title: `${item.title} expires`,

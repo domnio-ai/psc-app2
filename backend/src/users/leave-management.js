@@ -19,6 +19,29 @@ const workingDays=(start,end,holidays=[])=>{
  }
  return count
 }
+const refreshApprovedLeaveWorkingDays=async(client,dates)=>{
+ const changedDates=[...new Set(dates.filter(Boolean).map(dateOnly))]
+ if(!changedDates.length)return 0
+ const result=await client.query(`
+  UPDATE leave_requests lr
+  SET working_days=(
+   SELECT COUNT(*)::int
+   FROM generate_series(lr.start_date,lr.end_date,INTERVAL '1 day') AS leave_day(day)
+   WHERE EXTRACT(ISODOW FROM leave_day.day)<6
+     AND NOT EXISTS(
+      SELECT 1 FROM public_holidays ph
+      WHERE ph.active=TRUE AND ph.holiday_date=leave_day.day::date
+     )
+  )
+  WHERE lr.status='Approved'
+    AND EXISTS(
+     SELECT 1 FROM unnest($1::date[]) AS changed(holiday_date)
+     WHERE lr.start_date<=changed.holiday_date AND lr.end_date>=changed.holiday_date
+    )
+  RETURNING lr.id
+ `,[changedDates])
+ return result.rowCount
+}
 const notify=async(client,userId,title,body,id,priority='Normal',category='Information')=>{
  const action=category==='Review'?'Open leave approval':'Open leave request'
  const workspace=category==='Review'?'Reviews & Approvals':'Leave'
@@ -65,8 +88,9 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
     [value.holidayDate,value.name,value.description,req.user.id],
    )).rows[0]
    if(!row)return null
+   const updatedLeaveRequests=await refreshApprovedLeaveWorkingDays(client,[row.holiday_date])
    await audit(client,req.user.id,'PUBLIC_HOLIDAY_CREATED','public_holiday',row.id,{
-    holidayDate:row.holiday_date,name:row.name,
+    holidayDate:row.holiday_date,name:row.name,updatedLeaveRequests,
    })
    return row
   })
@@ -78,13 +102,16 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
   if(req.user.role!=='System Admin')return res.status(403).json({error:'Only a System Administrator can maintain the institutional public-holiday calendar.'})
   const value=req.validated
   const result=await transaction(async client=>{
+   const previous=(await client.query('SELECT holiday_date::text holiday_date FROM public_holidays WHERE id=$1 FOR UPDATE',[req.params.id])).rows[0]
+   if(!previous)return null
    const row=(await client.query(
     'UPDATE public_holidays SET holiday_date=COALESCE($1,holiday_date),name=COALESCE($2,name),description=COALESCE($3,description),active=COALESCE($4,active),updated_by=$5,updated_at=NOW() WHERE id=$6 RETURNING id,holiday_date::text holiday_date,name,description,active,created_at,updated_at',
     [value.holidayDate??null,value.name??null,value.description??null,value.active??null,req.user.id,req.params.id],
    )).rows[0]
    if(!row)return null
+   const updatedLeaveRequests=await refreshApprovedLeaveWorkingDays(client,[previous.holiday_date,row.holiday_date])
    await audit(client,req.user.id,row.active?'PUBLIC_HOLIDAY_UPDATED':'PUBLIC_HOLIDAY_DEACTIVATED','public_holiday',row.id,{
-    holidayDate:row.holiday_date,name:row.name,active:row.active,
+    holidayDate:row.holiday_date,name:row.name,active:row.active,updatedLeaveRequests,
    })
    return row
   })

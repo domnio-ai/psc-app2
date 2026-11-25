@@ -39,12 +39,22 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
  app.get('/api/leave/balances/:userId',authenticate,async(req,res,next)=>{try{
   if(req.user.id!==req.params.userId&&!await canManageUser(req.user,req.params.userId))return res.status(403).json({error:'You cannot view leave balances outside your authorised team scope.'})
   const year=Number(req.query.year||new Date().getFullYear())
+  if(!Number.isInteger(year)||year<1900||year>2200)return res.status(400).json({error:'Choose a valid leave-balance year.'})
   res.json((await query(`SELECT lt.code,lt.name,lt.default_entitlement_days entitlement_days,
    COALESCE(adj.adjustment_days,0)::numeric adjustment_days,COALESCE(used.used_days,0)::numeric used_days,
    CASE WHEN lt.default_entitlement_days IS NULL THEN NULL ELSE lt.default_entitlement_days+COALESCE(adj.adjustment_days,0)-COALESCE(used.used_days,0) END remaining_days
    FROM leave_types lt
    LEFT JOIN LATERAL(SELECT SUM(adjustment_days) adjustment_days FROM leave_balance_adjustments a WHERE a.user_id=$1 AND a.leave_type_code=lt.code AND a.leave_year=$2) adj ON TRUE
-   LEFT JOIN LATERAL(SELECT SUM(working_days) used_days FROM leave_requests lr WHERE lr.user_id=$1 AND lr.leave_type_code=lt.code AND lr.status='Approved' AND EXTRACT(YEAR FROM lr.start_date)=$2) used ON TRUE
+   LEFT JOIN LATERAL(
+    SELECT SUM((SELECT COUNT(*) FROM generate_series(
+      GREATEST(lr.start_date,make_date($2,1,1)),
+      LEAST(lr.end_date,make_date($2,12,31)),
+      INTERVAL '1 day'
+    ) AS leave_day(day) WHERE EXTRACT(ISODOW FROM leave_day.day)<6)) used_days
+    FROM leave_requests lr
+    WHERE lr.user_id=$1 AND lr.leave_type_code=lt.code AND lr.status='Approved'
+      AND lr.start_date<=make_date($2,12,31) AND lr.end_date>=make_date($2,1,1)
+   ) used ON TRUE
    WHERE lt.active=TRUE ORDER BY lt.display_order`,[req.params.userId,year])).rows)
  }catch(error){next(error)}})
 

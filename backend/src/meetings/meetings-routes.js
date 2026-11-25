@@ -1491,7 +1491,7 @@ export function registerMeetingsRoutes(app){
   app.patch('/api/meetings/:id/actions/:actionId',authenticate,async(req,res,next)=>{try{
     await requireAccess(req,req.params.id)
     const action=(await query(
-      'SELECT a.*,linked.owner_id linked_task_owner_id,linked.reviewer_id linked_task_reviewer_id '+
+      'SELECT a.*,linked.status linked_task_status,linked.owner_id linked_task_owner_id,linked.reviewer_id linked_task_reviewer_id '+
       'FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id '+
       'WHERE a.id=$1 AND a.meeting_id=$2',
       [req.params.actionId,req.params.id],
@@ -1501,6 +1501,9 @@ export function registerMeetingsRoutes(app){
     if(!canUpdateOwner&&!await meetingManage(req.user,req.params.id))throw httpError(403,'Only the action owner, linked task owner/reviewer or meeting manager can update this action.')
     const status=String(req.body?.status||'Open')
     if(!['Open','In Progress','Blocked','Completed'].includes(status))throw httpError(400,'Invalid meeting action status.')
+    if(action.assignment_task_id&&status==='Completed'&&action.linked_task_status!=='Completed'){
+      throw httpError(409,'A linked task can only be completed through its approved final Task Report publication workflow.')
+    }
     const row=await transaction(async client=>{
       if(action.assignment_task_id){
         const task=(await client.query(

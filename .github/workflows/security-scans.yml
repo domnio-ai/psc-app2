@@ -67,7 +67,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/repo" \
             -w /repo \
             ghcr.io/gitleaks/gitleaks:v8.30.1 \
-            git --log-opts="--all" --redact=100 --report-format=sarif \
+            git --redact=100 --report-format=sarif \
               --report-path=/repo/gitleaks.sarif --no-banner /repo
 
       - name: Upload redacted Gitleaks results to GitHub code scanning

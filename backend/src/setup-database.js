@@ -7,6 +7,7 @@ if(process.env.NODE_ENV==='production')throw new Error('Development database set
 await db.query(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'))
 await db.query(await fs.readFile(new URL('../migrations/20261125_01_leave_request_attachments.sql',import.meta.url),'utf8'))
 await db.query(await fs.readFile(new URL('../migrations/20261125_02_notice_audience_acknowledgements.sql',import.meta.url),'utf8'))
+await db.query(await fs.readFile(new URL('../migrations/20261125_03_meeting_action_task_links.sql',import.meta.url),'utf8'))
 if(process.env.APP2_SEED_DEMO_ACCOUNTS==='true'){
   const demoPassword=String(process.env.APP2_DEMO_PASSWORD||'')
   if(demoPassword.length<16)throw new Error('APP2_DEMO_PASSWORD must contain at least 16 characters when demo-account seeding is explicitly enabled.')

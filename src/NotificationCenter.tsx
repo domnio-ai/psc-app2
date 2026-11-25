@@ -182,6 +182,7 @@ export default function NotificationCenter({
   onArchiveRead,
 }: Props) {
   const [selected, setSelected] = useState<ApiNotification | null>(null);
+  const [selectionDismissed, setSelectionDismissed] = useState(false);
   const [folder, setFolder] = useState<Folder>("Inbox");
   const [query, setQuery] = useState("");
   const [priority, setPriority] = useState<PriorityFilter>("All");
@@ -235,7 +236,7 @@ export default function NotificationCenter({
   }, [items, folder, priority, query]);
 
   useEffect(() => {
-    if(folder==="Sent")return;
+    if (folder === "Sent" || selectionDismissed) return;
     if (!visible.length) {
       if (selected) setSelected(null);
       return;
@@ -243,9 +244,10 @@ export default function NotificationCenter({
     if (!selected || !visible.some((item) => item.id === selected.id)) {
       setSelected(visible[0]);
     }
-  }, [visible, selected, folder]);
+  }, [visible, selected, folder, selectionDismissed]);
 
   const inspect = async (item: ApiNotification) => {
+    setSelectionDismissed(false);
     setSelected(item);
     await onOpen(item);
   };
@@ -256,6 +258,7 @@ export default function NotificationCenter({
   };
 
   const chooseFolder = (next: Folder) => {
+    setSelectionDismissed(false);
     setFolder(next);
     setSelected(null);
     setSelectedSent(null);
@@ -466,7 +469,7 @@ export default function NotificationCenter({
           {!selected ? (
             <div className="notification-reading-empty">
               <strong>No notification selected</strong>
-              <p>The reading pane follows the current visible notification automatically.</p>
+              <p>Select a notification from the list to read its details.</p>
             </div>
           ) : (
             <article className={`notification-reading-content notification-${notificationTone(selected)}`}>
@@ -475,7 +478,7 @@ export default function NotificationCenter({
                   <small>{selected.entity_type?.replaceAll("_", " ") || "system notification"}</small>
                   <h3>{selected.title}</h3>
                 </div>
-                <button type="button" className="notification-reading-close" onClick={() => setSelected(null)} aria-label="Back to inbox">← Back to inbox</button>
+                <button type="button" className="notification-reading-close" onClick={() => { setSelectionDismissed(true); setSelected(null); }} aria-label="Back to inbox">← Back to inbox</button>
               </header>
 
               <div className="notification-reading-badges">

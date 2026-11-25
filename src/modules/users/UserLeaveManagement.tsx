@@ -1,15 +1,15 @@
-import {useEffect,useMemo,useState} from "react";
-import {api,type ApiUser,type LeaveBalance,type LeaveRequest,type LeaveType} from "../../api";
+import {useEffect,useMemo,useState,type FormEvent} from "react";
+import {api,type ApiUser,type LeaveBalance,type LeaveRequest,type LeaveType,type PublicHoliday} from "../../api";
 import "./user-leave-management.css";
 
 export default function UserLeaveManagement({token,currentUser,users,isManager,onUsersRefresh,mode="leave",onOpenApprovalCentre,canManagePublicHolidays=false}:{token:string;currentUser:{id:string};users:ApiUser[];isManager:boolean;onUsersRefresh:()=>Promise<void>|void;mode?:"leave"|"approvals";onOpenApprovalCentre?:()=>void;canManagePublicHolidays?:boolean}){
- const [types,setTypes]=useState<LeaveType[]>([]),[rows,setRows]=useState<LeaveRequest[]>([]),[balances,setBalances]=useState<LeaveBalance[]>([]),[holidays,setHolidays]=useState<import("../../api").PublicHoliday[]>([]);
+ const [types,setTypes]=useState<LeaveType[]>([]),[rows,setRows]=useState<LeaveRequest[]>([]),[balances,setBalances]=useState<LeaveBalance[]>([]),[holidays,setHolidays]=useState<PublicHoliday[]>([]);
  const [holidayForm,setHolidayForm]=useState({holidayDate:"",name:"",description:""}),[editingHolidayId,setEditingHolidayId]=useState<string|null>(null);
  const [notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[supportingDocument,setSupportingDocument]=useState<File|null>(null);
  const [form,setForm]=useState({leaveTypeCode:"ANNUAL",startDate:"",endDate:"",reason:""});
  const refresh=async()=>{const [t,r,b,h]=await Promise.all([api.leaveTypes(token),api.leaveRequests(token),api.leaveBalances(token,currentUser.id),api.publicHolidays(token)]);setTypes(t);setRows(r);setBalances(b);setHolidays(h)};
  const selectedType=types.find(t=>t.code===form.leaveTypeCode);
- const submitHoliday=async(event:React.FormEvent)=>{
+ const submitHoliday=async(event:FormEvent)=>{
   event.preventDefault();setBusy(true);
   try{
    if(editingHolidayId)await api.updatePublicHoliday(token,editingHolidayId,holidayForm);
@@ -20,11 +20,11 @@ export default function UserLeaveManagement({token,currentUser,users,isManager,o
   }catch(error){setNotice(error instanceof Error?error.message:"Public-holiday record could not be saved.");}
   finally{setBusy(false)}
  };
- const editHoliday=(holiday:import("../../api").PublicHoliday)=>{
+ const editHoliday=(holiday:PublicHoliday)=>{
   setEditingHolidayId(holiday.id);
   setHolidayForm({holidayDate:holiday.holiday_date,name:holiday.name,description:holiday.description||""});
  };
- const toggleHoliday=async(holiday:import("../../api").PublicHoliday)=>{
+ const toggleHoliday=async(holiday:PublicHoliday)=>{
   setBusy(true);
   try{await api.updatePublicHoliday(token,holiday.id,{active:!holiday.active});setNotice(holiday.active?"Public holiday deactivated.":"Public holiday restored.");await refresh()}
   catch(error){setNotice(error instanceof Error?error.message:"Holiday status could not be changed.")}
@@ -39,7 +39,7 @@ export default function UserLeaveManagement({token,currentUser,users,isManager,o
 
 
 
- const submit=async(e:React.FormEvent)=>{e.preventDefault();setBusy(true);try{await api.submitLeaveRequest(token,form,supportingDocument||undefined);setForm({leaveTypeCode:"ANNUAL",startDate:"",endDate:"",reason:""});setSupportingDocument(null);setNotice("Leave request submitted.");await refresh();await onUsersRefresh()}catch(err){setNotice(err instanceof Error?err.message:"Leave request failed.")}finally{setBusy(false)}};
+ const submit=async(e:FormEvent)=>{e.preventDefault();setBusy(true);try{await api.submitLeaveRequest(token,form,supportingDocument||undefined);setForm({leaveTypeCode:"ANNUAL",startDate:"",endDate:"",reason:""});setSupportingDocument(null);setNotice("Leave request submitted.");await refresh();await onUsersRefresh()}catch(err){setNotice(err instanceof Error?err.message:"Leave request failed.")}finally{setBusy(false)}};
 
  return <section className="leave-management"><header><div><p>{mode==="approvals"?"LEAVE APPROVALS":"MY LEAVE"}</p><h3>{mode==="approvals"?"Team Approvals":"Leave balances, requests and history"}</h3><span>{mode==="approvals"?"Review requests inside your authorised reporting scope.":"Approved leave updates availability and appears on Calendar automatically."}</span></div></header>
  {notice&&<div className="leave-notice">{notice}</div>}

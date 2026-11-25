@@ -2801,6 +2801,16 @@ export default function App() {
       );
     }
   };
+  const markNoticeNotificationsRead = async (noticeId: string) => {
+    if (!token || !noticeId) return;
+    const matches = notifications.filter(
+      (item) => item.entity_type === "notice" && item.entity_id === noticeId && !item.read_at,
+    );
+    if (matches.length) {
+      await Promise.all(matches.map((item) => api.readNotification(token, item.id)));
+      await refreshNotifications();
+    }
+  };
   const publishAlert = async () => {
     if (!alertText.trim() || !token) return;
     try {
@@ -10721,6 +10731,7 @@ export default function App() {
                 isManager={isManager}
                 token={token}
                 onRowsChange={setNoticeRows}
+                onRead={markNoticeNotificationsRead}
                 onSubmit={submitNotice}
                 onReview={(item) => {
                   setReviewingNotice(item);

@@ -1134,6 +1134,306 @@ async function allDirectoratePerformance(filters, scope) {
     },
   };
 }
+
+async function leaveUtilisation(filters, scope) {
+  const values = [];
+  let where = "TRUE";
+  if (scope.type === "OWN") {
+    values.push(scope.userId);
+    where += " AND lr.user_id=$" + values.length;
+  } else if (scope.type === "TEAM") {
+    values.push(scope.userId);
+    where += " AND lr.user_id IN " + teamUserIds("$" + values.length);
+  } else if (scope.type === "DIRECTORATE") {
+    values.push(scope.division);
+    where += " AND u.division=$" + values.length;
+  }
+  if (filters.division) {
+    if (scope.type === "OWN" && filters.division !== scope.division)
+      throw Object.assign(new Error("Requested directorate is outside your permitted scope."), { status: 403 });
+    values.push(filters.division);
+    where += " AND u.division=$" + values.length;
+  }
+  if (filters.from) {
+    values.push(filters.from);
+    where += " AND lr.end_date >= $" + values.length + "::date";
+  }
+  if (filters.to) {
+    values.push(filters.to);
+    where += " AND lr.start_date <= $" + values.length + "::date";
+  }
+  if (filters.status) {
+    values.push(filters.status);
+    where += " AND lr.status=$" + values.length;
+  }
+  if (filters.search) {
+    values.push(filters.search);
+    where += " AND (u.name ILIKE '%'||$" + values.length + "||'%' OR lt.name ILIKE '%'||$" + values.length + "||'%')";
+  }
+
+  const [summary, statuses, leaveTypes, list] = await Promise.all([
+    query(
+      "SELECT COUNT(*)::int total, COUNT(*) FILTER (WHERE lr.status='Pending')::int pending, " +
+      "COUNT(*) FILTER (WHERE lr.status='Approved')::int approved, COUNT(*) FILTER (WHERE lr.status='Returned')::int returned, " +
+      "COUNT(*) FILTER (WHERE lr.status='Rejected')::int rejected, " +
+      "COALESCE(SUM(lr.working_days) FILTER (WHERE lr.status='Approved'),0)::numeric approved_working_days " +
+      "FROM leave_requests lr JOIN users u ON u.id=lr.user_id JOIN leave_types lt ON lt.code=lr.leave_type_code WHERE " + where,
+      values
+    ),
+    query(
+      "SELECT lr.status label,COUNT(*)::int value FROM leave_requests lr " +
+      "JOIN users u ON u.id=lr.user_id JOIN leave_types lt ON lt.code=lr.leave_type_code WHERE " +
+      where + " GROUP BY lr.status ORDER BY lr.status",
+      values
+    ),
+    query(
+      "SELECT lt.name label,COUNT(*)::int value FROM leave_requests lr " +
+      "JOIN users u ON u.id=lr.user_id JOIN leave_types lt ON lt.code=lr.leave_type_code WHERE " +
+      where + " GROUP BY lt.name ORDER BY value DESC,lt.name",
+      values
+    ),
+    paginate(
+      "SELECT lr.id,lr.user_id,u.name user_name,u.division,lt.name leave_type_name,lr.start_date,lr.end_date," +
+      "lr.working_days,lr.status,lr.submitted_at,lr.decided_at,approver.name approver_name " +
+      "FROM leave_requests lr JOIN users u ON u.id=lr.user_id JOIN leave_types lt ON lt.code=lr.leave_type_code " +
+      "LEFT JOIN users approver ON approver.id=lr.approver_id WHERE " + where + " ORDER BY lr.submitted_at DESC",
+      "SELECT COUNT(*) total FROM leave_requests lr JOIN users u ON u.id=lr.user_id " +
+      "JOIN leave_types lt ON lt.code=lr.leave_type_code WHERE " + where,
+      values,
+      filters
+    )
+  ]);
+  const totals = summary.rows[0] || {};
+  const approvedDays = Number(totals.approved_working_days || 0);
+  return {
+    kpis: [
+      kpi("requests", "Leave requests", Number(totals.total || 0)),
+      kpi("pending", "Awaiting decision", Number(totals.pending || 0), totals.pending ? "warning" : "good"),
+      kpi("approved", "Approved requests", Number(totals.approved || 0), "good"),
+      kpi("approved-days", "Approved working days", approvedDays),
+      kpi("returned", "Returned for correction", Number(totals.returned || 0), totals.returned ? "warning" : "neutral"),
+      kpi("rejected", "Rejected", Number(totals.rejected || 0))
+    ],
+    charts: [
+      chart("status", "Leave request status", "donut", statuses.rows, "status"),
+      chart("type", "Requests by leave type", "bar", leaveTypes.rows, "leave_type_name")
+    ],
+    columns: ["user_name","division","leave_type_name","start_date","end_date","working_days","status","submitted_at","approver_name"],
+    ...list,
+    notices: [
+      "Approved days use the working_days value stored on each approved request. This report does not recalculate entitlement, public holidays or cross-year balance allocation."
+    ]
+  };
+}
+
+async function meetingDelivery(filters, scope) {
+  const values = [];
+  let where = "TRUE";
+  if (scope.type === "OWN") {
+    values.push(scope.userId);
+    const p = "$" + values.length;
+    where += " AND (m.created_by=" + p + " OR m.chair_id=" + p + " OR m.secretary_id=" + p +
+      " OR m.reviewer_id=" + p + " OR m.schedule_approver_id=" + p +
+      " OR EXISTS(SELECT 1 FROM meeting_participants mp WHERE mp.meeting_id=m.id AND mp.user_id=" + p + "))";
+  } else if (scope.type === "TEAM") {
+    values.push(scope.userId);
+    const managed = teamUserIds("$" + values.length);
+    where += " AND (m.created_by IN " + managed + " OR m.chair_id IN " + managed +
+      " OR m.secretary_id IN " + managed + " OR m.reviewer_id IN " + managed +
+      " OR m.schedule_approver_id IN " + managed +
+      " OR EXISTS(SELECT 1 FROM meeting_participants mp WHERE mp.meeting_id=m.id AND mp.user_id IN " + managed + "))";
+  } else if (scope.type === "DIRECTORATE") {
+    values.push(scope.division);
+    where += " AND creator.division=$" + values.length;
+  }
+  if (filters.division) {
+    values.push(filters.division);
+    where += " AND creator.division=$" + values.length;
+  }
+  if (filters.from) {
+    values.push(filters.from);
+    where += " AND m.start_at::date >= $" + values.length + "::date";
+  }
+  if (filters.to) {
+    values.push(filters.to);
+    where += " AND m.start_at::date <= $" + values.length + "::date";
+  }
+  if (filters.status) {
+    values.push(filters.status);
+    where += " AND (m.status=$" + values.length + " OR m.schedule_approval_status=$" + values.length + ")";
+  }
+  if (filters.search) {
+    values.push(filters.search);
+    where += " AND (m.title ILIKE '%'||$" + values.length + "||'%' OR m.description ILIKE '%'||$" +
+      values.length + "||'%' OR m.meeting_type ILIKE '%'||$" + values.length + "||'%')";
+  }
+
+  const latestMinutesStatus = "(SELECT mm.status FROM meeting_minutes mm WHERE mm.meeting_id=m.id ORDER BY mm.version_no DESC LIMIT 1)";
+  const [summary, statuses, scheduleStatuses, list] = await Promise.all([
+    query(
+      "SELECT COUNT(*)::int total, COUNT(*) FILTER (WHERE m.status='Completed')::int completed, " +
+      "COUNT(*) FILTER (WHERE m.schedule_approval_status='Pending Approval')::int pending_schedule_approval, " +
+      "COUNT(*) FILTER (WHERE " + latestMinutesStatus + "='Approved')::int latest_minutes_approved, " +
+      "COUNT(*) FILTER (WHERE EXISTS(SELECT 1 FROM meeting_decisions md WHERE md.meeting_id=m.id))::int meetings_with_decisions, " +
+      "COALESCE(SUM((SELECT COUNT(*)::int FROM meeting_actions ma WHERE ma.meeting_id=m.id AND ma.status<>'Completed')),0)::int outstanding_actions " +
+      "FROM meetings m JOIN users creator ON creator.id=m.created_by WHERE " + where,
+      values
+    ),
+    query(
+      "SELECT m.status label,COUNT(*)::int value FROM meetings m JOIN users creator ON creator.id=m.created_by WHERE " +
+      where + " GROUP BY m.status ORDER BY m.status",
+      values
+    ),
+    query(
+      "SELECT m.schedule_approval_status label,COUNT(*)::int value FROM meetings m JOIN users creator ON creator.id=m.created_by WHERE " +
+      where + " GROUP BY m.schedule_approval_status ORDER BY m.schedule_approval_status",
+      values
+    ),
+    paginate(
+      "SELECT m.id,m.title,m.meeting_type,m.status,m.schedule_approval_status,m.start_at,m.end_at," +
+      "creator.name created_by_name,creator.division," +
+      "(SELECT COUNT(*)::int FROM meeting_participants mp WHERE mp.meeting_id=m.id) participant_count," +
+      "(SELECT COUNT(*)::int FROM meeting_participants mp WHERE mp.meeting_id=m.id AND mp.response_status='Accepted') accepted_count," +
+      "(SELECT COUNT(*)::int FROM meeting_participants mp WHERE mp.meeting_id=m.id AND mp.attendance_status IN('Present','Virtual')) attended_count," +
+      "(SELECT COUNT(*)::int FROM meeting_decisions md WHERE md.meeting_id=m.id) decision_count," +
+      "(SELECT COUNT(*)::int FROM meeting_actions ma WHERE ma.meeting_id=m.id) action_count," +
+      "(SELECT COUNT(*)::int FROM meeting_actions ma WHERE ma.meeting_id=m.id AND ma.status<>'Completed') outstanding_action_count," +
+      latestMinutesStatus + " minutes_status FROM meetings m JOIN users creator ON creator.id=m.created_by WHERE " +
+      where + " ORDER BY m.start_at DESC",
+      "SELECT COUNT(*) total FROM meetings m JOIN users creator ON creator.id=m.created_by WHERE " + where,
+      values,
+      filters
+    )
+  ]);
+  const totals = summary.rows[0] || {};
+  return {
+    kpis: [
+      kpi("meetings", "Meetings", Number(totals.total || 0)),
+      kpi("completed", "Marked completed", Number(totals.completed || 0), "good"),
+      kpi("pending-approval", "Awaiting schedule approval", Number(totals.pending_schedule_approval || 0), totals.pending_schedule_approval ? "warning" : "good"),
+      kpi("minutes-approved", "Latest minutes approved", Number(totals.latest_minutes_approved || 0)),
+      kpi("decisions", "Meetings with decisions", Number(totals.meetings_with_decisions || 0)),
+      kpi("open-actions", "Outstanding actions", Number(totals.outstanding_actions || 0), totals.outstanding_actions ? "warning" : "good")
+    ],
+    charts: [
+      chart("status", "Meeting status", "donut", statuses.rows, "status"),
+      chart("schedule-approval", "Schedule approval status", "bar", scheduleStatuses.rows, "schedule_approval_status")
+    ],
+    columns: ["title","meeting_type","created_by_name","division","start_at","end_at","status","schedule_approval_status","participant_count","accepted_count","attended_count","minutes_status","decision_count","action_count","outstanding_action_count"],
+    ...list,
+    notices: [
+      "Meeting completion, approved minutes, attendance, decisions and action counts are reported as separate recorded workflow states; a scheduled or approved meeting is not treated as a completed meeting."
+    ]
+  };
+}
+
+async function noticeReadership(filters, scope) {
+  const values = [];
+  let where = "TRUE";
+  if (scope.type === "OWN") {
+    values.push(scope.userId);
+    const p = "$" + values.length;
+    where += " AND (a.created_by=" + p +
+      " OR EXISTS(SELECT 1 FROM notifications ns WHERE ns.entity_type='notice' AND ns.entity_id=a.id::text AND ns.user_id=" + p + "))";
+  } else if (scope.type === "TEAM") {
+    values.push(scope.userId);
+    const managed = teamUserIds("$" + values.length);
+    where += " AND (a.created_by IN " + managed +
+      " OR EXISTS(SELECT 1 FROM notifications ns WHERE ns.entity_type='notice' AND ns.entity_id=a.id::text AND ns.user_id IN " + managed + "))";
+  }
+  if (filters.division) {
+    if (scope.type === "OWN" && filters.division !== scope.division)
+      throw Object.assign(new Error("Requested directorate is outside your permitted scope."), { status: 403 });
+    values.push(filters.division);
+    where += " AND creator.division=$" + values.length;
+  }
+  if (filters.from) {
+    values.push(filters.from);
+    where += " AND a.created_at::date >= $" + values.length + "::date";
+  }
+  if (filters.to) {
+    values.push(filters.to);
+    where += " AND a.created_at::date <= $" + values.length + "::date";
+  }
+  if (filters.status) {
+    values.push(filters.status);
+    where += " AND a.status=$" + values.length;
+  }
+  if (filters.search) {
+    values.push(filters.search);
+    where += " AND (a.title ILIKE '%'||$" + values.length + "||'%' OR a.body ILIKE '%'||$" + values.length + "||'%')";
+  }
+
+  const recipientJoin = "LEFT JOIN (" +
+    "SELECT entity_id,user_id,BOOL_OR(read_at IS NOT NULL) was_read FROM notifications " +
+    "WHERE entity_type='notice' GROUP BY entity_id,user_id" +
+    ") recipients ON recipients.entity_id=a.id::text";
+  const [summary, statuses, severityRows, list] = await Promise.all([
+    query(
+      "SELECT COUNT(DISTINCT a.id)::int total, " +
+      "COUNT(DISTINCT a.id) FILTER (WHERE a.status='Published')::int published, " +
+      "COUNT(DISTINCT a.id) FILTER (WHERE a.status='Pending Approval')::int pending, " +
+      "COUNT(DISTINCT a.id) FILTER (WHERE a.status='Rejected')::int rejected, " +
+      "COUNT(recipients.user_id)::int recipients, " +
+      "COUNT(recipients.user_id) FILTER (WHERE recipients.was_read)::int read_recipients, " +
+      "COUNT(recipients.user_id) FILTER (WHERE recipients.user_id IS NOT NULL AND NOT recipients.was_read)::int unread_recipients " +
+      "FROM alerts a JOIN users creator ON creator.id=a.created_by " + recipientJoin + " WHERE " + where,
+      values
+    ),
+    query(
+      "SELECT a.status label,COUNT(DISTINCT a.id)::int value FROM alerts a " +
+      "JOIN users creator ON creator.id=a.created_by WHERE " + where + " GROUP BY a.status ORDER BY a.status",
+      values
+    ),
+    query(
+      "SELECT a.severity label,COUNT(DISTINCT a.id)::int value FROM alerts a " +
+      "JOIN users creator ON creator.id=a.created_by WHERE " + where + " GROUP BY a.severity ORDER BY a.severity",
+      values
+    ),
+    paginate(
+      "SELECT a.id,a.title,a.severity,a.audience_role,a.status,a.created_at,a.expires_at," +
+      "creator.name created_by_name,creator.division," +
+      "COUNT(recipients.user_id)::int recipient_count," +
+      "COUNT(recipients.user_id) FILTER (WHERE recipients.was_read)::int read_count," +
+      "COUNT(recipients.user_id) FILTER (WHERE recipients.user_id IS NOT NULL AND NOT recipients.was_read)::int unread_count," +
+      "CASE WHEN COUNT(recipients.user_id)=0 THEN NULL ELSE " +
+      "ROUND((COUNT(recipients.user_id) FILTER (WHERE recipients.was_read))*100.0/COUNT(recipients.user_id),1) END read_rate " +
+      "FROM alerts a JOIN users creator ON creator.id=a.created_by " + recipientJoin + " WHERE " + where +
+      " GROUP BY a.id,creator.name,creator.division ORDER BY a.created_at DESC",
+      "SELECT COUNT(*) total FROM alerts a JOIN users creator ON creator.id=a.created_by WHERE " + where,
+      values,
+      filters
+    )
+  ]);
+  const totals = summary.rows[0] || {};
+  const recipientTotal = Number(totals.recipients || 0);
+  const readTotal = Number(totals.read_recipients || 0);
+  return {
+    kpis: [
+      kpi("notices", "Notices", Number(totals.total || 0)),
+      kpi("published", "Published", Number(totals.published || 0), "good"),
+      kpi("pending", "Pending approval", Number(totals.pending || 0), totals.pending ? "warning" : "neutral"),
+      kpi("recipients", "Recipient notification records", recipientTotal),
+      kpi("read", "Recipients with a read receipt", readTotal, "good"),
+      kpi("read-rate", "Read receipt rate", recipientTotal ? (Math.round((readTotal * 1000) / recipientTotal) / 10) + "%" : "—")
+    ],
+    charts: [
+      chart("status", "Notice publication status", "donut", statuses.rows, "status"),
+      chart("severity", "Notice severity", "bar", severityRows.rows, "severity"),
+      chart("readership", "Recipient read receipts", "bar", [
+        { label: "Read", value: readTotal },
+        { label: "Unread", value: Number(totals.unread_recipients || 0) }
+      ], "read_status")
+    ],
+    columns: ["title","severity","audience_role","created_by_name","division","status","created_at","expires_at","recipient_count","read_count","unread_count","read_rate"],
+    ...list,
+    notices: [
+      "Readership is calculated from per-user notice notification read receipts. Opening a notice is not treated as a separate formal acknowledgement, and the current source schema does not provide an acknowledgement register.",
+      "Recipient totals count unique users with a notice notification record; they do not infer recipients from audience settings."
+    ]
+  };
+}
+
 const providers = {
   assignmentStatus: allWorkStatus,
   overdueAgeing: allWorkOverdue,
@@ -1143,6 +1443,9 @@ const providers = {
   researchOutputs,
   documentActivity,
   felixUsage,
+  leaveUtilisation,
+  meetingDelivery,
+  noticeReadership,
 };
 export async function reportCatalogue(user) {
   const permissions = reportPermissions(user);

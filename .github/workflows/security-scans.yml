@@ -76,13 +76,28 @@ jobs:
         with:
           sarif_file: gitleaks.sarif
 
-  osv-scanner:
-    name: OSV dependency vulnerability scan
+  osv-scheduled:
+    name: OSV full dependency scan
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     permissions:
       actions: read
       contents: read
       security-events: write
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-unified-workflow.yml@87a33814e525266e92b7ecaa23a9743ee5a702b8 # v2.7.1
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
+    with:
+      scan-args: |-
+        --include-git-root
+        -r
+        ./
+
+  osv-pr:
+    name: OSV pull request dependency comparison
+    if: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     with:
       scan-args: |-
         --include-git-root

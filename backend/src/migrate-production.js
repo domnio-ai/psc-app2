@@ -18,7 +18,7 @@ async function applyProductionMigrations() {
     throw new Error('Set NODE_ENV=production to run the production migration command.')
   }
 
-  const { migrations } = await loadProductionMigrationPlan()
+  const { baselineSql, migrations } = await loadProductionMigrationPlan()
   const baseHash = baseline.sha256
 
   const client = await db.connect()

@@ -120,6 +120,27 @@ export type MeetingAction = {
   owner_name: string | null;
   due_date: string | null;
   status: string;
+  assignment_task_id?: string | null;
+  linked_task_id?: string | null;
+  linked_task_title?: string | null;
+  linked_task_status?: string | null;
+  linked_task_progress?: number | null;
+  linked_assignment_title?: string | null;
+};
+
+export type MeetingTaskLinkOption = {
+  id: string;
+  assignment_id: string;
+  title: string;
+  description: string;
+  owner_id: string | null;
+  owner_name: string | null;
+  reviewer_id: string | null;
+  reviewer_name: string | null;
+  due_date: string | null;
+  status: string;
+  progress: number;
+  assignment_title: string;
 };
 
 export type MeetingAttachment = {

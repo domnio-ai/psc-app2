@@ -103,9 +103,9 @@ jobs:
                   rule = finding.get("ruleId", "unknown")
                   path = artifact.get("uri", "unknown")
                   line = region.get("startLine", "unknown")
-                  summary.write(
-                      f"- Rule `{rule}`; file `{path}`; line `{line}`\\n"
-                  )
+                  entry = f"- Rule `{rule}`; file `{path}`; line `{line}`"
+                  print(entry)
+                  summary.write(entry + "\\n")
           PY
 
       - name: Upload redacted Gitleaks results to GitHub code scanning

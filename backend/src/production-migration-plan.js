@@ -25,6 +25,7 @@ export const migrationSources = [
   ['20261125_01_leave_request_attachments.sql', 'CBBC60FF680586EB2C2EC5B0C61DB1FCC317CF3332C1A06D3CE011EB48ED632D'],
   ['20260915_task_report_blank_content_v1092.sql', 'B64A3C5D47F17D5894EE1FBC447E2061A680CA84A8F4946698E281389CA3B91B'],
   ['20260916_meeting_schedule_approval_r1.sql', '943AA9587D833863BBE61A40EB15FF62B2BA653A3102DE8AD75FC36A8287D581'],
+  ['20261125_02_notice_audience_acknowledgements.sql', '13642CD5D6128BD1823BC76A548898E83843D721921B4DE6D6A1B2280A264887'],
 ].map(([file, sha256]) => ({ id: `migration:${file}`, file: `migrations/${file}`, sha256 }))
 
 export const embeddedMeetingMigration = {

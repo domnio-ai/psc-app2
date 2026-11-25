@@ -3430,14 +3430,249 @@ app.post('/api/research-imports/:id/resubmit',authenticate,async(req,res,next)=>
 }catch(error){if(error.status)return res.status(error.status).json({error:error.message});next(error)}})
 
 
-const noticeSchema=z.object({title:z.string().min(3).max(200),body:z.string().min(3).max(4000),severity:z.enum(['Information','Important','Urgent']).default('Information'),audienceRole:z.enum(roles).nullable().default(null),eventStart:z.string().datetime().nullable().default(null),eventEnd:z.string().datetime().nullable().default(null),expiresAt:z.string().datetime()}).superRefine((value,ctx)=>{if(value.eventStart&&new Date(value.eventStart)<new Date())ctx.addIssue({code:'custom',path:['eventStart'],message:'Event start cannot be before today.'});if(value.eventEnd&&!value.eventStart)ctx.addIssue({code:'custom',path:['eventEnd'],message:'Event start is required when an end is provided.'});if(value.eventStart&&value.eventEnd&&new Date(value.eventEnd)<new Date(value.eventStart))ctx.addIssue({code:'custom',path:['eventEnd'],message:'Event end must be after the event start.'});if(new Date(value.expiresAt)<=new Date())ctx.addIssue({code:'custom',path:['expiresAt'],message:'Notice expiry must be in the future.'})})
-app.get('/api/alerts',authenticate,async(req,res,next)=>{try{const manager=['System Admin','Deputy Director'].includes(req.user.role);const result=await query(`SELECT a.*,u.name created_by_name,r.name reviewed_by_name,(a.created_by=$2) can_manage FROM alerts a JOIN users u ON u.id=a.created_by LEFT JOIN users r ON r.id=a.reviewed_by WHERE(($1 AND TRUE)OR a.status='Published' OR a.created_by=$2)AND(a.audience_role IS NULL OR a.audience_role=$3 OR a.created_by=$2)AND(a.expires_at IS NULL OR a.expires_at>NOW() OR a.created_by=$2) ORDER BY CASE a.status WHEN 'Pending Approval' THEN 0 WHEN 'Published' THEN 1 ELSE 2 END,a.created_at DESC`,[manager,req.user.id,req.user.role]);res.json(result.rows)}catch(error){next(error)}})
-app.post('/api/alerts',authenticate,validate(noticeSchema),async(req,res,next)=>{try{const v=req.validated;const created=await transaction(async client=>{const row=(await client.query("INSERT INTO alerts(title,body,severity,audience_role,event_start,event_end,expires_at,created_by,status)VALUES($1,$2,$3,$4,$5,$6,$7,$8,'Pending Approval')RETURNING *",[v.title.trim(),v.body.trim(),v.severity,v.audienceRole,v.eventStart,v.eventEnd,v.expiresAt,req.user.id])).rows[0];await client.query("INSERT INTO notifications(user_id,title,body,entity_type,entity_id)SELECT id,'Notice awaiting approval',$1,'notice',$2 FROM users WHERE active=TRUE AND role IN('System Admin','Deputy Director')",[`Ã¢â‚¬Å“${row.title}Ã¢â‚¬Â was submitted by ${req.user.name}.`,row.id]);await audit(client,req.user.id,'NOTICE_SUBMITTED','notice',row.id,{title:row.title,expiresAt:v.expiresAt});return row});res.status(201).json(created)}catch(error){next(error)}})
-app.patch('/api/alerts/:id/review',authenticate,authorize('System Admin','Deputy Director'),validate(z.object({approved:z.boolean(),reason:z.string().max(1000).default('')})),async(req,res,next)=>{try{if(!isOrganisationScopeRole(req.user.role))return res.status(403).json({error:'Publishing institutional notices is Directorate-level and is outside team-manager scope.'});const result=await transaction(async client=>{const row=(await client.query("UPDATE alerts SET status=$1,reviewed_by=$2,reviewed_at=NOW(),rejection_reason=$3 WHERE id=$4 AND status='Pending Approval' RETURNING *",[req.validated.approved?'Published':'Rejected',req.user.id,req.validated.approved?null:req.validated.reason.trim(),req.params.id])).rows[0];if(!row)return null;await client.query('INSERT INTO notifications(user_id,title,body,entity_type,entity_id)VALUES($1,$2,$3,$4,$5)',[row.created_by,req.validated.approved?'Notice approved':'Notice returned for correction',req.validated.approved?`Ã¢â‚¬Å“${row.title}Ã¢â‚¬Â is now published on the Notice Board.`:`Ã¢â‚¬Å“${row.title}Ã¢â‚¬Â was not approved: ${req.validated.reason||'No reason supplied.'}`,'notice',row.id]);if(req.validated.approved)await client.query("INSERT INTO notifications(user_id,title,body,entity_type,entity_id)SELECT id,'New Notice Board post',$1,'notice',$2 FROM users WHERE active=TRUE AND id<>$3 AND ($4::text IS NULL OR role=$4)",[`Ã¢â‚¬Å“${row.title}Ã¢â‚¬Â has been published.`,row.id,row.created_by,row.audience_role]);await audit(client,req.user.id,req.validated.approved?'NOTICE_APPROVED':'NOTICE_REJECTED','notice',row.id,{reason:req.validated.reason});return row});if(!result)return res.status(404).json({error:'Pending notice not found.'});res.json(result)}catch(error){next(error)}})
-app.patch('/api/alerts/:id/pin',authenticate,authorize('System Admin','Deputy Director'),validate(z.object({pinned:z.boolean()})),async(req,res,next)=>{try{const row=(await query("UPDATE alerts SET is_pinned=$1,pinned_at=CASE WHEN $1 THEN NOW() ELSE NULL END,pinned_by=CASE WHEN $1 THEN $2 ELSE NULL END WHERE id=$3 AND status='Published' AND expires_at>NOW() RETURNING *",[req.validated.pinned,req.user.id,req.params.id])).rows[0];if(!row)return res.status(404).json({error:'An active published notice is required.'});await query('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,$2,$3,$4,$5)',[req.user.id,req.validated.pinned?'NOTICE_PINNED':'NOTICE_UNPINNED','notice',row.id,JSON.stringify({title:row.title})]);res.json(row)}catch(error){next(error)}})
-app.delete('/api/alerts/:id',authenticate,async(req,res,next)=>{try{const result=await transaction(async client=>{const notice=(await client.query('SELECT * FROM alerts WHERE id=$1',[req.params.id])).rows[0];if(!notice)return null;const manager=['System Admin','Deputy Director'].includes(req.user.role);if(!manager&&notice.created_by!==req.user.id)throw Object.assign(new Error('You can delete only notices you submitted.'),{status:403});if(!manager&&notice.status==='Published')throw Object.assign(new Error('Only management can delete a published notice.'),{status:403});await client.query("DELETE FROM notifications WHERE entity_type='notice' AND entity_id=$1",[notice.id]);await client.query('DELETE FROM alerts WHERE id=$1',[notice.id]);await audit(client,req.user.id,'NOTICE_DELETED','notice',notice.id,{title:notice.title,status:notice.status});return notice});if(!result)return res.status(404).json({error:'Notice not found.'});res.status(204).end()}catch(error){if(error.status)return res.status(error.status).json({error:error.message});next(error)}})
-app.get('/api/alerts/:id/comments',authenticate,async(req,res,next)=>{try{const visible=(await query("SELECT 1 FROM alerts WHERE id=$1 AND status='Published' AND(audience_role IS NULL OR audience_role=$2)AND(expires_at IS NULL OR expires_at>NOW())",[req.params.id,req.user.role])).rowCount;if(!visible)return res.status(404).json({error:'Published notice not found.'});const result=await query('SELECT c.id,c.alert_id,c.body,c.created_at,c.user_id,u.name user_name,u.role user_role FROM alert_comments c JOIN users u ON u.id=c.user_id WHERE c.alert_id=$1 ORDER BY c.created_at ASC',[req.params.id]);res.json(result.rows)}catch(error){next(error)}})
-app.post('/api/alerts/:id/comments',authenticate,validate(z.object({body:z.string().trim().min(1).max(2000)})),async(req,res,next)=>{try{const result=await transaction(async client=>{const notice=(await client.query("SELECT id,title,created_by FROM alerts WHERE id=$1 AND status='Published' AND(audience_role IS NULL OR audience_role=$2)AND(expires_at IS NULL OR expires_at>NOW())",[req.params.id,req.user.role])).rows[0];if(!notice)return null;const row=(await client.query('INSERT INTO alert_comments(alert_id,user_id,body)VALUES($1,$2,$3)RETURNING *',[notice.id,req.user.id,req.validated.body])).rows[0];if(notice.created_by!==req.user.id)await client.query("INSERT INTO notifications(user_id,title,body,entity_type,entity_id)VALUES($1,'New notice comment',$2,'notice',$3)",[notice.created_by,`${req.user.name} commented on Ã¢â‚¬Å“${notice.title}Ã¢â‚¬Â.`,notice.id]);await audit(client,req.user.id,'NOTICE_COMMENTED','notice',notice.id,{});return {...row,user_name:req.user.name,user_role:req.user.role}});if(!result)return res.status(404).json({error:'Published notice not found.'});res.status(201).json(result)}catch(error){next(error)}})
+const noticeAudienceRuleSchema=z.object({
+  type:z.enum(['ORGANISATION','ROLE','DIRECTORATE','USER']),
+  value:z.string().trim().min(1).max(160),
+})
+const noticeSchema=z.object({
+  title:z.string().trim().min(3).max(200),
+  body:z.string().trim().min(3).max(4000),
+  severity:z.enum(['Information','Important','Urgent']).default('Information'),
+  audienceRole:z.enum(roles).nullable().default(null),
+  audienceRules:z.array(noticeAudienceRuleSchema).max(100).optional(),
+  acknowledgementRequired:z.boolean().default(false),
+  eventStart:z.string().datetime().nullable().default(null),
+  eventEnd:z.string().datetime().nullable().default(null),
+  expiresAt:z.string().datetime(),
+}).superRefine((value,ctx)=>{
+  if(value.eventStart&&new Date(value.eventStart)<new Date())ctx.addIssue({code:'custom',path:['eventStart'],message:'Event start cannot be before today.'})
+  if(value.eventEnd&&!value.eventStart)ctx.addIssue({code:'custom',path:['eventEnd'],message:'Event start is required when an end is provided.'})
+  if(value.eventStart&&value.eventEnd&&new Date(value.eventEnd)<new Date(value.eventStart))ctx.addIssue({code:'custom',path:['eventEnd'],message:'Event end must be after the event start.'})
+  if(new Date(value.expiresAt)<=new Date())ctx.addIssue({code:'custom',path:['expiresAt'],message:'Notice expiry must be in the future.'})
+  const rules=value.audienceRules||[]
+  const keys=new Set()
+  for(const rule of rules){
+    const key=rule.type+':'+rule.value
+    if(keys.has(key))ctx.addIssue({code:'custom',path:['audienceRules'],message:'Audience selections must not contain duplicates.'})
+    keys.add(key)
+    if(rule.type==='ORGANISATION'&&rule.value!=='*')ctx.addIssue({code:'custom',path:['audienceRules'],message:'Organisation-wide audience value must be *.'})
+    if(rule.type==='USER'&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rule.value))ctx.addIssue({code:'custom',path:['audienceRules'],message:'Individual audience selection must be a valid account ID.'})
+  }
+  if(rules.some(rule=>rule.type==='ORGANISATION')&&rules.length!==1)ctx.addIssue({code:'custom',path:['audienceRules'],message:'Organisation-wide audience cannot be combined with narrower audiences.'})
+})
+const resolveNoticeAudienceRules=async(value,user)=>{
+  const rules=value.audienceRules?.length
+    ? value.audienceRules
+    : value.audienceRole
+      ? [{type:'ROLE',value:value.audienceRole}]
+      : [{type:'ORGANISATION',value:'*'}]
+  if(rules.some(rule=>['DIRECTORATE','USER'].includes(rule.type))&&!isOrganisationScopeRole(user.role)){
+    throw Object.assign(new Error('Only organisation-scope management can target a directorate or individual accounts.'),{status:403})
+  }
+  for(const rule of rules){
+    if(rule.type==='ROLE'&&!roles.includes(rule.value))throw Object.assign(new Error('Select a valid role audience.'),{status:400})
+    if(rule.type==='DIRECTORATE'){
+      const exists=await query('SELECT 1 FROM users WHERE active=TRUE AND division=$1 LIMIT 1',[rule.value])
+      if(!exists.rowCount)throw Object.assign(new Error('The selected directorate does not contain any active accounts.'),{status:400})
+    }
+    if(rule.type==='USER'){
+      const exists=await query('SELECT 1 FROM users WHERE id=$1 AND active=TRUE',[rule.value])
+      if(!exists.rowCount)throw Object.assign(new Error('The selected individual account is not active.'),{status:400})
+    }
+  }
+  return rules
+}
+app.get('/api/alerts',authenticate,async(req,res,next)=>{try{
+  const manager=['System Admin','Deputy Director'].includes(req.user.role)
+  const result=await query(
+    'SELECT a.*,u.name created_by_name,r.name reviewed_by_name,(a.created_by=$2) can_manage,'+
+    'recipient.acknowledged_at,(recipient.user_id IS NOT NULL) is_recipient '+
+    'FROM alerts a JOIN users u ON u.id=a.created_by LEFT JOIN users r ON r.id=a.reviewed_by '+
+    'LEFT JOIN alert_recipients recipient ON recipient.alert_id=a.id AND recipient.user_id=$2 '+
+    "WHERE (($1 AND TRUE) OR a.status='Published' OR a.created_by=$2) AND "+
+    '($1 OR a.created_by=$2 OR recipient.user_id IS NOT NULL OR '+
+    '(NOT EXISTS(SELECT 1 FROM alert_audience_rules rule WHERE rule.alert_id=a.id) AND (a.audience_role IS NULL OR a.audience_role=$3))) '+
+    'AND (a.expires_at IS NULL OR a.expires_at>NOW() OR a.created_by=$2) '+
+    "ORDER BY CASE a.status WHEN 'Pending Approval' THEN 0 WHEN 'Published' THEN 1 ELSE 2 END,a.created_at DESC",
+    [manager,req.user.id,req.user.role],
+  )
+  res.json(result.rows)
+}catch(error){next(error)}})
+app.post('/api/alerts',authenticate,validate(noticeSchema),async(req,res,next)=>{try{
+  const v=req.validated
+  const audienceRules=await resolveNoticeAudienceRules(v,req.user)
+  const legacyRole=audienceRules.length===1&&audienceRules[0].type==='ROLE'?audienceRules[0].value:null
+  const created=await transaction(async client=>{
+    const row=(await client.query(
+      "INSERT INTO alerts(title,body,severity,audience_role,event_start,event_end,expires_at,created_by,status,acknowledgement_required) VALUES($1,$2,$3,$4,$5,$6,$7,$8,'Pending Approval',$9) RETURNING *",
+      [v.title,v.body,v.severity,legacyRole,v.eventStart,v.eventEnd,v.expiresAt,req.user.id,v.acknowledgementRequired],
+    )).rows[0]
+    for(const rule of audienceRules){
+      await client.query(
+        'INSERT INTO alert_audience_rules(alert_id,audience_type,audience_value) VALUES($1,$2,$3)',
+        [row.id,rule.type,rule.value],
+      )
+    }
+    const recipients=(await client.query(
+      "SELECT DISTINCT u.id FROM users u WHERE u.active=TRUE AND u.id<>$2 AND EXISTS("+
+      "SELECT 1 FROM jsonb_to_recordset($1::jsonb) AS rule(type text,value text) WHERE "+
+      "(rule.type='ORGANISATION' AND rule.value='*') OR "+
+      "(rule.type='ROLE' AND rule.value=u.role) OR "+
+      "(rule.type='DIRECTORATE' AND rule.value=u.division) OR "+
+      "(rule.type='USER' AND rule.value=u.id::text)) ORDER BY u.id",
+      [JSON.stringify(audienceRules),req.user.id],
+    )).rows
+    if(!recipients.length)throw Object.assign(new Error('The selected audience does not contain any active recipients other than the notice author.'),{status:400})
+    for(const recipient of recipients){
+      await client.query(
+        'INSERT INTO alert_recipients(alert_id,user_id) VALUES($1,$2) ON CONFLICT(alert_id,user_id) DO NOTHING',
+        [row.id,recipient.id],
+      )
+    }
+    await client.query(
+      "INSERT INTO notifications(user_id,title,body,entity_type,entity_id) SELECT id,'Notice awaiting approval',$1,'notice',$2 FROM users WHERE active=TRUE AND role IN('System Admin','Deputy Director')",
+      ['A notice was submitted by '+req.user.name+' and is awaiting approval.',row.id],
+    )
+    await audit(client,req.user.id,'NOTICE_SUBMITTED','notice',row.id,{
+      title:row.title,expiresAt:v.expiresAt,audienceTypes:audienceRules.map(rule=>rule.type),
+      recipientCount:recipients.length,acknowledgementRequired:Boolean(v.acknowledgementRequired),
+    })
+    return {...row,recipient_count:recipients.length}
+  })
+  res.status(201).json(created)
+}catch(error){if(error.status)return res.status(error.status).json({error:error.message});next(error)}})
+app.patch('/api/alerts/:id/review',authenticate,authorize('System Admin','Deputy Director'),validate(z.object({approved:z.boolean(),reason:z.string().max(1000).default('')})),async(req,res,next)=>{try{
+  if(!isOrganisationScopeRole(req.user.role))return res.status(403).json({error:'Publishing institutional notices is Directorate-level and is outside team-manager scope.'})
+  const result=await transaction(async client=>{
+    const row=(await client.query(
+      "UPDATE alerts SET status=$1,reviewed_by=$2,reviewed_at=NOW(),rejection_reason=$3 WHERE id=$4 AND status='Pending Approval' RETURNING *",
+      [req.validated.approved?'Published':'Rejected',req.user.id,req.validated.approved?null:req.validated.reason.trim(),req.params.id],
+    )).rows[0]
+    if(!row)return null
+    await client.query(
+      'INSERT INTO notifications(user_id,title,body,entity_type,entity_id) VALUES($1,$2,$3,$4,$5)',
+      [row.created_by,req.validated.approved?'Notice approved':'Notice returned for correction',
+       req.validated.approved?'The notice “'+row.title+'” is now published.':'The notice “'+row.title+'” was not approved: '+(req.validated.reason||'No reason supplied.'),
+       'notice',row.id],
+    )
+    if(req.validated.approved){
+      const recipients=(await client.query(
+        'SELECT user_id FROM alert_recipients WHERE alert_id=$1 AND user_id<>$2 ORDER BY user_id',
+        [row.id,row.created_by],
+      )).rows
+      for(const recipient of recipients){
+        const eventKey='notice-published:'+row.id
+        let notification=(await client.query(
+          'INSERT INTO notifications(user_id,title,body,entity_type,entity_id,event_key) '+
+          "VALUES($1,'New Notice Board post',$2,'notice',$3,$4) "+
+          'ON CONFLICT(user_id,event_key) WHERE event_key IS NOT NULL DO NOTHING RETURNING id',
+          [recipient.user_id,'The notice “'+row.title+'” has been published.',row.id,eventKey],
+        )).rows[0]
+        if(!notification){
+          notification=(await client.query(
+            'SELECT id FROM notifications WHERE user_id=$1 AND event_key=$2',
+            [recipient.user_id,eventKey],
+          )).rows[0]
+        }
+        if(notification?.id){
+          await client.query(
+            'UPDATE alert_recipients SET notification_id=$3 WHERE alert_id=$1 AND user_id=$2',
+            [row.id,recipient.user_id,notification.id],
+          )
+        }
+      }
+    }
+    const recipientCount=(await client.query(
+      'SELECT COUNT(*)::int count FROM alert_recipients WHERE alert_id=$1',
+      [row.id],
+    )).rows[0].count
+    await audit(client,req.user.id,req.validated.approved?'NOTICE_APPROVED':'NOTICE_REJECTED','notice',row.id,{
+      reason:req.validated.reason,recipientCount:req.validated.approved?recipientCount:0,
+      acknowledgementRequired:Boolean(row.acknowledgement_required),
+    })
+    return row
+  })
+  if(!result)return res.status(404).json({error:'Pending notice not found.'})
+  res.json(result)
+}catch(error){next(error)}})
+app.post('/api/alerts/:id/acknowledge',authenticate,async(req,res,next)=>{try{
+  const result=await transaction(async client=>{
+    const notice=(await client.query(
+      "SELECT id,title,acknowledgement_required FROM alerts WHERE id=$1 AND status='Published' AND (expires_at IS NULL OR expires_at>NOW())",
+      [req.params.id],
+    )).rows[0]
+    if(!notice)return {status:404,error:'Published notice not found.'}
+    if(!notice.acknowledgement_required)return {status:409,error:'This notice does not require formal acknowledgement.'}
+    const recipient=(await client.query(
+      'SELECT acknowledged_at FROM alert_recipients WHERE alert_id=$1 AND user_id=$2 FOR UPDATE',
+      [notice.id,req.user.id],
+    )).rows[0]
+    if(!recipient)return {status:404,error:'This notice is not addressed to your account.'}
+    if(!recipient.acknowledged_at){
+      const updated=(await client.query(
+        'UPDATE alert_recipients SET acknowledged_at=NOW() WHERE alert_id=$1 AND user_id=$2 RETURNING acknowledged_at',
+        [notice.id,req.user.id],
+      )).rows[0]
+      await audit(client,req.user.id,'NOTICE_ACKNOWLEDGED','notice',notice.id,{title:notice.title})
+      return {status:200,acknowledged:true,acknowledged_at:updated.acknowledged_at}
+    }
+    return {status:200,acknowledged:true,acknowledged_at:recipient.acknowledged_at}
+  })
+  if(result.status!==200)return res.status(result.status).json({error:result.error})
+  res.json({acknowledged:result.acknowledged,acknowledged_at:result.acknowledged_at})
+}catch(error){next(error)}})
+app.patch('/api/alerts/:id/pin',authenticate,authorize('System Admin','Deputy Director'),validate(z.object({pinned:z.boolean()})),async(req,res,next)=>{try{
+  const row=(await query("UPDATE alerts SET is_pinned=$1,pinned_at=CASE WHEN $1 THEN NOW() ELSE NULL END,pinned_by=CASE WHEN $1 THEN $2 ELSE NULL END WHERE id=$3 AND status='Published' AND expires_at>NOW() RETURNING *",[req.validated.pinned,req.user.id,req.params.id])).rows[0]
+  if(!row)return res.status(404).json({error:'An active published notice is required.'})
+  await query('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details) VALUES($1,$2,$3,$4,$5)',[req.user.id,req.validated.pinned?'NOTICE_PINNED':'NOTICE_UNPINNED','notice',row.id,JSON.stringify({title:row.title})])
+  res.json(row)
+}catch(error){next(error)}})
+app.delete('/api/alerts/:id',authenticate,async(req,res,next)=>{try{
+  const result=await transaction(async client=>{
+    const notice=(await client.query('SELECT * FROM alerts WHERE id=$1',[req.params.id])).rows[0]
+    if(!notice)return null
+    const manager=['System Admin','Deputy Director'].includes(req.user.role)
+    if(!manager&&notice.created_by!==req.user.id)throw Object.assign(new Error('You can delete only notices you submitted.'),{status:403})
+    if(!manager&&notice.status==='Published')throw Object.assign(new Error('Only management can delete a published notice.'),{status:403})
+    await client.query("DELETE FROM notifications WHERE entity_type='notice' AND entity_id=$1",[notice.id])
+    await client.query('DELETE FROM alerts WHERE id=$1',[notice.id])
+    await audit(client,req.user.id,'NOTICE_DELETED','notice',notice.id,{title:notice.title,status:notice.status})
+    return notice
+  })
+  if(!result)return res.status(404).json({error:'Notice not found.'})
+  res.status(204).end()
+}catch(error){if(error.status)return res.status(error.status).json({error:error.message});next(error)}})
+app.get('/api/alerts/:id/comments',authenticate,async(req,res,next)=>{try{
+  const visible=(await query(
+    "SELECT 1 FROM alerts a WHERE a.id=$1 AND a.status='Published' AND (a.expires_at IS NULL OR a.expires_at>NOW()) AND ("+
+    "EXISTS(SELECT 1 FROM alert_recipients ar WHERE ar.alert_id=a.id AND ar.user_id=$2) OR "+
+    "(NOT EXISTS(SELECT 1 FROM alert_audience_rules rule WHERE rule.alert_id=a.id) AND (a.audience_role IS NULL OR a.audience_role=$3)))",
+    [req.params.id,req.user.id,req.user.role],
+  )).rowCount
+  if(!visible)return res.status(404).json({error:'Published notice not found.'})
+  const result=await query('SELECT c.id,c.alert_id,c.body,c.created_at,c.user_id,u.name user_name,u.role user_role FROM alert_comments c JOIN users u ON u.id=c.user_id WHERE c.alert_id=$1 ORDER BY c.created_at ASC',[req.params.id])
+  res.json(result.rows)
+}catch(error){next(error)}})
+app.post('/api/alerts/:id/comments',authenticate,validate(z.object({body:z.string().trim().min(1).max(2000)})),async(req,res,next)=>{try{
+  const result=await transaction(async client=>{
+    const notice=(await client.query(
+      "SELECT a.id,a.title,a.created_by FROM alerts a WHERE a.id=$1 AND a.status='Published' AND (a.expires_at IS NULL OR a.expires_at>NOW()) AND ("+
+      "EXISTS(SELECT 1 FROM alert_recipients ar WHERE ar.alert_id=a.id AND ar.user_id=$2) OR "+
+      "(NOT EXISTS(SELECT 1 FROM alert_audience_rules rule WHERE rule.alert_id=a.id) AND (a.audience_role IS NULL OR a.audience_role=$3)))",
+      [req.params.id,req.user.id,req.user.role],
+    )).rows[0]
+    if(!notice)return null
+    const row=(await client.query('INSERT INTO alert_comments(alert_id,user_id,body) VALUES($1,$2,$3) RETURNING *',[notice.id,req.user.id,req.validated.body])).rows[0]
+    if(notice.created_by!==req.user.id)await client.query(
+      "INSERT INTO notifications(user_id,title,body,entity_type,entity_id) VALUES($1,'New notice comment',$2,'notice',$3)",
+      [req.user.name+' commented on the notice “'+notice.title+'”.',notice.id],
+    )
+    await audit(client,req.user.id,'NOTICE_COMMENTED','notice',notice.id,{})
+    return {...row,user_name:req.user.name,user_role:req.user.role}
+  })
+  if(!result)return res.status(404).json({error:'Published notice not found.'})
+  res.status(201).json(result)
+}catch(error){next(error)}})
 app.get('/api/calendar',authenticate,async(req,res,next)=>{try{
   const [base,repository]=await Promise.all([calendarForUser(req.user),repositoryCalendarForUser(req.user)])
   res.json([...base,...repository].sort((a,b)=>new Date(a.start_at).getTime()-new Date(b.start_at).getTime()))

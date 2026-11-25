@@ -1483,36 +1483,59 @@ export function registerMeetingsRoutes(app){
 
   app.patch('/api/meetings/:id/actions/:actionId',authenticate,async(req,res,next)=>{try{
     await requireAccess(req,req.params.id)
-    const action=(await query('SELECT a.*,linked.owner_id linked_task_owner_id,linked.reviewer_id linked_task_reviewer_id FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id WHERE a.id=$1 AND a.meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
+    const action=(await query(
+      'SELECT a.*,linked.owner_id linked_task_owner_id,linked.reviewer_id linked_task_reviewer_id '+
+      'FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id '+
+      'WHERE a.id=$1 AND a.meeting_id=$2',
+      [req.params.actionId,req.params.id],
+    )).rows[0]
     if(!action)throw httpError(404,'Meeting action not found.')
-    if(![action.owner_id,action.linked_task_owner_id,action.linked_task_reviewer_id].includes(req.user.id)&&!await meetingManage(req.user,req.params.id))throw httpError(403,'Only the action owner, linked task owner/reviewer or meeting manager can update this action.')
+    const canUpdateOwner=[action.owner_id,action.linked_task_owner_id,action.linked_task_reviewer_id].includes(req.user.id)
+    if(!canUpdateOwner&&!await meetingManage(req.user,req.params.id))throw httpError(403,'Only the action owner, linked task owner/reviewer or meeting manager can update this action.')
     const status=String(req.body?.status||'Open')
     if(!['Open','In Progress','Blocked','Completed'].includes(status))throw httpError(400,'Invalid meeting action status.')
-    let row
-    if(action.assignment_task_id){
-      const task=(await query('SELECT * FROM assignment_tasks WHERE id=$1 AND archived_at IS NULL FOR UPDATE',[action.assignment_task_id])).rows[0]
-      if(!task)throw httpError(409,'The linked assignment task is archived or unavailable. Unlink it before updating this meeting action.')
-      await assertCanAccessAssignmentTask(req.user,task)
-      const taskStatus=actionTaskStatus(status)
-      row=await transaction(async client=>{
-        await client.query(
-          'UPDATE assignment_tasks SET status=$2,progress=CASE WHEN $2=\'Completed\' THEN 100 WHEN $2=\'Not Started\' THEN 0 ELSE progress END,updated_at=NOW() WHERE id=$1',
-          [task.id,taskStatus],
-        )
-        await audit(client,req.user.id,'MEETING_ACTION_UPDATED',req.params.id,{actionId:action.id,assignmentTaskId:task.id,status,sourceOfTruth:'assignment_tasks'})
-        return (await client.query(
-          `SELECT a.id,a.meeting_id,a.title,a.description,a.owner_id,u.name owner_name,a.due_date,
-            CASE WHEN t.id IS NULL THEN a.status WHEN t.status='Not Started' THEN 'Open' ELSE t.status END status,
-            a.created_by,a.created_at,a.updated_at,a.assignment_task_id,t.id linked_task_id,t.title linked_task_title,t.status linked_task_status,t.progress linked_task_progress
-           FROM meeting_actions a LEFT JOIN users u ON u.id=a.owner_id
-           LEFT JOIN assignment_tasks t ON t.id=a.assignment_task_id WHERE a.id=$1`,
-          [action.id],
+    const row=await transaction(async client=>{
+      if(action.assignment_task_id){
+        const task=(await client.query(
+          'SELECT * FROM assignment_tasks WHERE id=$1 AND archived_at IS NULL FOR UPDATE',
+          [action.assignment_task_id],
         )).rows[0]
-      })
-    }else{
-      row=(await query('UPDATE meeting_actions SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[action.id,status])).rows[0]
-      await query('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details) VALUES($1,\'MEETING_ACTION_UPDATED\',\'meeting\',$2,$3::jsonb)',[req.user.id,req.params.id,JSON.stringify({actionId:action.id,status})])
-    }
+        if(!task)throw httpError(409,'The linked assignment task is archived or unavailable. Unlink it before updating this meeting action.')
+        await assertCanAccessAssignmentTask(req.user,task)
+        const taskStatus=actionTaskStatus(status)
+        const updated=(await client.query(
+          "UPDATE assignment_tasks SET status=$2,progress=CASE WHEN $2='Completed' THEN 100 WHEN $2='Not Started' THEN 0 ELSE progress END,updated_at=NOW() WHERE id=$1 RETURNING id",
+          [task.id,taskStatus],
+        )).rows[0]
+        if(!updated)throw httpError(409,'The linked assignment task could not be updated.')
+        await audit(client,req.user.id,'MEETING_ACTION_UPDATED',req.params.id,{
+          actionId:action.id,assignmentTaskId:task.id,status,sourceOfTruth:'assignment_tasks',
+        })
+      }else{
+        await client.query(
+          'UPDATE meeting_actions SET status=$2,updated_at=NOW() WHERE id=$1',
+          [action.id,status],
+        )
+        await audit(client,req.user.id,'MEETING_ACTION_UPDATED',req.params.id,{actionId:action.id,status})
+      }
+      return (await client.query(
+        'SELECT a.id,a.meeting_id,'+
+          'CASE WHEN linked.id IS NULL THEN a.title ELSE linked.title END title,'+
+          'CASE WHEN linked.id IS NULL THEN a.description ELSE linked.description END description,'+
+          'CASE WHEN linked.id IS NULL THEN a.owner_id ELSE linked.owner_id END owner_id,'+
+          'CASE WHEN linked.id IS NULL THEN action_owner.name ELSE task_owner.name END owner_name,'+
+          'CASE WHEN linked.id IS NULL THEN a.due_date ELSE linked.due_date END due_date,'+
+          "CASE WHEN linked.id IS NULL THEN a.status WHEN linked.status='Not Started' THEN 'Open' ELSE linked.status END status,"+
+          'a.created_by,a.created_at,a.updated_at,a.assignment_task_id,'+
+          'linked.id linked_task_id,linked.title linked_task_title,linked.status linked_task_status,'+
+          'linked.progress linked_task_progress,assignment.title linked_assignment_title '+
+          'FROM meeting_actions a LEFT JOIN users action_owner ON action_owner.id=a.owner_id '+
+          'LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id '+
+          'LEFT JOIN users task_owner ON task_owner.id=linked.owner_id '+
+          'LEFT JOIN assignments assignment ON assignment.id=linked.assignment_id WHERE a.id=$1',
+        [action.id],
+      )).rows[0]
+    })
     res.json(row)
   }catch(error){next(error)}})
 

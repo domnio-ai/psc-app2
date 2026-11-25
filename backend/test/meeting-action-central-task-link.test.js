@@ -23,7 +23,7 @@ test("meeting actions can link one-to-one to an existing central assignment task
   assert.match(routes,/Only the action owner, linked task owner\/reviewer or meeting manager/);
   assert.match(routes,/Meeting action linked to your task/);
   assert.match(routes,/Meeting action unlinked from your task/);
-  assert.match(routes,/The central task status was updated to/);
+  assert.match(routes,/Task ownership and progress remain managed in Tasks/);
   assert.match(routes,/new Set\(\[task\.owner_id,task\.reviewer_id\]/);
 });
 
@@ -31,6 +31,8 @@ test("linked meeting action state is derived from the central task lifecycle",()
   assert.match(routes,/CASE WHEN linked\.id IS NULL THEN a\.status WHEN linked\.status='Not Started' THEN 'Open' ELSE linked\.status END status/);
   assert.match(routes,/UPDATE assignment_tasks SET status=\$2,progress=CASE WHEN \$2='Completed' THEN 100/);
   assert.match(routes,/sourceOfTruth:'assignment_tasks'/);
+  assert.match(routes,/linked_task_status!=='Completed'/);
+  assert.match(routes,/approved final Task Report publication workflow/);
   assert.match(routes,/linked_task_status/);
   assert.match(routes,/linked_task_title/);
   assert.match(routes,/status=\$8,updated_at=NOW\(\)/);

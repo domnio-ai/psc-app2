@@ -14,19 +14,13 @@ const response = () => ({
 
 test('password recovery limiter throttles repeated requests by email identity', () => {
   let current = 100_000
-  const limit = createAuthRateLimiter({
-    windowMs: 60_000,
-    maxIpAttempts: 10,
-    maxIdentityAttempts: 2,
-    now: () => current,
-  })
+  const limit = createAuthRateLimiter({ windowMs: 60_000, maxIpAttempts: 10, maxIdentityAttempts: 2, now: () => current })
   const run = email => {
     const res = response()
     let nextCalled = false
     limit({ ip: '10.0.0.10', body: { email } }, res, () => { nextCalled = true })
     return { res, nextCalled }
   }
-
   assert.equal(run('staff@example.test').nextCalled, true)
   assert.equal(run(' STAFF@example.test ').nextCalled, true)
   const blocked = run('staff@example.test')
@@ -38,24 +32,24 @@ test('password recovery limiter throttles repeated requests by email identity', 
   assert.equal(run('staff@example.test').nextCalled, true)
 })
 
-test('password reset token rate limit hashes identity keys and enforces an IP ceiling', () => {
-  const limit = createAuthRateLimiter({
-    windowMs: 1_000,
-    maxIpAttempts: 1,
-    maxIdentityAttempts: 5,
-    now: () => 10_000,
-  })
-  const buckets = new Map()
-  const fakeReq = { ip: '127.0.0.1', body: { token: 'a'.repeat(64) } }
-  const res = response()
-  limit(fakeReq, res, () => {})
-  const identityBucket = [...buckets.keys()].find(key => key.startsWith('identity:'))
-  assert.equal(identityBucket, undefined)
+test('password reset limiter applies a separate hashed identity bucket per token', () => {
+  const limit = createAuthRateLimiter({ windowMs: 60_000, maxIpAttempts: 10, maxIdentityAttempts: 1, now: () => 50_000 })
+  const run = token => {
+    const res = response()
+    let nextCalled = false
+    limit({ ip: '127.0.0.1', body: { token } }, res, () => { nextCalled = true })
+    return { res, nextCalled }
+  }
+  assert.equal(run('a'.repeat(64)).nextCalled, true)
+  const repeated = run('a'.repeat(64))
+  assert.equal(repeated.res.statusCode, 429)
+  assert.equal(repeated.nextCalled, false)
+  assert.equal(run('b'.repeat(64)).nextCalled, true)
 })
 
-test('forgot-password and reset-password routes apply a password recovery limiter', async () => {
+test('forgot-password and reset-password routes apply the password recovery limiter', async () => {
   const app = await readFile(new URL('../src/app.js', import.meta.url), 'utf8')
-  assert.match(app, /app\.post\('\/api\/auth\/forgot-password',passwordResetRateLimit,validate\(/)
-  assert.match(app, /app\.post\('\/api\/auth\/reset-password',passwordResetRateLimit,validate\(/)
-  assert.match(app, /createAuthRateLimiter\(\{windowMs:15\*60\*1000,maxIpAttempts:60,maxIdentityAttempts:5\}\)/)
+  assert.match(app, /app\\.post\\('\\/api\\/auth\\/forgot-password',passwordResetRateLimit,validate\\(/)
+  assert.match(app, /app\\.post\\('\\/api\\/auth\\/reset-password',passwordResetRateLimit,validate\\(/)
+  assert.match(app, /createAuthRateLimiter\\(\\{windowMs:15\\*60\\*1000,maxIpAttempts:60,maxIdentityAttempts:5\\}\\)/)
 })

@@ -813,6 +813,15 @@ export default function App() {
   const [resetToken, setResetToken] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  useEffect(() => {
+    const fragment = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+    const linkToken = new URLSearchParams(fragment).get("resetToken");
+    if (!linkToken) return;
+    setResetToken(linkToken);
+    setPasswordMode("forgot");
+    setPasswordMessage("This secure link is ready. Choose a new password below.");
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  }, []);
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(
     null,
   );
@@ -1761,15 +1770,16 @@ export default function App() {
     supervisorId: "",
     status: "Available",
     active: true,
-    temporaryPassword: "",
   });
   const [userNotice, setUserNotice] = useState("");
-  const [temporaryCredential, setTemporaryCredential] = useState("");
   const [createdAccount, setCreatedAccount] = useState<{
+    id: string;
     name: string;
     email: string;
-    password: string;
+    setupEmailSent: boolean;
   } | null>(null);
+  const [savingSetupLink, setSavingSetupLink] = useState(false);
+  const [accountSetupMessage, setAccountSetupMessage] = useState("");
   const [savingUser, setSavingUser] = useState(false);
   const [userFormError, setUserFormError] = useState("");
   const [auditRows, setAuditRows] = useState<AuditLog[]>([]);
@@ -2686,24 +2696,14 @@ export default function App() {
   };
 
   const requestReset = async () => {
-    if (!email)
-      return setPasswordMessage("Enter your official PSC email address first.");
+    if (!email.trim()) return setPasswordMessage("Enter your official PSC email address first.");
     setSavingPassword(true);
     setPasswordMessage("");
     try {
-      const result = await api.forgotPassword(email);
-      if (result.resetToken) setResetToken(result.resetToken);
-      setPasswordMessage(
-        result.resetToken
-          ? "Reset request created. Enter a new password below."
-          : result.message,
-      );
+      const result = await api.forgotPassword(email.trim());
+      setPasswordMessage(result.message);
     } catch (error) {
-      setPasswordMessage(
-        error instanceof Error
-          ? error.message
-          : "Reset request could not be created.",
-      );
+      setPasswordMessage(error instanceof Error ? error.message : "Reset request could not be submitted.");
     } finally {
       setSavingPassword(false);
     }
@@ -2711,21 +2711,20 @@ export default function App() {
 
   const resetPassword = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (newPassword !== confirmPassword)
-      return setPasswordMessage("New passwords do not match.");
+    if (newPassword !== confirmPassword) return setPasswordMessage("New passwords do not match.");
     if (!resetToken) return requestReset();
     setSavingPassword(true);
     setPasswordMessage("");
     try {
       const result = await api.resetPassword(resetToken, newPassword);
-      setPasswordMessage(result.message);
+      setPasswordMode(null);
       setResetToken("");
       setNewPassword("");
       setConfirmPassword("");
+      setCurrentPassword("");
+      setSessionMessage(result.message);
     } catch (error) {
-      setPasswordMessage(
-        error instanceof Error ? error.message : "Password could not be reset.",
-      );
+      setPasswordMessage(error instanceof Error ? error.message : "Password could not be reset. Request a new link and try again.");
     } finally {
       setSavingPassword(false);
     }
@@ -8140,8 +8139,7 @@ export default function App() {
         supervisorId: member.supervisor_id || "",
         status: member.status,
         active: member.active,
-        temporaryPassword: "",
-      });
+          });
     } else {
       setUserEditor("new");
       setUserForm({
@@ -8152,10 +8150,9 @@ export default function App() {
         supervisorId: "",
         status: "Available",
         active: true,
-        temporaryPassword: "",
-      });
+          });
     }
-    setTemporaryCredential("");
+    setAccountSetupMessage("");
     setUserFormError("");
     setSavingUser(false);
   };
@@ -8172,18 +8169,18 @@ export default function App() {
           role: userForm.role,
           division: userForm.division,
           supervisorId: userForm.supervisorId || null,
-          ...(userForm.temporaryPassword
-            ? { temporaryPassword: userForm.temporaryPassword }
-            : {}),
         });
         setCreatedAccount({
+          id: created.id,
           name: created.name,
           email: created.email,
-          password: created.temporary_password,
+          setupEmailSent: created.setup_email_sent,
         });
+        setAccountSetupMessage(created.setup_email_sent
+          ? "The setup link was accepted by the email server. Inbox delivery is not confirmed."
+          : "The account is created, but the setup email could not be sent. Check email settings and resend the link.");
         setUserNotice("Account created successfully.");
-        setUserEditor(null);
-      } else if (userEditor) {
+        setUserEditor(null);      } else if (userEditor) {
         await api.updateUser(token, userEditor.id, {
           name: userForm.name,
           email: userForm.email,
@@ -8205,33 +8202,40 @@ export default function App() {
       setSavingUser(false);
     }
   };
+  const resendCreatedAccountSetup = async () => {
+    if (!createdAccount || savingSetupLink) return;
+    setSavingSetupLink(true);
+    setAccountSetupMessage("");
+    try {
+      const result = await api.resetUserPassword(token, createdAccount.id, "setup");
+      setCreatedAccount({ ...createdAccount, setupEmailSent: true });
+      setAccountSetupMessage(result.message);
+    } catch (error) {
+      setAccountSetupMessage(error instanceof Error ? error.message : "The setup link could not be sent.");
+    } finally {
+      setSavingSetupLink(false);
+    }
+  };
+
   const resetMemberPassword = async (member: ApiUser) => {
     if (!canManageTeamUsers) {
       setUserNotice("You do not have authority to reset this account.");
       return;
     }
-
     const confirmed = window.confirm(
-      `Reset password for ${member.name}?\n\nThis will create a new temporary password and immediately end all existing sessions for this account.`,
+      `Send a secure password reset link to ${member.name} (${member.email})?\n\nThis will end all existing sessions. The link expires after 30 minutes and can only be used once.`,
     );
-
     if (!confirmed) return;
-
     try {
-      setTemporaryCredential("");
-      setUserNotice(`Resetting ${member.name}'s password...`);
-      const result = await api.resetUserPassword(token, member.id);
-      setTemporaryCredential(result.temporaryPassword);
-      setUserNotice(
-        `${member.name}'s password was reset. Existing sessions were ended and the user must change the temporary password after signing in.`,
-      );
+      setUserNotice(`Sending a secure reset link to ${member.name}...`);
+      const result = await api.resetUserPassword(token, member.id, "reset");
+      setUserNotice(result.message);
       setUserRows(await api.users(token));
     } catch (error) {
-      setUserNotice(
-        error instanceof Error ? error.message : "Password could not be reset.",
-      );
+      setUserNotice(error instanceof Error ? error.message : "The password reset link could not be sent.");
     }
   };
+
   const auditLabel = (action: string) =>
     action
       .toLowerCase()
@@ -8922,21 +8926,24 @@ export default function App() {
               <button className="close" onClick={() => setPasswordMode(null)}>
                 ×
               </button>
-              <h2>Reset password</h2>
+              <h2>{resetToken ? "Set a new password" : "Reset password"}</h2>
               <p>
-                Request a secure, single-use reset for your official PSC
-                account.
+                {resetToken
+                  ? "Choose a new password to finish securing your PSC account."
+                  : "Request a secure, single-use reset link for your official PSC account."}
               </p>
               <form onSubmit={resetPassword}>
-                <label>
-                  Email address
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                </label>
+                {!resetToken && (
+                  <label>
+                    Email address
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      required
+                    />
+                  </label>
+                )}
                 {resetToken && (
                   <>
                     <label>
@@ -8976,8 +8983,8 @@ export default function App() {
                     onClick={requestReset}
                   >
                     {savingPassword
-                      ? "Preparing reset..."
-                      : "Request password reset"}
+                      ? "Sending reset link..."
+                      : "Send password reset link"}
                   </button>
                 ) : (
                   <button
@@ -10423,29 +10430,7 @@ export default function App() {
                       return <button key={role} type="button" className={userRoleFilter === role ? "selected" : ""} onClick={() => setUserRoleFilter(userRoleFilter === role ? "All" : role)}><span>{role}</span><strong>{count}</strong><small>active account{count === 1 ? "" : "s"}</small></button>;
                     })}
                   </section>
-                  {temporaryCredential && (
-                    <div className="temporary-credential">
-                      <div>
-                        <strong>Temporary password — copy now</strong>
-                        <span>{temporaryCredential}</span>
-                        <small>
-                          Existing sessions have been ended. Share this password
-                          through an approved secure channel. The user must change
-                          it after signing in. It is not stored in readable form.
-                        </small>
-                      </div>
-                      <button
-                        onClick={() =>
-                          navigator.clipboard.writeText(temporaryCredential)
-                        }
-                      >
-                        Copy password
-                      </button>
-                      <button onClick={() => setTemporaryCredential("")}>
-                        Dismiss
-                      </button>
-                    </div>
-                  )}
+                  
                   <div className="user-table">
                     <div className="user-table-head">
                       <span>Member</span>
@@ -12310,47 +12295,33 @@ export default function App() {
               aria-labelledby="account-success-title"
             >
               <div className="success-mark">✓</div>
-              <p>ACCOUNT CREATED</p>
-              <h2 id="account-success-title">
-                User account created successfully
-              </h2>
+              <p>{createdAccount.setupEmailSent ? "SETUP LINK SENT" : "ACCOUNT CREATED"}</p>
+              <h2 id="account-success-title">User account created successfully</h2>
               <span>
-                {createdAccount.name} can now sign in using{" "}
+                {createdAccount.name} has been registered with the official email{" "}
                 <strong>{createdAccount.email}</strong>.
               </span>
-              <div className="success-password">
-                <small>Temporary password</small>
-                <strong>{createdAccount.password}</strong>
-                <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(createdAccount.password)
-                  }
-                >
-                  Copy password
-                </button>
+              <div className="session-message" role="status">
+                {accountSetupMessage || (createdAccount.setupEmailSent
+                  ? "A secure account setup link was accepted by the email server. Inbox delivery is not confirmed."
+                  : "The account exists, but the setup email is not yet confirmed. Resend the link after checking email settings.")}
               </div>
-              <small className="security-note">
-                Share this password through an approved secure channel. The user
-                will be asked to create a private password after signing in.
-              </small>
-              <h3>What would you like to do next?</h3>
               <div className="success-actions">
-                <button
-                  className="add-another"
-                  onClick={() => {
-                    setCreatedAccount(null);
-                    openUserEditor();
-                  }}
-                >
+                <button className="add-another" onClick={resendCreatedAccountSetup} disabled={savingSetupLink}>
+                  {savingSetupLink ? "Sending link..." : "Send / resend setup link"}
+                </button>
+                <button onClick={() => {
+                  setCreatedAccount(null);
+                  setAccountSetupMessage("");
+                  openUserEditor();
+                }}>
                   + Add another user
                 </button>
-                <button
-                  onClick={() => {
-                    setCreatedAccount(null);
-                    setTemporaryCredential("");
-                  }}
-                >
-                  Exit
+                <button onClick={() => {
+                  setCreatedAccount(null);
+                  setAccountSetupMessage("");
+                }}>
+                  Close
                 </button>
               </div>
             </section>
@@ -12456,31 +12427,9 @@ export default function App() {
                   return <label className="user-supervisor-field">Reports to <select value={userForm.supervisorId} onChange={(event) => setUserForm({...userForm,supervisorId:event.target.value})} required disabled={savingUser || (userEditor !== "new" && !canAdministerUsers)}><option value="">Choose {parentRole}</option>{candidates.map((member) => <option key={member.id} value={member.id}>{member.name} — {member.division}</option>)}</select><small>{userForm.role} accounts must be assigned to one active {parentRole}. One {parentRole} may supervise several {userForm.role}s.</small>{!candidates.length && <b>Create an active {parentRole} account before saving this role.</b>}</label>;
                 })()}
                 {userEditor === "new" ? (
-                  <label>
-                    Temporary password{" "}
-                    <small>
-                      Leave blank to generate one, or use at least 10 characters
-                      with uppercase, lowercase and a number.
-                    </small>
-                    <input
-                      type="password"
-                      value={userForm.temporaryPassword}
-                      onChange={(event) =>
-                        setUserForm({
-                          ...userForm,
-                          temporaryPassword: event.target.value,
-                        })
-                      }
-                      minLength={10}
-                      pattern={
-                        userForm.temporaryPassword
-                          ? "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{10,128}"
-                          : undefined
-                      }
-                      title="Use at least 10 characters including uppercase, lowercase and a number."
-                      disabled={savingUser}
-                    />
-                  </label>
+                  <div className="session-message">
+                    A secure setup link will be sent to the official email address after the account is created.
+                  </div>
                 ) : (
                   <>
                     <label>

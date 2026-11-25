@@ -95,8 +95,8 @@ test('recipient rejection is treated as failed delivery', async () => {
   assert.equal(queries.length, 3)
 })
 
-test('service validates its dependencies and account identity', () => {
+test('service validates its dependencies and account identity', async () => {
   assert.throws(() => createPasswordLinkService({}), /requires transaction and sendMail/)
   const { service } = createHarness()
-  assert.rejects(service.sendPasswordLink({ id: 'user-5' }), /user id and registered email/)
+  await assert.rejects(service.sendPasswordLink({ id: 'user-5' }), /user id and registered email/)
 })

@@ -2057,7 +2057,7 @@ export const api = {
       token,
     ),
   forgotPassword: (email: string) =>
-    request<{ message: string; resetToken?: string }>("/auth/forgot-password", {
+    request<{ message: string }>("/auth/forgot-password", {
       method: "POST",
       body: JSON.stringify({ email }),
     }),
@@ -2075,10 +2075,9 @@ export const api = {
       role: string;
       division: string;
       supervisorId: string | null;
-      temporaryPassword?: string;
     },
   ) =>
-    request<ApiUser & { temporary_password: string }>(
+    request<ApiUser & { setup_email_sent: boolean }>(
       "/users",
       { method: "POST", body: JSON.stringify(input) },
       token,
@@ -2107,10 +2106,10 @@ export const api = {
       { method: "PATCH", body: JSON.stringify({ role }) },
       token,
     ),
-  resetUserPassword: (token: string, id: string) =>
-    request<{ message: string; temporaryPassword: string }>(
+  resetUserPassword: (token: string, id: string, purpose: "reset" | "setup" = "reset") =>
+    request<{ message: string; email: string; expiresInMinutes: number }>(
       `/users/${id}/reset-password`,
-      { method: "POST" },
+      { method: "POST", body: JSON.stringify({ purpose }) },
       token,
     ),
   leaveTypes: (token: string) => request<LeaveType[]>("/leave/types", {}, token),

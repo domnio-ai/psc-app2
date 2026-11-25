@@ -19,6 +19,8 @@ import {assignmentTaskScope,canManageAssignment,canManageKnowledge as canManageK
 import {audit} from './audit.js'
 import {query,transaction} from './db.js'
 import {mailStatus,sendMail} from './mailer.js'
+import {createPasswordLinkService} from './password-link-service.js'
+import {createAuthRateLimiter} from './auth-rate-limit.js'
 import {createAdminEmailCooldown} from './admin-email-rate-limit.js'
 import {deliverPendingInternalEmails,deliverPendingNotificationEmails,scheduleNotificationMaintenance,syncImportantNotificationReminders} from './notification-email-service.js'
 import {enqueueFelixDocumentIndex} from './felix-index-worker.js'
@@ -91,6 +93,9 @@ const syncAssignmentStatusFromTasks=async(client,assignmentId,userId)=>{
   await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[assignmentId,userId,'STATUS_SYNCHRONIZED',JSON.stringify({status:nextStatus,source:'tasks'})])
   return nextStatus
 }
+
+const passwordLinkService=createPasswordLinkService({transaction,sendMail,frontendOrigin:config.frontendOrigin})
+const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5})
 
 const app=express()
 app.disable('x-powered-by')
@@ -1261,8 +1266,34 @@ app.post('/api/auth/login',validate(loginSchema),async(req,res,next)=>{try{const
 app.get('/api/auth/me',authenticate,(req,res)=>res.json(req.user))
 app.post('/api/auth/logout',authenticate,async(req,res,next)=>{try{await transaction(async client=>{await client.query('UPDATE users SET token_version=token_version+1,updated_at=NOW() WHERE id=$1',[req.user.id]);await audit(client,req.user.id,'LOGOUT','session',req.user.id,{})});res.status(204).end()}catch(error){next(error)}})
 app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:createToken(updated),user:updated})}catch(error){next(error)}})
-app.post('/api/auth/forgot-password',validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{const user=(await query('SELECT id FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0];let resetToken;if(user){resetToken=crypto.randomBytes(32).toString('hex');const tokenHash=crypto.createHash('sha256').update(resetToken).digest('hex');await transaction(async client=>{await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[user.id]);await client.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 minutes')",[user.id,tokenHash])})}const response={message:'If the account exists, password reset instructions have been prepared.'};if(config.environment!=='production'&&resetToken)response.resetToken=resetToken;res.json(response)}catch(error){next(error)}})
-app.post('/api/auth/reset-password',validate(z.object({token:z.string().length(64),newPassword:passwordSchema})),async(req,res,next)=>{try{const tokenHash=crypto.createHash('sha256').update(req.validated.token).digest('hex');const result=await transaction(async client=>{const reset=(await client.query('SELECT id,user_id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW() FOR UPDATE',[tokenHash])).rows[0];if(!reset)return null;const hash=await bcrypt.hash(req.validated.newPassword,12);await client.query('UPDATE users SET password_hash=$1,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,reset.user_id]);await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE id=$1',[reset.id]);return true});if(!result)return res.status(400).json({error:'This password reset link is invalid or has expired.'});res.json({message:'Password updated. You can now sign in.'})}catch(error){next(error)}})
+app.post('/api/auth/forgot-password',passwordResetRateLimit,validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{
+  const user=(await query('SELECT id,name,email FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0]
+  if(user){
+    try{
+      await passwordLinkService.sendPasswordLink(user,{purpose:'reset'})
+    }catch(error){
+      console.error('PASSWORD_RESET_EMAIL_FAILED',{code:error?.code||'EMAIL_DELIVERY_FAILED'})
+    }
+  }
+  res.set('Cache-Control','no-store')
+  res.json({message:'If an active account matches that email address, password reset instructions will be sent to its registered email address.'})
+}catch(error){next(error)}})
+app.post('/api/auth/reset-password',passwordResetRateLimit,validate(z.object({token:z.string().length(64),newPassword:passwordSchema})),async(req,res,next)=>{try{
+  const tokenHash=crypto.createHash('sha256').update(req.validated.token).digest('hex')
+  const result=await transaction(async client=>{
+    const reset=(await client.query('SELECT t.id,t.user_id FROM password_reset_tokens t JOIN users u ON u.id=t.user_id AND u.active=TRUE WHERE t.token_hash=$1 AND t.used_at IS NULL AND t.expires_at>NOW() FOR UPDATE OF t',[tokenHash])).rows[0]
+    if(!reset)return null
+    const hash=await bcrypt.hash(req.validated.newPassword,12)
+    await client.query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,reset.user_id])
+    await client.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[reset.user_id])
+    await audit(client,reset.user_id,'PASSWORD_RESET_COMPLETED','user',reset.user_id,{})
+    return true
+  })
+  if(!result)return res.status(400).json({error:'This password reset link is invalid or has expired.'})
+  res.json({message:'Password updated successfully. You can now sign in.'})
+}catch(error){next(error)}})
+
+
 
 const supervisorRoleFor={"Deputy Director":"Director","Assistant Director":"Deputy Director","Researcher":"Assistant Director"}
 const validateSupervisor=async(client,role,supervisorId,userId=null)=>{const required=supervisorRoleFor[role];if(!required){if(supervisorId)throw Object.assign(new Error(`${role} does not use this reporting tier.`),{statusCode:400});return null}if(!supervisorId)throw Object.assign(new Error(`${role} must report to an active ${required}.`),{statusCode:400});if(supervisorId===userId)throw Object.assign(new Error('A user cannot report to themselves.'),{statusCode:400});const supervisor=(await client.query('SELECT id,name,role,active FROM users WHERE id=$1',[supervisorId])).rows[0];if(!supervisor||!supervisor.active||supervisor.role!==required)throw Object.assign(new Error(`${role} must report to an active ${required}.`),{statusCode:400});return supervisor}
@@ -1275,7 +1306,25 @@ LEFT JOIN LATERAL(SELECT lr.id,lr.start_date,lr.end_date,lt.name leave_type_name
  WHERE lr.user_id=u.id AND lr.status='Approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date ORDER BY lr.start_date LIMIT 1) current_leave ON TRUE
 LEFT JOIN assignment_members am ON am.user_id=u.id LEFT JOIN assignments a ON a.id=am.assignment_id
 WHERE $1::boolean OR u.id=ANY($2::uuid[]) GROUP BY u.id,s.id,current_leave.id,current_leave.leave_type_name,current_leave.start_date,current_leave.end_date ORDER BY CASE u.role WHEN 'Director' THEN 1 WHEN 'Deputy Director' THEN 2 WHEN 'Assistant Director' THEN 3 WHEN 'Researcher' THEN 4 ELSE 5 END,u.name`,[all,ids]);res.json(result.rows)}catch(error){next(error)}})
-app.post('/api/users',authenticate,authorize('System Admin'),validate(z.object({name:z.string().min(3).max(160),email:z.string().email().max(255),role:z.enum(roles),division:z.string().min(2).max(160),supervisorId:z.string().uuid().nullable().default(null),temporaryPassword:passwordSchema.optional()})),async(req,res,next)=>{try{const temporaryPassword=req.validated.temporaryPassword||`Psc!${crypto.randomBytes(6).toString('base64url')}9`;const passwordHash=await bcrypt.hash(temporaryPassword,12);const created=await transaction(async client=>{const supervisor=await validateSupervisor(client,req.validated.role,req.validated.supervisorId);const row=(await client.query('INSERT INTO users(name,email,password_hash,role,division,supervisor_id,must_change_password) VALUES($1,lower($2),$3,$4,$5,$6,TRUE) RETURNING id,name,email,role,division,supervisor_id,status,active,must_change_password',[req.validated.name.trim(),req.validated.email.trim(),passwordHash,req.validated.role,req.validated.division.trim(),supervisor?.id||null])).rows[0];await audit(client,req.user.id,'USER_CREATED','user',row.id,{email:row.email,role:row.role,division:row.division,supervisorId:row.supervisor_id});return row});res.status(201).json({...created,temporary_password:temporaryPassword})}catch(error){if(error.code==='23505')return res.status(409).json({error:'An account already exists for this email address.'});next(error)}})
+app.post('/api/users',authenticate,authorize('System Admin'),validate(z.object({name:z.string().min(3).max(160),email:z.string().email().max(255),role:z.enum(roles),division:z.string().min(2).max(160),supervisorId:z.string().uuid().nullable().default(null)})),async(req,res,next)=>{try{
+  const initialPasswordHash=await bcrypt.hash(crypto.randomBytes(48).toString('hex'),12)
+  const created=await transaction(async client=>{
+    const supervisor=await validateSupervisor(client,req.validated.role,req.validated.supervisorId)
+    const row=(await client.query('INSERT INTO users(name,email,password_hash,role,division,supervisor_id,must_change_password) VALUES($1,lower($2),$3,$4,$5,$6,TRUE) RETURNING id,name,email,role,division,supervisor_id,status,active,must_change_password',[req.validated.name.trim(),req.validated.email.trim(),initialPasswordHash,req.validated.role,req.validated.division.trim(),supervisor?.id||null])).rows[0]
+    await audit(client,req.user.id,'USER_CREATED','user',row.id,{email:row.email,role:row.role,division:row.division,supervisorId:row.supervisor_id})
+    return row
+  })
+  let setupEmailSent=false
+  try{
+    await passwordLinkService.sendPasswordLink(created,{purpose:'setup'})
+    setupEmailSent=true
+    await transaction(client=>audit(client,req.user.id,'USER_SETUP_LINK_SENT','user',created.id,{email:created.email}))
+  }catch(error){
+    console.error('USER_SETUP_EMAIL_FAILED',{userId:created.id,code:error?.code||'EMAIL_DELIVERY_FAILED'})
+  }
+  res.status(201).json({...created,setup_email_sent:setupEmailSent})
+}catch(error){if(error.code==='23505')return res.status(409).json({error:'An account already exists for this email address.'});next(error)}})
+
 app.patch('/api/users/:id',authenticate,authorize('System Admin','Director','Deputy Director','Assistant Director'),validate(z.object({name:z.string().min(3).max(160),email:z.string().email().max(255),role:z.enum(roles),division:z.string().min(2).max(160),supervisorId:z.string().uuid().nullable().default(null),status:z.enum(['Available','Busy','Away']),active:z.boolean()})),async(req,res,next)=>{try{
 if(!await canManageUser(req.user,req.params.id))return res.status(403).json({error:'You may edit only users inside your authorised reporting scope.'})
 const updated=await transaction(async client=>{
@@ -1299,16 +1348,29 @@ if(updated.kind==='last-admin')return res.status(409).json({error:'The final act
 res.json(updated.row)
 }catch(error){if(error.code==='23505')return res.status(409).json({error:'That email address is already in use.'});next(error)}})
 app.patch('/api/users/:id/role',authenticate,authorize('System Admin'),validate(z.object({role:z.enum(roles)})),async(req,res,next)=>{try{const updated=await transaction(async client=>{const current=(await client.query('SELECT role FROM users WHERE id=$1 FOR UPDATE',[req.params.id])).rows[0];if(!current)return {kind:'missing'};if(current.role==='System Admin'&&req.validated.role!=='System Admin'){const count=Number((await client.query("SELECT COUNT(*) total FROM users WHERE role='System Admin' AND active=TRUE")).rows[0].total);if(count<=1)return {kind:'last-admin'}}const row=(await client.query('UPDATE users SET role=$1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,active',[req.validated.role,req.params.id])).rows[0];await audit(client,req.user.id,'ROLE_CHANGED','user',req.params.id,req.validated);return {kind:'updated',row}});if(updated.kind==='missing')return res.status(404).json({error:'Member not found.'});if(updated.kind==='last-admin')return res.status(409).json({error:'The final active administrator cannot be demoted.'});res.json(updated.row)}catch(error){next(error)}})
-app.post('/api/users/:id/reset-password',authenticate,authorize('System Admin','Director','Deputy Director','Assistant Director'),async(req,res,next)=>{try{
-if(!await canManageUser(req.user,req.params.id))return res.status(403).json({error:'You may reset passwords only for users inside your authorised reporting scope.'})
-const target=(await query('SELECT id,name,email,role FROM users WHERE id=$1',[req.params.id])).rows[0]
-if(!target)return res.status(404).json({error:'Member not found.'})
-if(target.id===req.user.id)return res.status(409).json({error:'Use Change Password for your own account.'})
-if(target.role==='System Admin'&&req.user.role!=='System Admin')return res.status(403).json({error:'Only a System Administrator can reset another System Administrator account.'})
-const temporaryPassword=`Psc!${crypto.randomBytes(6).toString('base64url')}9`,hash=await bcrypt.hash(temporaryPassword,12)
-await transaction(async client=>{await client.query('UPDATE users SET password_hash=$1,must_change_password=TRUE,token_version=token_version+1,updated_at=NOW() WHERE id=$2',[hash,target.id]);await audit(client,req.user.id,'USER_PASSWORD_RESET','user',target.id,{email:target.email,managerScoped:req.user.role!=='System Admin'})})
-res.json({message:'Temporary password created. Existing sessions were ended.',temporaryPassword})
-}catch(error){next(error)}})
+app.post('/api/users/:id/reset-password',authenticate,authorize('System Admin','Director','Deputy Director','Assistant Director'),validate(z.object({purpose:z.enum(['reset','setup']).default('reset')})),async(req,res,next)=>{try{
+  if(!await canManageUser(req.user,req.params.id))return res.status(403).json({error:'You may reset passwords only for users inside your authorised reporting scope.'})
+  const target=(await query('SELECT id,name,email,role FROM users WHERE id=$1 AND active=TRUE',[req.params.id])).rows[0]
+  if(!target)return res.status(404).json({error:'Active member not found.'})
+  if(target.id===req.user.id)return res.status(409).json({error:'Use Change Password for your own account.'})
+  if(target.role==='System Admin'&&req.user.role!=='System Admin')return res.status(403).json({error:'Only a System Administrator can reset another System Administrator account.'})
+  await transaction(async client=>{
+    await client.query('UPDATE users SET must_change_password=TRUE,token_version=token_version+1,updated_at=NOW() WHERE id=$1',[target.id])
+    const action=req.validated.purpose==='setup'?'USER_PASSWORD_SETUP_REQUESTED':'USER_PASSWORD_RESET_REQUESTED'
+    await audit(client,req.user.id,action,'user',target.id,{managerScoped:req.user.role!=='System Admin'})
+  })
+  await passwordLinkService.sendPasswordLink(target,{purpose:req.validated.purpose})
+  const message=req.validated.purpose==='setup'
+    ? 'A secure account setup link was accepted by the email server. The user should check their inbox and spam folder.'
+    : 'A secure password reset link was accepted by the email server. The user should check their inbox and spam folder. Existing sessions were ended.'
+  res.json({message,email:target.email,expiresInMinutes:30})
+}catch(error){
+  if(error?.code==='PASSWORD_LINK_DELIVERY_FAILED'||error?.code==='EMAIL_TRANSPORT_FAILED'||error?.statusCode===503){
+    return res.status(502).json({error:'The password link could not be emailed. Check the email configuration and try again.'})
+  }
+  next(error)
+}})
+
 
 app.get('/api/assignments',authenticate,async(req,res,next)=>{try{const scoped=isManagementRole(req.user.role)?await managedUserIds(req.user):[req.user.id],all=scoped===null,scopeIds=scoped||[req.user.id];const result=await query(`SELECT a.*,creator.name created_by_name,ral.project_id research_id,rp.title research_title,ral.relation_type research_relation_type,
 COALESCE(json_agg(json_build_object('id',u.id,'name',u.name,'role',am.member_role,

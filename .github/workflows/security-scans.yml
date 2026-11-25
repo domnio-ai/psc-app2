@@ -1,0 +1,119 @@
+name: Extended security scans
+
+on:
+  push:
+    branches:
+      - main
+      - "security-tooling/**"
+  pull_request:
+    branches:
+      - main
+      - "publication/app2-clean-2026-11-18"
+  schedule:
+    - cron: "30 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extended-security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Semgrep Community Edition
+        run: |
+          docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            semgrep/semgrep:1.187.0 \
+            semgrep scan --config p/security-audit --sarif --output /src/semgrep.sarif --error .
+
+      - name: Upload Semgrep results to GitHub code scanning
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: semgrep.sarif
+
+  gitleaks:
+    name: Gitleaks secret scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out full Git history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan Git history for exposed secrets
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/repo" \
+            -w /repo \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            git --log-opts="--all" --redact=100 --report-format=sarif \
+              --report-path=/repo/gitleaks.sarif --no-banner /repo
+
+      - name: Upload redacted Gitleaks results to GitHub code scanning
+        if: always() && hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: gitleaks.sarif
+
+  osv-scanner:
+    name: OSV dependency vulnerability scan
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-unified-workflow.yml@87a33814e525266e92b7ecaa23a9743ee5a702b8 # v2.7.1
+    with:
+      scan-args: |-
+        --include-git-root
+        -r
+        ./
+
+  trivy:
+    name: Trivy filesystem and configuration scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Scan dependencies, IaC configuration and secrets
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            aquasec/trivy:0.76.2 \
+            fs --scanners vuln,misconfig,secret \
+              --severity HIGH,CRITICAL --exit-code 1 \
+              --format sarif --output /workspace/trivy.sarif \
+              --skip-dirs .git /workspace
+
+      - name: Upload Trivy results to GitHub code scanning
+        if: always() && hashFiles('trivy.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: trivy.sarif

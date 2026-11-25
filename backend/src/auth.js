@@ -28,7 +28,7 @@ export const authorize=(...allowed)=>async(req,res,next)=>{
     }
     return next()
   }
-  const userAdministrationPath=/^\/(?:api\/)?users(?:\/[^/]+(?:\/(?:role|reset-password))?)?$/
+  const userAdministrationPath=/^\/(?:api\/)?users(?:\/[^/]+(?:\/reset-password)?)?$/
   const isManagerUserAdministration=isManagementRole(req.user.role)&&req.user.role!=='System Admin'&&allowed.length===1&&allowed[0]==='System Admin'&&userAdministrationPath.test(req.path)
   if(!isManagerUserAdministration)return res.status(403).json({error:'You do not have permission to perform this action.'})
   if(/^\/(?:api\/)?users$/.test(req.path)){

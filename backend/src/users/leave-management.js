@@ -71,7 +71,7 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
     v=parsed.data
     if(!req.body.length)return res.status(400).json({error:'Choose a supporting document to upload.'})
     let originalName=String(req.get('x-file-name')||'supporting-document');try{originalName=decodeURIComponent(originalName)}catch{}
-    upload=validateDocumentUpload(req.body,originalName,req.get('content-type'))
+    upload=validateDocumentUpload(req.body,originalName,req.get('x-file-mime-type')||req.get('content-type'))
     stored=await storeDocument(req.body,upload.extension)
    }
    if(v.endDate<v.startDate)return res.status(400).json({error:'Leave end date cannot be before the start date.'})
@@ -98,7 +98,7 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
    res.status(201).json(result.row)
   }catch(error){next(error)}finally{if(stored)await deleteStoredDocument(stored.storagePath)}
  }
- const rawLeaveUpload=express.raw({type:'application/octet-stream',limit:'${config.maxUploadMb}mb'})
+ const rawLeaveUpload=express.raw({type:'application/octet-stream',limit:config.maxUploadMb*1024*1024})
  app.post('/api/leave/requests',authenticate,(req,res,next)=>req.is('application/octet-stream')?rawLeaveUpload(req,res,next):validate(requestSchema)(req,res,next),createLeaveRequest)
  app.get('/api/leave/requests/:id/attachment',authenticate,async(req,res,next)=>{try{
   const row=(await query(`SELECT a.original_filename,a.stored_path,a.mime_type,lr.user_id FROM leave_request_attachments a

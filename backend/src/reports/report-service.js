@@ -1584,7 +1584,9 @@ export async function auditReportAccess(user, key, denied = false) {
   if (
     denied ||
     ["EXECUTIVE"].includes(getReportDefinition(key)?.level) ||
-    getReportDefinition(key)?.category === "Audit & Compliance"
+    ["Audit & Compliance", "Workforce", "Meetings", "Notices"].includes(
+      getReportDefinition(key)?.category,
+    )
   )
     await transaction((client) =>
       audit(

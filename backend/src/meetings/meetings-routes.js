@@ -165,6 +165,8 @@ const meetingAccess=async(user,id)=>{
   const result=await query(`SELECT 1 FROM meetings m WHERE m.id=$1 AND(
     m.created_by=ANY($2::uuid[]) OR m.chair_id=ANY($2::uuid[]) OR m.secretary_id=ANY($2::uuid[]) OR m.reviewer_id=$3 OR m.schedule_approver_id=$3
       OR EXISTS(SELECT 1 FROM meeting_participants p WHERE p.meeting_id=m.id AND p.user_id=ANY($2::uuid[]))
+      OR EXISTS(SELECT 1 FROM meeting_actions action LEFT JOIN assignment_tasks linked ON linked.id=action.assignment_task_id
+        WHERE action.meeting_id=m.id AND (action.owner_id=ANY($2::uuid[]) OR linked.owner_id=ANY($2::uuid[]) OR linked.reviewer_id=ANY($2::uuid[])))
   )`,[id,ids,user.id])
   return result.rowCount>0
 }

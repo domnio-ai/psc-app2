@@ -196,7 +196,7 @@ const listQuery=`SELECT m.*,
   (SELECT COUNT(*)::int FROM meeting_participants p WHERE p.meeting_id=m.id) participant_count,
   (SELECT COUNT(*)::int FROM meeting_agenda_items a WHERE a.meeting_id=m.id) agenda_count,
   (SELECT COUNT(*)::int FROM meeting_actions a WHERE a.meeting_id=m.id) action_count,
-  (SELECT COUNT(*)::int FROM meeting_actions a WHERE a.meeting_id=m.id AND a.status<>'Completed') open_action_count,
+  (SELECT COUNT(*)::int FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id WHERE a.meeting_id=m.id AND (CASE WHEN linked.id IS NULL THEN a.status WHEN linked.status='Not Started' THEN 'Open' ELSE linked.status END)<>'Completed') open_action_count,
   (SELECT t.status FROM meeting_transcripts t WHERE t.meeting_id=m.id ORDER BY t.created_at DESC LIMIT 1) transcript_status,
   (SELECT mm.status FROM meeting_minutes mm WHERE mm.meeting_id=m.id ORDER BY mm.version_no DESC LIMIT 1) minutes_status
  FROM meetings m JOIN users creator ON creator.id=m.created_by
@@ -245,7 +245,12 @@ async function getMeetingDetail(user,id){
         ORDER BY k.updated_at DESC LIMIT 1
       ) draft_repo ON TRUE
       WHERE mm.meeting_id=$1 ORDER BY mm.version_no DESC LIMIT 1`,[id]),
-    query(`SELECT a.id,a.meeting_id,a.title,a.description,a.owner_id,u.name owner_name,a.due_date,
+    query(`SELECT a.id,a.meeting_id,
+      CASE WHEN linked.id IS NULL THEN a.title ELSE linked.title END title,
+      CASE WHEN linked.id IS NULL THEN a.description ELSE linked.description END description,
+      CASE WHEN linked.id IS NULL THEN a.owner_id ELSE linked.owner_id END owner_id,
+      CASE WHEN linked.id IS NULL THEN u.name ELSE task_owner.name END owner_name,
+      CASE WHEN linked.id IS NULL THEN a.due_date ELSE linked.due_date END due_date,
       CASE WHEN linked.id IS NULL THEN a.status WHEN linked.status='Not Started' THEN 'Open' ELSE linked.status END status,
       a.created_by,a.created_at,a.updated_at,a.assignment_task_id,
       linked.id linked_task_id,linked.title linked_task_title,linked.status linked_task_status,
@@ -253,6 +258,7 @@ async function getMeetingDetail(user,id){
       FROM meeting_actions a
       LEFT JOIN users u ON u.id=a.owner_id
       LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id AND linked.archived_at IS NULL
+      LEFT JOIN users task_owner ON task_owner.id=linked.owner_id
       LEFT JOIN assignments assignment ON assignment.id=linked.assignment_id
       WHERE a.meeting_id=$1 ORDER BY a.created_at`,[id]),
     query(`SELECT * FROM meeting_decisions WHERE meeting_id=$1 ORDER BY decision_no`,[id]),
@@ -1444,7 +1450,7 @@ export function registerMeetingsRoutes(app){
   app.patch('/api/meetings/:id/actions/:actionId/link-task',authenticate,async(req,res,next)=>{try{
     await requireManage(req,req.params.id)
     const assignmentTaskId=req.body?.assignmentTaskId?String(req.body.assignmentTaskId):null
-    const action=(await query('SELECT * FROM meeting_actions WHERE id=$1 AND meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
+    const action=(await query('SELECT a.*,linked.status linked_task_status FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id WHERE a.id=$1 AND a.meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
     if(!action)throw httpError(404,'Meeting action not found.')
     let linkedTask=null
     if(assignmentTaskId){
@@ -1454,7 +1460,7 @@ export function registerMeetingsRoutes(app){
       await assertCanAccessAssignmentTask(req.user,linkedTask)
       if(action.owner_id&&action.owner_id!==linkedTask.owner_id)throw httpError(400,'The linked task owner is authoritative. Change task ownership in Tasks.')
     }
-    const status=linkedTask?taskActionStatus(linkedTask.status):action.status
+    const status=linkedTask?taskActionStatus(linkedTask.status):(action.linked_task_status?taskActionStatus(action.linked_task_status):action.status)
     const result=await transaction(async client=>{
       const row=(await client.query(
         `UPDATE meeting_actions SET assignment_task_id=$3,

@@ -2117,7 +2117,7 @@ export const api = {
   leaveBalances: (token: string, userId: string, year = new Date().getFullYear()) => request<LeaveBalance[]>(`/leave/balances/${userId}?year=${year}`, {}, token),
   submitLeaveRequest: async (token: string, input: {leaveTypeCode:string;startDate:string;endDate:string;reason:string}, file?: File) => {
     const response = await fetch(`${API_URL}/leave/requests`, file ? {
-      method:"POST", headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-Leave-Request":JSON.stringify(input)}, body:file
+      method:"POST", headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-File-Mime-Type":file.type||"application/octet-stream","X-Leave-Request":JSON.stringify(input)}, body:file
     } : {method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(input)});
     const data=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(data?.error||"Leave request could not be submitted.");

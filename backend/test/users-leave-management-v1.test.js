@@ -51,7 +51,7 @@ test("leave requests, approvals and year balances exclude configured public holi
  assert.match(leave,/approvedWorkingDays=workingDays\(row\.start_date,row\.end_date/);
  assert.match(leave,/public_holidays ph WHERE ph\.active=TRUE AND ph\.holiday_date=leave_day\.day::date/);
  assert.match(leave,/calculated_working_days/);
- assert.match(leave,/no working days after weekends and configured public holidays are excluded/);
+ assert.match(leave,/at least one working day after weekends and configured public holidays are excluded/);
 });
 
 test("holiday calendar is available in the shared calendar and System Admin workspace",()=>{

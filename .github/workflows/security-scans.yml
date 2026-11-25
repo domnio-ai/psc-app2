@@ -48,9 +48,44 @@ jobs:
         with:
           sarif_file: semgrep.sarif
 
-  gitleaks:
-    name: Gitleaks secret scan
+  gitleaks-files:
+    name: Gitleaks current source scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Create clean source snapshot without Git objects
+        run: |
+          mkdir -p "$RUNNER_TEMP/app2-source"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/app2-source"
+
+      - name: Scan current source files for exposed secrets
+        run: |
+          docker run --rm \
+            -v "$RUNNER_TEMP/app2-source:/src:ro" \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /src \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            dir --redact=100 --report-format=sarif \
+              --report-path=/workspace/gitleaks.sarif --no-banner /src
+
+      - name: Upload redacted Gitleaks results to GitHub code scanning
+        if: always() && hashFiles('gitleaks.sarif') != ''
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: gitleaks.sarif
+
+  gitleaks-history:
+    name: Gitleaks full Git history audit
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       security-events: write
@@ -61,20 +96,20 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Scan Git history for exposed secrets
+      - name: Scan all available Git refs for historical secrets
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/repo" \
             -w /repo \
             ghcr.io/gitleaks/gitleaks:v8.30.1 \
-            git --redact=100 --report-format=sarif \
-              --report-path=/repo/gitleaks.sarif --no-banner /repo
+            git --log-opts="--all" --redact=100 --report-format=sarif \
+              --report-path=/repo/gitleaks-history.sarif --no-banner /repo
 
-      - name: Upload redacted Gitleaks results to GitHub code scanning
-        if: always() && hashFiles('gitleaks.sarif') != ''
+      - name: Upload redacted historical Gitleaks results to GitHub code scanning
+        if: always() && hashFiles('gitleaks-history.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
-          sarif_file: gitleaks.sarif
+          sarif_file: gitleaks-history.sarif
 
   osv-scanner:
     name: OSV dependency vulnerability scan

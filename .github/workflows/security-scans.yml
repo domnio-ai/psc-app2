@@ -263,8 +263,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run --detach --name app2-web-ci --publish 18080:8080 app2-web:ci
-          trap 'docker rm --force app2-web-ci >/dev/null 2>&1 || true' EXIT
+          docker network create app2-web-ci
+          trap 'docker rm --force app2-web-ci app2-api-stub >/dev/null 2>&1 || true; docker network rm app2-web-ci >/dev/null 2>&1 || true' EXIT
+          docker run --detach --name app2-api-stub --network app2-web-ci --network-alias api node:22-alpine node -e "require('node:http').createServer((req,res)=>{res.end('stub')}).listen(8000,'0.0.0.0')"
+          docker run --detach --name app2-web-ci --network app2-web-ci --publish 18080:8080 app2-web:ci
           for attempt in $(seq 1 20); do
             if curl --fail --silent --show-error http://127.0.0.1:18080/ -o /dev/null; then
               echo "Frontend responded successfully on the mapped host port."
@@ -274,6 +276,7 @@ jobs:
           done
           echo "Frontend did not become ready on port 18080."
           docker logs app2-web-ci
+          docker logs app2-api-stub
           exit 1
 
       - name: Validate training and production Compose configuration
@@ -303,3 +306,40 @@ jobs:
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-image.sarif
+
+  app2-tests:
+    name: Windows build and regression tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Install frontend and run production build
+        shell: pwsh
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build -- --configLoader runner
+
+      - name: Install backend and run syntax checks and regression suite
+        shell: pwsh
+        env:
+          DATABASE_URL: postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test
+          JWT_SECRET: app2-ci-test-only-secret-not-used-outside-this-run
+        run: |
+          Push-Location backend
+          try {
+            npm ci --ignore-scripts --no-audit --no-fund
+            npm run check
+            npm test
+          }
+          finally {
+            Pop-Location
+          }

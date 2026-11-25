@@ -21,6 +21,10 @@ test("meeting actions can link one-to-one to an existing central assignment task
   assert.match(routes,/assignment_task_id\)/);
   assert.match(routes,/already linked to another meeting action/);
   assert.match(routes,/Only the action owner, linked task owner\/reviewer or meeting manager/);
+  assert.match(routes,/Meeting action linked to your task/);
+  assert.match(routes,/Meeting action unlinked from your task/);
+  assert.match(routes,/The central task status was updated to/);
+  assert.match(routes,/new Set\(\[task\.owner_id,task\.reviewer_id\]/);
 });
 
 test("linked meeting action state is derived from the central task lifecycle",()=>{

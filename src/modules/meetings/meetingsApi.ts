@@ -1,4 +1,4 @@
-import type { AgendaItem, MeetingAction, MeetingApprovalAppointment, MeetingAttachment, MeetingDecision, MeetingDetail, MeetingMinute, MeetingScheduleApprovalItem, MeetingScheduleApprover, MeetingSummary, MeetingUser, TranscriptJob } from "./types";
+import type { AgendaItem, MeetingAction, MeetingApprovalAppointment, MeetingAttachment, MeetingDecision, MeetingDetail, MeetingMinute, MeetingScheduleApprovalItem, MeetingScheduleApprover, MeetingSummary, MeetingTaskLinkOption, MeetingUser, TranscriptJob } from "./types";
 import type { ConferenceProviderStatus, LiveConferenceSession, LivePresence } from "./live/types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
@@ -86,6 +86,8 @@ export const meetingsApi = {
   linkableTasks: (token:string,id:string) => request<MeetingTaskLinkOption[]>(token,`/meetings/${id}/linkable-tasks`),
   addAction: (token: string, id: string, input: Record<string, unknown>) => request<MeetingAction>(token, `/meetings/${id}/actions`, { method: "POST", body: JSON.stringify(input) }),
   updateAction: (token: string, id: string, actionId: string, status: string) => request<MeetingAction>(token, `/meetings/${id}/actions/${actionId}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  linkActionTask: (token:string,id:string,actionId:string,assignmentTaskId:string|null) =>
+    request<MeetingAction>(token,`/meetings/${id}/actions/${actionId}/link-task`,{method:"PATCH",body:JSON.stringify({assignmentTaskId})}),
 
   meetingNotifications: (token: string) => request<Array<{ id: string; title?: string; entity_type?: string | null; target_workspace?: string | null; read_at: string | null; archived_at?: string | null }>>(token, "/notifications"),
   conferenceProviderStatus: (token: string) => request<ConferenceProviderStatus>(token, "/meetings-live/provider-status"),

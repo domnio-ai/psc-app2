@@ -83,6 +83,7 @@ export const meetingsApi = {
   publishApprovedMinutesToRepository: (token: string, id: string) => request<MeetingMinute & { repository_document_id?: string; repository_document_title?: string; repository_record_number?: string; repository_version?: number }>(token, `/meetings/${id}/minutes/publish-approved`, { method: "POST" }),
   syncMinutesDraftToRepository: (token: string, id: string) => request<MeetingMinute & { repository_draft_document_id?: string; repository_draft_document_title?: string; repository_draft_document_status?: string; repository_draft_version?: number }>(token, `/meetings/${id}/minutes/sync-draft`, { method: "POST" }),
   addDecision: (token: string, id: string, text: string, agendaItemId?: string) => request<MeetingDecision>(token, `/meetings/${id}/decisions`, { method: "POST", body: JSON.stringify({ text, agendaItemId: agendaItemId || null }) }),
+  linkableTasks: (token:string,id:string) => request<MeetingTaskLinkOption[]>(token,`/meetings/${id}/linkable-tasks`),
   addAction: (token: string, id: string, input: Record<string, unknown>) => request<MeetingAction>(token, `/meetings/${id}/actions`, { method: "POST", body: JSON.stringify(input) }),
   updateAction: (token: string, id: string, actionId: string, status: string) => request<MeetingAction>(token, `/meetings/${id}/actions/${actionId}`, { method: "PATCH", body: JSON.stringify({ status }) }),
 

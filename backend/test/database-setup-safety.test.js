@@ -11,8 +11,8 @@ test('database setup cannot recreate deleted demo work unless explicitly request
 
 
 test('development database setup refuses production and applies leave attachment schema',()=>{
-  assert.match(setup,/process\\.env\\.NODE_ENV==='production'/)
-  assert.match(setup,/Development database setup is disabled in production/)
-  assert.match(setup,/migrations\\/20261125_01_leave_request_attachments\\.sql/)
+  assert.ok(setup.includes("process.env.NODE_ENV==='production'"))
+  assert.ok(setup.includes("Development database setup is disabled in production"))
+  assert.ok(setup.includes("../migrations/20261125_01_leave_request_attachments.sql"))
   assert.ok(setup.indexOf("schema.sql")<setup.indexOf("20261125_01_leave_request_attachments.sql"))
 })

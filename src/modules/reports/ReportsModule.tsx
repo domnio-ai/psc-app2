@@ -675,7 +675,9 @@ export default function ReportsModule({
                 }
               >
                 <option value="">All</option>
-                {[
+                {(selected.key === "leave-register-utilisation"
+                  ? ["Pending", "Approved", "Returned", "Rejected", "Cancelled"]
+                  : [
                   "Not Started",
                   "In Progress",
                   "Ready for Review",
@@ -685,7 +687,7 @@ export default function ReportsModule({
                   "Active",
                   "Under Review",
                   "Archived",
-                ].map((value) => (
+                ]).map((value) => (
                   <option key={value}>{value}</option>
                 ))}
               </select>
@@ -705,6 +707,18 @@ export default function ReportsModule({
                   <option key={value}>{value}</option>
                 ))}
               </select>
+            </label>
+          )}
+          {selected.filters.includes("leave_type") && (
+            <label>
+              Leave type
+              <input
+                value={filters.category}
+                onChange={(event) =>
+                  setFilters({ ...filters, category: event.target.value })
+                }
+                placeholder="Search by leave type name or code"
+              />
             </label>
           )}
           {selected.filters.includes("document_category") && (

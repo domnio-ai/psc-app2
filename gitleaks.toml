@@ -1,0 +1,12 @@
+title = "PSC App2 Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented metadata phrase is not a credential"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = [
+  '''API routes, SQL/Pydantic models'''
+]

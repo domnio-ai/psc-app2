@@ -6,7 +6,8 @@ export default function UserLeaveManagement({token,currentUser,users,isManager,o
  const [types,setTypes]=useState<LeaveType[]>([]),[rows,setRows]=useState<LeaveRequest[]>([]),[balances,setBalances]=useState<LeaveBalance[]>([]);
  const [notice,setNotice]=useState(""),[busy,setBusy]=useState(false),[supportingDocument,setSupportingDocument]=useState<File|null>(null);
  const [form,setForm]=useState({leaveTypeCode:"ANNUAL",startDate:"",endDate:"",reason:""});
- const refresh=async()=>{const [t,r,b]=await Promise.all([api.leaveTypes(token),api.leaveRequests(token),api.leaveBalances(token,currentUser.id)]);setTypes(t);setRows(r);setBalances(b)};\n const selectedType=types.find(t=>t.code===form.leaveTypeCode);
+ const refresh=async()=>{const [t,r,b]=await Promise.all([api.leaveTypes(token),api.leaveRequests(token),api.leaveBalances(token,currentUser.id)]);setTypes(t);setRows(r);setBalances(b)};
+ const selectedType=types.find(t=>t.code===form.leaveTypeCode);
  useEffect(()=>{if(mode!=="leave")return;void refresh().catch(e=>setNotice(e instanceof Error?e.message:"Leave data could not be loaded."))},[token,currentUser.id,mode]);
  const mine=useMemo(()=>rows.filter(r=>r.user_id===currentUser.id),[rows,currentUser.id]),onLeave=users.filter(u=>u.availability_status==="On Leave");
 

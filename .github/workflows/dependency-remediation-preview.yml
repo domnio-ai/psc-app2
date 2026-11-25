@@ -1,0 +1,53 @@
+name: APP2 dependency remediation preview
+
+on:
+  push:
+    branches:
+      - "security-tooling/app2-scanners-2026-11-25"
+
+permissions:
+  contents: read
+
+jobs:
+  preview-and-test:
+    name: Trial compatible dependency updates and app2 tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out isolated security branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Apply candidate lockfile updates and run regression checks in Node 22
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            node:22-alpine sh -euxc '
+              npm pkg set "dependencies.vite=^7.3.7"
+              npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+              npm update source-map-js --package-lock-only --ignore-scripts --no-audit --no-fund
+              npm ci --ignore-scripts --no-audit --no-fund
+              npm run build -- --configLoader runner
+
+              cd backend
+              npm pkg set "overrides.exceljs.uuid=11.1.1"
+              npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+              npm ci --ignore-scripts --no-audit --no-fund
+              npm ls uuid --all
+              npm run check
+              npm test
+            '
+
+      - name: Upload candidate manifests and lockfiles for review
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app2-remediated-dependency-files
+          path: |
+            package.json
+            package-lock.json
+            backend/package.json
+            backend/package-lock.json
+          if-no-files-found: error
+          retention-days: 3

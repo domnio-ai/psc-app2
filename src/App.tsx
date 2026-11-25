@@ -5,6 +5,7 @@ import {usePulse} from "./modules/dashboard/usePulse";
 import {useDashboardLiveSync} from "./modules/dashboard/useDashboardLiveSync";
 import "./modules/dashboard/dashboard-task-requests.css";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import type { NoticeFormState } from "./NoticeComposer";
 import {startMessageRealtime,stopMessageRealtime,type MessageRealtimeEvent} from "./modules/messages/messageRealtime";
 import AppLiveClock from "./components/runtime/AppLiveClock";
 import WorkflowNextActionDialog from "./components/WorkflowNextActionDialog";
@@ -1741,11 +1742,13 @@ export default function App() {
   const [noticeRows, setNoticeRows] = useState<NoticeItem[]>([]);
   const [calendarRows, setCalendarRows] = useState<CalendarItem[]>([]);
   useEffect(()=>{if(pulse.data)setCalendarRows(pulse.data.calendarAll)},[pulse.data]);
-  const [noticeForm, setNoticeForm] = useState({
+  const [noticeForm, setNoticeForm] = useState<NoticeFormState>({
     title: "",
     body: "",
     severity: "Information",
     audienceRole: "",
+    audienceRules: [{ type: "ORGANISATION", value: "*" }],
+    acknowledgementRequired: false,
     eventStart: "",
     eventEnd: "",
     expiresAt: "",
@@ -1755,7 +1758,28 @@ export default function App() {
     null,
   );
   const [noticeReason, setNoticeReason] = useState("");
+  useEffect(() => {
+    if (
+      active !== "Notice Board" ||
+      !token ||
+      !user ||
+      !["System Admin", "Director"].includes(user.role) ||
+      userRows.length ||
+      noticeAudienceLookupStarted.current
+    ) return;
+    noticeAudienceLookupStarted.current = true;
+    void api.users(token).then(setUserRows).catch((error) => {
+      noticeAudienceLookupStarted.current = false;
+      setNoticeNotice(
+        error instanceof Error
+          ? `Recipient directory could not be loaded: ${error.message}`
+          : "Recipient directory could not be loaded.",
+      );
+    });
+  }, [active, token, user?.role, userRows.length]);
+
   const [userRows, setUserRows] = useState<ApiUser[]>([]);
+  const noticeAudienceLookupStarted = useRef(false);
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("All");
   const [userStatusFilter, setUserStatusFilter] = useState("All");
@@ -3170,6 +3194,8 @@ export default function App() {
         body: noticeForm.body,
         severity: noticeForm.severity,
         audienceRole: noticeForm.audienceRole || null,
+        audienceRules: noticeForm.audienceRules,
+        acknowledgementRequired: noticeForm.acknowledgementRequired,
         eventStart: noticeForm.eventStart
           ? localDateTimeToIso(noticeForm.eventStart)
           : null,
@@ -3183,6 +3209,8 @@ export default function App() {
         body: "",
         severity: "Information",
         audienceRole: "",
+        audienceRules: [{ type: "ORGANISATION", value: "*" }],
+        acknowledgementRequired: false,
         eventStart: "",
         eventEnd: "",
         expiresAt: "",
@@ -10732,6 +10760,8 @@ export default function App() {
                 token={token}
                 onRowsChange={setNoticeRows}
                 onRead={markNoticeNotificationsRead}
+                users={userRows}
+                canTargetSpecificRecipients={Boolean(user && ["System Admin", "Director"].includes(user.role))}
                 onSubmit={submitNotice}
                 onReview={(item) => {
                   setReviewingNotice(item);

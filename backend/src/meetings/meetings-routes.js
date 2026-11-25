@@ -6,7 +6,7 @@ import {spawn} from 'node:child_process'
 import {fileURLToPath} from 'node:url'
 import {query,transaction} from '../db.js'
 import {authenticate} from '../auth.js'
-import {isOrganisationScopeRole,isTeamScopeRole,managedUserIds} from '../scope.js'
+import {isOrganisationScopeRole,isTeamScopeRole,managedUserIds,assignmentTaskScope} from '../scope.js'
 import {registerLiveConferenceRoutes} from './live-conference.js'
 import {mailStatus,sendMail} from '../mailer.js'
 import {savePrivateDraftRepositoryVersion} from '../private-draft-repository.js'
@@ -179,6 +179,15 @@ const meetingManage=async(user,id)=>{
   return result.rowCount>0
 }
 
+const assertCanAccessAssignmentTask=async(user,task)=>{
+  const scope=await assignmentTaskScope(user,task.assignment_id)
+  if(scope.all)return
+  const allowed=new Set(scope.userIds||[])
+  if([task.owner_id,task.reviewer_id,task.created_by].some(id=>id&&allowed.has(id)))return
+  throw httpError(403,'You are not authorised to link or update this assignment task.')
+}
+const taskActionStatus=status=>status==='Not Started'?'Open':status
+const actionTaskStatus=status=>status==='Open'?'Not Started':status
 const requireAccess=async(req,id)=>{if(!await meetingAccess(req.user,id))throw httpError(403,'You are not authorised to access this meeting.')}
 const requireManage=async(req,id)=>{if(!await meetingManage(req.user,id))throw httpError(403,'Only the meeting owner, chair, secretary or authorised manager can change this meeting.')}
 
@@ -236,7 +245,16 @@ async function getMeetingDetail(user,id){
         ORDER BY k.updated_at DESC LIMIT 1
       ) draft_repo ON TRUE
       WHERE mm.meeting_id=$1 ORDER BY mm.version_no DESC LIMIT 1`,[id]),
-    query(`SELECT a.*,u.name owner_name FROM meeting_actions a LEFT JOIN users u ON u.id=a.owner_id WHERE a.meeting_id=$1 ORDER BY a.created_at`,[id]),
+    query(`SELECT a.id,a.meeting_id,a.title,a.description,a.owner_id,u.name owner_name,a.due_date,
+      CASE WHEN linked.id IS NULL THEN a.status WHEN linked.status='Not Started' THEN 'Open' ELSE linked.status END status,
+      a.created_by,a.created_at,a.updated_at,a.assignment_task_id,
+      linked.id linked_task_id,linked.title linked_task_title,linked.status linked_task_status,
+      linked.progress linked_task_progress,assignment.title linked_assignment_title
+      FROM meeting_actions a
+      LEFT JOIN users u ON u.id=a.owner_id
+      LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id AND linked.archived_at IS NULL
+      LEFT JOIN assignments assignment ON assignment.id=linked.assignment_id
+      WHERE a.meeting_id=$1 ORDER BY a.created_at`,[id]),
     query(`SELECT * FROM meeting_decisions WHERE meeting_id=$1 ORDER BY decision_no`,[id]),
     query(`SELECT a.id,a.meeting_id,a.original_filename,a.mime_type,a.size_bytes,a.uploaded_by,a.created_at,u.name uploaded_by_name
       FROM meeting_attachments a JOIN users u ON u.id=a.uploaded_by WHERE a.meeting_id=$1 ORDER BY a.created_at,a.id`,[id])
@@ -1365,9 +1383,128 @@ export function registerMeetingsRoutes(app){
 
   app.post('/api/meetings/:id/decisions',authenticate,async(req,res,next)=>{try{await requireManage(req,req.params.id);const text=requireString(req.body?.text,'Decision',12000);const row=await transaction(async client=>{const n=(await client.query('SELECT COALESCE(MAX(decision_no),0)+1 n FROM meeting_decisions WHERE meeting_id=$1',[req.params.id])).rows[0].n;const decision=(await client.query(`INSERT INTO meeting_decisions(meeting_id,agenda_item_id,decision_no,text,recorded_by) VALUES($1,$2,$3,$4,$5) RETURNING *`,[req.params.id,req.body?.agendaItemId||null,n,text,req.user.id])).rows[0];await audit(client,req.user.id,'MEETING_DECISION_RECORDED',req.params.id,{decisionId:decision.id,decisionNo:n});return decision});res.status(201).json(row)}catch(error){next(error)}})
 
-  app.post('/api/meetings/:id/actions',authenticate,async(req,res,next)=>{try{await requireManage(req,req.params.id);const title=requireString(req.body?.title,'Action title',300);const row=await transaction(async client=>{const action=(await client.query(`INSERT INTO meeting_actions(meeting_id,title,description,owner_id,due_date,created_by) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,[req.params.id,title,String(req.body?.description||'').trim(),req.body?.ownerId||null,req.body?.dueDate||null,req.user.id])).rows[0];if(action.owner_id)await notify(client,action.owner_id,'Meeting action assigned',`You have been assigned “${title}”.`,req.params.id);await audit(client,req.user.id,'MEETING_ACTION_CREATED',req.params.id,{actionId:action.id,title,ownerId:action.owner_id});return action});res.status(201).json(row)}catch(error){next(error)}})
+  app.get('/api/meetings/:id/linkable-tasks',authenticate,async(req,res,next)=>{try{
+    await requireAccess(req,req.params.id)
+    const scoped=await getScopeIds(req.user)
+    const all=isOrganisationScopeRole(req.user.role)
+    const candidates=(await query(`
+      SELECT t.id,t.assignment_id,t.title,t.description,t.owner_id,owner.name owner_name,
+        t.reviewer_id,reviewer.name reviewer_name,t.due_date,t.status,t.progress,
+        assignment.title assignment_title
+      FROM assignment_tasks t
+      JOIN assignments assignment ON assignment.id=t.assignment_id
+      LEFT JOIN users owner ON owner.id=t.owner_id
+      LEFT JOIN users reviewer ON reviewer.id=t.reviewer_id
+      WHERE t.archived_at IS NULL
+        AND NOT EXISTS(SELECT 1 FROM meeting_actions ma WHERE ma.assignment_task_id=t.id)
+        AND ($1::boolean OR t.owner_id=ANY($2::uuid[]) OR t.reviewer_id=ANY($2::uuid[])
+          OR t.created_by=ANY($2::uuid[])
+          OR assignment.created_by=ANY($2::uuid[])
+          OR EXISTS(SELECT 1 FROM assignment_members am WHERE am.assignment_id=t.assignment_id AND am.user_id=ANY($2::uuid[])))
+      ORDER BY t.due_date NULLS LAST,t.title
+      LIMIT 500
+    `,[all,scoped||[req.user.id]])).rows
+    const permitted=[]
+    for(const task of candidates){
+      try{await assertCanAccessAssignmentTask(req.user,task);permitted.push(task)}catch(error){if(error.statusCode!==403)throw error}
+    }
+    res.json(permitted)
+  }catch(error){next(error)}})
 
-  app.patch('/api/meetings/:id/actions/:actionId',authenticate,async(req,res,next)=>{try{await requireAccess(req,req.params.id);const action=(await query('SELECT * FROM meeting_actions WHERE id=$1 AND meeting_id=$2',[req.params.actionId,req.params.id])).rows[0];if(!action)throw httpError(404,'Meeting action not found.');if(action.owner_id!==req.user.id&&!await meetingManage(req.user,req.params.id))throw httpError(403,'Only the action owner or meeting manager can update this action.');const status=String(req.body?.status||'Open');if(!['Open','In Progress','Blocked','Completed'].includes(status))throw httpError(400,'Invalid meeting action status.');const row=(await query('UPDATE meeting_actions SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[action.id,status])).rows[0];res.json(row)}catch(error){next(error)}})
+  app.post('/api/meetings/:id/actions',authenticate,async(req,res,next)=>{try{
+    await requireManage(req,req.params.id)
+    const assignmentTaskId=req.body?.assignmentTaskId?String(req.body.assignmentTaskId):null
+    let linkedTask=null
+    if(assignmentTaskId){
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(assignmentTaskId))throw httpError(400,'A valid assignment task must be selected.')
+      linkedTask=(await query(`SELECT t.* FROM assignment_tasks t WHERE t.id=$1 AND t.archived_at IS NULL`,[assignmentTaskId])).rows[0]
+      if(!linkedTask)throw httpError(404,'The selected assignment task is no longer available.')
+      await assertCanAccessAssignmentTask(req.user,linkedTask)
+      if(req.body?.ownerId&&req.body.ownerId!==linkedTask.owner_id)throw httpError(400,'The linked task owner is authoritative. Change task ownership in Tasks.')
+    }
+    const title=linkedTask?linkedTask.title:requireString(req.body?.title,'Action title',300)
+    const description=linkedTask?linkedTask.description:String(req.body?.description||'').trim()
+    const ownerId=linkedTask?.owner_id||req.body?.ownerId||null
+    const dueDate=linkedTask?.due_date||req.body?.dueDate||null
+    const initialStatus=linkedTask?taskActionStatus(linkedTask.status):'Open'
+    const row=await transaction(async client=>{
+      const action=(await client.query(
+        `INSERT INTO meeting_actions(meeting_id,title,description,owner_id,due_date,created_by,status,assignment_task_id)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING RETURNING *`,
+        [req.params.id,title,description,ownerId,dueDate,req.user.id,initialStatus,assignmentTaskId],
+      )).rows[0]
+      if(!action)throw httpError(409,'That assignment task is already linked to another meeting action.')
+      if(action.owner_id)await notify(client,action.owner_id,'Meeting action assigned',`You have been assigned “${title}”.`,req.params.id)
+      await audit(client,req.user.id,'MEETING_ACTION_CREATED',req.params.id,{actionId:action.id,title,ownerId:action.owner_id,assignmentTaskId})
+      return action
+    })
+    res.status(201).json(row)
+  }catch(error){next(error)}})
+
+  app.patch('/api/meetings/:id/actions/:actionId/link-task',authenticate,async(req,res,next)=>{try{
+    await requireManage(req,req.params.id)
+    const assignmentTaskId=req.body?.assignmentTaskId?String(req.body.assignmentTaskId):null
+    const action=(await query('SELECT * FROM meeting_actions WHERE id=$1 AND meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
+    if(!action)throw httpError(404,'Meeting action not found.')
+    let linkedTask=null
+    if(assignmentTaskId){
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(assignmentTaskId))throw httpError(400,'A valid assignment task must be selected.')
+      linkedTask=(await query('SELECT * FROM assignment_tasks WHERE id=$1 AND archived_at IS NULL',[assignmentTaskId])).rows[0]
+      if(!linkedTask)throw httpError(404,'The selected assignment task is no longer available.')
+      await assertCanAccessAssignmentTask(req.user,linkedTask)
+      if(action.owner_id&&action.owner_id!==linkedTask.owner_id)throw httpError(400,'The linked task owner is authoritative. Change task ownership in Tasks.')
+    }
+    const status=linkedTask?taskActionStatus(linkedTask.status):action.status
+    const result=await transaction(async client=>{
+      const row=(await client.query(
+        `UPDATE meeting_actions SET assignment_task_id=$3,
+          title=COALESCE($4,title),description=COALESCE($5,description),
+          owner_id=CASE WHEN $3::uuid IS NULL THEN owner_id ELSE $6 END,
+          due_date=CASE WHEN $3::uuid IS NULL THEN due_date ELSE $7 END,
+          status=$8,updated_at=NOW()
+         WHERE id=$1 AND meeting_id=$2 RETURNING *`,
+        [action.id,req.params.id,assignmentTaskId,linkedTask?.title??null,linkedTask?.description??null,linkedTask?.owner_id??null,linkedTask?.due_date??null,status],
+      )).rows[0]
+      await audit(client,req.user.id,'MEETING_ACTION_TASK_LINK_CHANGED',req.params.id,{actionId:action.id,previousTaskId:action.assignment_task_id||null,assignmentTaskId})
+      return row
+    })
+    res.json(result)
+  }catch(error){next(error)}})
+
+  app.patch('/api/meetings/:id/actions/:actionId',authenticate,async(req,res,next)=>{try{
+    await requireAccess(req,req.params.id)
+    const action=(await query('SELECT * FROM meeting_actions WHERE id=$1 AND meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
+    if(!action)throw httpError(404,'Meeting action not found.')
+    if(action.owner_id!==req.user.id&&!await meetingManage(req.user,req.params.id))throw httpError(403,'Only the action owner or meeting manager can update this action.')
+    const status=String(req.body?.status||'Open')
+    if(!['Open','In Progress','Blocked','Completed'].includes(status))throw httpError(400,'Invalid meeting action status.')
+    let row
+    if(action.assignment_task_id){
+      const task=(await query('SELECT * FROM assignment_tasks WHERE id=$1 AND archived_at IS NULL FOR UPDATE',[action.assignment_task_id])).rows[0]
+      if(!task)throw httpError(409,'The linked assignment task is archived or unavailable. Unlink it before updating this meeting action.')
+      await assertCanAccessAssignmentTask(req.user,task)
+      const taskStatus=actionTaskStatus(status)
+      row=await transaction(async client=>{
+        await client.query(
+          'UPDATE assignment_tasks SET status=$2,progress=CASE WHEN $2=\'Completed\' THEN 100 WHEN $2=\'Not Started\' THEN 0 ELSE progress END,updated_at=NOW() WHERE id=$1',
+          [task.id,taskStatus],
+        )
+        await audit(client,req.user.id,'MEETING_ACTION_UPDATED',req.params.id,{actionId:action.id,assignmentTaskId:task.id,status,sourceOfTruth:'assignment_tasks'})
+        return (await client.query(
+          `SELECT a.id,a.meeting_id,a.title,a.description,a.owner_id,u.name owner_name,a.due_date,
+            CASE WHEN t.id IS NULL THEN a.status WHEN t.status='Not Started' THEN 'Open' ELSE t.status END status,
+            a.created_by,a.created_at,a.updated_at,a.assignment_task_id,t.id linked_task_id,t.title linked_task_title,t.status linked_task_status,t.progress linked_task_progress
+           FROM meeting_actions a LEFT JOIN users u ON u.id=a.owner_id
+           LEFT JOIN assignment_tasks t ON t.id=a.assignment_task_id WHERE a.id=$1`,
+          [action.id],
+        )).rows[0]
+      })
+    }else{
+      row=(await query('UPDATE meeting_actions SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *',[action.id,status])).rows[0]
+      await query('INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details) VALUES($1,\'MEETING_ACTION_UPDATED\',\'meeting\',$2,$3::jsonb)',[req.user.id,req.params.id,JSON.stringify({actionId:action.id,status})])
+    }
+    res.json(row)
+  }catch(error){next(error)}})
 
   app.post('/api/meetings/:id/complete',authenticate,async(req,res,next)=>{try{await requireManage(req,req.params.id);await transaction(async client=>{await client.query(`UPDATE meetings SET status='Completed',completed_at=NOW(),updated_at=NOW() WHERE id=$1`,[req.params.id]);await audit(client,req.user.id,'MEETING_COMPLETED',req.params.id,{})});res.json(await getMeetingDetail(req.user,req.params.id))}catch(error){next(error)}})
 }

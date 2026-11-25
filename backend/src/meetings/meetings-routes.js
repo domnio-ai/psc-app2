@@ -1452,7 +1452,7 @@ export function registerMeetingsRoutes(app){
   app.patch('/api/meetings/:id/actions/:actionId/link-task',authenticate,async(req,res,next)=>{try{
     await requireManage(req,req.params.id)
     const assignmentTaskId=req.body?.assignmentTaskId?String(req.body.assignmentTaskId):null
-    const action=(await query('SELECT a.*,linked.status linked_task_status FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id WHERE a.id=$1 AND a.meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
+    const action=(await query('SELECT a.*,linked.status linked_task_status,linked.owner_id linked_task_owner_id,linked.reviewer_id linked_task_reviewer_id FROM meeting_actions a LEFT JOIN assignment_tasks linked ON linked.id=a.assignment_task_id WHERE a.id=$1 AND a.meeting_id=$2',[req.params.actionId,req.params.id])).rows[0]
     if(!action)throw httpError(404,'Meeting action not found.')
     let linkedTask=null
     if(assignmentTaskId){
@@ -1476,6 +1476,13 @@ export function registerMeetingsRoutes(app){
         [action.id,req.params.id,assignmentTaskId,linkedTask?.title??null,linkedTask?.description??null,linkedTask?.owner_id??null,linkedTask?.due_date??null,status],
       )).rows[0]
       await audit(client,req.user.id,'MEETING_ACTION_TASK_LINK_CHANGED',req.params.id,{actionId:action.id,previousTaskId:action.assignment_task_id||null,assignmentTaskId})
+      const recipients=new Set([linkedTask?.owner_id,linkedTask?.reviewer_id,action.linked_task_owner_id,action.linked_task_reviewer_id].filter(id=>id&&id!==req.user.id))
+      for(const recipientId of recipients){
+        const linked=Boolean(assignmentTaskId)
+        await notify(client,recipientId,linked?'Meeting action linked to your task':'Meeting action unlinked from your task',
+          linked?'The meeting action “'+row.title+'” from this meeting is now linked to your central task. Task ownership and progress remain managed in Tasks.':'The meeting action “'+action.title+'” from this meeting is no longer linked to your central task. The central task itself remains unchanged.',
+          req.params.id)
+      }
       return row
     })
     res.json(result)
@@ -1511,6 +1518,12 @@ export function registerMeetingsRoutes(app){
         await audit(client,req.user.id,'MEETING_ACTION_UPDATED',req.params.id,{
           actionId:action.id,assignmentTaskId:task.id,status,sourceOfTruth:'assignment_tasks',
         })
+        const recipients=new Set([task.owner_id,task.reviewer_id].filter(id=>id&&id!==req.user.id))
+        for(const recipientId of recipients){
+          await notify(client,recipientId,'Meeting action '+status.toLowerCase(),
+            'The meeting action “'+task.title+'” from this meeting was marked '+status+'. Its central task status was updated to '+taskStatus+'.',
+            req.params.id)
+        }
       }else{
         await client.query(
           'UPDATE meeting_actions SET status=$2,updated_at=NOW() WHERE id=$1',

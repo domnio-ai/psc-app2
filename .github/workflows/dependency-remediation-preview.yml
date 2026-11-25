@@ -67,7 +67,6 @@ jobs:
               test -f "$FONT_DIR/LiberationSerif-Bold.ttf"
               test -f "$FONT_DIR/LiberationSerif-Italic.ttf"
               test -f "$FONT_DIR/LiberationSerif-BoldItalic.ttf"
-              export PSC_TIMES_NEW_ROMAN_DIR="$FONT_DIR"
               export DATABASE_URL="postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test"
               export JWT_SECRET="app2-ci-test-only-secret-not-used-outside-this-run"
               npm test

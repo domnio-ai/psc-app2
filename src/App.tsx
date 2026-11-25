@@ -1758,6 +1758,9 @@ export default function App() {
     null,
   );
   const [noticeReason, setNoticeReason] = useState("");
+
+  const [userRows, setUserRows] = useState<ApiUser[]>([]);
+  const noticeAudienceLookupStarted = useRef(false);
   useEffect(() => {
     if (
       active !== "Notice Board" ||
@@ -1778,8 +1781,6 @@ export default function App() {
     });
   }, [active, token, user?.role, userRows.length]);
 
-  const [userRows, setUserRows] = useState<ApiUser[]>([]);
-  const noticeAudienceLookupStarted = useRef(false);
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("All");
   const [userStatusFilter, setUserStatusFilter] = useState("All");

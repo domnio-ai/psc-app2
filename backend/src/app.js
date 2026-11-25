@@ -3665,7 +3665,7 @@ app.post('/api/alerts/:id/comments',authenticate,validate(z.object({body:z.strin
     const row=(await client.query('INSERT INTO alert_comments(alert_id,user_id,body) VALUES($1,$2,$3) RETURNING *',[notice.id,req.user.id,req.validated.body])).rows[0]
     if(notice.created_by!==req.user.id)await client.query(
       "INSERT INTO notifications(user_id,title,body,entity_type,entity_id) VALUES($1,'New notice comment',$2,'notice',$3)",
-      [req.user.name+' commented on the notice “'+notice.title+'”.',notice.id],
+      [notice.created_by,req.user.name+' commented on the notice “'+notice.title+'”.',notice.id],
     )
     await audit(client,req.user.id,'NOTICE_COMMENTED','notice',notice.id,{})
     return {...row,user_name:req.user.name,user_role:req.user.role}

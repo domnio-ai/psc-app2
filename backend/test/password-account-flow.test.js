@@ -67,3 +67,11 @@ test('mail service preserves the branded password-link HTML message', async () =
   assert.match(mail, /html = null/)
   assert.match(mail, /html: html \|\|/)
 })
+
+test('quick role changes validate the target role against its existing reporting line', async () => {
+  const app = await read('../src/app.js')
+  const roleChange = app.slice(app.indexOf("app.patch('/api/users/:id/role'"), app.indexOf("app.post('/api/users/:id/reset-password'"))
+  assert.match(roleChange, /SELECT role,supervisor_id FROM users WHERE id=\$1 FOR UPDATE/)
+  assert.match(roleChange, /validateSupervisor\(client,req\.validated\.role,current\.supervisor_id,req\.params\.id\)/)
+  assert.match(roleChange, /authorize\('System Admin'\)/)
+})

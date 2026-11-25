@@ -72,8 +72,8 @@ test('leave, meetings and notice readership reports use their authoritative work
 
 test('new operational reports enforce own and managed-team record scope in SQL',()=>{
   assert.ok(service.includes('AND lr.user_id=$'));
-  assert.ok(service.includes('AND lr.user_id IN ' + ' + teamUserIds'));
-  assert.ok(service.includes('m.created_by IN ' + ' + managed'));
-  assert.ok(service.includes('ns.user_id IN ' + ' + managed'));
+  assert.ok(service.includes('AND lr.user_id IN " + teamUserIds'));
+  assert.ok(service.includes('m.created_by IN " + managed'));
+  assert.ok(service.includes('ns.user_id IN " + managed'));
   assert.ok(service.includes('Requested directorate is outside your permitted scope'));
 });

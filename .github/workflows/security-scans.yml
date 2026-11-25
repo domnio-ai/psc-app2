@@ -75,6 +75,39 @@ jobs:
             dir --redact=100 --report-format=sarif \
               --report-path=/workspace/gitleaks.sarif --no-banner /src
 
+      - name: Summarize redacted Gitleaks findings
+        if: always() && hashFiles('gitleaks.sarif') != ''
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          with open("gitleaks.sarif", encoding="utf-8") as report_file:
+              report = json.load(report_file)
+
+          findings = [
+              finding
+              for run in report.get("runs", [])
+              for finding in run.get("results", [])
+          ]
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"### Gitleaks current-source findings: {len(findings)}\\n")
+              for finding in findings:
+                  physical = (
+                      (finding.get("locations") or [{}])[0]
+                      .get("physicalLocation", {})
+                  )
+                  artifact = physical.get("artifactLocation", {})
+                  region = physical.get("region", {})
+                  rule = finding.get("ruleId", "unknown")
+                  path = artifact.get("uri", "unknown")
+                  line = region.get("startLine", "unknown")
+                  summary.write(
+                      f"- Rule `{rule}`; file `{path}`; line `{line}`\\n"
+                  )
+          PY
+
       - name: Upload redacted Gitleaks results to GitHub code scanning
         if: always() && hashFiles('gitleaks.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3

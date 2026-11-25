@@ -76,33 +76,19 @@ jobs:
         with:
           sarif_file: gitleaks.sarif
 
-  osv-scheduled:
-    name: OSV full dependency scan
-    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+  osv-scanner:
+    name: OSV dependency vulnerability scan
+    runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
-      security-events: write
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
-    with:
-      scan-args: |-
-        --include-git-root
-        -r
-        ./
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-  osv-pr:
-    name: OSV pull request dependency comparison
-    if: ${{ github.event_name == 'pull_request' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
-    with:
-      scan-args: |-
-        --include-git-root
-        -r
-        ./
+      - name: Scan dependency manifests and lockfiles with OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
 
   trivy:
     name: Trivy filesystem and configuration scan

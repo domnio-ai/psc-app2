@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - "security-tooling/**"
+      - "features/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"

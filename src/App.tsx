@@ -8139,7 +8139,7 @@ export default function App() {
         supervisorId: member.supervisor_id || "",
         status: member.status,
         active: member.active,
-          });
+      });
     } else {
       setUserEditor("new");
       setUserForm({
@@ -8150,7 +8150,7 @@ export default function App() {
         supervisorId: "",
         status: "Available",
         active: true,
-          });
+      });
     }
     setAccountSetupMessage("");
     setUserFormError("");
@@ -8180,7 +8180,8 @@ export default function App() {
           ? "The setup link was accepted by the email server. Inbox delivery is not confirmed."
           : "The account is created, but the setup email could not be sent. Check email settings and resend the link.");
         setUserNotice("Account created successfully.");
-        setUserEditor(null);      } else if (userEditor) {
+        setUserEditor(null);
+      } else if (userEditor) {
         await api.updateUser(token, userEditor.id, {
           name: userForm.name,
           email: userForm.email,

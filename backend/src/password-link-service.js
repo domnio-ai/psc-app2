@@ -41,11 +41,13 @@ export const createPasswordLinkService = ({
     const resetUrl = new URL('/', frontendOrigin)
     resetUrl.hash = new URLSearchParams({ resetToken: rawToken }).toString()
     const isSetup = purpose === 'setup'
-    const greeting = user.name ? `Dear ${escapeHtml(user.name)},` : 'Dear colleague,'
+    const displayName = String(user.name ?? '').replace(/[\r\n\t]+/g, ' ').trim()
+    const greetingText = displayName ? `Dear ${displayName},` : 'Dear colleague,'
+    const greeting = displayName ? `Dear ${escapeHtml(displayName)},` : 'Dear colleague,'
     const action = isSetup ? 'complete your PSC REDESY account setup' : 'reset your PSC REDESY password'
     const buttonText = isSetup ? 'Set up password' : 'Reset password'
     const subject = isSetup ? 'Set up your PSC REDESY account' : 'Reset your PSC REDESY password'
-    const text = `${greeting.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')}
+    const text = `${greetingText}
 
 A request was made to ${action}.
 

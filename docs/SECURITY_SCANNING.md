@@ -21,7 +21,7 @@ The extended workflow adds the scanners below.
 | --- | --- | --- |
 | Semgrep Community Edition | JavaScript/TypeScript and other supported source patterns; security-audit rules | Runs in a local container on the GitHub Actions runner. The Community Edition analyzes source locally and does not upload source code to Semgrep. Rule configuration is retrieved from the Semgrep registry. |
 | Gitleaks | Secrets in the reachable Git commit history | Runs locally in a pinned container. The scan uses full redaction for reported secret values. |
-| OSV-Scanner | Known vulnerabilities in supported dependency manifests and lockfiles | Uses Google's pinned reusable GitHub workflow and OSV advisory data. Package names, versions and ecosystem metadata are queried; application source code is not uploaded. |
+| OSV-Scanner | Known vulnerabilities in supported dependency manifests and lockfiles | Uses Google's pinned OSV-Scanner action and OSV advisory data. Package names, versions and ecosystem metadata are queried; application source code is not uploaded. |
 | Trivy | Dependency vulnerabilities, infrastructure/configuration misconfigurations and secrets | Runs filesystem scanning locally in a pinned container. It retrieves vulnerability databases; application source is not uploaded to Aqua. |
 
 The Semgrep Community Edition is a useful baseline, not a complete substitute
@@ -39,7 +39,7 @@ human review. A clean scan is not proof that the application is secure.
 - Manually through GitHub Actions' `workflow_dispatch`.
 
 Semgrep, Gitleaks and Trivy upload SARIF findings to GitHub Code Scanning.
-OSV-Scanner uses its official reusable workflow to report dependency findings.
+OSV-Scanner runs as a separate CI job and reports dependency findings in its job output.
 High/critical Trivy findings and scanner findings configured as errors fail
 their respective jobs. Existing npm audit remains a separate check.
 

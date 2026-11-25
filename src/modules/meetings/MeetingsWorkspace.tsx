@@ -269,8 +269,9 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
       .then((detail) => {
         if (!current) return;
         setSelected(detail);
-        try { setLinkableTasks(await meetingsApi.linkableTasks(token, initialTarget.id)); }
-        catch { setLinkableTasks([]); }
+        void meetingsApi.linkableTasks(token, initialTarget.id)
+          .then((tasks) => { if (current) setLinkableTasks(tasks); })
+          .catch(() => { if (current) setLinkableTasks([]); });
         setMinutesText(detail.minutes?.content || "");
         setTab(targetTab);
         setNotice(`Opened from notification: ${detail.title}`);

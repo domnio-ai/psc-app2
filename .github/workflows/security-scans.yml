@@ -6,6 +6,7 @@ on:
       - main
       - "security-tooling/**"
       - "features/**"
+      - "fix/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"
@@ -13,6 +14,7 @@ on:
     branches:
       - main
       - "publication/app2-clean-2026-11-18"
+      - "features/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"

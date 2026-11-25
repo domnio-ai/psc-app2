@@ -85,9 +85,9 @@ the Windows build and tests passed.
 
 The frontend runtime now uses the pinned official NGINX unprivileged image
 `ghcr.io/nginx/nginx-unprivileged:1.30.7-alpine3.24`. The image is built with
-the Alpine `libxml2` security update to `2.13.9-r3) or later, and the
+the Alpine `libxml2` security update to `2.13.9-r3` or later, and the
 Dockerfile verifies that version during the build. The final runtime user is
-`101:101) and NGINX listens internally on port `8080). The training and
+`101:101` and NGINX listens internally on port `8080). The training and
 production Compose host-port variables remain the user-facing ports; their
 container target is now `8080).
 

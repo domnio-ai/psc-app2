@@ -27,6 +27,7 @@ export const migrationSources = [
   ['20260916_meeting_schedule_approval_r1.sql', '943AA9587D833863BBE61A40EB15FF62B2BA653A3102DE8AD75FC36A8287D581'],
   ['20261125_02_notice_audience_acknowledgements.sql', '13642CD5D6128BD1823BC76A548898E83843D721921B4DE6D6A1B2280A264887'],
   ['20261125_03_meeting_action_task_links.sql', '3B5A47B576194371927A67AB43D4F21C756F52E326F3BFED462E1251D06C67AF'],
+  ['20261125_03_meeting_action_task_links.sql', '3B5A47B576194371927A67AB43D4F21C756F52E326F3BFED462E1251D06C67AF'],
 ].map(([file, sha256]) => ({ id: `migration:${file}`, file: `migrations/${file}`, sha256 }))
 
 export const embeddedMeetingMigration = {

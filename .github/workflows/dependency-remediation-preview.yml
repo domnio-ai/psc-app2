@@ -6,7 +6,7 @@ on:
       - "security-tooling/app2-scanners-2026-11-25"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   preview-and-test:
@@ -17,7 +17,7 @@ jobs:
       - name: Check out isolated security branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Set up Node 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -71,4 +71,18 @@ jobs:
           }
           finally {
             Pop-Location
+          }
+      - name: Commit verified dependency remediations on the isolated branch
+        if: success() && github.ref == 'refs/heads/security-tooling/app2-scanners-2026-11-25'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json backend/package.json backend/package-lock.json
+          if (git diff --cached --quiet) {
+            Write-Host "Dependency manifests and lockfiles already match the tested candidate."
+          }
+          else {
+            git commit -m "fix(deps): patch app2 security advisories"
+            git push origin "HEAD:security-tooling/app2-scanners-2026-11-25"
           }

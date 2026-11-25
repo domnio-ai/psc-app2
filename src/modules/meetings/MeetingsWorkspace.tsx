@@ -6,7 +6,7 @@ import App2LexicalReportEditor, { type App2LexicalReportEditorHandle } from "../
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { meetingsApi } from "./meetingsApi";
-import type { AgendaItem, MeetingDetail, MeetingScheduleApprover, MeetingSummary, MeetingUser, TranscriptSegment } from "./types";
+import type { AgendaItem, MeetingDetail, MeetingScheduleApprover, MeetingSummary, MeetingTaskLinkOption, MeetingUser, TranscriptSegment } from "./types";
 import MeetingScheduleApprovalAppointments from "./MeetingScheduleApprovalAppointments";
 import "./meetings.css";
 import './minutes-workspace.css';
@@ -119,6 +119,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
   const [scheduleApprovers, setScheduleApprovers] = useState<MeetingScheduleApprover[]>([]);
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<MeetingDetail | null>(null);
+  const [linkableTasks, setLinkableTasks] = useState<MeetingTaskLinkOption[]>([]);
   const [tab, setTab] = useState<MeetingTab>("Overview");
   const [notice, setNotice] = useState("");
   const [minutesDecisionResult,setMinutesDecisionResult]=useState<{title:string;outcome:string;nextAction:string}|null>(null);
@@ -166,7 +167,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
   const [pendingScheduleApprovalsCount, setPendingScheduleApprovalsCount] = useState<number | null>(null);
   const [unreadMeetingNotifications, setUnreadMeetingNotifications] = useState<number | null>(null);
   const [decisionText, setDecisionText] = useState("");
-  const [actionForm, setActionForm] = useState({ title: "", description: "", ownerId: "", dueDate: "" });
+  const [actionForm, setActionForm] = useState({ title: "", description: "", ownerId: "", dueDate: "", assignmentTaskId: "" });
   const [minutesText, setMinutesText] = useState("");
   const minutesEditorRef = useRef<App2LexicalReportEditorHandle | null>(null);
   const minutesPreviewFrameRef = useRef<HTMLIFrameElement | null>(null);
@@ -219,6 +220,8 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
       if (selected) {
         const fresh = await meetingsApi.detail(token, selected.id);
         setSelected(fresh);
+        try { setLinkableTasks(await meetingsApi.linkableTasks(token, selected.id)); }
+        catch { setLinkableTasks([]); }
         if (minutesSaveStateRef.current === "saved") setMinutesText(fresh.minutes?.content || "");
       }
     } catch (error) {
@@ -265,6 +268,8 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
       .then((detail) => {
         if (!current) return;
         setSelected(detail);
+        try { setLinkableTasks(await meetingsApi.linkableTasks(token, initialTarget.id)); }
+        catch { setLinkableTasks([]); }
         setMinutesText(detail.minutes?.content || "");
         setTab(targetTab);
         setNotice(`Opened from notification: ${detail.title}`);
@@ -289,6 +294,8 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
     try {
       const detail = await meetingsApi.detail(token, row.id);
       setSelected(detail);
+      try { setLinkableTasks(await meetingsApi.linkableTasks(token, row.id)); }
+      catch { setLinkableTasks([]); }
       setMinutesText(detail.minutes?.content || "");
       setTab("Overview");
     } catch (error) {
@@ -955,11 +962,15 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
     try {
       await meetingsApi.addAction(token, selected.id, {
         ...actionForm,
+        assignmentTaskId: actionForm.assignmentTaskId || null,
         ownerId: actionForm.ownerId || null,
         dueDate: actionForm.dueDate || null,
       });
-      setActionForm({ title: "", description: "", ownerId: "", dueDate: "" });
-      setSelected(await meetingsApi.detail(token, selected.id));
+      setActionForm({ title: "", description: "", ownerId: "", dueDate: "", assignmentTaskId: "" });
+      const detail = await meetingsApi.detail(token, selected.id);
+      setSelected(detail);
+      try { setLinkableTasks(await meetingsApi.linkableTasks(token, selected.id)); }
+      catch { setLinkableTasks([]); }
     } catch (error) { setNotice(error instanceof Error ? error.message : "Action could not be recorded."); }
   };
 
@@ -1395,7 +1406,20 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
 
           {tab === "Decisions & Actions" && <div className="meeting-panel decision-grid">
             <section><h4>Decisions</h4><div className="meeting-form-row compact"><input value={decisionText} onChange={e=>setDecisionText(e.target.value)} placeholder="Record decision / resolution"/><button onClick={()=>void addDecision()}>Add</button></div><div className="meeting-stack">{selected.decisions.map(d=><article key={d.id}><b>Decision {d.decision_no}</b><span>{d.text}</span></article>)}</div></section>
-            <section><h4>Action items</h4><div className="meeting-action-form"><input value={actionForm.title} onChange={e=>setActionForm({...actionForm,title:e.target.value})} placeholder="Action"/><input value={actionForm.description} onChange={e=>setActionForm({...actionForm,description:e.target.value})} placeholder="Description"/><select value={actionForm.ownerId} onChange={e=>setActionForm({...actionForm,ownerId:e.target.value})}><option value="">Owner</option>{users.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select><input type="date" value={actionForm.dueDate} onChange={e=>setActionForm({...actionForm,dueDate:e.target.value})}/><button onClick={()=>void addAction()}>Add action</button></div><div className="meeting-stack">{selected.actions.map(a=><article key={a.id}><b>{a.title}</b><span>{a.description}</span><small>{a.owner_name || "No owner"} · {a.due_date || "No due date"} · {a.status}</small>{a.status!=="Completed"&&<button onClick={async()=>{await meetingsApi.updateAction(token,selected.id,a.id,"Completed");setSelected(await meetingsApi.detail(token,selected.id));}}>Complete</button>}</article>)}</div></section>
+            <section><h4>Action items</h4><div className="meeting-action-form">
+              {selected.can_manage&&<label className="meeting-action-link-task">Link existing assignment task
+                <select value={actionForm.assignmentTaskId} onChange={event=>{const task=linkableTasks.find(item=>item.id===event.target.value);setActionForm(current=>({...current,assignmentTaskId:event.target.value,title:task?.title||"",description:task?.description||"",ownerId:task?.owner_id||"",dueDate:task?.due_date||""}));}}>
+                  <option value="">Standalone meeting action</option>
+                  {linkableTasks.map(task=><option key={task.id} value={task.id}>{task.assignment_title} · {task.title} · {task.status}</option>)}
+                </select>
+                <small>Linked action status and task details follow the existing Tasks record; no duplicate task is created.</small>
+              </label>}
+              <input value={actionForm.title} onChange={e=>setActionForm({...actionForm,title:e.target.value})} placeholder="Action" disabled={Boolean(actionForm.assignmentTaskId)} />
+              <input value={actionForm.description} onChange={e=>setActionForm({...actionForm,description:e.target.value})} placeholder="Description" disabled={Boolean(actionForm.assignmentTaskId)} />
+              <select value={actionForm.ownerId} onChange={e=>setActionForm({...actionForm,ownerId:e.target.value})} disabled={Boolean(actionForm.assignmentTaskId)}><option value="">Owner</option>{users.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select>
+              <input type="date" value={actionForm.dueDate} onChange={e=>setActionForm({...actionForm,dueDate:e.target.value})} disabled={Boolean(actionForm.assignmentTaskId)} />
+              <button onClick={()=>void addAction()}>Add action</button>
+            </div><div className="meeting-stack">{selected.actions.map(a=><article key={a.id}><b>{a.title}</b><span>{a.description}</span><small>{a.owner_name || "No owner"} · {a.due_date || "No due date"} · {a.status}</small>{a.assignment_task_id&&<small className="meeting-action-linked-task">Linked to Tasks: {a.linked_assignment_title || "Assignment"} · {a.linked_task_title || a.title} · {a.linked_task_status || "Linked task"}</small>}{a.status!=="Completed"&&<button onClick={async()=>{await meetingsApi.updateAction(token,selected.id,a.id,"Completed");setSelected(await meetingsApi.detail(token,selected.id));try{setLinkableTasks(await meetingsApi.linkableTasks(token,selected.id));}catch{setLinkableTasks([]);}}}>Complete</button>}</article>)}</div></section>
           </div>}
 
           {tab === "Documents" && <div className="meeting-panel meeting-minutes-documents-panel">

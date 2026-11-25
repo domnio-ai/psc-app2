@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises'
 import bcrypt from 'bcryptjs'
 import {db,transaction} from './db.js'
+
+if(process.env.NODE_ENV==='production')throw new Error('Development database setup is disabled in production. Use the pinned production migration and secure administrator bootstrap commands.')
+
 await db.query(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'))
+await db.query(await fs.readFile(new URL('../migrations/20261125_01_leave_request_attachments.sql',import.meta.url),'utf8'))
 const hash=await bcrypt.hash('PSC@2026',12)
 const users=[['Dominic Kibet','dominic.kibet@publicservice.go.ke','Researcher','Digital Government'],['Mary Wanjiku','mary.wanjiku@publicservice.go.ke','Deputy Director','Research & Policy'],['Grace Muturi','grace.muturi@publicservice.go.ke','Researcher','Quality Assurance'],['System Administrator','admin@publicservice.go.ke','System Admin','ICT'],['John Kamau','john.kamau@publicservice.go.ke','Researcher','HR Research'],['Faith Njeri','faith.njeri@publicservice.go.ke','Researcher','Governance']]
 await transaction(async client=>{

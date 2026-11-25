@@ -32,7 +32,7 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
  app.get('/api/leave/requests',authenticate,async(req,res,next)=>{try{
   const manager=managerRoles.includes(req.user.role),scoped=manager?await managedUserIds(req.user):[req.user.id],all=manager&&scoped===null,ids=all?[]:scoped||[req.user.id]
   res.json((await query(`SELECT lr.*,lt.name leave_type_name,u.name user_name,u.email user_email,u.role user_role,u.division,
-   approver.name approver_name,CASE WHEN lr.status='Approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date THEN TRUE ELSE FALSE END currently_on_leave
+   approver.name approver_name,EXISTS(SELECT 1 FROM leave_request_attachments lra WHERE lra.leave_request_id=lr.id) has_attachment,CASE WHEN lr.status='Approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date THEN TRUE ELSE FALSE END currently_on_leave
    FROM leave_requests lr JOIN leave_types lt ON lt.code=lr.leave_type_code JOIN users u ON u.id=lr.user_id
    LEFT JOIN users approver ON approver.id=lr.approver_id
    WHERE $1::boolean OR lr.user_id=ANY($2::uuid[])

@@ -6,8 +6,11 @@ if(process.env.NODE_ENV==='production')throw new Error('Development database set
 
 await db.query(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'))
 await db.query(await fs.readFile(new URL('../migrations/20261125_01_leave_request_attachments.sql',import.meta.url),'utf8'))
-const hash=await bcrypt.hash('PSC@2026',12)
-const users=[['Dominic Kibet','dominic.kibet@publicservice.go.ke','Researcher','Digital Government'],['Mary Wanjiku','mary.wanjiku@publicservice.go.ke','Deputy Director','Research & Policy'],['Grace Muturi','grace.muturi@publicservice.go.ke','Researcher','Quality Assurance'],['System Administrator','admin@publicservice.go.ke','System Admin','ICT'],['John Kamau','john.kamau@publicservice.go.ke','Researcher','HR Research'],['Faith Njeri','faith.njeri@publicservice.go.ke','Researcher','Governance']]
+if(process.env.APP2_SEED_DEMO_ACCOUNTS==='true'){
+  const demoPassword=String(process.env.APP2_DEMO_PASSWORD||'')
+  if(demoPassword.length<16)throw new Error('APP2_DEMO_PASSWORD must contain at least 16 characters when demo-account seeding is explicitly enabled.')
+  const hash=await bcrypt.hash(demoPassword,12)
+  const users=[['Dominic Kibet','dominic.kibet@publicservice.go.ke','Researcher','Digital Government'],['Mary Wanjiku','mary.wanjiku@publicservice.go.ke','Deputy Director','Research & Policy'],['Grace Muturi','grace.muturi@publicservice.go.ke','Researcher','Quality Assurance'],['System Administrator','admin@publicservice.go.ke','System Admin','ICT'],['John Kamau','john.kamau@publicservice.go.ke','Researcher','HR Research'],['Faith Njeri','faith.njeri@publicservice.go.ke','Researcher','Governance']]
 await transaction(async client=>{
   for(const [name,email,role,division] of users)await client.query('INSERT INTO users(name,email,password_hash,role,division) VALUES($1,$2,$3,$4,$5) ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name,role=EXCLUDED.role,division=EXCLUDED.division',[name,email,hash,role,division])
   const manager=(await client.query("SELECT id FROM users WHERE email='mary.wanjiku@publicservice.go.ke'")).rows[0]
@@ -26,4 +29,5 @@ await transaction(async client=>{
   }
   if(!(await client.query('SELECT 1 FROM alerts LIMIT 1')).rowCount)await client.query("INSERT INTO alerts(title,body,severity,created_by,expires_at) VALUES('Quarterly research review','Quarterly research review meeting is scheduled for 6 August 2026.','Important',$1,NOW()+INTERVAL '30 days')",[manager.id])
 })
+}
 console.log('PSC REDESY database is ready.');await db.end()

@@ -34,6 +34,14 @@ test('new user creation stores a random inaccessible initial secret and emails a
   assert.doesNotMatch(create, /temporaryPassword|temporary_password/)
 })
 
+test('manager user-administration exception never grants access to the role-change endpoint', async () => {
+  const auth = await read('../src/auth.js')
+  const match = auth.match(/const userAdministrationPath=(\/.*?\/)\n/)
+  assert.ok(match, 'manager user-administration path allowlist must exist')
+  assert.doesNotMatch(match[1], /role/, 'role changes must remain System Admin only')
+  assert.match(match[1], /reset-password/, 'scoped managers may still request password resets')
+})
+
 test('administrator password reset sends a single-use link and returns no password', async () => {
   const app = await read('../src/app.js')
   const reset = app.slice(app.indexOf("app.post('/api/users/:id/reset-password'"), app.indexOf("app.get('/api/assignments'"))

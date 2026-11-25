@@ -68,6 +68,7 @@ test('leave, meetings and notice readership reports use their authoritative work
   for(const source of ['FROM leave_requests lr JOIN users u','FROM meetings m JOIN users creator','meeting_minutes','meeting_decisions','meeting_actions',"entity_type='notice'",'BOOL_OR(read_at IS NOT NULL)'])assert.ok(service.includes(source),source);
   assert.ok(service.includes('per-user notice notification read receipts'));
   assert.ok(service.includes('does not provide an acknowledgement register'));
+  assert.ok(service.includes('"Audit & Compliance", "Workforce", "Meetings", "Notices"'));
 });
 
 test('new operational reports enforce own and managed-team record scope in SQL',()=>{

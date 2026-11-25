@@ -37,7 +37,7 @@ export type ApiUser = {
   leave_end_date?: string | null;
 };
 export type LeaveType = {code:string;name:string;default_entitlement_days:number|null;paid:boolean;requires_document:boolean};
-export type LeaveRequest = {id:string;user_id:string;user_name?:string;user_email?:string;user_role?:string;division?:string;leave_type_code:string;leave_type_name:string;start_date:string;end_date:string;working_days:number;reason:string;status:"Pending"|"Approved"|"Returned"|"Rejected"|"Cancelled";approver_name?:string|null;decision_note?:string|null;submitted_at:string;decided_at?:string|null;currently_on_leave?:boolean};
+export type LeaveRequest = {id:string;user_id:string;user_name?:string;user_email?:string;user_role?:string;division?:string;leave_type_code:string;leave_type_name:string;start_date:string;end_date:string;working_days:number;reason:string;status:"Pending"|"Approved"|"Returned"|"Rejected"|"Cancelled";approver_name?:string|null;decision_note?:string|null;submitted_at:string;decided_at?:string|null;currently_on_leave?:boolean;has_attachment?:boolean};
 export type LeaveBalance = {code:string;name:string;entitlement_days:number|null;adjustment_days:number;used_days:number;remaining_days:number|null};
 
 export type ApiAssignment = {
@@ -2115,7 +2115,20 @@ export const api = {
   leaveTypes: (token: string) => request<LeaveType[]>("/leave/types", {}, token),
   leaveRequests: (token: string) => request<LeaveRequest[]>("/leave/requests", {}, token),
   leaveBalances: (token: string, userId: string, year = new Date().getFullYear()) => request<LeaveBalance[]>(`/leave/balances/${userId}?year=${year}`, {}, token),
-  submitLeaveRequest: (token: string, input: {leaveTypeCode:string;startDate:string;endDate:string;reason:string}) => request<LeaveRequest>("/leave/requests",{method:"POST",body:JSON.stringify(input)},token),
+  submitLeaveRequest: async (token: string, input: {leaveTypeCode:string;startDate:string;endDate:string;reason:string}, file?: File) => {
+    const response = await fetch(`${API_URL}/leave/requests`, file ? {
+      method:"POST", headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-Leave-Request":JSON.stringify(input)}, body:file
+    } : {method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(input)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data?.error||"Leave request could not be submitted.");
+    return data as LeaveRequest;
+  },
+  downloadLeaveAttachment: async (token:string,id:string) => {
+    const response=await fetch(`${API_URL}/leave/requests/${id}/attachment`,{headers:{Authorization:`Bearer ${token}`}});
+    if(!response.ok)throw new Error("Leave supporting document could not be downloaded.");
+    const blob=await response.blob(),url=URL.createObjectURL(blob),anchor=document.createElement("a");
+    anchor.href=url;anchor.download="leave-supporting-document";anchor.click();URL.revokeObjectURL(url);
+  },
   decideLeaveRequest: (token: string, id: string, decision: "Approved"|"Returned"|"Rejected", note: string) => request<LeaveRequest>(`/leave/requests/${id}/decision`,{method:"POST",body:JSON.stringify({decision,note})},token),
   cancelLeaveRequest: (token: string, id: string) => request<LeaveRequest>(`/leave/requests/${id}/cancel`,{method:"POST"},token),
 

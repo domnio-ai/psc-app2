@@ -7047,6 +7047,8 @@ export default function App() {
         body: action.payload.body || "",
         severity: "Information",
         audienceRole: "",
+        audienceRules: [{ type: "ORGANISATION", value: "*" }],
+        acknowledgementRequired: false,
         eventStart: "",
         eventEnd: "",
         expiresAt: "",

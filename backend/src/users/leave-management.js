@@ -39,7 +39,7 @@ const publicHolidayUpdateSchema=z.object({
  name:z.string().trim().min(3).max(200).optional(),
  description:z.string().trim().max(1000).optional(),
  active:z.boolean().optional(),
-}).refine(value=>Object.keys(value).length>0,{message:'At least one holiday field must be updated.'})
+}).refine(value=>Object.values(value).some(item=>item!==undefined),{message:'At least one holiday field must be updated.'})
 
 
 export function registerLeaveManagementRoutes(app,{authenticate,validate}){

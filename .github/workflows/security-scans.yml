@@ -15,6 +15,7 @@ on:
       - main
       - "publication/app2-clean-2026-11-18"
       - "features/**"
+      - "fix/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"

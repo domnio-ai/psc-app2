@@ -187,6 +187,50 @@ jobs:
               --format sarif --output /workspace/trivy.sarif \
               --skip-dirs .git /workspace
 
+      - name: Summarize redacted Trivy findings
+        if: always() && hashFiles('trivy.sarif') != ''
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          with open("trivy.sarif", encoding="utf-8") as report_file:
+              report = json.load(report_file)
+
+          summaries = []
+          for run in report.get("runs", []):
+              rules = {
+                  rule.get("id"): rule
+                  for rule in run.get("tool", {}).get("driver", {}).get("rules", [])
+              }
+              for finding in run.get("results", []):
+                  rule_id = finding.get("ruleId", "unknown")
+                  rule = rules.get(rule_id, {})
+                  short = rule.get("shortDescription", {}).get("text", "")
+                  severity = (
+                      rule.get("properties", {}).get("security-severity")
+                      or finding.get("level", "unknown")
+                  )
+                  physical = (
+                      (finding.get("locations") or [{}])[0]
+                      .get("physicalLocation", {})
+                  )
+                  artifact = physical.get("artifactLocation", {})
+                  region = physical.get("region", {})
+                  path = artifact.get("uri", "unknown")
+                  line = region.get("startLine", "unknown")
+                  summaries.append(
+                      f"- Rule `{rule_id}`; severity `{severity}`; "
+                      f"file `{path}`; line `{line}`; {short}"
+                  )
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"### Trivy high/critical findings: {len(summaries)}\\n")
+              for entry in summaries:
+                  print(entry)
+                  summary.write(entry + "\\n")
+          PY
+
       - name: Upload Trivy results to GitHub code scanning
         if: always() && hashFiles('trivy.sarif') != ''
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3

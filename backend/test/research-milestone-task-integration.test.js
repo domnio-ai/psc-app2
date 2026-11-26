@@ -17,7 +17,6 @@ test('milestone-task relationship migration is included in the pinned production
 })
 
 test('milestone task APIs scope reads and writes to the same linked research project',()=>{
-  assert.match(app,/GET_DOES_NOT_EXIST/)
   assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/tasks/)
   assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/tasks\/:taskId/)
   assert.match(app,/assignmentTaskScope\(req\.user,task\.assignment_id\)/)

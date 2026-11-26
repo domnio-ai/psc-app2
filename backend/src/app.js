@@ -3784,9 +3784,10 @@ app.patch('/api/research/:id/reviewers',authenticate,validate(researchReviewerSc
 }catch(error){next(error)}})
 
 const researchAssignmentLinkSchema=z.object({assignmentId:z.string().uuid(),relationType:z.string().trim().min(2).max(60).default('Research Work')})
-app.post('/api/research/:id/assignments/link',authenticate,authorize('System Admin','Deputy Director'),validate(researchAssignmentLinkSchema),async(req,res,next)=>{try{
+app.post('/api/research/:id/assignments/link',authenticate,validate(researchAssignmentLinkSchema),async(req,res,next)=>{try{
   const project=(await query('SELECT id,title FROM research_projects WHERE id=$1',[req.params.id])).rows[0]
   if(!project)return res.status(404).json({error:'Research project not found.'})
+  if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'You cannot link assignments to this research project.'})
   const assignment=(await query('SELECT id,title FROM assignments WHERE id=$1',[req.validated.assignmentId])).rows[0]
   if(!assignment)return res.status(404).json({error:'Assignment not found.'})
   const existing=(await query('SELECT project_id FROM research_assignment_links WHERE assignment_id=$1',[assignment.id])).rows[0]
@@ -3800,7 +3801,10 @@ app.post('/api/research/:id/assignments/link',authenticate,authorize('System Adm
   res.status(201).json({assignmentId:assignment.id})
 }catch(error){next(error)}})
 
-app.delete('/api/research/:id/assignments/:assignmentId',authenticate,authorize('System Admin','Director','Deputy Director','Assistant Director'),async(req,res,next)=>{try{
+app.delete('/api/research/:id/assignments/:assignmentId',authenticate,async(req,res,next)=>{try{
+  const project=(await query('SELECT id FROM research_projects WHERE id=$1',[req.params.id])).rows[0]
+  if(!project)return res.status(404).json({error:'Research project not found.'})
+  if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'You cannot unlink assignments from this research project.'})
   const link=(await query('SELECT * FROM research_assignment_links WHERE project_id=$1 AND assignment_id=$2',[req.params.id,req.params.assignmentId])).rows[0]
   if(!link)return res.status(404).json({error:'Research assignment link not found.'})
   await transaction(async client=>{

@@ -7,6 +7,7 @@ const migration=fs.readFileSync('migrations/20261126_research_milestone_task_lin
 const manifest=fs.readFileSync('src/production-migration-plan.js','utf8')
 const frontend=fs.readFileSync('../src/modules/research/components/ResearchWorkPlanPanel.tsx','utf8')
 const api=fs.readFileSync('../src/api.ts','utf8')
+const reports=fs.readFileSync('src/reports/report-service.js','utf8')
 
 test('milestone-task relationship migration is included in the pinned production plan',()=>{
   assert.match(manifest,/20261126_research_milestone_task_links\.sql/)
@@ -32,6 +33,14 @@ test('milestone sign-off requires governed task completion and does not bypass f
   assert.match(app,/status IN\('In Progress','Completed'\)/)
   assert.match(app,/Task completion is governed by final report publication/)
   assert.match(app,/RESEARCH_MILESTONE_STATUS_SYNCHRONIZED/)
+})
+
+test('research reporting includes milestone and linked-task delivery totals',()=>{
+  assert.match(reports,/milestone_count/)
+  assert.match(reports,/completed_milestones/)
+  assert.match(reports,/linked_task_count/)
+  assert.match(reports,/completed_linked_task_count/)
+  assert.match(reports,/overdue_milestones/)
 })
 
 test('linked tasks cannot be archived or deleted without unlinking them first',()=>{

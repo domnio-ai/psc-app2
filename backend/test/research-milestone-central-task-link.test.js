@@ -71,3 +71,17 @@ test("linked research milestone tasks cannot be archived and link/archive operat
   assert.match(archiveRoute, /if\(task\.linked_research_milestone\)throw Object\.assign/);
   assert.match(archiveRoute, /Unlink it from the Research Work Plan before archiving the task/);
 });
+
+test("dashboard milestone lists, counts and due notifications use linked task status as the source of truth", () => {
+  const dashboardStart = app.indexOf("app.get('/api/dashboard'");
+  const dashboardEnd = app.indexOf("app.get('/api/", dashboardStart + 20);
+  const dashboard = app.slice(dashboardStart, dashboardEnd > dashboardStart ? dashboardEnd : undefined);
+  const notificationStart = app.indexOf("const syncResearchNotificationsForUser");
+  const notificationEnd = app.indexOf("app.get('/api/pulse'", notificationStart);
+  const notifications = app.slice(notificationStart, notificationEnd);
+  const effectiveStatus = /CASE WHEN linked_task\.id IS NULL THEN m\.status WHEN linked_task\.status='Completed' THEN 'Completed' WHEN linked_task\.status='Not Started' THEN 'Pending' ELSE 'In Progress' END/;
+  assert.match(dashboard, effectiveStatus);
+  assert.match(dashboard, /LEFT JOIN assignment_tasks linked_task ON linked_task\.id=m\.task_id/);
+  assert.match(notifications, effectiveStatus);
+  assert.match(notifications, /LEFT JOIN assignment_tasks linked_task ON linked_task\.id=m\.task_id/);
+});

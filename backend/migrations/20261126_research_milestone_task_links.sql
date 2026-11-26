@@ -148,6 +148,19 @@ BEGIN
       RAISE EXCEPTION 'Milestone completion requires linked active tasks to complete their governed final-report workflow'
         USING ERRCODE = '23514';
     END IF;
+  ELSIF NEW.status = 'Pending' AND OLD.status IS DISTINCT FROM NEW.status THEN
+    SELECT COUNT(*)::int
+    INTO linked_tasks
+    FROM research_milestone_tasks mt
+    JOIN assignment_tasks t ON t.id = mt.task_id
+    WHERE mt.milestone_id = NEW.id
+      AND t.archived_at IS NULL
+      AND t.status IN ('In Progress','Blocked','Completed');
+
+    IF linked_tasks > 0 THEN
+      RAISE EXCEPTION 'A milestone with active linked tasks cannot be reset to Pending'
+        USING ERRCODE = '23514';
+    END IF;
   END IF;
 
   RETURN NEW;

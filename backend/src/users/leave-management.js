@@ -42,13 +42,13 @@ const refreshApprovedLeaveWorkingDays=async(client,dates)=>{
  `,[changedDates])
  return result.rowCount
 }
-const notify=async(client,userId,title,body,id,priority='Normal',category='Information')=>{
+const notify=async(client,userId,title,body,id,priority='Normal',category='Information',eventSuffix='')=>{
  const action=category==='Review'?'Open leave approval':'Open leave request'
  const workspace=category==='Review'?'Reviews & Approvals':'Leave'
  await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id,priority,action,target_workspace,event_key,notification_category)
  VALUES($1,$2,$3,'leave_request',$4,$5,$6,$7,$8,$9)
  ON CONFLICT(user_id,event_key) WHERE event_key IS NOT NULL DO NOTHING`,
- [userId,title,body,id,priority,action,workspace,`leave:${id}:${userId}:${title}`,category])
+ [userId,title,body,id,priority,action,workspace,`leave:${id}:${userId}:${title}${eventSuffix?`:${eventSuffix}`:''}`,category])
 }
 const requestSchema=z.object({leaveTypeCode:z.string().min(2).max(40),startDate:z.string().date(),endDate:z.string().date(),reason:z.string().trim().max(2000).default('')})
 const decisionSchema=z.object({decision:z.enum(['Approved','Returned','Rejected']),note:z.string().trim().max(2000).default('')})
@@ -199,6 +199,81 @@ export function registerLeaveManagementRoutes(app,{authenticate,validate}){
  }
  const rawLeaveUpload=express.raw({type:'application/octet-stream',limit:config.maxUploadMb*1024*1024})
  app.post('/api/leave/requests',authenticate,(req,res,next)=>req.is('application/octet-stream')?rawLeaveUpload(req,res,next):validate(requestSchema)(req,res,next),createLeaveRequest)
+ const resubmitLeaveRequest=async(req,res,next)=>{
+  let stored=null,oldStoredPath=null,committed=false
+  try{
+   let v=req.validated,upload=null
+   if(Buffer.isBuffer(req.body)){
+    let metadata={};try{metadata=JSON.parse(String(req.get('x-leave-request')||'{}'))}catch{return res.status(400).json({error:'Leave request details are invalid.'})}
+    const parsed=requestSchema.safeParse(metadata);if(!parsed.success)return res.status(400).json({error:'Complete the leave request details before resubmitting.'})
+    v=parsed.data
+    if(!req.body.length)return res.status(400).json({error:'Choose a non-empty supporting document.'})
+    let originalName=String(req.get('x-file-name')||'supporting-document');try{originalName=decodeURIComponent(originalName)}catch{}
+    upload=validateDocumentUpload(req.body,originalName,req.get('x-file-mime-type')||req.get('content-type'))
+    stored=await storeDocument(req.body,upload.extension)
+   }
+   if(v.endDate<v.startDate)return res.status(400).json({error:'Leave end date cannot be before the start date.'})
+   const result=await transaction(async client=>{
+    const row=(await client.query('SELECT * FROM leave_requests WHERE id=$1 FOR UPDATE',[req.params.id])).rows[0]
+    if(!row)return {kind:'missing'}
+    if(row.user_id!==req.user.id)return {kind:'scope'}
+    if(row.status!=='Returned')return {kind:'state'}
+    const type=(await client.query('SELECT * FROM leave_types WHERE code=$1 AND active=TRUE',[v.leaveTypeCode])).rows[0]
+    if(!type)return {kind:'type'}
+    const existingAttachment=(await client.query('SELECT * FROM leave_request_attachments WHERE leave_request_id=$1 FOR UPDATE',[row.id])).rows[0]
+    if(type.requires_document&&!stored&&!existingAttachment)return {kind:'document'}
+    const holidays=(await client.query('SELECT holiday_date::text holiday_date FROM public_holidays WHERE active=TRUE AND holiday_date BETWEEN $1::date AND $2::date',[v.startDate,v.endDate])).rows.map(item=>item.holiday_date)
+    const days=workingDays(v.startDate,v.endDate,holidays)
+    if(days<1)return {kind:'days'}
+    const overlap=(await client.query(`SELECT id FROM leave_requests WHERE user_id=$1 AND id<>$4
+     AND status IN('Pending','Approved','Returned')
+     AND daterange(start_date,end_date,'[]') && daterange($2::date,$3::date,'[]') LIMIT 1`,
+     [req.user.id,v.startDate,v.endDate,row.id])).rows[0]
+    if(overlap)return {kind:'overlap'}
+    const updated=(await client.query(`UPDATE leave_requests
+     SET leave_type_code=$1,start_date=$2,end_date=$3,working_days=$4,reason=$5,
+      status='Pending',approver_id=NULL,decided_at=NULL,updated_at=NOW()
+     WHERE id=$6 RETURNING *`,
+     [v.leaveTypeCode,v.startDate,v.endDate,days,v.reason,row.id])).rows[0]
+    if(stored){
+     if(existingAttachment){
+      oldStoredPath=existingAttachment.stored_path
+      await client.query(`UPDATE leave_request_attachments
+       SET original_filename=$1,stored_path=$2,mime_type=$3,size_bytes=$4,sha256=$5,uploaded_by=$6,created_at=NOW()
+       WHERE leave_request_id=$7`,
+       [upload.originalName,stored.storagePath,upload.mimeType,stored.sizeBytes,upload.sha256,req.user.id,row.id])
+     }else{
+      await client.query(`INSERT INTO leave_request_attachments(leave_request_id,original_filename,stored_path,mime_type,size_bytes,sha256,uploaded_by)
+       VALUES($1,$2,$3,$4,$5,$6,$7)`,
+       [row.id,upload.originalName,stored.storagePath,upload.mimeType,stored.sizeBytes,upload.sha256,req.user.id])
+     }
+    }
+    const supervisor=(await client.query('SELECT supervisor_id FROM users WHERE id=$1',[req.user.id])).rows[0]?.supervisor_id
+    if(supervisor)await notify(client,supervisor,'Leave request resubmitted for review',
+     `${req.user.name} amended and resubmitted a returned leave request for ${type.name} from ${v.startDate} to ${v.endDate} (${days} working days).`,
+     row.id,'High','Review',`resubmitted:${Date.now()}`)
+    await audit(client,req.user.id,'LEAVE_REQUEST_RESUBMITTED','leave_request',row.id,{
+     previousLeaveTypeCode:row.leave_type_code,previousStartDate:dateOnly(row.start_date),previousEndDate:dateOnly(row.end_date),
+     leaveTypeCode:v.leaveTypeCode,startDate:v.startDate,endDate:v.endDate,workingDays:days,
+     previousReturnNote:row.decision_note,attachmentReplaced:Boolean(stored),
+    })
+    return {kind:'updated',row:updated,hasAttachment:Boolean(stored||existingAttachment)}
+   })
+   if(result.kind==='missing')return res.status(404).json({error:'Leave request not found.'})
+   if(result.kind==='scope')return res.status(403).json({error:'You can amend only your own returned leave request.'})
+   if(result.kind==='state')return res.status(409).json({error:'Only a returned leave request can be amended and resubmitted.'})
+   if(result.kind==='type')return res.status(400).json({error:'Choose an active leave type.'})
+   if(result.kind==='document')return res.status(400).json({error:'This leave type requires a supporting document.'})
+   if(result.kind==='days')return res.status(400).json({error:'The leave period must include at least one working day after weekends and configured public holidays are excluded.'})
+   if(result.kind==='overlap')return res.status(409).json({error:'This leave period overlaps another pending, approved or returned leave request.'})
+   committed=true
+   if(oldStoredPath&&stored)await deleteStoredDocument(oldStoredPath)
+   res.json({...result.row,has_attachment:result.hasAttachment})
+  }catch(error){next(error)}finally{if(stored&&!committed)await deleteStoredDocument(stored.storagePath)}
+ }
+ const rawLeaveResubmission=express.raw({type:'application/octet-stream',limit:config.maxUploadMb*1024*1024})
+ app.patch('/api/leave/requests/:id',authenticate,(req,res,next)=>req.is('application/octet-stream')?rawLeaveResubmission(req,res,next):validate(requestSchema)(req,res,next),resubmitLeaveRequest)
+
  app.get('/api/leave/requests/:id/attachment',authenticate,async(req,res,next)=>{try{
   const row=(await query(`SELECT a.original_filename,a.stored_path,a.mime_type,lr.user_id FROM leave_request_attachments a
    JOIN leave_requests lr ON lr.id=a.leave_request_id WHERE lr.id=$1 ORDER BY a.created_at DESC LIMIT 1`,[req.params.id])).rows[0]

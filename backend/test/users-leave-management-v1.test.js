@@ -65,3 +65,19 @@ test("holiday calendar is available in the shared calendar and System Admin work
  assert.match(panel,/No official holidays are preloaded/);
  assert.match(ui,/canManagePublicHolidays=\{user\.role === "System Admin"\}/);
 });
+
+test("employees can amend and resubmit only their own returned leave requests",()=>{
+ assert.match(leave,/app\.patch\('\/api\/leave\/requests\/:id'/);
+ assert.match(leave,/row\.user_id!==req\.user\.id/);
+ assert.match(leave,/row\.status!=='Returned'/);
+ assert.match(leave,/id<>\$4/);
+ assert.match(leave,/status='Pending',approver_id=NULL,decided_at=NULL/);
+ assert.match(leave,/type\.requires_document&&!stored&&!existingAttachment/);
+ assert.match(leave,/LEAVE_REQUEST_RESUBMITTED/);
+ assert.match(leave,/previousReturnNote:row\.decision_note/);
+ assert.match(leave,/resubmitted:/);
+ assert.match(api,/resubmitLeaveRequest:/);
+ assert.match(panel,/api\.resubmitLeaveRequest/);
+ assert.match(panel,/Amend &amp; resubmit/);
+ assert.match(panel,/Resubmit for approval/);
+});

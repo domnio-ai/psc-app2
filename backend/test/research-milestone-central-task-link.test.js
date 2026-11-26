@@ -113,3 +113,13 @@ test("a linked central task cannot be reassigned until it is unlinked from its r
   assert.match(route, /linkedMilestone&&v\.ownerId&&v\.ownerId!==lockedTask\.owner_id/);
   assert.match(route, /Unlink it from the Research Work Plan before changing its owner/);
 });
+
+test("linked research milestone tasks cannot be hard-deleted through the assignment task delete route", () => {
+  const deleteStart = app.indexOf("app.delete('/api/assignments/:id/tasks/:taskId'");
+  const deleteEnd = app.indexOf("app.", deleteStart + 10);
+  assert.ok(deleteStart >= 0);
+  const route = app.slice(deleteStart, deleteEnd > deleteStart ? deleteEnd : undefined);
+  assert.match(route, /EXISTS\(\s*SELECT 1 FROM research_milestones rm\s*WHERE rm\.task_id=t\.id\s*\) has_linked_research_milestone/);
+  assert.match(route, /if\(task\.has_linked_research_milestone\)/);
+  assert.match(route, /Unlink it from the Research Work Plan before deleting the task/);
+});

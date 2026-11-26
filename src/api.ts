@@ -685,7 +685,7 @@ export type FelixAction = {
   target: string;
   payload: Record<string, string>;
 };
-export type FelixMode = "Auto" | "Research" | "APP2 Expert" | "Code Review";
+export type FelixMode = "Auto" | "Research" | "App2 Expert" | "Code Review";
 export type FelixAdviceContext = "Assignment" | "Research" | "Report";
 export type FelixAdviceResponse = {
   context_type: FelixAdviceContext;

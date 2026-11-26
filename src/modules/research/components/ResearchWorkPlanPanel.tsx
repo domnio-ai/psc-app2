@@ -56,6 +56,11 @@ export default function ResearchWorkPlanPanel({
                   <small className="research-milestone-deliverable">
                     <b>Completion:</b> {milestone.description || "No completion criteria recorded."}
                   </small>
+                  {milestone.linked_task && (
+                    <small className="research-milestone-deliverable" role="status">
+                      <b>Central task:</b> {milestone.linked_task.title} · {milestone.linked_task.status} · {milestone.linked_task.progress}% · {milestone.linked_task.assignment_title}
+                    </small>
+                  )}
                 </div>
                 <div>
                   <strong>{milestone.owner_name || "Unassigned"}</strong>
@@ -64,6 +69,8 @@ export default function ResearchWorkPlanPanel({
                 <select
                   aria-label={`Status for ${milestone.title}`}
                   value={milestone.status}
+                  disabled={Boolean(milestone.linked_task)}
+                  title={milestone.linked_task ? "Status is controlled by the linked central task workflow." : undefined}
                   onChange={(event) => void onUpdateMilestone(milestone.id, event.target.value)}
                 >
                   <option>Pending</option>

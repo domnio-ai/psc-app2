@@ -18,6 +18,7 @@ test('milestone-task relationship migration is included in the pinned production
   assert.match(migration,/research_assignment_unlink_guard/)
   assert.match(migration,/research_milestone_task_archive_guard/)
   assert.match(migration,/research_milestone_completion_guard/)
+  assert.match(migration,/A milestone with active linked tasks cannot be reset to Pending/)
   assert.match(migration,/FOR UPDATE/)
   assert.match(migration,/IF task_assignment IS NULL/)
   assert.match(migration,/IF linked_project IS NULL OR linked_project <> NEW[.]project_id/)
@@ -38,6 +39,7 @@ test('milestone task APIs scope reads and writes to the same linked research pro
 
 test('milestone sign-off requires governed task completion and does not bypass final report publication',()=>{
   assert.match(app,/milestone can be completed only after it has linked active tasks/)
+  assert.match(app,/A milestone with active linked tasks cannot be reset to Pending/)
   assert.match(app,/syncResearchMilestonesFromTasks/)
   assert.ok(app.includes("t.status IN('In Progress','Blocked','Completed')"))
   assert.match(app,/Task completion is governed by final report publication/)

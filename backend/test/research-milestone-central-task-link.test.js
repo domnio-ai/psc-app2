@@ -85,3 +85,31 @@ test("dashboard milestone lists, counts and due notifications use linked task st
   assert.match(notifications, effectiveStatus);
   assert.match(notifications, /LEFT JOIN assignment_tasks linked_task ON linked_task\.id=m\.task_id/);
 });
+
+test("milestone status edits and unlink operations serialize against task linking and restore current task progress", () => {
+  const milestonePatchStart = app.indexOf("app.patch('/api/research/:id/milestones/:milestoneId'");
+  const linkStart = app.indexOf("app.post('/api/research/:id/milestones/:milestoneId/link-task'");
+  const unlinkStart = app.indexOf("app.delete('/api/research/:id/milestones/:milestoneId/link-task'", linkStart);
+  const repositoryLinkStart = app.indexOf("const researchRepositoryLinkSchema", unlinkStart);
+  assert.ok(milestonePatchStart >= 0 && linkStart > milestonePatchStart && unlinkStart > linkStart);
+  const milestonePatch = app.slice(milestonePatchStart, linkStart);
+  const unlinkRoute = app.slice(unlinkStart, repositoryLinkStart);
+  assert.match(milestonePatch, /SELECT \* FROM research_milestones WHERE id=\$1 AND project_id=\$2 FOR UPDATE/);
+  assert.match(milestonePatch, /if\(milestone\.task_id\)return \{kind:'linked'\}/);
+  assert.match(milestonePatch, /WHERE id=\$2 AND task_id IS NULL RETURNING \*/);
+  assert.match(unlinkRoute, /SELECT id,task_id FROM research_milestones WHERE id=\$1 AND project_id=\$2 FOR UPDATE/);
+  assert.match(unlinkRoute, /SELECT status FROM assignment_tasks WHERE id=\$1/);
+  assert.match(unlinkRoute, /SET task_id=NULL,status=\$2/);
+  assert.match(unlinkRoute, /restoredStatus/);
+});
+
+test("a linked central task cannot be reassigned until it is unlinked from its research milestone", () => {
+  const taskPatchStart = app.indexOf("app.patch('/api/assignments/:id/tasks/:taskId'");
+  const taskReviewerStart = app.indexOf("app.patch('/api/assignments/:id/tasks/:taskId/reviewer'", taskPatchStart);
+  assert.ok(taskPatchStart >= 0 && taskReviewerStart > taskPatchStart);
+  const route = app.slice(taskPatchStart, taskReviewerStart);
+  assert.match(route, /SELECT owner_id,archived_at FROM assignment_tasks WHERE id=\$1 AND assignment_id=\$2 FOR UPDATE/);
+  assert.match(route, /SELECT id FROM research_milestones WHERE task_id=\$1 LIMIT 1/);
+  assert.match(route, /linkedMilestone&&v\.ownerId&&v\.ownerId!==lockedTask\.owner_id/);
+  assert.match(route, /Unlink it from the Research Work Plan before changing its owner/);
+});

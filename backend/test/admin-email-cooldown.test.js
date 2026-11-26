@@ -85,13 +85,14 @@ test("Gmail transport is mockable, returns no credentials and sanitizes provider
     return true;
   });
 
-  const networkFailure = createMailService(smtp, async () => ({
+  const networkFailure = createMailService({ ...smtp, host: "smtp.office365.com" }, async () => ({
     async verify() { return true; },
     async sendMail() { throw new Error("mock network failure involving mock-app-password-value"); },
   }));
   await assert.rejects(networkFailure.sendMail({ to: "recipient@example.invalid", subject: "QA", text: "test" }), (error) => {
     assert.equal(error.statusCode, 502);
-    assert.doesNotMatch(error.message, /mock-app-password-value/);
+    assert.doesNotMatch(error.message, /mock-app-password-value|Gmail/i);
+    assert.match(error.message, /configured SMTP provider/);
     return true;
   });
 });

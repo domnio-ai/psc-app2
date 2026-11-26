@@ -22,6 +22,7 @@ services:
         condition: service_healthy
     environment:
       PORT: 8000
+      TRUST_PROXY_HOPS: "1"
       NODE_ENV: production
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
       EXPOSE_LOGIN_DIRECTORY: "false"

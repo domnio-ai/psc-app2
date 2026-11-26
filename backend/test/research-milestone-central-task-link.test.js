@@ -28,6 +28,9 @@ test("linking a milestone requires an existing task in a linked assignment and v
   assert.match(route, /research_assignment_links/);
   assert.match(route, /research_collaborators/);
   assert.match(route, /assignment_members/);
+  assert.match(route, /canAccessAssignment/);
+  assert.match(route, /task\.owner_id!==milestone\.owner_id/);
+  assert.match(route, /task_owner\.active=TRUE/);
   assert.match(route, /task_id/);
   assert.match(route, /MILESTONE_TASK_LINKED/);
   assert.match(route, /RESEARCH_MILESTONE_TASK_LINKED/);

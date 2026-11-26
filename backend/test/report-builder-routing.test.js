@@ -106,7 +106,7 @@ test('assignment report waiting state names the assigned lead',()=>{
   assert.match(assignmentReports,/PRIMARY REPORT BUILDER/)
   assert.match(assignmentReports,/\{assignmentLeadName \|\| "No Assignment Lead assigned"\}/)
   assert.match(backend,/const lead=await resolvedAssignmentLead\(req\.params\.id\)/)
-  assert.match(backend,/REDESY is waiting for \$\{lead\.name\}, the Assignment Lead/)
+  assert.match(backend,/APP2 is waiting for \$\{lead\.name\}, the Assignment Lead/)
 })
 
 test('legacy displayed assignment lead receives matching report-builder access',()=>{

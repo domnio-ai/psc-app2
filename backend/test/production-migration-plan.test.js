@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { baseline, loadProductionMigrationPlan, migrationSources, unwrapTransaction } from '../src/production-migration-plan.js'
 
 test('production migration manifest matches its pinned PostgreSQL 17 audit sources', async () => {
@@ -21,4 +22,10 @@ test('production migration envelope is removed only when balanced at file bounda
   assert.equal(unwrapTransaction('BEGIN;\nSELECT 1;\nCOMMIT;'), 'SELECT 1;')
   assert.throws(() => unwrapTransaction('SELECT 1;\nCOMMIT;'), /unsupported transaction wrapper/)
   assert.equal(unwrapTransaction('DO $$ BEGIN PERFORM 1; END $$;'), 'DO $$ BEGIN PERFORM 1; END $$;')
+})
+
+test('production migration runner loads the verified baseline SQL before applying migrations',()=>{
+  const runner=readFileSync(new URL('../src/migrate-production.js',import.meta.url),'utf8')
+  assert.match(runner,/const \{ baselineSql, migrations \} = await loadProductionMigrationPlan\(\)/)
+  assert.match(runner,/await client\.query\(baselineSql\)/)
 })

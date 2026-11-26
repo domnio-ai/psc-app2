@@ -474,6 +474,18 @@ export type ResearchProject = {
     due_date: string;
     priority: "Low" | "Normal" | "High" | "Critical";
     status: "Pending" | "In Progress" | "Completed";
+    task_id: string | null;
+    linked_task: {
+      id: string;
+      title: string;
+      status: string;
+      progress: number;
+      owner_id: string | null;
+      owner_name: string | null;
+      due_date: string | null;
+      assignment_id: string;
+      assignment_title: string;
+    } | null;
   }[];
 };
 export type ResearchScopeView = "my" | "team" | "reviews";
@@ -3031,6 +3043,18 @@ export const api = {
     request(
       `/research/${id}/milestones/${milestoneId}`,
       { method: "PATCH", body: JSON.stringify({ status }) },
+      token,
+    ),
+  linkResearchMilestoneTask: (token: string, id: string, milestoneId: string, taskId: string) =>
+    request(
+      `/research/${id}/milestones/${milestoneId}/link-task`,
+      { method: "POST", body: JSON.stringify({ taskId }) },
+      token,
+    ),
+  unlinkResearchMilestoneTask: (token: string, id: string, milestoneId: string) =>
+    request(
+      `/research/${id}/milestones/${milestoneId}/link-task`,
+      { method: "DELETE" },
       token,
     ),
   researchRepositoryDocuments: (token: string, id: string) =>

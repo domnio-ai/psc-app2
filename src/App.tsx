@@ -9368,7 +9368,7 @@ export default function App() {
                           <span>
                             {emailDelivery?.ready
                               ? `${emailDelivery.provider || "SMTP"}  |  ${emailDelivery.host}:${emailDelivery.port}  |  ${emailDelivery.from}`
-                              : "Configure Gmail or another approved SMTP transport in the backend environment, then restart the backend. Credentials stay server-side."}
+                              : "Configure an approved SMTP provider in the backend environment, then restart the backend. Credentials stay server-side."}
                           </span>
                         </div>
                         <button

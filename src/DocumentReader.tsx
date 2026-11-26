@@ -301,17 +301,17 @@ export default function DocumentReader({token,document,versionId,onClose}:{token
         charCount: selectedChars,
         mode: "BLOCKED_NATIVE",
       }).catch(() => {});
-      setCopyNotice("External clipboard copy is disabled for repository documents. Use Copy within REDESY; every copy attempt is audited.");
+      setCopyNotice("External clipboard copy is disabled for repository documents. Use Copy within APP2; every copy attempt is audited.");
     }, true);
   };
-  const copyWithinApp2=async()=>{let text='';if(pdf){try{const content=await (await pdf.getPage(page)).getTextContent();text=content.items.map(value=>'str' in value?value.str:'').join(' ').trim()}catch{}}else{text=(readerHtmlFrameRef.current?.contentWindow?.getSelection()?.toString()||window.getSelection()?.toString()||payload?.text||'').trim()}text=text.slice(0,6000);if(!text){setCopyNotice('Select text first, or open a readable page.');return}sessionStorage.setItem('app2-internal-clipboard',text);await api.logDocumentCopy(token,document.id,{versionId:payload?.metadata.versionId,page:pdf?page:undefined,charCount:text.length,mode:'INTERNAL_COPY'}).catch(()=>{});setCopyNotice(`${text.length.toLocaleString()} characters copied inside REDESY only.`);window.setTimeout(()=>setCopyNotice(''),3500)}
-  const blockNativeCopy=(event:ClipboardEvent)=>{event.preventDefault();const count=window.getSelection()?.toString().length||0;void api.logDocumentCopy(token,document.id,{versionId:payload?.metadata.versionId,page:pdf?page:undefined,charCount:count,mode:'BLOCKED_NATIVE'});setCopyNotice('External clipboard copy is disabled. Use Copy within REDESY.')}
+  const copyWithinApp2=async()=>{let text='';if(pdf){try{const content=await (await pdf.getPage(page)).getTextContent();text=content.items.map(value=>'str' in value?value.str:'').join(' ').trim()}catch{}}else{text=(readerHtmlFrameRef.current?.contentWindow?.getSelection()?.toString()||window.getSelection()?.toString()||payload?.text||'').trim()}text=text.slice(0,6000);if(!text){setCopyNotice('Select text first, or open a readable page.');return}sessionStorage.setItem('app2-internal-clipboard',text);await api.logDocumentCopy(token,document.id,{versionId:payload?.metadata.versionId,page:pdf?page:undefined,charCount:text.length,mode:'INTERNAL_COPY'}).catch(()=>{});setCopyNotice(`${text.length.toLocaleString()} characters copied inside APP2 only.`);window.setTimeout(()=>setCopyNotice(''),3500)}
+  const blockNativeCopy=(event:ClipboardEvent)=>{event.preventDefault();const count=window.getSelection()?.toString().length||0;void api.logDocumentCopy(token,document.id,{versionId:payload?.metadata.versionId,page:pdf?page:undefined,charCount:count,mode:'BLOCKED_NATIVE'});setCopyNotice('External clipboard copy is disabled. Use Copy within APP2.')}
   const contextualQuestions=/policy/i.test(`${document.category} ${document.document_type}`)?['What are the mandatory requirements?','Who is responsible?','What implementation gaps exist?']:/minute/i.test(`${document.category} ${document.document_type}`)?['What decisions were made?','What actions remain outstanding?','Who owns them?']:['Summarize this document','What are the strongest findings?','What are its limitations?','Are the conclusions justified?']
   return <div className="document-reader-shell" role="dialog" aria-modal="true" aria-label={`Read ${document.title}`} onCopy={blockNativeCopy}>
-    <header><button onClick={onClose}>← Repository</button><div><small>{document.category} · Version {currentVersion} · {document.status}</small><h1>{document.title}</h1></div><div className="reader-head-actions">{assignmentReportOrigin&&<button className="reader-download-pdf" type="button" disabled={reportPdfBusy} onClick={()=>void downloadAssignmentReportPdf()}>{reportPdfBusy?"Preparing PDF…":"Download PDF"}</button>}<button onClick={()=>setInfoOpen(value=>!value)}>Information</button><button onClick={copyWithinApp2}>Copy within REDESY</button><button onClick={()=>{setFelixOpen(true);setInfoOpen(false)}}>Ask Felix</button><button onClick={auditFelix}>Audit</button><button onClick={()=>{setFelixOpen(true);setInfoOpen(false);setQuestion('Find related approved REDESY research and explain the relationship.')}}>Related research</button><button aria-label="Close reader" onClick={onClose}>×</button></div></header>
+    <header><button onClick={onClose}>← Repository</button><div><small>{document.category} · Version {currentVersion} · {document.status}</small><h1>{document.title}</h1></div><div className="reader-head-actions">{assignmentReportOrigin&&<button className="reader-download-pdf" type="button" disabled={reportPdfBusy} onClick={()=>void downloadAssignmentReportPdf()}>{reportPdfBusy?"Preparing PDF…":"Download PDF"}</button>}<button onClick={()=>setInfoOpen(value=>!value)}>Information</button><button onClick={copyWithinApp2}>Copy within APP2</button><button onClick={()=>{setFelixOpen(true);setInfoOpen(false)}}>Ask Felix</button><button onClick={auditFelix}>Audit</button><button onClick={()=>{setFelixOpen(true);setInfoOpen(false);setQuestion('Find related approved APP2 research and explain the relationship.')}}>Related research</button><button aria-label="Close reader" onClick={onClose}>×</button></div></header>
     {historical&&<div className="reader-history-banner">You are viewing a historical document version.</div>}
-    {['CONFIDENTIAL','RESTRICTED'].includes(classification)&&<div className={`reader-classification ${classification.toLowerCase()}`}>{classification} — Authorized REDESY Users Only</div>}
-    <div className="reader-copy-policy">External clipboard copy is disabled for repository documents. Use <b>Copy within REDESY</b>; every copy attempt is audited.</div>
+    {['CONFIDENTIAL','RESTRICTED'].includes(classification)&&<div className={`reader-classification ${classification.toLowerCase()}`}>{classification} — Authorized APP2 Users Only</div>}
+    <div className="reader-copy-policy">External clipboard copy is disabled for repository documents. Use <b>Copy within APP2</b>; every copy attempt is audited.</div>
     {copyNotice&&<div className="reader-copy-notice" role="status">{copyNotice}</div>}
     {reportPdfError&&<div className="reader-download-error" role="alert">PDF download failed: {reportPdfError}</div>}
     <nav className="reader-toolbar"><label><span>Search document</span><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search document..."/></label><span>{matches.length?`${matchIndex+1} of ${matches.length}`:'0 matches'}</span><button disabled={!matches.length} onClick={()=>nextMatch(-1)}>Previous match</button><button disabled={!matches.length} onClick={()=>nextMatch(1)}>Next match</button>{pdf&&<><i/><button disabled={page<=1} onClick={()=>goToPage(page-1)}>Previous page</button><strong>Page {page} of {pdf.numPages} · Continuous</strong><button disabled={page>=pdf.numPages} onClick={()=>goToPage(page+1)}>Next page</button><i/><button onClick={()=>{setFit(false);setZoom(value=>Math.max(.5,value-.15))}}>−</button><span>{Math.round(zoom*100)}%</span><button onClick={()=>{setFit(false);setZoom(value=>Math.min(2.5,value+.15))}}>+</button><button className={fit?'active':''} onClick={()=>setFit(true)}>Fit width</button></>}<button onClick={()=>readerRef.current?.requestFullscreen?.()}>Full screen</button></nav>
@@ -335,7 +335,7 @@ export default function DocumentReader({token,document,versionId,onClose}:{token
           <dt>Version</dt><dd>{currentVersion}{historical?' · Historical':' · Current'}</dd>
           <dt>Category</dt><dd>{document.category}</dd>
           <dt>Document type</dt><dd>{document.document_type||'Document'}</dd>
-          <dt>Source</dt><dd>{document.source_type||'REDESY Repository'}</dd>
+          <dt>Source</dt><dd>{document.source_type||'APP2 Repository'}</dd>
           <dt>Directorate</dt><dd>{document.directorate||'Not specified'}</dd>
         </dl>
       </section>
@@ -354,7 +354,7 @@ export default function DocumentReader({token,document,versionId,onClose}:{token
 
       {!!document.origin_links?.length&&(
         <section className="reader-info-section">
-          <h3>Related REDESY work</h3>
+          <h3>Related APP2 work</h3>
           <div className="reader-info-links">
             {document.origin_links.map(link=>(
               <span key={`${link.type}-${link.id}`}>

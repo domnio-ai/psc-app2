@@ -864,3 +864,77 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.research-milestone-task-links {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-top: 1px solid var(--rwe-border);
+  background: color-mix(in srgb, var(--rwe-secondary) 55%, var(--rwe-surface));
+}
+.research-milestone-task-links > strong {
+  font-size: 11px;
+  color: var(--text-primary);
+}
+.research-milestone-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.research-milestone-task-row > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.research-milestone-task-row b {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.research-milestone-task-row small,
+.research-milestone-task-links > small {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+.research-milestone-task-row button,
+.research-milestone-task-controls button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--rwe-border);
+  border-radius: 7px;
+  background: var(--rwe-surface);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 750;
+}
+.research-milestone-task-controls {
+  display: flex;
+  gap: 7px;
+  min-width: 0;
+}
+.research-milestone-task-controls select {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid var(--rwe-border);
+  border-radius: 7px;
+  padding: 5px 8px;
+  background: var(--rwe-surface);
+  color: var(--text-primary);
+  font-size: 11px;
+}
+.research-milestone-task-row button:disabled,
+.research-milestone-task-controls button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+@media (max-width: 620px) {
+  .research-milestone-task-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

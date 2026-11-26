@@ -12,6 +12,7 @@ test('research assignment link and unlink routes enforce the shared project-mana
   assert.match(frontend,/isManager=\{Boolean\(isManager && selectedResearch\.can_manage\)\}/)
   assert.match(frontend,/canManageTasks=\{Boolean\(selectedResearch\.can_manage\)\}/)
   assert.match(app,/can_manage:await canEditResearch\(req\.user,row\.id\)/)
+  assert.match(app,/isManager&&!await canEditResearch\(req\.user,project\.id\)/)
 })
 
 test('milestone creation and status changes write audit records inside their transactions',()=>{

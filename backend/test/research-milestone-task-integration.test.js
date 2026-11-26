@@ -28,6 +28,8 @@ test('milestone task APIs scope reads and writes to the same linked research pro
   assert.match(app,/assignment linked to this research project/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_LINKED/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_UNLINKED/)
+  assert.match(app,/Reopen the completed milestone before linking additional tasks/)
+  assert.match(app,/Reopen the completed milestone before changing its linked tasks/)
   assert.match(app,/Unlink the assignment tasks from their research milestones before unlinking this assignment/)
 })
 

@@ -56,7 +56,7 @@ export function registerReportRoutes(app,{validate,governedDate}){
         reports.push({key,title:result.report.title,recordCount:rowsForReport,kpis:result.kpis||[],columns:result.columns||[],rows:result.rows||[]})
       }
       const title=req.validated.title.trim()||'Institutional Management Report Pack'
-      const rendered=await renderReportPackPdf({title,paperSize:req.validated.paperSize,period:req.validated.filters,generatedAt:new Date().toISOString(),generatedBy:req.user.name||req.user.email||'Current authorised REDESY user',scope,reports,recordCount})
+      const rendered=await renderReportPackPdf({title,paperSize:req.validated.paperSize,period:req.validated.filters,generatedAt:new Date().toISOString(),generatedBy:req.user.name||req.user.email||'Current authorised APP2 user',scope,reports,recordCount})
       await Promise.all(reports.map(report=>recordReportExport(req.user,report.key,'pdf',{...req.validated.filters,exportProfile:'consolidated-pack',packReportCount:keys.length},report.recordCount)))
       const safe=title.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()
       res.setHeader('Content-Type',rendered.type)
@@ -94,7 +94,7 @@ export function registerReportRoutes(app,{validate,governedDate}){
         profile,
         intelligence,
         reportKey:req.params.key,
-        generatedBy:req.user.name||req.user.email||'Current authorised REDESY user',
+        generatedBy:req.user.name||req.user.email||'Current authorised APP2 user',
         documentStatus:'Generated PDF · No approval or sign-off recorded',
         classification:'INTERNAL',
       })

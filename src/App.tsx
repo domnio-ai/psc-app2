@@ -13981,6 +13981,7 @@ export default function App() {
 
             <div className="research-work-primary-grid">
             <ResearchWorkPlanPanel
+              token={token}
               project={selectedResearch}
               form={researchMilestoneForm}
               setForm={setResearchMilestoneForm}
@@ -14020,6 +14021,30 @@ export default function App() {
                   setResearchWorkspaceNotice("Milestone created with an accountable owner and deadline.");
                 } catch (error) {
                   setResearchWorkspaceNotice(error instanceof Error ? error.message : "Milestone could not be created.");
+                }
+              }}
+              onLinkTask={async (milestoneId, taskId) => {
+                try {
+                  await api.linkResearchMilestoneTask(token, selectedResearch.id, milestoneId, taskId);
+                  const projects = await api.research(token);
+                  setResearchRows(projects);
+                  setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                  setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                  setResearchWorkspaceNotice("Central assignment task linked to the research milestone.");
+                } catch (error) {
+                  setResearchWorkspaceNotice(error instanceof Error ? error.message : "Task could not be linked to this milestone.");
+                }
+              }}
+              onUnlinkTask={async (milestoneId) => {
+                try {
+                  await api.unlinkResearchMilestoneTask(token, selectedResearch.id, milestoneId);
+                  const projects = await api.research(token);
+                  setResearchRows(projects);
+                  setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                  setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                  setResearchWorkspaceNotice("Central assignment task unlinked from the research milestone.");
+                } catch (error) {
+                  setResearchWorkspaceNotice(error instanceof Error ? error.message : "Task could not be unlinked from this milestone.");
                 }
               }}
             />

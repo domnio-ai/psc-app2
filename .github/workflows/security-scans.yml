@@ -125,7 +125,7 @@ jobs:
 
   gitleaks-history:
     name: Gitleaks full Git history audit
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/features/')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

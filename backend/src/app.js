@@ -1868,6 +1868,11 @@ if(manager&&isTeamScopeRole(req.user.role)){
 const v=req.validated
 if(v.status==='Completed')return res.status(409).json({error:'Task completion is governed by final report publication. Approve the submitted report, then generate and publish the final Task Report.'})
 if(manager&&isTeamScopeRole(req.user.role)){const allowed=await managedUserIds(req.user);for(const id of [v.ownerId,v.reviewerId].filter(Boolean)){if(!allowed.includes(id))return res.status(403).json({error:'Task owners and reviewers must belong to your reporting subtree.'})}}const row=await transaction(async client=>{
+const lockedTask=(await client.query('SELECT owner_id,archived_at FROM assignment_tasks WHERE id=$1 AND assignment_id=$2 FOR UPDATE',[req.params.taskId,req.params.id])).rows[0]
+if(!lockedTask)throw Object.assign(new Error('Task not found.'),{statusCode:404})
+if(lockedTask.archived_at)throw Object.assign(new Error('Archived tasks cannot be edited.'),{statusCode:409})
+const linkedMilestone=(await client.query('SELECT id FROM research_milestones WHERE task_id=$1 LIMIT 1',[req.params.taskId])).rows[0]
+if(linkedMilestone&&v.ownerId&&v.ownerId!==lockedTask.owner_id)throw Object.assign(new Error('This task is linked to a research milestone. Unlink it from the Research Work Plan before changing its owner.'),{statusCode:409})
 if(manager&&v.ownerId){
   const selectedOwner=(await client.query("SELECT id,name,role,active FROM users WHERE id=$1",[v.ownerId])).rows[0]
   if(!selectedOwner||!selectedOwner.active||selectedOwner.role==='System Admin')throw Object.assign(new Error('Choose an active operational user as the task owner.'),{statusCode:400})
@@ -4141,7 +4146,24 @@ app.delete('/api/research/:id',authenticate,authorize('System Admin','Deputy Dir
 }})
 const researchMilestoneSchema=z.object({title:z.string().min(3).max(200),description:z.string().max(3000).default(''),ownerId:z.string().uuid(),dueDate:governedDate.unwrap(),priority:z.enum(['Low','Normal','High','Critical']).default('Normal')})
 app.post('/api/research/:id/milestones',authenticate,validate(researchMilestoneSchema),async(req,res,next)=>{try{if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'Only the working research team or a manager can add milestones.'});const v=req.validated;const accountable=(await query('SELECT 1 FROM research_projects p WHERE p.id=$1 AND(p.lead_id=$2 OR EXISTS(SELECT 1 FROM research_collaborators WHERE project_id=p.id AND user_id=$2))',[req.params.id,v.ownerId])).rowCount;if(!accountable)return res.status(400).json({error:'Milestone owner must be the research lead or a project collaborator.'});const row=await transaction(async client=>{const created=(await client.query('INSERT INTO research_milestones(project_id,title,description,owner_id,due_date,priority)VALUES($1,$2,$3,$4,$5,$6)RETURNING *',[req.params.id,v.title,v.description,v.ownerId,v.dueDate,v.priority])).rows[0];await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'MILESTONE_CREATED',JSON.stringify({milestoneId:created.id,title:created.title,ownerId:created.owner_id,dueDate:created.due_date})]);return created});res.status(201).json(row)}catch(error){next(error)}})
-app.patch('/api/research/:id/milestones/:milestoneId',authenticate,validate(z.object({status:z.enum(['Pending','In Progress','Completed'])})),async(req,res,next)=>{try{if(!await canAccessResearch(req.user,req.params.id))return res.status(403).json({error:'You cannot update this milestone.'});const milestone=(await query('SELECT * FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0];if(!milestone)return res.status(404).json({error:'Milestone not found.'});if(milestone.task_id)return res.status(409).json({error:'This milestone is linked to a central assignment task. Update its status through the task workflow; final completion requires approved Task Report publication.'});if(milestone.owner_id!==req.user.id&&!isManagementRole(req.user.role))return res.status(403).json({error:'Only the milestone owner or a research manager can update its status.'});const row=await transaction(async client=>{const updated=(await client.query('UPDATE research_milestones SET status=$1,updated_at=NOW() WHERE id=$2 RETURNING *',[req.validated.status,milestone.id])).rows[0];await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'MILESTONE_UPDATED',JSON.stringify({milestoneId:updated.id,status:updated.status})]);return updated});res.json(row)}catch(error){next(error)}})
+app.patch('/api/research/:id/milestones/:milestoneId',authenticate,validate(z.object({status:z.enum(['Pending','In Progress','Completed'])})),async(req,res,next)=>{try{
+  if(!await canAccessResearch(req.user,req.params.id))return res.status(403).json({error:'You cannot update this milestone.'})
+  const result=await transaction(async client=>{
+    const milestone=(await client.query('SELECT * FROM research_milestones WHERE id=$1 AND project_id=$2 FOR UPDATE',[req.params.milestoneId,req.params.id])).rows[0]
+    if(!milestone)return {kind:'missing'}
+    if(milestone.task_id)return {kind:'linked'}
+    if(milestone.owner_id!==req.user.id&&!isManagementRole(req.user.role))return {kind:'forbidden'}
+    const updated=(await client.query('UPDATE research_milestones SET status=$1,updated_at=NOW() WHERE id=$2 AND task_id IS NULL RETURNING *',[req.validated.status,milestone.id])).rows[0]
+    if(!updated)return {kind:'linked'}
+    await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'MILESTONE_UPDATED',JSON.stringify({milestoneId:updated.id,status:updated.status})])
+    await audit(client,req.user.id,'RESEARCH_MILESTONE_UPDATED','research',req.params.id,{milestoneId:updated.id,status:updated.status})
+    return {kind:'updated',row:updated}
+  })
+  if(result.kind==='missing')return res.status(404).json({error:'Milestone not found.'})
+  if(result.kind==='linked')return res.status(409).json({error:'This milestone is linked to a central assignment task. Update its status through the task workflow; final completion requires approved Task Report publication.'})
+  if(result.kind==='forbidden')return res.status(403).json({error:'Only the milestone owner or a research manager can update its status.'})
+  res.json(result.row)
+}catch(error){next(error)}})
 app.post('/api/research/:id/milestones/:milestoneId/link-task',authenticate,validate(z.object({taskId:z.string().uuid()})),async(req,res,next)=>{try{
   if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'Only the working research team or an authorised manager can link a task.'})
   const project=(await query('SELECT id,lead_id,assignment_id FROM research_projects WHERE id=$1',[req.params.id])).rows[0]
@@ -4175,15 +4197,21 @@ app.post('/api/research/:id/milestones/:milestoneId/link-task',authenticate,vali
 }catch(error){if(error.code==='23505')return res.status(409).json({error:'This central task is already linked to another research milestone.'});next(error)}})
 app.delete('/api/research/:id/milestones/:milestoneId/link-task',authenticate,async(req,res,next)=>{try{
   if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'Only the working research team or an authorised manager can unlink a task.'})
-  const milestone=(await query('SELECT id,task_id FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0]
-  if(!milestone)return res.status(404).json({error:'Research milestone not found.'})
-  if(!milestone.task_id)return res.status(409).json({error:'This milestone has no linked central task.'})
-  await transaction(async client=>{
-    await client.query('UPDATE research_milestones SET task_id=NULL,updated_at=NOW() WHERE id=$1',[milestone.id])
-    await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'MILESTONE_TASK_UNLINKED',JSON.stringify({milestoneId:milestone.id,taskId:milestone.task_id})])
-    await audit(client,req.user.id,'RESEARCH_MILESTONE_TASK_UNLINKED','research',req.params.id,{milestoneId:milestone.id,taskId:milestone.task_id})
+  const result=await transaction(async client=>{
+    const milestone=(await client.query('SELECT id,task_id FROM research_milestones WHERE id=$1 AND project_id=$2 FOR UPDATE',[req.params.milestoneId,req.params.id])).rows[0]
+    if(!milestone)return {kind:'missing'}
+    if(!milestone.task_id)return {kind:'unlinked'}
+    const task=(await client.query('SELECT status FROM assignment_tasks WHERE id=$1',[milestone.task_id])).rows[0]
+    const restoredStatus=task?.status==='Completed'?'Completed':task?.status==='Not Started'?'Pending':task?'In Progress':'Pending'
+    const updated=(await client.query('UPDATE research_milestones SET task_id=NULL,status=$2,updated_at=NOW() WHERE id=$1 AND task_id=$3 RETURNING id',[milestone.id,restoredStatus,milestone.task_id])).rows[0]
+    if(!updated)return {kind:'unlinked'}
+    await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'MILESTONE_TASK_UNLINKED',JSON.stringify({milestoneId:milestone.id,taskId:milestone.task_id,restoredStatus})])
+    await audit(client,req.user.id,'RESEARCH_MILESTONE_TASK_UNLINKED','research',req.params.id,{milestoneId:milestone.id,taskId:milestone.task_id,restoredStatus})
+    return {kind:'updated',taskId:milestone.task_id,restoredStatus}
   })
-  res.json({milestoneId:milestone.id,taskId:milestone.task_id,unlinked:true})
+  if(result.kind==='missing')return res.status(404).json({error:'Research milestone not found.'})
+  if(result.kind==='unlinked')return res.status(409).json({error:'This milestone has no linked central task.'})
+  res.json({milestoneId:req.params.milestoneId,taskId:result.taskId,restoredStatus:result.restoredStatus,unlinked:true})
 }catch(error){next(error)}})
 const researchRepositoryLinkSchema=z.object({knowledgeId:z.string().uuid()})
 app.get('/api/research/:id/repository-documents',authenticate,async(req,res,next)=>{try{

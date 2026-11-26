@@ -187,7 +187,7 @@ test('report centre provides governed PDF Studio and consolidated pack in one ex
 test('executive exports carry reporting period and filters without widening scope', () => {
   assert.match(dashboard, /\.\.\.dates,status,profile:pdfOptions\.profile/)
   assert.match(dashboard, /filters:\{\.\.\.dates,status\}/)
-  assert.match(dashboard, /authorised REDESY reporting scope/)
+  assert.match(dashboard, /authorised APP2 reporting scope/)
   assert.match(dashboard, /Data current as of/)
 })
 
@@ -209,7 +209,7 @@ test('V8 schedules governed executive report delivery without widening RBAC scop
   assert.match(automation,/api\.createReportSchedule/)
   assert.match(automation,/api\.updateReportSchedule/)
   assert.match(automation,/api\.deleteReportSchedule/)
-  assert.match(automation,/owner’s current authorised REDESY scope/)
+  assert.match(automation,/owner’s current authorised APP2 scope/)
   assert.match(css,/\.schedule-list-reporting/)
 })
 
@@ -259,7 +259,7 @@ test('V11 management attention names the responsible team and deadline position'
   assert.match(dashboard,/Responsible team/)
   assert.match(dashboard,/attentionTeam\(item\)/)
   assert.match(dashboard,/attentionTiming\(item\.due_date\)/)
-  assert.match(dashboard,/Urgent records are shown with the accountable REDESY team/)
+  assert.match(dashboard,/Urgent records are shown with the accountable APP2 team/)
 })
 
 test('V11 attention layout protects left labels and remains responsive',()=>{

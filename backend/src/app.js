@@ -96,13 +96,15 @@ const syncAssignmentStatusFromTasks=async(client,assignmentId,userId)=>{
 }
 
 const passwordLinkService=createPasswordLinkService({transaction,sendMail,frontendOrigin:config.frontendOrigin})
-const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5})
+const loginRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:100,maxIdentityAttempts:10,errorMessage:'Too many login attempts. Wait before trying again.'})
+const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5,errorMessage:'Too many password recovery requests. Wait before trying again.'})
 const createSessionToken=async user=>{
   const setting=(await query('SELECT session_minutes FROM system_settings WHERE id=1')).rows[0]
   return createToken(user,sessionExpiryFromMinutes(setting?.session_minutes,config.jwtExpiresIn))
 }
 
 const app=express()
+if(config.trustProxyHops>0)app.set('trust proxy',config.trustProxyHops)
 app.disable('x-powered-by')
 app.use(helmet())
 app.use(cors({origin(origin,callback){if(!origin||config.frontendOrigins.includes(origin))return callback(null,true);callback(new Error('This browser origin is not permitted to access REDESY.'))},exposedHeaders:['Content-Disposition']}))
@@ -1264,7 +1266,7 @@ app.get('/api/health',async(_req,res,next)=>{try{await query('SELECT 1');res.set
 registerReportRoutes(app,{validate,governedDate})
 registerLeaveManagementRoutes(app,{authenticate,validate})
 app.get('/api/auth/login-directory',async(_req,res,next)=>{try{if(!config.exposeLoginDirectory)return res.json([]);res.set('Cache-Control','no-store');res.json((await query('SELECT name,email,role FROM users WHERE active=TRUE ORDER BY name,email')).rows)}catch(error){next(error)}})
-app.post('/api/auth/login',validate(loginSchema),async(req,res,next)=>{try{const result=await query(`SELECT u.id,u.name,u.email,u.password_hash,u.role,u.division,u.status,u.active,u.token_version,u.must_change_password,u.supervisor_id,
+app.post('/api/auth/login',loginRateLimit,validate(loginSchema),async(req,res,next)=>{try{const result=await query(`SELECT u.id,u.name,u.email,u.password_hash,u.role,u.division,u.status,u.active,u.token_version,u.must_change_password,u.supervisor_id,
   supervisor.name supervisor_name,supervisor.role supervisor_role
   FROM users u LEFT JOIN users supervisor ON supervisor.id=u.supervisor_id
   WHERE lower(u.email)=lower($1)`,[req.validated.email]);const user=result.rows[0];if(!user||!user.active||!await bcrypt.compare(req.validated.password,user.password_hash)){await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'LOGIN_FAILED','session',$2,$3)",[user?.id||null,user?.id||null,JSON.stringify({email:req.validated.email})]);return res.status(401).json({error:'Login unsuccessful. Verify your official PSC email and password. If the problem continues, recover your password or ask an administrator to confirm that your account is active.'})}delete user.password_hash;await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1::uuid,'LOGIN_SUCCEEDED','session',$1::uuid::text,$2)",[user.id,JSON.stringify({email:user.email,role:user.role})]);res.json({token:await createSessionToken(user),user})}catch(error){next(error)}})

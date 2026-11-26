@@ -6526,13 +6526,15 @@ const syncResearchNotificationsForUser=async(client,userId)=>{
   await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id)
     SELECT $1,'Research milestone due soon','Milestone “'||m.title||'” for “'||p.title||'” is due on '||TO_CHAR(m.due_date,'DD Mon YYYY')||'.','research',p.id
     FROM research_milestones m JOIN research_projects p ON p.id=m.project_id
-    WHERE m.owner_id=$1 AND m.status<>'Completed' AND ${researchCurrentSql('p')} AND m.due_date BETWEEN CURRENT_DATE AND CURRENT_DATE+INTERVAL '7 days'
+    LEFT JOIN assignment_tasks linked_task ON linked_task.id=m.task_id
+    WHERE m.owner_id=$1 AND (CASE WHEN linked_task.id IS NULL THEN m.status WHEN linked_task.status='Completed' THEN 'Completed' WHEN linked_task.status='Not Started' THEN 'Pending' ELSE 'In Progress' END)<>'Completed' AND ${researchCurrentSql('p')} AND m.due_date BETWEEN CURRENT_DATE AND CURRENT_DATE+INTERVAL '7 days'
       AND NOT EXISTS(SELECT 1 FROM notifications n WHERE n.user_id=$1 AND n.entity_type='research' AND n.entity_id=p.id::text AND n.title='Research milestone due soon' AND n.body LIKE '%“'||m.title||'”%' AND n.body LIKE '%'||TO_CHAR(m.due_date,'DD Mon YYYY')||'%')`,[userId])
 
   await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id)
     SELECT $1,'Research milestone overdue','Milestone “'||m.title||'” for “'||p.title||'” was due on '||TO_CHAR(m.due_date,'DD Mon YYYY')||'.','research',p.id
     FROM research_milestones m JOIN research_projects p ON p.id=m.project_id
-    WHERE m.owner_id=$1 AND m.status<>'Completed' AND ${researchCurrentSql('p')} AND m.due_date<CURRENT_DATE
+    LEFT JOIN assignment_tasks linked_task ON linked_task.id=m.task_id
+    WHERE m.owner_id=$1 AND (CASE WHEN linked_task.id IS NULL THEN m.status WHEN linked_task.status='Completed' THEN 'Completed' WHEN linked_task.status='Not Started' THEN 'Pending' ELSE 'In Progress' END)<>'Completed' AND ${researchCurrentSql('p')} AND m.due_date<CURRENT_DATE
       AND NOT EXISTS(SELECT 1 FROM notifications n WHERE n.user_id=$1 AND n.entity_type='research' AND n.entity_id=p.id::text AND n.title='Research milestone overdue' AND n.body LIKE '%“'||m.title||'”%' AND n.body LIKE '%'||TO_CHAR(m.due_date,'DD Mon YYYY')||'%')`,[userId])
 
   await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id)
@@ -6656,7 +6658,7 @@ app.get('/api/dashboard',authenticate,async(req,res,next)=>{
       : {rows:[{current:0,active:0,planning:0,under_review:0,changes_requested:0,completed:0,ready_to_publish:0,overdue:0,due_soon:0}]}
 
     const milestones=management
-      ? await query(`SELECT m.id,m.project_id,m.title,m.status,m.due_date,m.updated_at,p.title context_title,COALESCE(mo.name,lead.name) owner_name,COALESCE(mo.division,lead.division) team_name,'Research Milestone' type FROM research_milestones m JOIN research_projects p ON p.id=m.project_id LEFT JOIN users mo ON mo.id=m.owner_id LEFT JOIN users lead ON lead.id=p.lead_id WHERE m.status<>'Completed' AND ${researchScope} ORDER BY m.due_date NULLS LAST LIMIT 40`,[all,scopeIds])
+      ? await query(`SELECT m.id,m.project_id,m.title,CASE WHEN linked_task.id IS NULL THEN m.status WHEN linked_task.status='Completed' THEN 'Completed' WHEN linked_task.status='Not Started' THEN 'Pending' ELSE 'In Progress' END status,m.due_date,m.updated_at,p.title context_title,COALESCE(mo.name,lead.name) owner_name,COALESCE(mo.division,lead.division) team_name,'Research Milestone' type FROM research_milestones m JOIN research_projects p ON p.id=m.project_id LEFT JOIN assignment_tasks linked_task ON linked_task.id=m.task_id LEFT JOIN users mo ON mo.id=m.owner_id LEFT JOIN users lead ON lead.id=p.lead_id WHERE (CASE WHEN linked_task.id IS NULL THEN m.status WHEN linked_task.status='Completed' THEN 'Completed' WHEN linked_task.status='Not Started' THEN 'Pending' ELSE 'In Progress' END)<>'Completed' AND ${researchScope} ORDER BY m.due_date NULLS LAST LIMIT 40`,[all,scopeIds])
       : {rows:[]}
 
     const milestoneStats=management
@@ -6673,7 +6675,8 @@ app.get('/api/dashboard',authenticate,async(req,res,next)=>{
           )::int due_soon
         FROM research_milestones m
         JOIN research_projects p ON p.id=m.project_id
-        WHERE m.status<>'Completed'
+        LEFT JOIN assignment_tasks linked_task ON linked_task.id=m.task_id
+        WHERE (CASE WHEN linked_task.id IS NULL THEN m.status WHEN linked_task.status='Completed' THEN 'Completed' WHEN linked_task.status='Not Started' THEN 'Pending' ELSE 'In Progress' END)<>'Completed'
           AND ${researchScope}`,[all,scopeIds])
       : {rows:[{active:0,overdue:0,due_soon:0}]}
 

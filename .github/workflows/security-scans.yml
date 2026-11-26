@@ -359,10 +359,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Verify frontend product branding is APP2
+      - name: Verify application copy uses APP2
         shell: pwsh
         run: |
-          $legacy = Get-ChildItem -Path src -Recurse -File | Select-String -Pattern 'REDESY'
+          $legacy = Get-ChildItem -Path src,backend/src -Recurse -File | Select-String -Pattern 'REDESY'
           if ($legacy) {
             $legacy | ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): legacy product name found" }
             exit 1

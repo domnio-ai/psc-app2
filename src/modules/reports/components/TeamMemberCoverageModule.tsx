@@ -26,7 +26,7 @@ export default function TeamMemberCoverageModule({people,contributions,onOpen}:{
   },[people,query,workType,contributionMap])
   const totals=useMemo(()=>({members:people.length,withContribution:people.filter(person=>(contributionMap.get(text(person.id))||[]).length>0).length}),[people,contributionMap])
   return <section className="team-member-coverage-module">
-    <header><div><small>V22 TEAM MEMBER COVERAGE & CONTRIBUTION ACCOUNTABILITY</small><h3>Every authorised team member is represented</h3><p>Contribution is attributed from existing REDESY assignment membership, task ownership/review and research lead/collaborator/reviewer records. This is recognition of recorded contribution, not a staff score or ranking.</p></div><div className="team-coverage-summary"><strong>{totals.members}</strong><span>team members</span><strong>{totals.withContribution}</strong><span>with recorded contribution in this period</span></div></header>
+    <header><div><small>V22 TEAM MEMBER COVERAGE & CONTRIBUTION ACCOUNTABILITY</small><h3>Every authorised team member is represented</h3><p>Contribution is attributed from existing APP2 assignment membership, task ownership/review and research lead/collaborator/reviewer records. This is recognition of recorded contribution, not a staff score or ranking.</p></div><div className="team-coverage-summary"><strong>{totals.members}</strong><span>team members</span><strong>{totals.withContribution}</strong><span>with recorded contribution in this period</span></div></header>
     <div className="team-coverage-filters"><label>Find team member<input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Name or team"/></label><label>Contribution type<select value={workType} onChange={event=>setWorkType(event.target.value)}><option>All</option><option>Assignment</option><option>Task</option><option>Research</option><option>Review</option></select></label></div>
     <div className="team-coverage-grid">{filtered.map(person=>{
       const rows=contributionMap.get(text(person.id))||[]
@@ -40,6 +40,6 @@ export default function TeamMemberCoverageModule({people,contributions,onOpen}:{
       </article>
     })}</div>
     {!filtered.length&&<p className="team-coverage-empty">No team members match the current coverage filter.</p>}
-    <footer>Coverage is restricted to the manager’s authorised REDESY team scope. Contribution evidence does not alter assignment, task, research or reviewer workflow state.</footer>
+    <footer>Coverage is restricted to the manager’s authorised APP2 team scope. Contribution evidence does not alter assignment, task, research or reviewer workflow state.</footer>
   </section>
 }

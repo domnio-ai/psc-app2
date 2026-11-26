@@ -10,3 +10,21 @@ regexTarget = "line"
 regexes = [
   '''API routes, SQL/Pydantic models'''
 ]
+
+# SHA-256 integrity hashes in APP2 Guard checkpoint manifests are not credentials.
+# Keep this allowlist narrow: it applies only to generic-api-key findings where
+# the extracted value is exactly 64 hexadecimal characters AND the path is one
+# of the Guard manifest formats verified by the historical audit.
+[[rules]]
+id = "generic-api-key"
+
+  [[rules.allowlists]]
+  description = "APP2 Guard SHA-256 integrity hashes in checkpoint and patch manifests"
+  condition = "AND"
+  regexTarget = "secret"
+  regexes = [
+    '''(?i)^[0-9a-f]{64}$'''
+  ]
+  paths = [
+    '''^\.app2-guard/(baseline\.json|checkpoints/.*/baseline\.json|patch-sessions/.*/before-hashes\.json)$'''
+  ]

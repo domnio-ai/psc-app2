@@ -14,7 +14,7 @@ test('milestone-task relationship migration is included in the pinned production
   assert.match(migration,/research_assignment_links/)
   assert.match(migration,/enforce_research_milestone_task_scope/)
   assert.match(migration,/IF task_assignment IS NULL/)
-  assert.match(migration,/IF linked_project IS NULL OR linked_project <> NEW\\.project_id/)
+  assert.match(migration,/IF linked_project IS NULL OR linked_project <> NEW[.]project_id/)
 })
 
 test('milestone task APIs scope reads and writes to the same linked research project',()=>{

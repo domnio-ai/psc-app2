@@ -9294,7 +9294,7 @@ export default function App() {
               <ReviewsApprovalsWorkspace
                 token={token}
                 currentUserId={user?.id || ""}
-                isManager={isManager}
+                isManager={Boolean(isManager && selectedResearch.can_manage)}
                 onDomainDecisionComplete={() => {
                   void refreshDashboard();
                   void refreshNotifications();

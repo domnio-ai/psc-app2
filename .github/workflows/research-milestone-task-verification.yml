@@ -81,6 +81,7 @@ jobs:
         working-directory: backend
         env:
           NODE_ENV: production
+          FRONTEND_ORIGIN: https://app2-ci.invalid
         run: npm run db:migrate:production
 
       - name: Install PDF fallback fonts

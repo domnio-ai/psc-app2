@@ -4158,7 +4158,7 @@ app.post('/api/research/:id/milestones/:milestoneId/link-task',authenticate,vali
   const otherLink=(await query('SELECT id FROM research_milestones WHERE task_id=$1 AND id<>$2',[task.id,milestone.id])).rows[0]
   if(otherLink)return res.status(409).json({error:'This central task is already linked to another research milestone.'})
   const updated=await transaction(async client=>{
-    const row=(await client.query(\`UPDATE research_milestones SET task_id=$1,status=CASE WHEN $2='Completed' THEN 'Completed' WHEN $2='Not Started' THEN 'Pending' ELSE 'In Progress' END,updated_at=NOW() WHERE id=$3 AND project_id=$4 AND task_id IS NULL RETURNING *\`,[task.id,task.status,milestone.id,project.id])).rows[0]
+    const row=(await client.query(`UPDATE research_milestones SET task_id=$1,status=CASE WHEN $2='Completed' THEN 'Completed' WHEN $2='Not Started' THEN 'Pending' ELSE 'In Progress' END,updated_at=NOW() WHERE id=$3 AND project_id=$4 AND task_id IS NULL RETURNING *`,[task.id,task.status,milestone.id,project.id])).rows[0]
     if(!row)throw Object.assign(new Error('The milestone was linked by another request. Refresh and try again.'),{statusCode:409})
     await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[project.id,req.user.id,'MILESTONE_TASK_LINKED',JSON.stringify({milestoneId:row.id,taskId:task.id,assignmentId:task.assignment_id})])
     await audit(client,req.user.id,'RESEARCH_MILESTONE_TASK_LINKED','research',project.id,{milestoneId:row.id,taskId:task.id,assignmentId:task.assignment_id})

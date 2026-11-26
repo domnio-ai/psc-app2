@@ -29,10 +29,12 @@ This is an evidence-based working register, not a claim that the full UI/UX audi
 | UX-001 | Product identity | The application shell contained 48 occurrences of the legacy name REDESY in `src/App.tsx`; `index.html` also used REDESY in its title and description. | High | Implemented on PR #32; awaiting CI and visual verification |
 | UX-002 | Navigation appearance | Executive Gold used a mustard sidebar (`#C5A24D`) and strongly tinted navigation controls (`#F9EFD2`). This made the navigation surface compete with the workspace. | Medium | Lightened on PR #32; awaiting visual verification |
 | UX-003 | Shell proportions | The base desktop shell used a 345px sidebar and a 95px top bar. These dimensions consume substantial space before workspace content begins. | Medium | Refined on PR #32 to 272px and 76px respectively; awaiting responsive verification |
-| UX-004 | Navigation taxonomy | `Documents` appears in `navItems` and role-navigation definitions but is absent from the displayed `navGroups`. The navigation helper also maps `Documents` to `Document Repository`. | Medium | Open — choose one authoritative label and destination |
+| UX-004 | Navigation taxonomy | `Documents` appears in `navItems` and role-navigation definitions but is absent from the displayed `navGroups`. The route compatibility effect and navigation handler redirect `Documents` to `Document Repository`, so it is a legacy alias rather than a separate sidebar destination. | Medium | Open — remove the orphaned navigation entry while preserving the legacy route alias |
 | UX-005 | CSS architecture | `src/app-styles.css` imports 96 stylesheets, including successive research/workspace refinements and multiple theme layers. This creates a large cascade surface and raises the risk of cross-module visual regressions. | High | Open — inventory ownership and consolidate safely with regression coverage |
 | UX-006 | Theme consistency | The application exposes nine theme modes while Executive Gold is the default with Gold accent. Theme-specific palettes define navigation, card and interaction colours. | Medium | Open — visually audit all supported modes and define supported defaults |
 | UX-007 | Runtime verification | No APP2 runtime or preview was open in the connected browser during this source audit. | Blocking verification | Blocked — open a running APP2 preview before visual sign-off |
+| UX-008 | Application shell maintainability | `src/App.tsx` is approximately 727 KB and 16,271 lines, with 91 imports. This concentration of shell, navigation and module state makes visual changes harder to isolate and regression-test. | High | Open — plan a staged module extraction after current workflow integration stabilises |
+| UX-009 | Styling architecture | `src/app-styles.css` imports 96 stylesheets. The cascade needs an ownership map and dependency review before any consolidation. | High | Open — staged CSS inventory and consolidation plan required |
 
 ## Positive foundations found in source
 
@@ -42,6 +44,7 @@ This is an evidence-based working register, not a claim that the full UI/UX audi
 - Keyboard focus-visible styling is present for buttons, links and form controls.
 - The base stylesheet contains responsive breakpoints at 1300px, 850px and 560px.
 - The application uses a central navigation model with role-based visibility checks.
+- The legacy `Documents` route is redirected to the canonical `Document Repository` destination; this is retained for compatibility while the unused navigation item is reviewed.
 - Workspace headers include breadcrumb navigation and contextual actions.
 
 These are foundations to improve and standardise, not reasons to skip testing.
@@ -94,8 +97,10 @@ The visual changes do not intentionally alter workflow APIs, permissions, busine
 5. Test keyboard-only navigation, focus order, dialogs, labels, contrast and screen-reader landmarks.
 6. Resolve the Documents / Document Repository naming and route ambiguity.
 7. Map every workflow to its source record, permissions, state transitions, notifications, audit history and reports.
-8. Consolidate the stylesheet imports by ownership and shared design tokens, without mass-removing legacy rules.
-9. Repeat visual and functional checks after each module redesign.
+8. Build an ownership/dependency map for the 96 stylesheet imports and consolidate only with regression coverage.
+9. Plan staged extraction from the 16,271-line `App.tsx`, preserving routes and state boundaries.
+10. Remove the orphaned `Documents` nav item while retaining its compatibility redirect.
+11. Repeat visual and functional checks after each module redesign.
 
 ## Completion rule
 

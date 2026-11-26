@@ -54,3 +54,20 @@ test("research work plan lets users link or unlink an existing task and reflects
   assert.match(appUi, /onLinkTask=\{async \(milestoneId, taskId\)/);
   assert.match(appUi, /onUnlinkTask=\{async \(milestoneId\)/);
 });
+
+test("linked research milestone tasks cannot be archived and link/archive operations serialize on the task row", () => {
+  const linkStart = app.indexOf("app.post('/api/research/:id/milestones/:milestoneId/link-task'");
+  const unlinkStart = app.indexOf("app.delete('/api/research/:id/milestones/:milestoneId/link-task'", linkStart);
+  const archiveStart = app.indexOf("app.post('/api/assignments/:id/tasks/:taskId/archive'");
+  const archiveEnd = app.indexOf("app.delete('/api/assignments/:id/tasks/:taskId'", archiveStart);
+  assert.ok(linkStart >= 0 && unlinkStart > linkStart);
+  assert.ok(archiveStart >= 0 && archiveEnd > archiveStart);
+  const linkRoute = app.slice(linkStart, unlinkStart);
+  const archiveRoute = app.slice(archiveStart, archiveEnd);
+  assert.match(linkRoute, /SELECT id,archived_at FROM assignment_tasks WHERE id=\$1 FOR UPDATE/);
+  assert.match(linkRoute, /lockedTask\.archived_at/);
+  assert.match(archiveRoute, /EXISTS\(SELECT 1 FROM research_milestones rm WHERE rm\.task_id=t\.id\) AS linked_research_milestone/);
+  assert.match(archiveRoute, /FOR UPDATE OF t/);
+  assert.match(archiveRoute, /if\(task\.linked_research_milestone\)throw Object\.assign/);
+  assert.match(archiveRoute, /Unlink it from the Research Work Plan before archiving the task/);
+});

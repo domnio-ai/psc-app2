@@ -85,7 +85,7 @@ The visual changes do not intentionally alter workflow APIs, permissions, busine
 
 - Source diff is limited to the APP2 shell, theme, shared executive component styles, browser metadata and CI trigger configuration.
 - A PostgreSQL 17 migration integration failure was traced to the production runner omitting `baselineSql` from the migration-plan destructuring. The integration base already contains the correct baseline-loading implementation and regression assertion; PR #32 is based on that integration line rather than the stale branch that exposed the failure.
-- GitHub Actions run [#45889500912](https://github.com/domnio-ai/psc-app2/actions/runs/45889500912) passed: Windows build/regression suite, Semgrep, Trivy, OSV, current-source Gitleaks, unprivileged frontend-container smoke test and PostgreSQL 17 production migration integration test.
+- GitHub Actions run [#45889500912](https://github.com/domnio-ai/psc-app2/actions/runs/45889500912) passed: Windows build/regression suite (1,394 tests: 1,389 passed, 5 skipped, 0 failed), Semgrep, Trivy, OSV, current-source Gitleaks, unprivileged frontend-container smoke test and PostgreSQL 17 production migration integration test.
 - Full-history Gitleaks was skipped by the workflow and remains a separate verification item.
 - Browser visual/responsive verification remains outstanding.
 

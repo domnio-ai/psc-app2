@@ -37,6 +37,6 @@ export default function TeamContributionComparisonModule({people,contributions,p
       {!item.current.length&&!item.previous.length&&<p className="team-contribution-comparison-empty">No recorded contribution entries in either comparable period. The team member remains visible so absence of recorded activity is not confused with omission from the report.</p>}
     </article>)}</div>
     {!filtered.length&&<p className="team-contribution-comparison-empty">No authorised team member matches the current search and team filter.</p>}
-    <footer>Counts represent recorded REDESY contribution evidence, not effort, quality or productivity. Managers should use drill-down evidence and work context before drawing conclusions.</footer>
+    <footer>Counts represent recorded APP2 contribution evidence, not effort, quality or productivity. Managers should use drill-down evidence and work context before drawing conclusions.</footer>
   </section>
 }

@@ -380,7 +380,7 @@ export default function NotificationCenter({
                   </button>
                 </article>
               ))}
-              {!sentEmails.length&&<div className="notification-empty"><strong>No sent email yet</strong><p>Use Compose email to send an institutional email to a REDESY user.</p></div>}
+              {!sentEmails.length&&<div className="notification-empty"><strong>No sent email yet</strong><p>Use Compose email to send an institutional email to a APP2 user.</p></div>}
             </div>
           ):(
             <div className="notification-message-list">

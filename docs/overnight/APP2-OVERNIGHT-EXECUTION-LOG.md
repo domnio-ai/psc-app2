@@ -137,3 +137,27 @@
 2. Inspect assignment report final publication and repository record creation end-to-end.
 3. Add database-backed integration tests for evidence and milestone links.
 4. Continue meetings/notices/notifications/leave/reporting audit after the research/repository integration is stable.
+
+## Checkpoint 5 — assignment report Repository access hardening
+
+### Finding
+The Assignment Report compilation route validated that selected Repository evidence was published and non-archived, but it did not verify that the compiling user had read permission for each selected document before creating the assignment-to-document relationship.
+
+### Correction
+- Added per-document `canReadKnowledge` validation before the report compilation transaction writes any Repository relationships.
+- The route returns a generic access-scope error rather than exposing which selected document is restricted.
+- Added `backend/test/assignment-report-repository-access.test.js` to assert access checks occur after document resolution and before relationship writes.
+
+### Commit
+- `c68ba528299e4302eae4d5c01655813bc94d343c` — enforce Repository access during Assignment Report compilation.
+- `7c19efe6d96b63f25a7327db36276605c564a804` — add regression coverage.
+
+### Verification status
+- The migration SHA-256 for `045_research_milestone_task_links.sql` was independently computed from the exact fetched UTF-8 file bytes and matches the manifest pin `A69F3A7219A16E658120FFC86E11F2D3C12785101D18CDE386B3EE3CA935C702`.
+- GitHub Actions runs created for successive commits have remained pending with no jobs returned by the Actions jobs endpoint; earlier runs were cancelled as newer commits superseded them. Do not treat this as a successful CI result.
+- No local runtime is attached to this GitHub-only execution session, so backend/frontend suites have not been run locally.
+
+### Next
+1. Wait for a CI run to acquire jobs and complete on the latest code commit; if the Actions queue remains stuck, diagnose repository Actions capacity/permissions.
+2. Run the full backend suite, frontend typecheck/build and migration tests in a local Codex/runtime environment.
+3. Continue the workflow audit with Notices, Notifications, Meetings, Leave and Management Reporting.

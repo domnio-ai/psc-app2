@@ -6,7 +6,6 @@ on:
       - main
       - "security-tooling/**"
       - "features/**"
-      - "design/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"
@@ -125,7 +124,7 @@ jobs:
 
   gitleaks-history:
     name: Gitleaks full Git history audit
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/design/')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'design/')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

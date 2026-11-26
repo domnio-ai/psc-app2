@@ -1876,7 +1876,7 @@ async function request<T>(
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Network request failed";
     throw new Error(
-      `REDESY could not reach its API at ${API_URL}. Check that the backend is running and that this browser can reach it, then retry. Your open draft remains in the editor. (${reason})`,
+      `APP2 could not reach its API at ${API_URL}. Check that the backend is running and that this browser can reach it, then retry. Your open draft remains in the editor. (${reason})`,
     );
   }
   let data: any = null;
@@ -1888,13 +1888,13 @@ async function request<T>(
         data = raw ? JSON.parse(raw.replace(/^\uFEFF/, "")) : null;
       } catch {
         throw new Error(
-          `The REDESY API returned malformed JSON for ${path} (HTTP ${response.status}). Restart the API service and try again.`,
+          `The APP2 API returned malformed JSON for ${path} (HTTP ${response.status}). Restart the API service and try again.`,
         );
       }
     } else {
       const preview = raw.replace(/\s+/g, " ").trim().slice(0, 120);
       throw new Error(
-        `The REDESY API returned ${contentType || "an unknown response type"} for ${path} (HTTP ${response.status})${preview && !/[\u0000-\u0008]/.test(preview) ? `: ${preview}` : ""}.`,
+        `The APP2 API returned ${contentType || "an unknown response type"} for ${path} (HTTP ${response.status})${preview && !/[\u0000-\u0008]/.test(preview) ? `: ${preview}` : ""}.`,
       );
     }
   }
@@ -1999,7 +1999,7 @@ async function aiRequest<T>(
   } catch (error) {
     if (error instanceof TypeError)
       throw new Error(
-        "The separate AI Researcher service is offline. REDESY is still available.",
+        "The separate AI Researcher service is offline. APP2 is still available.",
       );
     throw error;
   }

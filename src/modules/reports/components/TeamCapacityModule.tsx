@@ -38,6 +38,6 @@ export default function TeamCapacityModule({people,evidence,onOpen}:{people:Row[
       {!item.rows.length&&<p className="team-capacity-empty">No active workload evidence is currently recorded for this authorised team member. The person remains visible so zero workload is not confused with omission.</p>}
     </article>)}</div>
     {!filtered.length&&<p className="team-capacity-empty">No authorised team member matches the current filters.</p>}
-    <footer>Use workload and deadline evidence for allocation decisions together with role, complexity and context. REDESY does not convert these counts into a productivity score or ranking.</footer>
+    <footer>Use workload and deadline evidence for allocation decisions together with role, complexity and context. APP2 does not convert these counts into a productivity score or ranking.</footer>
   </section>
 }

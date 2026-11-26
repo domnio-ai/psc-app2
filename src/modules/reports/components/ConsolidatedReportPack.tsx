@@ -35,7 +35,7 @@ export default function ConsolidatedReportPack({ reports, periodLabel, exporting
   return (
     <section className="consolidated-report-pack" aria-labelledby="consolidated-report-pack-title">
       <header className="consolidated-report-pack-heading">
-        <div><small>PRINT CENTRE · PSC CONTROLLED REPORTS</small><h2 id="consolidated-report-pack-title">Consolidate reports into one PDF</h2><p>Select the reports to include. REDESY combines their summaries and complete permitted record lists into one printable pack.</p></div>
+        <div><small>PRINT CENTRE · PSC CONTROLLED REPORTS</small><h2 id="consolidated-report-pack-title">Consolidate reports into one PDF</h2><p>Select the reports to include. APP2 combines their summaries and complete permitted record lists into one printable pack.</p></div>
         <strong>{selected.length} selected</strong>
       </header>
       <div className="consolidated-report-pack-grid">
@@ -55,7 +55,7 @@ export default function ConsolidatedReportPack({ reports, periodLabel, exporting
           <header><small>PACK SETTINGS</small><h3>Print-ready output</h3></header>
           <label>Pack title<input maxLength={180} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
           <label>Paper size<select value={paperSize} onChange={(event) => setPaperSize(event.target.value as "A4" | "Letter")}><option value="A4">A4</option><option value="Letter">US Letter</option></select></label>
-          <dl><div><dt>Reporting period</dt><dd>{periodLabel}</dd></div><div><dt>Authorised scope</dt><dd>Enforced for each report by REDESY</dd></div><div><dt>Selected reports</dt><dd>{selected.length} of {available.length} available</dd></div></dl>
+          <dl><div><dt>Reporting period</dt><dd>{periodLabel}</dd></div><div><dt>Authorised scope</dt><dd>Enforced for each report by APP2</dd></div><div><dt>Selected reports</dt><dd>{selected.length} of {available.length} available</dd></div></dl>
           <p className="consolidated-report-pack-note">Each report includes its own summary and underlying records. The combined pack is limited to 25,000 records across all selected reports; reduce the selection or reporting period if it exceeds that limit.</p>
           <button className="consolidated-report-pack-generate" type="button" disabled={!selected.length || exporting || !title.trim()} onClick={() => onExport(selected, { title: title.trim(), paperSize })}>{exporting ? "Preparing consolidated PDF…" : "Generate consolidated PDF"}</button>
           {message && <p className="consolidated-report-pack-status" role="status">{message}</p>}

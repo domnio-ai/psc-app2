@@ -31,6 +31,23 @@ jobs:
   verify:
     name: Build and backend regression tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: app2_test
+          POSTGRES_USER: app2_test
+          POSTGRES_PASSWORD: app2_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app2_test -d app2_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test
+      JWT_SECRET: app2-research-milestone-test-secret-at-least-32-characters
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,6 +77,12 @@ jobs:
         working-directory: backend
         run: npm run check
 
+      - name: Apply fresh PostgreSQL 17 migration plan
+        working-directory: backend
+        env:
+          NODE_ENV: production
+        run: npm run db:migrate:production
+
       - name: Install PDF fallback fonts
         run: |
           sudo apt-get update
@@ -67,7 +90,4 @@ jobs:
 
       - name: Run backend regression suite
         working-directory: backend
-        env:
-          DATABASE_URL: postgresql://app2_test:app2_test@127.0.0.1:5432/app2_test
-          JWT_SECRET: app2-research-milestone-test-secret-at-least-32-characters
         run: npm test

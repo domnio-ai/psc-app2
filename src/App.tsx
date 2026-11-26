@@ -13980,6 +13980,9 @@ export default function App() {
                   setResearchWorkspaceNotice(error instanceof Error ? error.message : "Milestone could not be created.");
                 }
               }}
+              onRefreshActivity={async () => {
+                setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+              }}
             />
 
             <ResearchRelatedAssignmentsPanel

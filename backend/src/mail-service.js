@@ -40,7 +40,7 @@ export const createMailService = (smtp, createTransport) => {
       });
       return { messageId: info.messageId, accepted: info.accepted };
     } catch {
-      throw Object.assign(new Error("The SMTP provider rejected verification or delivery. Check the server-side Gmail App Password/OAuth settings, host and transport security."), { statusCode: 502, code: "EMAIL_TRANSPORT_FAILED" });
+      throw Object.assign(new Error("The configured SMTP provider rejected verification or delivery. Check the server-side SMTP host, credentials, port and transport security settings."), { statusCode: 502, code: "EMAIL_TRANSPORT_FAILED" });
     }
   };
 

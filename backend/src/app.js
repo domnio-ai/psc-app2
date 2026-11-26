@@ -94,6 +94,29 @@ const syncAssignmentStatusFromTasks=async(client,assignmentId,userId)=>{
   return nextStatus
 }
 
+
+const syncResearchMilestonesFromTasks=async(client,assignmentId,userId)=>{
+  const milestones=(await client.query(`UPDATE research_milestones m
+    SET status='In Progress',updated_at=NOW()
+    WHERE m.status='Pending'
+      AND EXISTS(
+        SELECT 1
+        FROM research_milestone_tasks mt
+        JOIN assignment_tasks t ON t.id=mt.task_id
+        WHERE mt.milestone_id=m.id
+          AND t.assignment_id=$1
+          AND t.archived_at IS NULL
+          AND t.status IN('In Progress','Completed')
+      )
+    RETURNING m.id,m.project_id,m.title,m.owner_id`,[assignmentId])).rows
+  for(const milestone of milestones){
+    await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[milestone.project_id,userId,'MILESTONE_STATUS_SYNCHRONIZED',JSON.stringify({milestoneId:milestone.id,status:'In Progress',source:'linked-task-progress'})])
+    await audit(client,userId,'RESEARCH_MILESTONE_STATUS_SYNCHRONIZED','research_milestone',milestone.id,{projectId:milestone.project_id,status:'In Progress',source:'linked-task-progress'})
+    if(milestone.owner_id&&milestone.owner_id!==userId)await client.query("INSERT INTO notifications(user_id,title,body,entity_type,entity_id)VALUES($1,'Research milestone started',$2,'research',$3)",[milestone.owner_id,`Linked task activity has started milestone “${milestone.title}”.`,milestone.project_id])
+  }
+  return milestones.length
+}
+
 const passwordLinkService=createPasswordLinkService({transaction,sendMail,frontendOrigin:config.frontendOrigin})
 const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5})
 
@@ -1843,7 +1866,7 @@ if(v.reviewerId){
   await client.query("INSERT INTO notifications(user_id,title,body,entity_type,entity_id)VALUES($1,'Task review assigned',$2,'assignment_task',$3)",
     [v.reviewerId,`You are the assigned reviewer for “${created.title}” in “${assignment?.title||'an assignment'}”. The review becomes actionable when the assignee submits the task contribution.`,created.id])
 }
-await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_CREATED',JSON.stringify({taskId:created.id,title:created.title,reviewerId:v.reviewerId,reviewerSource:resolvedReviewer.source,ownerAutoEnrolled})]);await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id);await audit(client,req.user.id,'ASSIGNMENT_TASK_CREATED','assignment_task',created.id,{assignmentId:req.params.id,title:created.title,reviewerId:v.reviewerId,reviewerSource:resolvedReviewer.source,ownerAutoEnrolled});const repositorySyncJobId=await enqueueRepositorySyncJob(client,{jobKind:'task_draft',entityId:created.id,parentId:req.params.id,actor:req.user});return {...created,repository_sync_job_id:repositorySyncJobId,repository_sync_status:repositorySyncJobId?'pending':'unavailable'}});const repositorySync=await runAndReadRepositorySync(row.repository_sync_job_id);res.status(201).json({...row,...repositorySync})}catch(error){next(error)}})
+await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_CREATED',JSON.stringify({taskId:created.id,title:created.title,reviewerId:v.reviewerId,reviewerSource:resolvedReviewer.source,ownerAutoEnrolled})]);await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id);await syncResearchMilestonesFromTasks(client,req.params.id,req.user.id);await audit(client,req.user.id,'ASSIGNMENT_TASK_CREATED','assignment_task',created.id,{assignmentId:req.params.id,title:created.title,reviewerId:v.reviewerId,reviewerSource:resolvedReviewer.source,ownerAutoEnrolled});const repositorySyncJobId=await enqueueRepositorySyncJob(client,{jobKind:'task_draft',entityId:created.id,parentId:req.params.id,actor:req.user});return {...created,repository_sync_job_id:repositorySyncJobId,repository_sync_status:repositorySyncJobId?'pending':'unavailable'}});const repositorySync=await runAndReadRepositorySync(row.repository_sync_job_id);res.status(201).json({...row,...repositorySync})}catch(error){next(error)}})
 app.patch('/api/assignments/:id/tasks/:taskId',authenticate,validate(assignmentTaskSchema),async(req,res,next)=>{try{
 const current=(await query('SELECT owner_id,reviewer_id,archived_at,contribution_status FROM assignment_tasks WHERE id=$1 AND assignment_id=$2',[req.params.taskId,req.params.id])).rows[0]
 if(!current)return res.status(404).json({error:'Task not found.'})
@@ -1911,7 +1934,7 @@ const updated=(await client.query(`UPDATE assignment_tasks SET
   updated_at=NOW()
 WHERE id=$22 AND assignment_id=$23 RETURNING *`,
 [manager,v.title,v.description,v.ownerId,v.priority,v.status,v.progress,v.startDate,v.dueDate,v.notes,
-v.expectedContribution,v.assignmentPart,v.targetDocumentId,v.targetSectionId,v.assignmentSectionId,v.taskPurpose,v.specificInstructions,v.expectedFindings,v.expectedOutput,v.evidenceRequired,v.reviewerId,req.params.taskId,req.params.id])).rows[0];await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_UPDATED',JSON.stringify({taskId:updated.id,status:updated.status,progress:updated.progress,assignmentSectionId:updated.assignment_section_id})]);await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id);
+v.expectedContribution,v.assignmentPart,v.targetDocumentId,v.targetSectionId,v.assignmentSectionId,v.taskPurpose,v.specificInstructions,v.expectedFindings,v.expectedOutput,v.evidenceRequired,v.reviewerId,req.params.taskId,req.params.id])).rows[0];await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_UPDATED',JSON.stringify({taskId:updated.id,status:updated.status,progress:updated.progress,assignmentSectionId:updated.assignment_section_id})]);await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id);await syncResearchMilestonesFromTasks(client,req.params.id,req.user.id);
 await audit(client,req.user.id,'ASSIGNMENT_TASK_UPDATED','assignment_task',updated.id,{status:updated.status,progress:updated.progress,assignmentSectionId:updated.assignment_section_id});
 const repositorySyncJobId=await enqueueRepositorySyncJob(client,{jobKind:'task_draft',entityId:updated.id,parentId:req.params.id,actor:req.user});return {...updated,repository_sync_job_id:repositorySyncJobId,repository_sync_status:repositorySyncJobId?'pending':'unavailable'}});const repositorySync=await runAndReadRepositorySync(row.repository_sync_job_id);res.json({...row,...repositorySync})}catch(error){next(error)}})
 

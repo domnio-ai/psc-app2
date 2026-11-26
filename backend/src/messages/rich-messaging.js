@@ -33,10 +33,10 @@ const publishAttachmentMessage=async({conversationId,user,file})=>{
       await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id,priority,action,target_workspace,event_key,notification_category)
         VALUES($1,$2,$3,'message_conversation',$4,'Normal','Open messages','Messages',$5,'Information')
         ON CONFLICT(user_id,event_key) WHERE event_key IS NOT NULL DO NOTHING`,
-        [recipient.user_id,`New file from ${sender?.name||'REDESY user'}`,file.originalName,conversationId,`message:${row.id}:${recipient.user_id}`])
+        [recipient.user_id,`New file from ${sender?.name||'APP2 user'}`,file.originalName,conversationId,`message:${row.id}:${recipient.user_id}`])
     }
     await audit(client,user.id,'MESSAGE_ATTACHMENT_SENT','message_conversation',conversationId,{messageId:row.id,name:file.originalName,sizeBytes:file.sizeBytes})
-    return {...row,sender_name:sender?.name||'REDESY user',recipientIds:recipients.map(item=>item.user_id),conversation_kind:conversation?.kind||'Direct',conversation_title:conversation?.title||null}
+    return {...row,sender_name:sender?.name||'APP2 user',recipientIds:recipients.map(item=>item.user_id),conversation_kind:conversation?.kind||'Direct',conversation_title:conversation?.title||null}
   })
   emitMessageEventToUsers(message.recipientIds,'message',{
     id:message.id,conversationId,senderId:user.id,senderName:message.sender_name,

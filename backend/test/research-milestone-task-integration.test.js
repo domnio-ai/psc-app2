@@ -36,7 +36,7 @@ test('milestone task APIs scope reads and writes to the same linked research pro
 test('milestone sign-off requires governed task completion and does not bypass final report publication',()=>{
   assert.match(app,/milestone can be completed only after it has linked active tasks/)
   assert.match(app,/syncResearchMilestonesFromTasks/)
-  assert.match(app,/status IN\\('In Progress','Blocked','Completed'\\)/)
+  assert.ok(app.includes("t.status IN('In Progress','Blocked','Completed')"))
   assert.match(app,/Task completion is governed by final report publication/)
   assert.match(app,/RESEARCH_MILESTONE_STATUS_SYNCHRONIZED/)
 })

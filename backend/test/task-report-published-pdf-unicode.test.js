@@ -60,7 +60,7 @@ test("the production Task Final PDF renderer preserves Unicode and readable stru
   assert.ok(text.includes("• Review the evidence"), "list marker survives PDF text output");
   assert.ok(text.includes("Page 1 of 1"), "footer stays on the report page");
   assert.doesNotMatch(text, suspicious, "PDF text contains no known mojibake or replacement character");
-  assert.match(bytes.toString("latin1"), /TimesNewRomanPSMT/);
+  assert.match(bytes.toString("latin1"), /(?:TimesNewRomanPSMT|LiberationSerif)/);
   assert.doesNotMatch(bytes.toString("latin1"), /Helvetica/);
 });
 

@@ -21,6 +21,7 @@ import {query,transaction} from './db.js'
 import {mailStatus,sendMail} from './mailer.js'
 import {createPasswordLinkService} from './password-link-service.js'
 import {createAuthRateLimiter} from './auth-rate-limit.js'
+import {sessionExpiryFromMinutes} from './session-expiry.js'
 import {createAdminEmailCooldown} from './admin-email-rate-limit.js'
 import {deliverPendingInternalEmails,deliverPendingNotificationEmails,scheduleNotificationMaintenance,syncImportantNotificationReminders} from './notification-email-service.js'
 import {enqueueFelixDocumentIndex} from './felix-index-worker.js'
@@ -96,6 +97,10 @@ const syncAssignmentStatusFromTasks=async(client,assignmentId,userId)=>{
 
 const passwordLinkService=createPasswordLinkService({transaction,sendMail,frontendOrigin:config.frontendOrigin})
 const passwordResetRateLimit=createAuthRateLimiter({windowMs:15*60*1000,maxIpAttempts:60,maxIdentityAttempts:5})
+const createSessionToken=async user=>{
+  const setting=(await query('SELECT session_minutes FROM system_settings WHERE id=1')).rows[0]
+  return createToken(user,sessionExpiryFromMinutes(setting?.session_minutes,config.jwtExpiresIn))
+}
 
 const app=express()
 app.disable('x-powered-by')
@@ -1262,10 +1267,10 @@ app.get('/api/auth/login-directory',async(_req,res,next)=>{try{if(!config.expose
 app.post('/api/auth/login',validate(loginSchema),async(req,res,next)=>{try{const result=await query(`SELECT u.id,u.name,u.email,u.password_hash,u.role,u.division,u.status,u.active,u.token_version,u.must_change_password,u.supervisor_id,
   supervisor.name supervisor_name,supervisor.role supervisor_role
   FROM users u LEFT JOIN users supervisor ON supervisor.id=u.supervisor_id
-  WHERE lower(u.email)=lower($1)`,[req.validated.email]);const user=result.rows[0];if(!user||!user.active||!await bcrypt.compare(req.validated.password,user.password_hash)){await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'LOGIN_FAILED','session',$2,$3)",[user?.id||null,user?.id||null,JSON.stringify({email:req.validated.email})]);return res.status(401).json({error:'Login unsuccessful. Verify your official PSC email and password. If the problem continues, recover your password or ask an administrator to confirm that your account is active.'})}delete user.password_hash;await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1::uuid,'LOGIN_SUCCEEDED','session',$1::uuid::text,$2)",[user.id,JSON.stringify({email:user.email,role:user.role})]);res.json({token:createToken(user),user})}catch(error){next(error)}})
+  WHERE lower(u.email)=lower($1)`,[req.validated.email]);const user=result.rows[0];if(!user||!user.active||!await bcrypt.compare(req.validated.password,user.password_hash)){await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1,'LOGIN_FAILED','session',$2,$3)",[user?.id||null,user?.id||null,JSON.stringify({email:req.validated.email})]);return res.status(401).json({error:'Login unsuccessful. Verify your official PSC email and password. If the problem continues, recover your password or ask an administrator to confirm that your account is active.'})}delete user.password_hash;await query("INSERT INTO audit_logs(user_id,action,entity_type,entity_id,details)VALUES($1::uuid,'LOGIN_SUCCEEDED','session',$1::uuid::text,$2)",[user.id,JSON.stringify({email:user.email,role:user.role})]);res.json({token:await createSessionToken(user),user})}catch(error){next(error)}})
 app.get('/api/auth/me',authenticate,(req,res)=>res.json(req.user))
 app.post('/api/auth/logout',authenticate,async(req,res,next)=>{try{await transaction(async client=>{await client.query('UPDATE users SET token_version=token_version+1,updated_at=NOW() WHERE id=$1',[req.user.id]);await audit(client,req.user.id,'LOGOUT','session',req.user.id,{})});res.status(204).end()}catch(error){next(error)}})
-app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:createToken(updated),user:updated})}catch(error){next(error)}})
+app.post('/api/auth/change-password',authenticate,validate(z.object({currentPassword:z.string().min(8).max(128),newPassword:passwordSchema})),async(req,res,next)=>{try{const current=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];if(!current||!await bcrypt.compare(req.validated.currentPassword,current.password_hash))return res.status(400).json({error:'The current password is incorrect.'});if(await bcrypt.compare(req.validated.newPassword,current.password_hash))return res.status(400).json({error:'Choose a password different from the current password.'});const hash=await bcrypt.hash(req.validated.newPassword,12);const updated=(await query('UPDATE users SET password_hash=$1,must_change_password=FALSE,token_version=token_version+1,updated_at=NOW() WHERE id=$2 RETURNING id,name,email,role,division,status,token_version,must_change_password',[hash,req.user.id])).rows[0];res.json({token:await createSessionToken(updated),user:updated})}catch(error){next(error)}})
 app.post('/api/auth/forgot-password',passwordResetRateLimit,validate(z.object({email:z.string().email().max(255)})),async(req,res,next)=>{try{
   const user=(await query('SELECT id,name,email FROM users WHERE lower(email)=lower($1) AND active=TRUE',[req.validated.email])).rows[0]
   if(user){

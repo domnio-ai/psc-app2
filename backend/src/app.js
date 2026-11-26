@@ -4991,6 +4991,15 @@ Controlled report version: ${document.version}`})
     if(!locked||locked.status!=='Approved')throw Object.assign(new Error('This report is no longer awaiting final generation. Refresh the workspace.'),{statusCode:409})
     const immutable=(await client.query("SELECT id FROM generated_document_versions WHERE document_id=$1 AND version_number=$2 AND status='Approved' FOR UPDATE",[document.id,document.version])).rows[0]
     if(!immutable)throw Object.assign(new Error('The approved immutable Assignment report version is no longer available.'),{statusCode:409})
+    // Serialize final publication with task creation and task-state changes.
+    // The assignment lock conflicts with the FK key-share lock taken by inserts
+    // into assignment_tasks; existing task rows are then locked and revalidated.
+    const assignmentLock=(await client.query('SELECT id FROM assignments WHERE id=$1::uuid FOR UPDATE',[document.context_id])).rows[0]
+    if(!assignmentLock)throw Object.assign(new Error('The assignment no longer exists. Refresh the report before finalising.'),{statusCode:409})
+    const lockedTasks=(await client.query("SELECT id,contribution_status FROM assignment_tasks WHERE assignment_id=$1::uuid AND archived_at IS NULL ORDER BY id FOR UPDATE",[document.context_id])).rows
+    if(lockedTasks.some(task=>task.contribution_status!=='Accepted')){
+      throw Object.assign(new Error('Every active task must have a final approved task report before the Final Assignment Report can be published. Refresh the report and try again.'),{statusCode:409})
+    }
     const category=(await client.query("SELECT id FROM document_categories WHERE name='Assignment Reports' LIMIT 1")).rows[0]||null
     const description=`Final approved assignment report for “${document.assignment_title}”. Prepared by ${document.created_by_name} and approved by ${document.reviewer_name||'the assigned reviewer'}.`
     const tags=['final-report','assignment-report','approved']

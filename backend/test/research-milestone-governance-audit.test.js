@@ -9,7 +9,9 @@ test('research assignment link and unlink routes enforce the shared project-mana
   assert.match(app,/app\.post\('\/api\/research\/:id\/assignments\/link',authenticate,validate\(researchAssignmentLinkSchema\)/)
   assert.match(app,/app\.delete\('\/api\/research\/:id\/assignments\/:assignmentId',authenticate,async\(req,res,next\)=>\{try\{[\s\S]*?canEditResearch\(req\.user,req\.params\.id\)/)
   assert.match(app,/app\.post\('\/api\/research\/:id\/assignments\/link',[\s\S]*?canEditResearch\(req\.user,req\.params\.id\)/)
-  assert.match(frontend,/\["System Admin", "Director", "Deputy Director", "Assistant Director"\]\.includes\(user\.role\)/)
+  assert.match(frontend,/isManager=\{Boolean\(isManager && selectedResearch\.can_manage\)\}/)
+  assert.match(frontend,/canManageTasks=\{Boolean\(selectedResearch\.can_manage\)\}/)
+  assert.match(app,/can_manage:await canEditResearch\(req\.user,row\.id\)/)
 })
 
 test('milestone creation and status changes write audit records inside their transactions',()=>{

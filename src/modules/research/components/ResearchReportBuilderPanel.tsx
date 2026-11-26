@@ -122,7 +122,7 @@ export default function ResearchReportBuilderPanel({
             <p>REPORT CONTROL CENTRE</p>
             <h3>Research report</h3>
             <span>
-              Monitor structure, progress, evidence and review readiness here. All report writing and formatting is completed in the governed REDESY Report Builder.
+              Monitor structure, progress, evidence and review readiness here. All report writing and formatting is completed in the governed APP2 Report Builder.
             </span>
           </div>
 

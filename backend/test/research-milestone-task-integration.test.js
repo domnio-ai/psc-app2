@@ -21,7 +21,7 @@ test('milestone task APIs scope reads and writes to the same linked research pro
   assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/tasks/)
   assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/tasks\/:taskId/)
   assert.match(app,/assignmentTaskScope\(req\.user,task\.assignment_id\)/)
-  assert.match(app,/task assignment is not linked to this research project/)
+  assert.match(app,/assignment linked to this research project/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_LINKED/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_UNLINKED/)
 })

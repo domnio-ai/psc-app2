@@ -35,7 +35,7 @@ export function displayDocumentTitle(value: string | null | undefined) {
     word.toLowerCase() === "ai"
       ? "AI"
       : word.toLowerCase() === "app2"
-        ? "REDESY"
+        ? "APP2"
         : word.toLowerCase() === "psc"
           ? "PSC"
           : word.toUpperCase(),

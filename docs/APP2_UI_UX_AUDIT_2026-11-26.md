@@ -26,7 +26,7 @@ This is an evidence-based working register, not a claim that the full UI/UX audi
 
 | ID | Area | Finding and evidence | Priority | Status |
 |---|---|---|---|---|
-| UX-001 | Product identity | The main shell contained 48 legacy REDESY labels in `src/App.tsx`, with four additional labels in the dashboard module (`ProgressiveDashboard.tsx` and `DashboardCommandPalette.tsx`); `index.html` also used REDESY in its title and description. | High | Implemented on PR #32; awaiting CI and visual verification |
+| UX-001 | Product identity | The main shell contained 48 legacy REDESY labels in `src/App.tsx`, the dashboard module contained four more (`ProgressiveDashboard.tsx` and `DashboardCommandPalette.tsx`), and Felix AI Researcher contained 11 user-facing references in `AIResearchChat.tsx`; `index.html` also used REDESY in its title and description. | High | Implemented on PR #32; awaiting CI and visual verification |
 | UX-002 | Navigation appearance | Executive Gold used a mustard sidebar (`#C5A24D`) and strongly tinted navigation controls (`#F9EFD2`). This made the navigation surface compete with the workspace. | Medium | Lightened on PR #32; awaiting visual verification |
 | UX-003 | Shell proportions | The base desktop shell used a 345px sidebar and a 95px top bar. These dimensions consume substantial space before workspace content begins. | Medium | Refined on PR #32 to 272px and 76px respectively; awaiting responsive verification |
 | UX-004 | Navigation taxonomy | `Documents` appears in `navItems` and role-navigation definitions but is absent from the displayed `navGroups`. The route compatibility effect and navigation handler redirect `Documents` to `Document Repository`, so it is a legacy alias rather than a separate sidebar destination. | Medium | Open — remove the orphaned navigation entry while preserving the legacy route alias |
@@ -73,7 +73,7 @@ These are foundations to improve and standardise, not reasons to skip testing.
 
 The draft PR contains controlled changes to the APP2 application shell:
 
-1. Replace legacy REDESY labels with APP2 in the main shell and dashboard workspace copy.
+1. Replace legacy REDESY labels with APP2 in the main shell, dashboard workspace and Felix AI Researcher copy.
 2. Update browser title and description metadata.
 3. Lighten Executive Gold navigation surfaces and reserve gold for selection and interaction.
 4. Refine shared shell proportions, typography and responsive content padding.

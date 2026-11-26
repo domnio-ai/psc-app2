@@ -26,7 +26,7 @@ This is an evidence-based working register, not a claim that the full UI/UX audi
 
 | ID | Area | Finding and evidence | Priority | Status |
 |---|---|---|---|---|
-| UX-001 | Product identity | The audit found 175 legacy REDESY references across the frontend source, spanning the shell, Felix AI, dashboard, document/repository readers, assignments, tasks, meetings, messaging, notifications, research, reviews and management reporting. `index.html` also used REDESY in its title and description. | High | 175 source references and browser metadata updated on PR #32; awaiting full scan and visual verification |
+| UX-001 | Product identity | The audit found 279 legacy REDESY references across frontend and backend application source, spanning the shell, Felix AI, dashboard, document/repository readers, assignments, tasks, meetings, messaging, notifications, research, reviews, management reporting, email, PDF export and service messages. `index.html` also used REDESY in its title and description. | High | 279 frontend/backend source references and browser metadata updated on PR #32; application-copy scan passed, live visual verification outstanding |
 | UX-002 | Navigation appearance | Executive Gold used a mustard sidebar (`#C5A24D`) and strongly tinted navigation controls (`#F9EFD2`). This made the navigation surface compete with the workspace. | Medium | Lightened on PR #32; awaiting visual verification |
 | UX-003 | Shell proportions | The base desktop shell used a 345px sidebar and a 95px top bar. These dimensions consume substantial space before workspace content begins. | Medium | Refined on PR #32 to 272px and 76px respectively; awaiting responsive verification |
 | UX-004 | Navigation taxonomy | `Documents` appears in `navItems` and role-navigation definitions but is absent from the displayed `navGroups`. The route compatibility effect and navigation handler redirect `Documents` to `Document Repository`, so it is a legacy alias rather than a separate sidebar destination. | Medium | Open — remove the orphaned navigation entry while preserving the legacy route alias |
@@ -45,6 +45,7 @@ This is an evidence-based working register, not a claim that the full UI/UX audi
 - The base stylesheet contains responsive breakpoints at 1300px, 850px and 560px.
 - The application uses a central navigation model with role-based visibility checks.
 - The legacy `Documents` route is redirected to the canonical `Document Repository` destination; this is retained for compatibility while the unused navigation item is reviewed.
+- A CI branding guard now scans `src`, `backend/src` and `index.html` for the retired product name; the current branch passes.
 - Workspace headers include breadcrumb navigation and contextual actions.
 
 These are foundations to improve and standardise, not reasons to skip testing.
@@ -86,7 +87,8 @@ The visual changes do not intentionally alter workflow APIs, permissions, busine
 - Source diff is limited to the APP2 shell, theme, shared executive component styles, browser metadata and CI trigger configuration.
 - A PostgreSQL 17 migration integration failure was traced to the production runner omitting `baselineSql` from the migration-plan destructuring. The integration base already contains the correct baseline-loading implementation and regression assertion; PR #32 is based on that integration line rather than the stale branch that exposed the failure.
 - GitHub Actions run [#45889500912](https://github.com/domnio-ai/psc-app2/actions/runs/45889500912) passed: Windows build/regression suite (1,394 tests: 1,389 passed, 5 skipped, 0 failed), Semgrep, Trivy, OSV, current-source Gitleaks, unprivileged frontend-container smoke test and PostgreSQL 17 production migration integration test.
-- Full-history Gitleaks was skipped by the workflow and remains a separate verification item.
+- Full-history Gitleaks initially reported 45 `generic-api-key` matches in APP2 guard baseline and `before-hashes.json` snapshots. All 45 matched lines were verified at the historical commit as 64-character hexadecimal SHA-256 file fingerprints, not credentials. A path-and-pattern-specific allowlist was added without disabling the generic-api-key rule or excluding `.app2-guard`.
+- GitHub Actions run [#45893113447](https://github.com/domnio-ai/psc-app2/actions/runs/45893113447) then passed all eight jobs: 1,394 regression tests (1,389 passed, 5 skipped, 0 failed), frontend container build and unprivileged smoke test, PostgreSQL 17 migration integration, Semgrep, Trivy, OSV, current-source Gitleaks and full-history Gitleaks.
 - Browser visual/responsive verification remains outstanding.
 
 ## Next audit actions

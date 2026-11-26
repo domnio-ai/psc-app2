@@ -347,7 +347,7 @@ export default function AIResearchChat({
       role: 'assistant',
       text:
         'Hello, I am Felix, your PSC AI Research Assistant. ' +
-        'Ask me about REDESY, approved documents, assignments, research or institutional knowledge.',
+        'Ask me about APP2, approved documents, assignments, research or institutional knowledge.',
     },
   ])
 

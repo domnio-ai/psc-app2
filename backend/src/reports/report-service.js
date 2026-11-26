@@ -423,7 +423,7 @@ async function executiveOverview(filters, scope) {
         key: "decisions",
         title: "Management decisions required",
         rows: [],
-        message: "No structured management-decision records exist in REDESY.",
+        message: "No structured management-decision records exist in APP2.",
       },
     ],
     columns: [

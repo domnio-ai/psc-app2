@@ -37,8 +37,8 @@ export async function runDueReportSchedules() {
           file = await renderReportExport(schedule.format, result.exportModel);
         await sendMail({
           to: schedule.recipient_emails.join(","),
-          subject: `REDESY scheduled report: ${result.report.title}`,
-          text: `The scheduled report “${result.report.title}” is attached. It was generated from your permitted REDESY data scope.`,
+          subject: `APP2 scheduled report: ${result.report.title}`,
+          text: `The scheduled report “${result.report.title}” is attached. It was generated from your permitted APP2 data scope.`,
           attachments: [
             {
               filename: `${schedule.report_key}.${file.extension}`,

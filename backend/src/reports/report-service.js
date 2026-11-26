@@ -480,16 +480,16 @@ async function researchOutputs(filters, scope) {
       `SELECT p.id,p.title,${researchLifecycleStatusSql('p')} status,p.start_date,p.end_date,u.name lead_name,
         (SELECT COUNT(*)::int FROM research_milestones m WHERE m.project_id=p.id) milestone_count,
         (SELECT COUNT(*)::int FROM research_milestones m WHERE m.project_id=p.id AND m.status='Completed') completed_milestones,
-        (SELECT COUNT(*)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id WHERE m.project_id=p.id) linked_task_count,
-        (SELECT COUNT(*)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id JOIN assignment_tasks t ON t.id=mt.task_id WHERE m.project_id=p.id AND t.status='Completed' AND t.archived_at IS NULL) completed_linked_task_count
+        (SELECT COUNT(DISTINCT mt.task_id)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id WHERE m.project_id=p.id) linked_task_count,
+        (SELECT COUNT(DISTINCT mt.task_id)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id JOIN assignment_tasks t ON t.id=mt.task_id WHERE m.project_id=p.id AND t.status='Completed' AND t.archived_at IS NULL) completed_linked_task_count
        FROM research_projects p JOIN users u ON u.id=p.lead_id WHERE ${where} ORDER BY p.updated_at DESC`,
       values,
     ),
     query(
       `SELECT COUNT(DISTINCT m.id)::int milestones,
         COUNT(DISTINCT m.id) FILTER(WHERE m.status='Completed')::int completed_milestones,
-        COUNT(DISTINCT mt.id)::int linked_tasks,
-        COUNT(DISTINCT mt.id) FILTER(WHERE t.status='Completed' AND t.archived_at IS NULL)::int completed_linked_tasks,
+        COUNT(DISTINCT mt.task_id)::int linked_tasks,
+        COUNT(DISTINCT mt.task_id) FILTER(WHERE t.status='Completed' AND t.archived_at IS NULL)::int completed_linked_tasks,
         COUNT(DISTINCT m.id) FILTER(WHERE m.due_date<CURRENT_DATE AND m.status<>'Completed')::int overdue_milestones
        FROM research_projects p
        LEFT JOIN research_milestones m ON m.project_id=p.id

@@ -28,15 +28,17 @@
 - `backend/src/production-migration-plan.js` lists `20261125_03_meeting_action_task_links.sql` twice.
 - `backend/src/setup-database.js` applies that migration twice.
 - Production migration plan pins each migration by SHA-256 and validates source bytes. A new migration must be added to the manifest with a correctly computed hash.
-- The manifest's recorded SHA for `019_research_reviewers_assignments.sql` must be validated against the exact source before any changes to that historic pin.
+- The manifest's recorded SHA for `019_research_reviewers_assignments.sql` remains protected by the production loader's built-in SHA-256 validation. A GitHub blob SHA is not the same as the manifest's SHA-256; an earlier comparison of those identifiers was invalid and did not establish a mismatch.
 - Current development setup has two sequential reads of the same meeting-action migration.
 - The existing production migration plan test expects both the manifest entries and embedded meeting migration. Update its expectations if correcting duplicate registration.
 - Do not modify historical migration pins until hashes are locally computed and independently verified.
 
-## Changes in this checkpoint
-- No application code changed.
-- No database migration added or executed.
-- This log is the first committed checkpoint only.
+## Changes in checkpoint 2
+- Removed the duplicate `20261125_03_meeting_action_task_links.sql` entry from the pinned production migration manifest.
+- Removed the duplicate application of that migration from development database setup.
+- Added regression assertions that production migration IDs are unique and the meeting-action migration appears exactly once.
+- The production migration plan test uses Node's own SHA-256 implementation to validate the pinned sources when CI runs.
+- No application feature logic or database migration was executed or changed in this checkpoint.
 
 ## Next exact actions
 1. Use a local repository/runtime with a trusted SHA-256 utility to calculate LF/CRLF hashes for each pinned migration and compare with the manifest.
@@ -55,3 +57,8 @@
 - Do not deploy.
 - Do not run destructive Git operations.
 - Do not alter user data or execute production migrations as part of this branch task.
+
+## Checkpoint 2 commits
+- `23ad3cf99e828a54873ba462ef2d181ccf14b350` — remove duplicate meeting migration pin.
+- `4e003447d0a98f7251569ab7313d9cbae0171322` — apply meeting migration once in development setup.
+- `3657ec7bcfd401e2c33202cd472c3af3a974f5b1` — assert migration manifest IDs are unique.

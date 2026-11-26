@@ -34,6 +34,14 @@ test('new user creation stores a random inaccessible initial secret and emails a
   assert.doesNotMatch(create, /temporaryPassword|temporary_password/)
 })
 
+test('manager user-administration exception never grants access to the role-change endpoint', async () => {
+  const auth = await read('../src/auth.js')
+  const allowlist = auth.split('\n').find(line => line.includes('const userAdministrationPath='))
+  assert.ok(allowlist, 'manager user-administration path allowlist must exist')
+  assert.doesNotMatch(allowlist, /role/, 'role changes must remain System Admin only')
+  assert.match(allowlist, /reset-password/, 'scoped managers may still request password resets')
+})
+
 test('administrator password reset sends a single-use link and returns no password', async () => {
   const app = await read('../src/app.js')
   const reset = app.slice(app.indexOf("app.post('/api/users/:id/reset-password'"), app.indexOf("app.get('/api/assignments'"))
@@ -58,4 +66,12 @@ test('mail service preserves the branded password-link HTML message', async () =
   const mail = await read('../src/mail-service.js')
   assert.match(mail, /html = null/)
   assert.match(mail, /html: html \|\|/)
+})
+
+test('quick role changes validate the target role against its existing reporting line', async () => {
+  const app = await read('../src/app.js')
+  const roleChange = app.slice(app.indexOf("app.patch('/api/users/:id/role'"), app.indexOf("app.post('/api/users/:id/reset-password'"))
+  assert.match(roleChange, /SELECT role,supervisor_id FROM users WHERE id=\$1 FOR UPDATE/)
+  assert.match(roleChange, /validateSupervisor\(client,req\.validated\.role,current\.supervisor_id,req\.params\.id\)/)
+  assert.match(roleChange, /authorize\('System Admin'\)/)
 })

@@ -50,3 +50,13 @@ test("Both modules retain responsive and accessibility contracts",()=>{
   assert.match(noticeCss,/@media\(max-width:700px\)/);
   assert.match(noticeCss,/@media\(prefers-reduced-motion:reduce\)/);
 });
+
+
+test("opening a notice marks its linked recipient notifications as read",()=>{
+  const app=fs.readFileSync("src/App.tsx","utf8");
+  assert.match(app,/const markNoticeNotificationsRead = async \(noticeId: string\)/);
+  assert.match(app,/item\.entity_type === "notice" && item\.entity_id === noticeId/);
+  assert.match(app,/matches\.map\(\(item\) => api\.readNotification\(token, item\.id\)\)/);
+  assert.match(app,/onRead=\{markNoticeNotificationsRead\}/);
+  assert.match(notices,/void onRead\?\.\(item\.id\)/);
+});

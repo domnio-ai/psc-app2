@@ -547,7 +547,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
       setSelected(fresh);
       const delivery = fresh.invitation_delivery;
       setNotice(delivery
-        ? `${participantSelection.length} participant(s) added. ${delivery.inApp} REDESY notification(s); ${delivery.emailSent} email invitation(s) sent${delivery.emailFailed ? `, ${delivery.emailFailed} failed` : ""}${delivery.emailSkipped ? `, ${delivery.emailSkipped} skipped` : ""}.`
+        ? `${participantSelection.length} participant(s) added. ${delivery.inApp} APP2 notification(s); ${delivery.emailSent} email invitation(s) sent${delivery.emailFailed ? `, ${delivery.emailFailed} failed` : ""}${delivery.emailSkipped ? `, ${delivery.emailSkipped} skipped` : ""}.`
         : `${participantSelection.length} participant(s) added.`);
       setParticipantPickerOpen(false);
       setParticipantSelection([]);
@@ -564,7 +564,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
     setParticipantBusy(true);
     try {
       const result = await meetingsApi.sendInvitations(token, selected.id);
-      setNotice(`Invitations sent: ${result.inApp} REDESY notification(s), ${result.emailSent} email(s)${result.emailFailed ? `, ${result.emailFailed} failed` : ""}${result.emailSkipped ? `, ${result.emailSkipped} skipped` : ""}.`);
+      setNotice(`Invitations sent: ${result.inApp} APP2 notification(s), ${result.emailSent} email(s)${result.emailFailed ? `, ${result.emailFailed} failed` : ""}${result.emailSkipped ? `, ${result.emailSkipped} skipped` : ""}.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Invitations could not be sent.");
     } finally {
@@ -743,7 +743,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
     // Open synchronously from the click handler so browser popup protection can identify the user gesture.
     const previewWindow = window.open("", "_blank", "popup=yes,width=1100,height=900,resizable=yes,scrollbars=yes");
     if (!previewWindow) {
-      setNotice("The browser blocked the A4 preview window. Allow pop-ups for this REDESY address, then select Preview A4 again.");
+      setNotice("The browser blocked the A4 preview window. Allow pop-ups for this APP2 address, then select Preview A4 again.");
       return;
     }
     try {
@@ -1098,7 +1098,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
             </div>
             <div className="meeting-command-grid">
               <article className="meeting-command-card meeting-readiness-card"><div className="meeting-card-heading"><div><small>MEETING READINESS</small><h4>{readiness?.percent || 0}% prepared</h4></div><div className="meeting-readiness-ring" style={{ "--meeting-readiness": `${readiness?.percent || 0}%` } as CSSProperties}><span>{readiness?.complete || 0}/5</span></div></div><div className="meeting-checklist">{readiness?.checks.map(item => <button key={item.label} onClick={() => setTab(item.tab)}><i className={item.ok ? "ok" : "pending"}>{item.ok ? "✓" : "!"}</i><span>{item.label}</span><b>{item.ok ? "Ready" : "Needs attention"}</b></button>)}</div></article>
-              <article className="meeting-command-card"><small>NEXT BEST ACTION</small><h4>{nextStep?.label}</h4><p>REDESY uses the meeting record to surface the next logical governance step without hiding the full workspace.</p><button className="meetings-primary" onClick={() => nextStep && setTab(nextStep.tab)}>Continue</button></article>
+              <article className="meeting-command-card"><small>NEXT BEST ACTION</small><h4>{nextStep?.label}</h4><p>APP2 uses the meeting record to surface the next logical governance step without hiding the full workspace.</p><button className="meetings-primary" onClick={() => nextStep && setTab(nextStep.tab)}>Continue</button></article>
               <article className="meeting-command-card"><small>GOVERNANCE</small><h4>{selected.chair_name || selected.created_by_name}</h4><dl><div><dt>Secretary</dt><dd>{selected.secretary_name || "Not assigned"}</dd></div><div><dt>Reviewer</dt><dd>{selected.reviewer_name || "Not assigned"}</dd></div><div><dt>Participants</dt><dd>{selected.participants.length}</dd></div><div><dt>Agenda</dt><dd>{selected.agenda.length} items</dd></div><div><dt>Schedule approval</dt><dd>{selected.schedule_approval_status || "Approved (legacy)"}</dd></div></dl></article>
               <article className="meeting-command-card"><small>MEETING OUTPUTS</small><h4>{selected.minutes?.status || "Minutes not generated"}</h4><dl><div><dt>Transcript</dt><dd>{selected.transcript?.status || "Not started"}</dd></div><div><dt>Decisions</dt><dd>{selected.decisions.length}</dd></div><div><dt>Open actions</dt><dd>{selected.actions.filter(a => a.status !== "Completed").length}</dd></div><div><dt>Status</dt><dd>{selected.status}</dd></div></dl></article>
 <article className="meeting-command-card meeting-attendance-card">
@@ -1143,7 +1143,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
 
             <div className="meeting-invitation-channel">
               <b>Dual-channel invitation</b>
-              <span>Invited REDESY members receive an in-system Meetings notification and a normal email when email delivery is configured.</span>
+              <span>Invited APP2 members receive an in-system Meetings notification and a normal email when email delivery is configured.</span>
             </div>
 
             <div className="meeting-participant-stats-v25">
@@ -1208,7 +1208,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
               })}
               {selected.participants.length === 0 && <div className="meetings-empty participant-empty">
                 <strong>No participants selected</strong>
-                <span>Use Manage participants to select REDESY members and send invitations.</span>
+                <span>Use Manage participants to select APP2 members and send invitations.</span>
               </div>}
             </div>
           </div>}
@@ -1457,7 +1457,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
             <div>
               <small>PARTICIPANTS & INVITATIONS</small>
               <h3>{participantPickerMode === "create" ? "Select invited members" : "Add meeting participants"}</h3>
-              <span>Search the REDESY directory, select members and assign their meeting role.</span>
+              <span>Search the APP2 directory, select members and assign their meeting role.</span>
             </div>
             <button type="button" onClick={() => setParticipantPickerOpen(false)}>Close</button>
           </header>
@@ -1553,7 +1553,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
       <label><span>Start date and time <b className="meeting-schedule-required">*</b></span><input name="startAt" aria-label="Meeting start date and time" type="datetime-local" required value={form.startAt} onChange={e=>setForm({...form,startAt:e.target.value})}/><small>Choose a future start date and time.</small>{createError&&!form.startAt&&<small role="alert">A start date and time is required so the meeting can be scheduled.</small>}</label>
       <label><span>End date and time <b className="meeting-schedule-required">*</b></span><input name="endAt" aria-label="Meeting end date and time" type="datetime-local" required min={form.startAt || undefined} value={form.endAt} onChange={e=>setForm({...form,endAt:e.target.value})}/><small>Must be later than the start.</small>{createError&&!form.endAt&&<small role="alert">An end date and time is required to reserve the meeting duration.</small>}</label>
       {(form.meetingMode === "In-person" || form.meetingMode === "Hybrid") && <label><span>Physical venue <b className="meeting-schedule-required">*</b></span><input required value={form.venue} onChange={e=>setForm({...form,venue:e.target.value})} placeholder="Building, room or venue"/></label>}
-      {(form.meetingMode === "Online" || form.meetingMode === "Hybrid") && <label><span>Online meeting join link <b className="meeting-schedule-required">*</b></span><input type="url" inputMode="url" required value={form.meetingLink} onChange={e=>setForm({...form,meetingLink:e.target.value})} placeholder="https://..."/><small>Paste the real HTTPS join link; REDESY will not invent provider links.</small></label>}
+      {(form.meetingMode === "Online" || form.meetingMode === "Hybrid") && <label><span>Online meeting join link <b className="meeting-schedule-required">*</b></span><input type="url" inputMode="url" required value={form.meetingLink} onChange={e=>setForm({...form,meetingLink:e.target.value})} placeholder="https://..."/><small>Paste the real HTTPS join link; APP2 will not invent provider links.</small></label>}
       <label className="meeting-schedule-field-wide"><span>Supporting links <em>(optional)</em></span><textarea className="meeting-schedule-links" value={form.resourceLinks} onChange={e=>setForm({...form,resourceLinks:e.target.value})} placeholder="One HTTPS URL per line"/><small>Use for agenda documents, briefs or reference material. Maximum 10 links.</small></label>
       <div className="meeting-schedule-field-wide meeting-supporting-document-picker">
         <label><span>Supporting documents <em>(optional)</em></span><input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rtf,.txt" disabled={createBusy||supportingUploadBusy} onChange={event=>{const picked=Array.from(event.target.files||[]);const combined=[...supportingFiles,...picked];if(combined.length+(editingMeetingId?selected?.supporting_documents?.length||0:0)>10){setCreateError("A meeting can have up to 10 supporting documents.");event.currentTarget.value="";return;}if(combined.reduce((sum,file)=>sum+file.size,0)>18*1024*1024){setCreateError("Supporting documents for a meeting are limited to 18 MB in total.");event.currentTarget.value="";return;}setCreateError("");setSupportingFiles(combined);event.currentTarget.value="";}}/><small>Attach memos, briefs and agenda papers. PDF, Word, Excel, PowerPoint, RTF and TXT files are supported; up to 10 files and 18 MB total. Documents will be attached to invitation emails.</small></label>
@@ -1579,7 +1579,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
               <div>
                 <small>PARTICIPANTS & INVITATIONS</small>
                 <strong>{createParticipantIds.length ? `${createParticipantIds.length} selected` : "Select members expected to attend"}</strong>
-                <span>Selected members receive REDESY notifications and email invitations after the schedule is approved.</span>
+                <span>Selected members receive APP2 notifications and email invitations after the schedule is approved.</span>
               </div>
               <button type="button" onClick={() => openParticipantPicker("create")}>{createParticipantIds.length ? "Edit participants" : "Select participants"}</button>
             </div>
@@ -1588,7 +1588,7 @@ export default function MeetingsWorkspace({ token, currentUser, onBack, onDashbo
               ? <div className="meeting-schedule-participant-chips">
                   {createParticipantIds.slice(0,8).map(id => {
                     const person = users.find(u => u.id === id);
-                    return <span key={id}>{person?.name || "REDESY user"} · {createParticipantRoles[id] || "Attendee"}</span>;
+                    return <span key={id}>{person?.name || "APP2 user"} · {createParticipantRoles[id] || "Attendee"}</span>;
                   })}
                   {createParticipantIds.length > 8 && <span>+{createParticipantIds.length - 8} more</span>}
                 </div>

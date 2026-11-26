@@ -360,6 +360,19 @@ jobs:
         with:
           node-version: 22
 
+      - name: Verify frontend product branding is APP2
+        shell: pwsh
+        run: |
+          $legacy = Get-ChildItem -Path src -Recurse -File | Select-String -Pattern 'REDESY'
+          if ($legacy) {
+            $legacy | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy product name found" }
+            exit 1
+          }
+          if (Select-String -Path index.html -Pattern 'REDESY') {
+            Write-Error "index.html still contains the legacy product name."
+            exit 1
+          }
+
       - name: Install frontend and run production build
         shell: pwsh
         run: |

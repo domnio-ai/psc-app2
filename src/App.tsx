@@ -13939,7 +13939,7 @@ export default function App() {
             <ResearchWorkPlanPanel
               project={selectedResearch}
               token={token}
-              canManageTasks={Boolean(isManager || selectedResearch.lead_id === user?.id || selectedResearch.collaborators.some((collaborator) => collaborator.id === user?.id && collaborator.role !== "Reviewer"))}
+              canManageTasks={Boolean(selectedResearch.can_manage)}
               form={researchMilestoneForm}
               setForm={setResearchMilestoneForm}
               onImportExternal={() => {

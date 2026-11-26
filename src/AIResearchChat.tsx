@@ -880,7 +880,7 @@ export default function AIResearchChat({
                 Research
               </option>
 
-              <option>
+              <option value="App2 Expert">
                 APP2 Expert
               </option>
 
@@ -899,7 +899,7 @@ export default function AIResearchChat({
                 ? 'Read-only controlled checks - no automatic fixes'
 
                 : mode ===
-                  'APP2 Expert'
+                  'App2 Expert'
                   ? 'Live APP2 technical and repository evidence'
 
                   : mode ===
@@ -1254,7 +1254,7 @@ export default function AIResearchChat({
                 ? 'Describe the controlled APP2 review...'
 
                 : mode ===
-                  'APP2 Expert'
+                  'App2 Expert'
                   ? 'Ask about APP2 modules, APIs, permissions, tests or code...'
 
                   : mode ===

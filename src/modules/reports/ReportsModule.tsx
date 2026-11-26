@@ -745,7 +745,7 @@ export default function ReportsModule({
         {error && <div className="report-error">{error}</div>}
         {loading && (
           <div className="report-loading">
-            Generating report from current REDESY data…
+            Generating report from current APP2 data…
           </div>
         )}
         {data && (

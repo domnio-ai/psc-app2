@@ -3027,6 +3027,7 @@ app.post('/api/assignments/:id/tasks/:taskId/contribution-finalize',authenticate
     await enqueueFelixDocumentIndex(client,item.id,1,req.user.id)
     finalizationStage='sync-assignment-status'
     await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id)
+    await syncResearchMilestonesFromTasks(client,req.params.id,req.user.id)
     return {row,item}
   })
   finalizationStage='load-final-task'
@@ -3067,6 +3068,7 @@ app.post('/api/assignments/:id/tasks/:taskId/archive',authenticate,authorize('Sy
     const updated=(await client.query('UPDATE assignment_tasks SET archived_at=NOW(),archived_by=$1,updated_at=NOW() WHERE id=$2 AND assignment_id=$3 RETURNING *',[req.user.id,req.params.taskId,req.params.id])).rows[0]
     await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_ARCHIVED',JSON.stringify({taskId:updated.id,title:updated.title})])
     await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id)
+    await syncResearchMilestonesFromTasks(client,req.params.id,req.user.id)
     await audit(client,req.user.id,'ASSIGNMENT_TASK_ARCHIVED','assignment_task',updated.id,{assignmentId:req.params.id,title:updated.title})
     return updated
   })
@@ -3083,9 +3085,14 @@ app.delete('/api/assignments/:id/tasks/:taskId',authenticate,authorize('System A
     EXISTS(
       SELECT 1 FROM assignment_report_sources ars
       WHERE ars.task_id=t.id
-    ) has_assignment_report_source
+    ) has_assignment_report_source,
+    EXISTS(
+      SELECT 1 FROM research_milestone_tasks mt
+      WHERE mt.task_id=t.id
+    ) has_milestone_link
     FROM assignment_tasks t WHERE t.id=$1 AND t.assignment_id=$2 FOR UPDATE`,[req.params.taskId,req.params.id])).rows[0]
     if(!task)return null
+    if(task.has_milestone_link)throw Object.assign(new Error('This task is linked to a research milestone. Unlink it from the milestone before deleting or archiving the task.'),{statusCode:409})
     if(task.status==='Completed'||task.contribution_status!=='Draft'||task.has_repository_record||task.has_assignment_report_source){
       throw Object.assign(new Error('This task is already part of the formal assignment reporting record and cannot be deleted. Archive it instead so report provenance is preserved.'),{statusCode:409})
     }

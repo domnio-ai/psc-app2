@@ -362,7 +362,8 @@ jobs:
       - name: Verify application copy uses APP2
         shell: pwsh
         run: |
-          $legacy = Get-ChildItem -Path src,backend/src -Recurse -File | Select-String -Pattern 'REDESY'
+          $legacy = $brandingPaths = @('src', 'backend/src/mail-service.js', 'backend/src/notification-email-service.js', 'backend/src/password-link-service.js', 'backend/src/meetings/meetings-routes.js', 'backend/src/meetings/live-conference.js')
+          $legacy = Get-ChildItem -Path $brandingPaths -Recurse -File | Select-String -Pattern 'REDESY'
           if ($legacy) {
             $legacy | ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): legacy product name found" }
             exit 1

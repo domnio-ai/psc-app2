@@ -7,6 +7,8 @@ const migration = fs.readFileSync("migrations/045_research_milestone_task_links.
 const plan = fs.readFileSync("src/production-migration-plan.js", "utf8");
 const setup = fs.readFileSync("src/setup-database.js", "utf8");
 const api = fs.readFileSync("../src/api.ts", "utf8");
+const panel = fs.readFileSync("../src/modules/research/components/ResearchWorkPlanPanel.tsx", "utf8");
+const appUi = fs.readFileSync("../src/App.tsx", "utf8");
 
 test("research milestone central task relation is nullable, unique and migration-managed", () => {
   assert.match(migration, /ADD COLUMN IF NOT EXISTS task_id UUID REFERENCES assignment_tasks\(id\) ON DELETE SET NULL/);
@@ -38,4 +40,14 @@ test("linked milestone progress is read from its central task and cannot bypass 
   assert.match(app, /app\.delete\('\/api\/research\/:id\/milestones\/:milestoneId\/link-task'/);
   assert.match(api, /linkResearchMilestoneTask/);
   assert.match(api, /unlinkResearchMilestoneTask/);
+});
+
+test("research work plan lets users link or unlink an existing task and reflects central progress", () => {
+  assert.match(panel, /api\.assignmentTasks\(token, assignmentId\)/);
+  assert.match(panel, /Link an existing assignment task/);
+  assert.match(panel, /Unlink task/);
+  assert.match(panel, /milestone\.linked_task\.progress/);
+  assert.match(panel, /disabled=\{Boolean\(milestone\.linked_task\)\}/);
+  assert.match(appUi, /onLinkTask=\{async \(milestoneId, taskId\)/);
+  assert.match(appUi, /onUnlinkTask=\{async \(milestoneId\)/);
 });

@@ -17,6 +17,8 @@ test('milestone-task relationship migration is included in the pinned production
   assert.match(migration,/prevent_research_milestone_orphaning/)
   assert.match(migration,/research_assignment_unlink_guard/)
   assert.match(migration,/research_milestone_task_archive_guard/)
+  assert.match(migration,/research_milestone_completion_guard/)
+  assert.match(migration,/FOR UPDATE/)
   assert.match(migration,/IF task_assignment IS NULL/)
   assert.match(migration,/IF linked_project IS NULL OR linked_project <> NEW[.]project_id/)
 })

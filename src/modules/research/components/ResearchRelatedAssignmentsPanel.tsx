@@ -207,7 +207,7 @@ export default function ResearchRelatedAssignmentsPanel({
       </div>
 
       <details className="research-related-external-option">
-        <summary>Research completed outside REDESY?</summary>
+        <summary>Research completed outside APP2?</summary>
         <div>
           <p>Use the external research import workflow only when a completed report already exists.</p>
           <button type="button" onClick={onImportExternal}>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api";
+import { isResearchTaskOverdue } from "./researchTaskDates.js";
 
 type ResearchAssignmentProgressProps = {
   token: string;
@@ -57,12 +58,10 @@ export function ResearchAssignmentProgress({
           ),
         ).length;
 
-        const now = Date.now();
         const overdue = tasks.filter(
           (task) =>
             task.status !== "Completed" &&
-            Boolean(task.due_date) &&
-            new Date(String(task.due_date)).getTime() < now,
+            isResearchTaskOverdue(task.due_date),
         ).length;
 
         setProgress({

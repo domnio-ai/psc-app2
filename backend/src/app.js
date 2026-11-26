@@ -3854,6 +3854,7 @@ app.post('/api/research/:id/assignments',authenticate,validate(assignmentSchema)
   const project=(await query('SELECT id,title,lead_id FROM research_projects WHERE id=$1',[req.params.id])).rows[0]
   if(!project)return res.status(404).json({error:'Research project not found.'})
   const isManager=isManagementRole(req.user.role)
+  if(isManager&&!await canEditResearch(req.user,project.id))return res.status(403).json({error:'You cannot create assignments outside your research management scope.'})
   if(!isManager&&project.lead_id!==req.user.id)return res.status(403).json({error:'Only the Research Lead may propose an assignment; a Research Manager must approve it before activation.'})
   if(!isManager){
     const {title,description,division,dueDate,priority,memberIds}=req.validated

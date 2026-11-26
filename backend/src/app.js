@@ -3930,6 +3930,8 @@ app.delete('/api/research/:id',authenticate,authorize('System Admin','Deputy Dir
   const project=(await query('SELECT * FROM research_projects WHERE id=$1',[req.params.id])).rows[0]
   if(!project)return res.status(404).json({error:'Research project not found.'})
   if(project.status!=='Archived')return res.status(409).json({error:'Archive the research project before permanently deleting it.'})
+  const linkedMilestoneTasks=(await query('SELECT COUNT(*)::int total FROM research_milestone_tasks WHERE project_id=$1',[project.id])).rows[0]?.total||0
+  if(linkedMilestoneTasks>0)return res.status(409).json({error:'Unlink milestone tasks before permanently deleting this research project so task-to-milestone history is not lost.'})
   await transaction(async client=>{
     await audit(client,req.user.id,'RESEARCH_PROJECT_DELETED','research_project',project.id,{title:project.title,reason:req.validated.reason})
     await client.query('DELETE FROM research_projects WHERE id=$1',[project.id])

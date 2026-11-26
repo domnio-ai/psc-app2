@@ -36,7 +36,7 @@ export async function buildResearchDraftArtifact({project,sections,team,actorNam
   const children=[
     new Paragraph({text:title,heading:HeadingLevel.TITLE}),
     new Paragraph({children:[new TextRun({text:'Research project: ',bold:true}),new TextRun(project.title)]}),
-    new Paragraph({children:[new TextRun({text:'Saved by: ',bold:true}),new TextRun(actorName||'REDESY user')]}),
+    new Paragraph({children:[new TextRun({text:'Saved by: ',bold:true}),new TextRun(actorName||'APP2 user')]}),
     new Paragraph({children:[new TextRun({text:'Saved at: ',bold:true}),new TextRun(savedAt)]}),
     new Paragraph({text:'DRAFT — NOT YET APPROVED',heading:HeadingLevel.HEADING_1}),
     new Paragraph({text:'Research Team and Roles',heading:HeadingLevel.HEADING_1}),
@@ -113,7 +113,7 @@ export async function saveResearchDraftRepositoryVersion({client,project,actor,a
     artifact.mimeType,
     artifact.buffer.length,
     artifact.sha256,
-    `Research Workspace draft saved by ${actor.name||'a REDESY user'}`
+    `Research Workspace draft saved by ${actor.name||'a APP2 user'}`
   ])).rows[0]
   await client.query(`UPDATE knowledge_items SET
     title=$1,description=$2,status='Draft',current_version=$3,approved_by=NULL,approved_at=NULL,

@@ -3070,9 +3070,14 @@ app.delete('/api/assignments/:id/tasks/:taskId',authenticate,authorize('System A
     EXISTS(
       SELECT 1 FROM assignment_report_sources ars
       WHERE ars.task_id=t.id
-    ) has_assignment_report_source
+    ) has_assignment_report_source,
+    EXISTS(
+      SELECT 1 FROM research_milestones rm
+      WHERE rm.task_id=t.id
+    ) has_linked_research_milestone
     FROM assignment_tasks t WHERE t.id=$1 AND t.assignment_id=$2 FOR UPDATE`,[req.params.taskId,req.params.id])).rows[0]
     if(!task)return null
+    if(task.has_linked_research_milestone)throw Object.assign(new Error('This task is linked to a research milestone. Unlink it from the Research Work Plan before deleting the task.'),{statusCode:409})
     if(task.status==='Completed'||task.contribution_status!=='Draft'||task.has_repository_record||task.has_assignment_report_source){
       throw Object.assign(new Error('This task is already part of the formal assignment reporting record and cannot be deleted. Archive it instead so report provenance is preserved.'),{statusCode:409})
     }

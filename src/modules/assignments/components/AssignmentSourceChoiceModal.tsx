@@ -25,7 +25,7 @@ export default function AssignmentSourceChoiceModal({ open, onClose, onChoose }:
             <small>ASSIGNMENT SOURCE</small>
             <h2>How will this assignment be completed?</h2>
             <p>
-              Choose this before REDESY allocates staff or creates tasks. External completed work
+              Choose this before APP2 allocates staff or creates tasks. External completed work
               should go directly to controlled report import and review.
             </p>
           </div>
@@ -37,7 +37,7 @@ export default function AssignmentSourceChoiceModal({ open, onClose, onChoose }:
             <span className="research-source-option-icon">IN</span>
             <span>
               <strong>Internal assignment</strong>
-              <small>Work will be completed by REDESY staff through the assignment workspace.</small>
+              <small>Work will be completed by APP2 staff through the assignment workspace.</small>
               <em>Assign members, create tasks, collect evidence, prepare the report and send it for review.</em>
             </span>
             <b>→</b>
@@ -51,7 +51,7 @@ export default function AssignmentSourceChoiceModal({ open, onClose, onChoose }:
             <span className="research-source-option-icon">EX</span>
             <span>
               <strong>External completed work</strong>
-              <small>A report or deliverable already exists outside REDESY.</small>
+              <small>A report or deliverable already exists outside APP2.</small>
               <em>
                 Do not allocate members or tasks. Register the assignment, import the report and
                 select a reviewer before a final report can be generated.

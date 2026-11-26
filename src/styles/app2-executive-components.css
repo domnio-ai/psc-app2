@@ -291,3 +291,91 @@ body :where(.ai-message, [class*="felix-response"], [class*="citation"]):not(.ex
     transition-duration: .01ms;
   }
 }
+
+
+/* APP2 modern executive shell: quieter chrome, tighter navigation, clearer hierarchy. */
+.dashboard-shell {
+  grid-template-columns: 272px minmax(0, 1fr);
+}
+.sidebar {
+  padding: 18px 15px;
+}
+.sidebar .brand {
+  gap: 10px;
+  padding: 2px 8px 17px;
+}
+.sidebar .brand img {
+  width: 50px;
+  height: 50px;
+}
+.sidebar nav {
+  padding-top: 12px;
+}
+.sidebar nav button,
+.sidebar .quick-access button {
+  min-height: 40px;
+  gap: 12px;
+  margin: 2px 0;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+.sidebar nav button .icon,
+.sidebar .quick-access .icon {
+  width: 22px;
+  font-size: 19px;
+}
+.topbar {
+  height: 76px;
+  padding-inline: 28px;
+}
+.menu-button {
+  margin-right: 18px;
+  font-size: 25px;
+}
+.topbar .title h1 {
+  font-family: var(--app2-font-family);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+.topbar .title p {
+  font-family: var(--app2-font-family);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.dashboard-content {
+  padding: 24px 28px 32px;
+}
+html[data-theme="executive-gold"] .sidebar {
+  background: var(--sidebar-background) !important;
+  border-color: var(--sidebar-control-border) !important;
+  box-shadow: 4px 0 18px rgba(42, 40, 36, .035) !important;
+}
+html[data-theme="executive-gold"] .sidebar nav button,
+html[data-theme="executive-gold"] .sidebar .quick-access button {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--sidebar-text) !important;
+}
+html[data-theme="executive-gold"] .sidebar nav button:hover:not(.active),
+html[data-theme="executive-gold"] .sidebar .quick-access button:hover {
+  background: #F7F1E3 !important;
+  border-color: #E6DCC7 !important;
+}
+html[data-theme="executive-gold"] .sidebar nav button.active {
+  background: #F3E7C9 !important;
+  border-color: #E7D4A4 !important;
+  color: #6E4F16 !important;
+  box-shadow: inset 3px 0 #B78823 !important;
+}
+@media (max-width: 1300px) {
+  .dashboard-shell { grid-template-columns: 260px minmax(0, 1fr); }
+}
+@media (max-width: 850px) {
+  .topbar { min-height: 76px; padding: 12px 16px; }
+  .dashboard-content { padding: 18px 16px 24px; }
+}
+@media (max-width: 560px) {
+  .dashboard-content { padding: 14px 12px 20px; }
+}

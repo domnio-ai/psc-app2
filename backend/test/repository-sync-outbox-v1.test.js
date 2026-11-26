@@ -111,7 +111,7 @@ test('Assignment Report preview remains available from saved content if refresh 
   assert.ok(assignmentBuilder.includes('const saved = await save(false, latestValue)'));
 });
 test('Research preview falls back to the successfully saved local section when refresh fails',()=>{
-  assert.ok(appTsx.includes('PREVIEW ONLY — this section was not saved to REDESY. The preview uses the current editor content. Save error:'));
+  assert.ok(appTsx.includes('PREVIEW ONLY — this section was not saved to APP2. The preview uses the current editor content. Save error:'));
   assert.ok(appTsx.includes('Unsaved content has been kept open; navigation was cancelled.'));
   assert.ok(appTsx.includes('setResearchReportPreviewOpen(true)'));
 });

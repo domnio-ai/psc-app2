@@ -379,3 +379,73 @@ jobs:
           finally {
             Pop-Location
           }
+
+
+  production-migration-postgres17:
+    name: PostgreSQL 17 production migration integration test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+        env:
+          POSTGRES_DB: app2_migration_test
+          POSTGRES_USER: app2_test
+          POSTGRES_PASSWORD: app2-ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app2_test -d app2_migration_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Apply the production baseline and migrations to an empty PostgreSQL 17 database
+        working-directory: backend
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://app2_test:app2-ci-only-password@127.0.0.1:5432/app2_migration_test
+          JWT_SECRET: app2-ci-only-secret-for-postgresql-migration-smoke
+          FRONTEND_ORIGIN: https://app2.example.invalid
+        run: |
+          npm run db:migrate:production
+          npm run db:migrate:production
+
+      - name: Verify the baseline ledger and migration history
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://app2_test:app2-ci-only-password@127.0.0.1:5432/app2_migration_test
+        run: |
+          node --input-type=module <<'NODE'
+          import pg from 'pg'
+          const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
+          await client.connect()
+          try {
+            const result = await client.query(`
+              SELECT COUNT(*)::int AS count,
+                BOOL_OR(migration_id = 'baseline:src/schema.sql') AS baseline_applied
+              FROM public.redesy_schema_migrations
+            `)
+            const row = result.rows[0]
+            if (!row.baseline_applied || row.count < 14) {
+              throw new Error(`Expected the baseline and 13 pinned migrations; received ${row.count} ledger rows.`)
+            }
+            console.log(`Verified baseline and ${row.count - 1} migration records.`)
+          } finally {
+            await client.end()
+          }
+          NODE

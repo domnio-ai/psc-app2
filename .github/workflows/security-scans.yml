@@ -6,6 +6,7 @@ on:
       - main
       - "security-tooling/**"
       - "features/**"
+      - "design/**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"

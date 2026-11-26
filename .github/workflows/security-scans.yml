@@ -382,7 +382,7 @@ jobs:
             Pop-Location
           }
 
-production-migration-postgres17:
+  production-migration-postgres17:
     name: PostgreSQL 17 production migration integration test
     runs-on: ubuntu-latest
     timeout-minutes: 20

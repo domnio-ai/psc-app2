@@ -44,9 +44,9 @@ export const createPasswordLinkService = ({
     const displayName = String(user.name ?? '').replace(/[\r\n\t]+/g, ' ').trim()
     const greetingText = displayName ? `Dear ${displayName},` : 'Dear colleague,'
     const greeting = displayName ? `Dear ${escapeHtml(displayName)},` : 'Dear colleague,'
-    const action = isSetup ? 'complete your PSC REDESY account setup' : 'reset your PSC REDESY password'
+    const action = isSetup ? 'complete your PSC APP2 account setup' : 'reset your PSC APP2 password'
     const buttonText = isSetup ? 'Set up password' : 'Reset password'
-    const subject = isSetup ? 'Set up your PSC REDESY account' : 'Reset your PSC REDESY password'
+    const subject = isSetup ? 'Set up your PSC APP2 account' : 'Reset your PSC APP2 password'
     const text = `${greetingText}
 
 A request was made to ${action}.
@@ -56,7 +56,7 @@ ${resetUrl.toString()}
 
 The link can be used once. If you did not request this change, you can ignore this email.`
     const html = `<div style="font-family:Arial,sans-serif;max-width:640px;color:#263238">
-      <h2 style="color:#8a6a00">PSC REDESY</h2>
+      <h2 style="color:#8a6a00">PSC APP2</h2>
       <p>${greeting}</p>
       <p>A request was made to ${action}.</p>
       <p><a href="${escapeHtml(resetUrl.toString())}" style="display:inline-block;background:#8a6a00;color:#fff;padding:12px 20px;text-decoration:none;border-radius:4px">${buttonText}</a></p>

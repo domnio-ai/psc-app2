@@ -9,7 +9,7 @@ const deploymentMode=()=> 'private-self-hosted'
 
 function conferenceConfig(){
   const raw=safeBase(process.env.APP2_CONFERENCE_URL)
-  if(!raw)return {configured:false,baseUrl:'',reason:'Private Jitsi is not configured. Set APP2_CONFERENCE_URL in backend/.env and restart the REDESY API.'}
+  if(!raw)return {configured:false,baseUrl:'',reason:'Private Jitsi is not configured. Set APP2_CONFERENCE_URL in backend/.env and restart the APP2 API.'}
   let parsed
   try{parsed=new URL(raw)}catch{return {configured:false,baseUrl:'',reason:'APP2_CONFERENCE_URL is not a valid URL.'}}
   const allowInsecure=String(process.env.APP2_CONFERENCE_ALLOW_INSECURE_LOCAL||'').toLowerCase()==='true'
@@ -18,7 +18,7 @@ function conferenceConfig(){
     return {configured:false,baseUrl:'',reason:'Private Jitsi must use HTTPS. HTTP is allowed only for localhost when APP2_CONFERENCE_ALLOW_INSECURE_LOCAL=true.'}
   }
   if(/(^|\.)meet\.jit\.si$/i.test(parsed.hostname)){
-    return {configured:false,baseUrl:'',reason:'Public meet.jit.si is disabled for REDESY. Configure a PSC/self-hosted Jitsi URL.'}
+    return {configured:false,baseUrl:'',reason:'Public meet.jit.si is disabled for APP2. Configure a PSC/self-hosted Jitsi URL.'}
   }
   return {configured:true,baseUrl:raw,reason:null}
 }
@@ -75,7 +75,7 @@ async function ensureSession(client,meetingId,userId){
 function joinPayload(session,meeting,user){
   const config=requireConferenceConfig()
   const base=config.baseUrl
-  const name=encodeURIComponent(user.name||'REDESY participant')
+  const name=encodeURIComponent(user.name||'APP2 participant')
   const room=encodeURIComponent(session.room_code)
   const joinUrl=`${base}/${room}#userInfo.displayName=${name}&config.prejoinPageEnabled=false&config.startWithAudioMuted=true&config.startWithVideoMuted=true&config.disableDeepLinking=true`
   return {
@@ -101,7 +101,7 @@ async function providerStatus(){
     const response=await fetch(config.baseUrl,{method:'GET',redirect:'follow',signal:controller.signal,headers:{'User-Agent':'App2-Meetings-Health/2.1'}})
     return {configured:true,reachable:response.ok,deploymentMode:deploymentMode(),provider:'jitsi-self-hosted',providerBaseUrl:config.baseUrl,message:response.ok?'Private Jitsi is reachable.':`Private Jitsi returned HTTP ${response.status}.`}
   }catch{
-    return {configured:true,reachable:false,deploymentMode:deploymentMode(),provider:'jitsi-self-hosted',providerBaseUrl:config.baseUrl,message:'Private Jitsi could not be reached by the REDESY API.'}
+    return {configured:true,reachable:false,deploymentMode:deploymentMode(),provider:'jitsi-self-hosted',providerBaseUrl:config.baseUrl,message:'Private Jitsi could not be reached by the APP2 API.'}
   }finally{clearTimeout(timeout)}
 }
 
@@ -127,7 +127,7 @@ export function registerLiveConferenceRoutes(app,{authenticate}){
       await client.query(`UPDATE meetings SET status=CASE WHEN status='Scheduled' THEN 'In Progress' ELSE status END,updated_at=NOW() WHERE id=$1`,[meeting.id])
       await client.query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id)
         SELECT DISTINCT p.user_id,'Meeting is live',$1,'meeting',$2 FROM meeting_participants p
-        WHERE p.meeting_id=$2 AND p.user_id IS NOT NULL AND p.user_id<>$3`,[`“${meeting.title}” is now live on the private REDESY conference service.`,meeting.id,req.user.id])
+        WHERE p.meeting_id=$2 AND p.user_id IS NOT NULL AND p.user_id<>$3`,[`“${meeting.title}” is now live on the private APP2 conference service.`,meeting.id,req.user.id])
       await audit(client,req.user.id,'MEETING_CONFERENCE_STARTED','meeting',meeting.id,{provider:'jitsi-self-hosted',roomCode:session.room_code})
       return joinPayload(session,meeting,req.user)
     })

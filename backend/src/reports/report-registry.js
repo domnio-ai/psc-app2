@@ -8,6 +8,9 @@ export const reportCategories = [
   "Felix / AI",
   "Audit & Compliance",
   "Management",
+  "Workforce",
+  "Meetings",
+  "Notices",
 ];
 const implemented = {
   "assignment-status": {
@@ -99,6 +102,36 @@ const implemented = {
     permission: "VIEW_FELIX_ANALYTICS",
     filters: ["period", "date_range"],
     provider: "felixUsage",
+    frequency: "Live",
+  },
+  "leave-utilisation": {
+    title: "Leave Requests & Approved Days",
+    description: "Leave request volumes, decisions and approved working days from recorded leave requests.",
+    category: "Workforce",
+    level: "BOTH",
+    permission: "VIEW_OPERATIONAL_REPORTS",
+    filters: ["period", "date_range", "directorate", "status", "search"],
+    provider: "leaveUtilisation",
+    frequency: "Live",
+  },
+  "meeting-delivery": {
+    title: "Meeting Delivery & Follow-up",
+    description: "Meeting schedules, approval status, minutes, attendance, decisions and outstanding actions.",
+    category: "Meetings",
+    level: "BOTH",
+    permission: "VIEW_OPERATIONAL_REPORTS",
+    filters: ["period", "date_range", "directorate", "status", "search"],
+    provider: "meetingDelivery",
+    frequency: "Live",
+  },
+  "notice-readership": {
+    title: "Notice Publication & Readership",
+    description: "Notice publication status and recipient notification read receipts; this is not a formal acknowledgement register.",
+    category: "Notices",
+    level: "BOTH",
+    permission: "VIEW_OPERATIONAL_REPORTS",
+    filters: ["period", "date_range", "directorate", "status", "search"],
+    provider: "noticeReadership",
     frequency: "Live",
   },
 };

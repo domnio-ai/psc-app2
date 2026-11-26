@@ -60,3 +60,21 @@ test('frontend supplies list, card, filters, graphs, drill-down and detailed tab
   assert.match(table,/<table/)
   assert.match(visual,/<svg/)
 })
+
+test('leave, meetings and notice readership reports use their authoritative workflow records',()=>{
+  for(const category of ['Workforce','Meetings','Notices'])assert.ok(reportCategories.includes(category));
+  for(const key of ['leave-utilisation','meeting-delivery','notice-readership'])assert.equal(getReportDefinition(key)?.available,true);
+  for(const key of ['leave-utilisation','meeting-delivery','notice-readership'])assert.ok(canAccessReport(user('Researcher'),getReportDefinition(key)));
+  for(const source of ['FROM leave_requests lr JOIN users u','FROM meetings m JOIN users creator','meeting_minutes','meeting_decisions','meeting_actions',"entity_type='notice'",'BOOL_OR(read_at IS NOT NULL)'])assert.ok(service.includes(source),source);
+  assert.ok(service.includes('per-user notice notification read receipts'));
+  assert.ok(service.includes('does not provide an acknowledgement register'));
+  assert.ok(service.includes('"Audit & Compliance", "Workforce", "Meetings", "Notices"'));
+});
+
+test('new operational reports enforce own and managed-team record scope in SQL',()=>{
+  assert.ok(service.includes('AND lr.user_id=$'));
+  assert.ok(service.includes('AND lr.user_id IN " + teamUserIds'));
+  assert.ok(service.includes('m.created_by IN " + managed'));
+  assert.ok(service.includes('ns.user_id IN " + managed'));
+  assert.ok(service.includes('Requested directorate is outside your permitted scope'));
+});

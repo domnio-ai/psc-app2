@@ -13980,6 +13980,22 @@ export default function App() {
                   setResearchWorkspaceNotice(error instanceof Error ? error.message : "Milestone could not be created.");
                 }
               }}
+              onUpdateMilestoneDetails={async (milestoneId, input) => {
+                try {
+                  await api.updateResearchMilestoneDetails(token, selectedResearch.id, milestoneId, {
+                    ...input,
+                    title: input.title.trim(),
+                  });
+                  const projects = await api.research(token);
+                  setResearchRows(projects);
+                  setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
+                  setResearchActivity(await api.researchActivity(token, selectedResearch.id));
+                  setResearchWorkspaceNotice("Milestone details updated.");
+                } catch (error) {
+                  setResearchWorkspaceNotice(error instanceof Error ? error.message : "Milestone details could not be updated.");
+                  throw error;
+                }
+              }}
               onRefreshActivity={async () => {
                 setResearchActivity(await api.researchActivity(token, selectedResearch.id));
               }}

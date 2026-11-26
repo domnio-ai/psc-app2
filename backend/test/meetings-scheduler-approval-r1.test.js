@@ -82,3 +82,18 @@ test("appointed approver controls are scope checked, expiring and auditable", ()
   assert.match(routes, /MEETING_SCHEDULE_APPROVER_APPOINTED/);
   assert.match(routes, /MEETING_SCHEDULE_APPROVER_REVOKED/);
 });
+
+test("meeting schedule approval routes are registered only once", () => {
+  const declarations = [
+    "app.get('/api/meetings/schedule-approval/eligible-approvers'",
+    "app.get('/api/meetings/schedule-approval/delegable-users'",
+    "app.get('/api/meetings/schedule-approval/appointments'",
+    "app.post('/api/meetings/schedule-approval/appointments'",
+    "app.post('/api/meetings/schedule-approval/appointments/:id/revoke'",
+    "app.get('/api/meetings/schedule-approvals/pending'",
+    "app.post('/api/meetings/:id/schedule-decision'"
+  ];
+  for (const declaration of declarations) {
+    assert.equal(routes.split(declaration).length - 1, 1, declaration + " must be registered once");
+  }
+});

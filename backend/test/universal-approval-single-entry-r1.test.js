@@ -22,7 +22,7 @@ test("My Leave still supports request submission, balances, cancellations and pe
   const leaveWorkspace = await read("../../src/modules/users/UserLeaveManagement.tsx");
   assert.match(leaveWorkspace, /api\.leaveTypes\(token\)/);
   assert.match(leaveWorkspace, /api\.leaveBalances\(token,currentUser\.id\)/);
-  assert.match(leaveWorkspace, /api\.submitLeaveRequest\(token,form\)/);
+  assert.match(leaveWorkspace, /api\.submitLeaveRequest\(token,form,(?:supportingDocument\|\|undefined)\)/);
   assert.match(leaveWorkspace, /api\.cancelLeaveRequest\(token,r\.id\)/);
   assert.match(leaveWorkspace, /My leave history/);
   assert.match(leaveWorkspace, /mode!=="leave"\)return/);

@@ -33,6 +33,7 @@ test('milestone task APIs scope reads and writes to the same linked research pro
   assert.match(app,/Reopen the completed milestone before linking additional tasks/)
   assert.match(app,/Reopen the completed milestone before changing its linked tasks/)
   assert.match(app,/Unlink the assignment tasks from their research milestones before unlinking this assignment/)
+  assert.match(app,/Unlink milestone tasks before permanently deleting this research project/)
 })
 
 test('milestone sign-off requires governed task completion and does not bypass final report publication',()=>{

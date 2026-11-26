@@ -1,5 +1,5 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { ResearchProject } from "../../../api";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { api, type ApiAssignmentTask, type ResearchProject } from "../../../api";
 import ResearchWorkSummary from "../work/ResearchWorkSummary";
 import "../work/research-work-execution.css";
 
@@ -12,22 +12,49 @@ type MilestoneForm = {
 };
 
 type Props = {
+  token: string;
   project: ResearchProject;
   form: MilestoneForm;
   setForm: Dispatch<SetStateAction<MilestoneForm>>;
   onImportExternal: () => void;
   onUpdateMilestone: (milestoneId: string, status: string) => Promise<void>;
   onAddMilestone: () => Promise<void>;
+  onLinkTask: (milestoneId: string, taskId: string) => Promise<void>;
+  onUnlinkTask: (milestoneId: string) => Promise<void>;
 };
 
 export default function ResearchWorkPlanPanel({
+  token,
   project,
   form,
   setForm,
   onImportExternal,
   onUpdateMilestone,
   onAddMilestone,
+  onLinkTask,
+  onUnlinkTask,
 }: Props) {
+  const [taskOptions, setTaskOptions] = useState<ApiAssignmentTask[]>([]);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const assignmentIds = [...new Set([
+      project.assignment_id,
+      ...project.assignments.map((assignment) => assignment.id),
+    ].filter((id): id is string => Boolean(id)))];
+    if (!assignmentIds.length) {
+      setTaskOptions([]);
+      return () => { cancelled = true; };
+    }
+    void Promise.all(assignmentIds.map((assignmentId) =>
+      api.assignmentTasks(token, assignmentId).catch(() => [] as ApiAssignmentTask[]),
+    )).then((lists) => {
+      if (!cancelled) setTaskOptions(lists.flat());
+    });
+    return () => { cancelled = true; };
+  }, [project.assignment_id, project.assignments, token]);
+
   return (
     <section className="research-work-plan-stack">
             <ResearchWorkSummary project={project} />
@@ -66,6 +93,44 @@ export default function ResearchWorkPlanPanel({
                   <strong>{milestone.owner_name || "Unassigned"}</strong>
                   <small>{milestone.priority} priority · due {new Date(`${milestone.due_date}T00:00:00`).toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" })}</small>
                 </div>
+                {milestone.linked_task ? (
+                  <button
+                    type="button"
+                    className="research-milestone-save"
+                    onClick={() => void onUnlinkTask(milestone.id)}
+                  >
+                    Unlink task
+                  </button>
+                ) : (
+                  <div className="research-milestone-task-link">
+                    <select
+                      aria-label={`Central task for ${milestone.title}`}
+                      value={selectedTaskIds[milestone.id] || ""}
+                      onChange={(event) => setSelectedTaskIds((current) => ({ ...current, [milestone.id]: event.target.value }))}
+                    >
+                      <option value="">Link an existing assignment task</option>
+                      {taskOptions.map((task) => {
+                        const assignment = project.assignments.find((item) => item.id === task.assignment_id);
+                        return (
+                          <option key={task.id} value={task.id}>
+                            {task.title} · {task.owner_name || "Unassigned"} · {assignment?.title || "Linked assignment"}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <button
+                      type="button"
+                      className="research-milestone-save"
+                      disabled={!selectedTaskIds[milestone.id]}
+                      onClick={() => {
+                        const taskId = selectedTaskIds[milestone.id];
+                        if (taskId) void onLinkTask(milestone.id, taskId);
+                      }}
+                    >
+                      Link task
+                    </button>
+                  </div>
+                )}
                 <select
                   aria-label={`Status for ${milestone.title}`}
                   value={milestone.status}

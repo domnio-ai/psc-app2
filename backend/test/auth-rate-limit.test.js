@@ -51,7 +51,7 @@ test('forgot-password and reset-password routes apply the password recovery limi
   const app = await readFile(new URL('../src/app.js', import.meta.url), 'utf8')
   assert.match(app, /app\.post\('\/api\/auth\/forgot-password',passwordResetRateLimit,validate\(/)
   assert.match(app, /app\.post\('\/api\/auth\/reset-password',passwordResetRateLimit,validate\(/)
-  assert.match(app, /createAuthRateLimiter\(\{windowMs:15\*60\*1000,maxIpAttempts:60,maxIdentityAttempts:5\}\)/)
+  assert.match(app, /createAuthRateLimiter\(\{windowMs:15\*60\*1000,maxIpAttempts:60,maxIdentityAttempts:5,errorMessage:/)
 })
 
 

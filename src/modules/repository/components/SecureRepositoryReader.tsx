@@ -125,7 +125,7 @@ export default function SecureRepositoryReader({token,document,versionId,onClose
     </div>}
 
     <div className="repository-secure-reader-limit">
-      Protection controls restrict REDESY actions and are audited. An authorised viewer can still photograph or manually transcribe information displayed on screen.
+      Protection controls restrict APP2 actions and are audited. An authorised viewer can still photograph or manually transcribe information displayed on screen.
     </div>
   </div>;
 }

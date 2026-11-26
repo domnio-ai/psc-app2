@@ -49,7 +49,10 @@ export default function ResearchWorkPlanPanel({
     Promise.all(project.milestones.map(async (milestone) => {
       try {
         const result = await api.researchMilestoneTasks(token, project.id, milestone.id);
-        if (active) setTaskRows((current) => ({ ...current, [milestone.id]: result }));
+        if (active) {
+          setTaskRows((current) => ({ ...current, [milestone.id]: result }));
+          setTaskNotice((current) => ({ ...current, [milestone.id]: "" }));
+        }
       } catch {
         if (active) setTaskNotice((current) => ({ ...current, [milestone.id]: "Task links could not be loaded for your current access scope." }));
       }
@@ -138,7 +141,8 @@ export default function ResearchWorkPlanPanel({
                       {canManageTasks && <button type="button" disabled={Boolean(taskBusy[milestone.id])} onClick={() => void unlinkTask(milestone.id, task.id)}>Unlink</button>}
                     </div>
                   ))}
-                  {!taskRows[milestone.id]?.linked?.length && <small>No tasks linked yet.</small>}
+                  {!taskRows[milestone.id] && <small>{taskNotice[milestone.id] || "Loading milestone tasks…"}</small>}
+                  {taskRows[milestone.id] && !taskRows[milestone.id].linked.length && <small>No tasks linked yet.</small>}
                   {canManageTasks && (
                     <div className="research-milestone-task-controls">
                       <select aria-label={`Available task for ${milestone.title}`} value={taskSelections[milestone.id] || ""} onChange={(event) => setTaskSelections((current) => ({ ...current, [milestone.id]: event.target.value }))}>

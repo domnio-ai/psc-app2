@@ -153,6 +153,15 @@ jobs:
         with:
           sarif_file: gitleaks-history.sarif
 
+      - name: Archive redacted historical Gitleaks SARIF for review
+        if: always() && hashFiles('gitleaks-history.sarif') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: gitleaks-history-sarif
+          path: gitleaks-history.sarif
+          if-no-files-found: ignore
+          retention-days: 7
+
   osv-scanner:
     name: OSV dependency vulnerability scan
     runs-on: ubuntu-latest

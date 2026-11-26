@@ -14,6 +14,9 @@ test('milestone-task relationship migration is included in the pinned production
   assert.match(migration,/UNIQUE \(milestone_id, task_id\)/)
   assert.match(migration,/research_assignment_links/)
   assert.match(migration,/enforce_research_milestone_task_scope/)
+  assert.match(migration,/prevent_research_milestone_orphaning/)
+  assert.match(migration,/research_assignment_unlink_guard/)
+  assert.match(migration,/research_milestone_task_archive_guard/)
   assert.match(migration,/IF task_assignment IS NULL/)
   assert.match(migration,/IF linked_project IS NULL OR linked_project <> NEW[.]project_id/)
 })
@@ -25,6 +28,7 @@ test('milestone task APIs scope reads and writes to the same linked research pro
   assert.match(app,/assignment linked to this research project/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_LINKED/)
   assert.match(app,/RESEARCH_MILESTONE_TASK_UNLINKED/)
+  assert.match(app,/Unlink the assignment tasks from their research milestones before unlinking this assignment/)
 })
 
 test('milestone sign-off requires governed task completion and does not bypass final report publication',()=>{

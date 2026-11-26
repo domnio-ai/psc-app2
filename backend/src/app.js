@@ -3065,6 +3065,8 @@ app.post('/api/assignments/:id/tasks/:taskId/archive',authenticate,authorize('Sy
     const task=(await client.query('SELECT * FROM assignment_tasks WHERE id=$1 AND assignment_id=$2 FOR UPDATE',[req.params.taskId,req.params.id])).rows[0]
     if(!task)return null
     if(task.archived_at)return task
+    const hasMilestoneLink=(await client.query('SELECT 1 FROM research_milestone_tasks WHERE task_id=$1 LIMIT 1',[task.id])).rowCount>0
+    if(hasMilestoneLink)throw Object.assign(new Error('This task is linked to a research milestone. Unlink it from the milestone before archiving the task.'),{statusCode:409})
     const updated=(await client.query('UPDATE assignment_tasks SET archived_at=NOW(),archived_by=$1,updated_at=NOW() WHERE id=$2 AND assignment_id=$3 RETURNING *',[req.user.id,req.params.taskId,req.params.id])).rows[0]
     await client.query('INSERT INTO assignment_history(assignment_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'TASK_ARCHIVED',JSON.stringify({taskId:updated.id,title:updated.title})])
     await syncAssignmentStatusFromTasks(client,req.params.id,req.user.id)

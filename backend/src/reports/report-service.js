@@ -467,7 +467,7 @@ async function researchOutputs(filters, scope) {
     values.push(filters.status);
     where += ` AND ${researchLifecycleStatusSql('p')}=$${values.length}`;
   }
-  const [status, trend, rows] = await Promise.all([
+  const [status, trend, rows, delivery] = await Promise.all([
     query(
       `SELECT ${researchLifecycleStatusSql('p')} label,COUNT(*)::int value FROM research_projects p WHERE ${where} GROUP BY 1 ORDER BY 1`,
       values,
@@ -477,23 +477,47 @@ async function researchOutputs(filters, scope) {
       values,
     ),
     query(
-      `SELECT p.id,p.title,${researchLifecycleStatusSql('p')} status,p.start_date,p.end_date,u.name lead_name FROM research_projects p JOIN users u ON u.id=p.lead_id WHERE ${where} ORDER BY p.updated_at DESC`,
+      `SELECT p.id,p.title,${researchLifecycleStatusSql('p')} status,p.start_date,p.end_date,u.name lead_name,
+        (SELECT COUNT(*)::int FROM research_milestones m WHERE m.project_id=p.id) milestone_count,
+        (SELECT COUNT(*)::int FROM research_milestones m WHERE m.project_id=p.id AND m.status='Completed') completed_milestones,
+        (SELECT COUNT(*)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id WHERE m.project_id=p.id) linked_task_count,
+        (SELECT COUNT(*)::int FROM research_milestone_tasks mt JOIN research_milestones m ON m.id=mt.milestone_id JOIN assignment_tasks t ON t.id=mt.task_id WHERE m.project_id=p.id AND t.status='Completed' AND t.archived_at IS NULL) completed_linked_task_count
+       FROM research_projects p JOIN users u ON u.id=p.lead_id WHERE ${where} ORDER BY p.updated_at DESC`,
+      values,
+    ),
+    query(
+      `SELECT COUNT(DISTINCT m.id)::int milestones,
+        COUNT(DISTINCT m.id) FILTER(WHERE m.status='Completed')::int completed_milestones,
+        COUNT(DISTINCT mt.id)::int linked_tasks,
+        COUNT(DISTINCT mt.id) FILTER(WHERE t.status='Completed' AND t.archived_at IS NULL)::int completed_linked_tasks,
+        COUNT(DISTINCT m.id) FILTER(WHERE m.due_date<CURRENT_DATE AND m.status<>'Completed')::int overdue_milestones
+       FROM research_projects p
+       LEFT JOIN research_milestones m ON m.project_id=p.id
+       LEFT JOIN research_milestone_tasks mt ON mt.milestone_id=m.id
+       LEFT JOIN assignment_tasks t ON t.id=mt.task_id
+       WHERE ${where}`,
       values,
     ),
   ]);
   const total = rows.rows.length,
-    completed = rows.rows.filter((row) => row.status === "Completed").length;
+    completed = rows.rows.filter((row) => row.status === "Completed").length,
+    deliverySummary = delivery.rows[0] || {};
   return {
     kpis: [
       kpi("total", "Total outputs", total),
       kpi("completed", "Completed", completed, "good"),
       kpi("ongoing", "Ongoing", total - completed),
+      kpi("milestones", "Milestones", deliverySummary.milestones || 0),
+      kpi("milestones-completed", "Milestones completed", deliverySummary.completed_milestones || 0, "good"),
+      kpi("linked-tasks", "Milestone-linked tasks", deliverySummary.linked_tasks || 0),
+      kpi("linked-tasks-completed", "Linked tasks completed", deliverySummary.completed_linked_tasks || 0, "good"),
+      kpi("milestones-overdue", "Overdue milestones", deliverySummary.overdue_milestones || 0, deliverySummary.overdue_milestones ? "warning" : "neutral"),
     ],
     charts: [
       chart("status", "Research status", "donut", status.rows, "status"),
       chart("trend", "Research output trend", "line", trend.rows),
     ],
-    columns: ["title", "lead_name", "status", "start_date", "end_date"],
+    columns: ["title", "lead_name", "status", "start_date", "end_date", "milestone_count", "completed_milestones", "linked_task_count", "completed_linked_task_count"],
     rows: rows.rows,
     pagination: {
       page: 1,

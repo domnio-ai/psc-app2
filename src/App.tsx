@@ -9921,7 +9921,7 @@ export default function App() {
                           </label>
                           <div className="form-triple">
                             <label>
-                              Session minutes
+                              Session minutes (new sign-ins)
                               <input
                                 type="number"
                                 min={15}
@@ -9934,6 +9934,7 @@ export default function App() {
                                   })
                                 }
                               />
+                              <small>Applies to sessions created after this setting is saved.</small>
                             </label>
                             <label>
                               Upload limit (MB)

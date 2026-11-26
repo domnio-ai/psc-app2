@@ -60,7 +60,6 @@ export type ApiAssignment = {
   research_title?: string | null;
   research_relation_type?: string | null;
   workflow_status?: string;
-  can_manage?: boolean;
   final_report_status?: string | null;
   task_count?: number;
   completed_task_count?: number;
@@ -422,6 +421,7 @@ export type ResearchProject = {
   methodology: string;
   status: string;
   workflow_status?: string;
+  can_manage?: boolean;
   start_date: string | null;
   end_date: string | null;
   assignment_id: string | null;

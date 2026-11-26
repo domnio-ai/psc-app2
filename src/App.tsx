@@ -13938,6 +13938,8 @@ export default function App() {
             <div className="research-work-primary-grid">
             <ResearchWorkPlanPanel
               project={selectedResearch}
+              token={token}
+              canManageTasks={Boolean(isManager || selectedResearch.lead_id === user?.id || selectedResearch.collaborators.some((collaborator) => collaborator.id === user?.id && collaborator.role !== "Reviewer"))}
               form={researchMilestoneForm}
               setForm={setResearchMilestoneForm}
               onImportExternal={() => {

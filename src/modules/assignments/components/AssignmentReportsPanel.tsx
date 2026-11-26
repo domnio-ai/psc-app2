@@ -123,7 +123,7 @@ export default function AssignmentReportsPanel({
         <div className={`assignment-builder-access ${isCurrentUserLead ? "lead" : canOverrideAsManager ? "manager" : "viewer"}`}>
           <small>YOUR ACCESS</small>
           <strong>{isCurrentUserLead ? "You are the assigned report builder" : canOverrideAsManager ? "Manager override" : "View only"}</strong>
-          <span>{isCurrentUserLead ? "You may create and edit the report." : canOverrideAsManager ? `You may compile on behalf of ${assignmentLeadName || "the Assignment Lead"}.` : `REDESY is waiting for ${assignmentLeadName || "an appointed Assignment Lead"}.`}</span>
+          <span>{isCurrentUserLead ? "You may create and edit the report." : canOverrideAsManager ? `You may compile on behalf of ${assignmentLeadName || "the Assignment Lead"}.` : `APP2 is waiting for ${assignmentLeadName || "an appointed Assignment Lead"}.`}</span>
         </div>
       </section>
 

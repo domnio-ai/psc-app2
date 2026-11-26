@@ -1,5 +1,5 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { ResearchProject } from "../../../api";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { api, type ResearchMilestoneTask, type ResearchProject } from "../../../api";
 import ResearchWorkSummary from "../work/ResearchWorkSummary";
 import "../work/research-work-execution.css";
 
@@ -13,6 +13,8 @@ type MilestoneForm = {
 
 type Props = {
   project: ResearchProject;
+  token: string;
+  canManageTasks: boolean;
   form: MilestoneForm;
   setForm: Dispatch<SetStateAction<MilestoneForm>>;
   onImportExternal: () => void;
@@ -22,12 +24,66 @@ type Props = {
 
 export default function ResearchWorkPlanPanel({
   project,
+  token,
+  canManageTasks,
   form,
   setForm,
   onImportExternal,
   onUpdateMilestone,
   onAddMilestone,
 }: Props) {
+  const [taskRows, setTaskRows] = useState<Record<string, { linked: ResearchMilestoneTask[]; available: ResearchMilestoneTask[] }>>({});
+  const [taskSelections, setTaskSelections] = useState<Record<string, string>>({});
+  const [taskBusy, setTaskBusy] = useState<Record<string, boolean>>({});
+  const [taskNotice, setTaskNotice] = useState<Record<string, string>>({});
+
+  const refreshMilestoneTasks = async (milestoneId: string) => {
+    const result = await api.researchMilestoneTasks(token, project.id, milestoneId);
+    setTaskRows((current) => ({ ...current, [milestoneId]: result }));
+  };
+
+  useEffect(() => {
+    let active = true;
+    Promise.all(project.milestones.map(async (milestone) => {
+      try {
+        const result = await api.researchMilestoneTasks(token, project.id, milestone.id);
+        if (active) setTaskRows((current) => ({ ...current, [milestone.id]: result }));
+      } catch {
+        if (active) setTaskNotice((current) => ({ ...current, [milestone.id]: "Task links could not be loaded for your current access scope." }));
+      }
+    }));
+    return () => { active = false; };
+  }, [token, project.id, project.milestones]);
+
+  const linkTask = async (milestoneId: string) => {
+    const taskId = taskSelections[milestoneId];
+    if (!taskId) return;
+    setTaskBusy((current) => ({ ...current, [milestoneId]: true }));
+    try {
+      await api.linkResearchMilestoneTask(token, project.id, milestoneId, taskId);
+      await refreshMilestoneTasks(milestoneId);
+      setTaskSelections((current) => ({ ...current, [milestoneId]: "" }));
+      setTaskNotice((current) => ({ ...current, [milestoneId]: "Task linked to milestone." }));
+    } catch (error) {
+      setTaskNotice((current) => ({ ...current, [milestoneId]: error instanceof Error ? error.message : "Task could not be linked." }));
+    } finally {
+      setTaskBusy((current) => ({ ...current, [milestoneId]: false }));
+    }
+  };
+
+  const unlinkTask = async (milestoneId: string, taskId: string) => {
+    setTaskBusy((current) => ({ ...current, [milestoneId]: true }));
+    try {
+      await api.unlinkResearchMilestoneTask(token, project.id, milestoneId, taskId);
+      await refreshMilestoneTasks(milestoneId);
+      setTaskNotice((current) => ({ ...current, [milestoneId]: "Task unlinked from milestone." }));
+    } catch (error) {
+      setTaskNotice((current) => ({ ...current, [milestoneId]: error instanceof Error ? error.message : "Task could not be unlinked." }));
+    } finally {
+      setTaskBusy((current) => ({ ...current, [milestoneId]: false }));
+    }
+  };
+
   return (
     <section className="research-work-plan-stack">
             <ResearchWorkSummary project={project} />
@@ -70,6 +126,26 @@ export default function ResearchWorkPlanPanel({
                   <option>In Progress</option>
                   <option>Completed</option>
                 </select>
+                <div className="research-milestone-task-links">
+                  <strong>Linked tasks</strong>
+                  {(taskRows[milestone.id]?.linked || []).map((task) => (
+                    <div key={task.id} className="research-milestone-task-row">
+                      <span><b>{task.title}</b><small>{task.assignment_title} · {task.owner_name || "Unassigned"} · {task.status}</small></span>
+                      {canManageTasks && <button type="button" disabled={Boolean(taskBusy[milestone.id])} onClick={() => void unlinkTask(milestone.id, task.id)}>Unlink</button>}
+                    </div>
+                  ))}
+                  {!taskRows[milestone.id]?.linked?.length && <small>No tasks linked yet.</small>}
+                  {canManageTasks && (
+                    <div className="research-milestone-task-controls">
+                      <select aria-label={`Available task for ${milestone.title}`} value={taskSelections[milestone.id] || ""} onChange={(event) => setTaskSelections((current) => ({ ...current, [milestone.id]: event.target.value }))}>
+                        <option value="">Choose a task from a linked assignment</option>
+                        {(taskRows[milestone.id]?.available || []).map((task) => <option key={task.id} value={task.id}>{task.title} — {task.assignment_title}</option>)}
+                      </select>
+                      <button type="button" disabled={!taskSelections[milestone.id] || Boolean(taskBusy[milestone.id])} onClick={() => void linkTask(milestone.id)}>Link task</button>
+                    </div>
+                  )}
+                  {taskNotice[milestone.id] && <small role="status">{taskNotice[milestone.id]}</small>}
+                </div>
               </article>
             );
           })}

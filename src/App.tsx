@@ -636,7 +636,7 @@ const navigationDescriptions: Record<string, string> = {
   Notifications:
     "Open your assignment, review, approval and security notification inbox.",
   Messages:
-    "Send direct or small-group messages to active REDESY users.",
+    "Send direct or small-group messages to active APP2 users.",
   "Notice Board":
     "Read approved public information or submit a notice for management approval.",
   Leave: "Request leave, review your balance and track your own leave history.",
@@ -653,7 +653,7 @@ const navigationDescriptions: Record<string, string> = {
   Maintenance:
     "Review service health and control approved maintenance settings.",
   Updates:
-    "Check installed REDESY component versions without downloading or installing software.",
+    "Check installed APP2 component versions without downloading or installing software.",
 };
 
 const workspaceMeta: Record<
@@ -736,7 +736,7 @@ const workspaceMeta: Record<
   },
   "AI Researcher": {
     title: "Felix",
-    subtitle: "Use permission-aware AI research and approved REDESY evidence.",
+    subtitle: "Use permission-aware AI research and approved APP2 evidence.",
     icon: "research",
   },
   Notifications: {
@@ -746,7 +746,7 @@ const workspaceMeta: Record<
   },
   Messages: {
     title: "Team Chat",
-    subtitle: "Communicate directly with colleagues inside REDESY.",
+    subtitle: "Communicate directly with colleagues inside APP2.",
     icon: "messages",
   },
   Settings: {
@@ -762,7 +762,7 @@ const workspaceMeta: Record<
   },
   "Audit Logs": {
     title: "Audit Logs",
-    subtitle: "Inspect the read-only accountability record for REDESY activity.",
+    subtitle: "Inspect the read-only accountability record for APP2 activity.",
     icon: "audit",
   },
 };
@@ -5740,7 +5740,7 @@ export default function App() {
     try {
       const response = await api.askFelix(
         token,
-        `${builderFelixAction} for the controlled ${builderDocument.context} document section "${builderSection.title}". Return a suggestion only; do not claim to edit, approve, or publish it. Use approved REDESY evidence when evidence is needed and identify any evidence gap.\n\nCurrent section:\n${builderContent}`,
+        `${builderFelixAction} for the controlled ${builderDocument.context} document section "${builderSection.title}". Return a suggestion only; do not claim to edit, approve, or publish it. Use approved APP2 evidence when evidence is needed and identify any evidence gap.\n\nCurrent section:\n${builderContent}`,
         [],
         "App2 Expert",
       );
@@ -6640,7 +6640,7 @@ export default function App() {
       ) &&
       !knowledgeForm.originEntityId
     )
-      return setKnowledgeNotice("Select the originating REDESY record.");
+      return setKnowledgeNotice("Select the originating APP2 record.");
     if (!knowledgeForm.reviewerId)
       return setKnowledgeNotice("Select the reviewer who will be responsible for this document.");
     if (knowledgeForm.reviewerId === user?.id)
@@ -6659,7 +6659,7 @@ export default function App() {
       );
       setKnowledgeUploadProgress({
         progress: 34,
-        label: "Creating secure REDESY record",
+        label: "Creating secure APP2 record",
         state: "active",
       });
       await api.submitKnowledge(token, created.id);
@@ -7268,7 +7268,7 @@ export default function App() {
     const currentUserName = user?.name?.trim();
     if (!currentUserName) {
       setRepositoryAutoLockedDocumentId(null);
-      setDocumentNotice("Your signed-in user could not be resolved, so REDESY did not acquire a record lock.");
+      setDocumentNotice("Your signed-in user could not be resolved, so APP2 did not acquire a record lock.");
       return;
     }
 
@@ -7364,7 +7364,7 @@ export default function App() {
     if (item.document_type === "Task Report Draft") return "TASK REPORT";
     if (item.document_type === "Assignment Report Draft")
       return "ASSIGNMENT REPORT";
-    return "REDESY RECORD";
+    return "APP2 RECORD";
   };
 
   const privateDraftVisibilityText = (item: DocumentItem) =>
@@ -7408,7 +7408,7 @@ export default function App() {
 
     const origin = repositoryPrimaryOrigin(item);
     if (!origin) {
-      setDocumentNotice(`No originating REDESY workspace is linked to “${item.title}”.`);
+      setDocumentNotice(`No originating APP2 workspace is linked to “${item.title}”.`);
       return;
     }
 
@@ -8869,7 +8869,7 @@ export default function App() {
                   <option key={member.email} value={member.email}>{member.name} — {member.role}</option>
                 ))}
               </datalist>
-              <small className="login-account-help">Choose an active REDESY account or enter an official email address.</small>
+              <small className="login-account-help">Choose an active APP2 account or enter an official email address.</small>
             </label>
             <label className="login-password-field">
               Password
@@ -8914,7 +8914,7 @@ export default function App() {
           {loginDirectory.length > 0 && (
             <div className="login-directory-status" aria-live="polite">
               <strong>{loginDirectory.length} active staff accounts available</strong>
-              <span>Usernames are populated from REDESY. Passwords remain private and are never displayed.</span>
+              <span>Usernames are populated from APP2. Passwords remain private and are never displayed.</span>
             </div>
           )}
         </section>
@@ -9213,19 +9213,19 @@ export default function App() {
                 <label className="header-search">
                   <Icon name="search" />
                   <input
-                    aria-label="Search REDESY"
+                    aria-label="Search APP2"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" && globalSearchResults[0]) globalSearchResults[0].open();
                       if (event.key === "Escape") setQuery("");
                     }}
-                    placeholder="Search REDESY"
+                    placeholder="Search APP2"
                     autoComplete="off"
                   />
                 </label>
                 {normalizedGlobalQuery.length >= 2 && (
-                  <div className="header-search-results" role="listbox" aria-label="REDESY search results">
+                  <div className="header-search-results" role="listbox" aria-label="APP2 search results">
                     {globalSearchResults.map((result) => (
                       <button key={result.key} type="button" role="option" onClick={result.open}>
                         <span><small>{result.type}</small><strong>{result.title}</strong></span>
@@ -9258,7 +9258,7 @@ export default function App() {
           >
             {active !== "Profile" && active !== "Dashboard" && active !== "Messages" && active !== "Meetings" && (
               <WorkspaceHeader
-                eyebrow={active === "Dashboard" ? "REDESY" : "WORKSPACE"}
+                eyebrow={active === "Dashboard" ? "APP2" : "WORKSPACE"}
                 title={currentWorkspace.title}
                 subtitle={currentWorkspace.subtitle}
                 icon={<Icon name={currentWorkspace.icon} />}
@@ -9409,7 +9409,7 @@ export default function App() {
                             <span>
                               {systemForm.emailNotifications
                                 ? "Workflow emails may be delivered after the mail service is configured."
-                                : "REDESY will continue creating in-app notifications only."}
+                                : "APP2 will continue creating in-app notifications only."}
                             </span>
                           </div>
                           <label className="setting-toggle">
@@ -9540,7 +9540,7 @@ export default function App() {
                           <span>
                             <strong>In-app notifications</strong>
                             <small>
-                              Keep a notification copy inside REDESY for
+                              Keep a notification copy inside APP2 for
                               assignments, reviews and decisions.
                             </small>
                           </span>
@@ -9578,7 +9578,7 @@ export default function App() {
                               <p>ADMINISTRATOR</p>
                               <h3>Organization defaults</h3>
                             </div>
-                            <span data-tooltip="Shared labels and document classifications used throughout REDESY.">
+                            <span data-tooltip="Shared labels and document classifications used throughout APP2.">
                               Application scope
                             </span>
                           </header>
@@ -9914,7 +9914,7 @@ export default function App() {
                             <span>
                               <strong>Maintenance mode</strong>
                               <small>
-                                Record REDESY as undergoing planned maintenance.
+                                Record APP2 as undergoing planned maintenance.
                                 Existing administrators retain access.
                               </small>
                             </span>
@@ -10052,7 +10052,7 @@ export default function App() {
                           <ul>
                             <li>No automatic downloads or installations.</li>
                             <li>
-                              Back up REDESY and PostgreSQL before applying an
+                              Back up APP2 and PostgreSQL before applying an
                               update.
                             </li>
                             <li>
@@ -10581,7 +10581,7 @@ export default function App() {
                       <div>
                         <p>TEAM AVAILABILITY CALENDAR</p>
                         <h3>Leave dates and staff availability</h3>
-                        <span>Approved leave is already synchronized with REDESY Calendar. Open the full calendar for deadlines, meetings and leave events in one schedule.</span>
+                        <span>Approved leave is already synchronized with APP2 Calendar. Open the full calendar for deadlines, meetings and leave events in one schedule.</span>
                       </div>
                       <div className="user-calendar-absence-list">
                         {userRows.filter((member) => member.availability_status === "On Leave").length ? userRows.filter((member) => member.availability_status === "On Leave").map((member) => (
@@ -11819,7 +11819,7 @@ export default function App() {
                   <p>AI RESEARCHER</p>
                   <h2>Evidence-led research workspace</h2>
                   <span>
-                    Research approved REDESY documents and live local records while
+                    Research approved APP2 documents and live local records while
                     keeping every result offline and under human review.
                   </span>
                 </div>
@@ -11840,8 +11840,8 @@ export default function App() {
               /></Suspense>}
               <div className="ai-engine-card">
                 <div>
-                  <strong>Offline REDESY mode</strong>
-                  <span>No internet or paid provider. Felix uses local REDESY evidence only.</span>
+                  <strong>Offline APP2 mode</strong>
+                  <span>No internet or paid provider. Felix uses local APP2 evidence only.</span>
                 </div>
                 <b
                   className={
@@ -11924,7 +11924,7 @@ export default function App() {
                     <Icon name="research" />
                     <h3>No AI research plans yet</h3>
                     <p>
-                      Create a question and Felix will research approved REDESY
+                      Create a question and Felix will research approved APP2
                       documents using the local AI engine.
                     </p>
                   </div>
@@ -12540,7 +12540,7 @@ export default function App() {
                     <header>
                       <small>STEP 1</small>
                       <h3>What are you adding?</h3>
-                      <p>The purpose describes how REDESY should treat the item. It is separate from the records class and any business link.</p>
+                      <p>The purpose describes how APP2 should treat the item. It is separate from the records class and any business link.</p>
                     </header>
 
                     <div className="repository-purpose-grid">
@@ -12709,18 +12709,18 @@ export default function App() {
                     <header>
                       <small>STEP 3</small>
                       <h3>Where did it come from?</h3>
-                      <p>A record may stand alone or be linked to Assignment, Task, Research or a REDESY Report. The original record remains in one governed Repository.</p>
+                      <p>A record may stand alone or be linked to Assignment, Task, Research or a APP2 Report. The original record remains in one governed Repository.</p>
                     </header>
 
                     <div className="repository-source-choice-grid">
                       {[
-                        ["App2 Upload", "Standalone institutional record", "Not tied to another REDESY workspace"],
+                        ["App2 Upload", "Standalone institutional record", "Not tied to another APP2 workspace"],
                         ["External Upload", "External / received document", "Received from an external person or institution"],
                         ["Internet", "Internet source", "Keep the original URL with the record"],
                         ["Assignment", "Assignment", "Produced by or supports an Assignment"],
                         ["Task", "Task", "Produced by or supports a Task"],
                         ["Research", "Research", "Used by or produced by Research"],
-                        ["App2 Report", "App2 Report", "Generated from a REDESY report workflow"],
+                        ["App2 Report", "App2 Report", "Generated from a APP2 report workflow"],
                       ].map(([value, label, hint]) => (
                         <button
                           type="button"
@@ -12755,7 +12755,7 @@ export default function App() {
 
                     {["Research","Assignment","Task","App2 Report"].includes(knowledgeForm.sourceType) && (
                       <label>
-                        Linked REDESY record
+                        Linked APP2 record
                         <select
                           required
                           value={knowledgeForm.originEntityId}
@@ -12832,7 +12832,7 @@ export default function App() {
 
                     <div className="provenance-note">
                       <strong>Accountability recorded automatically</strong>
-                      <span>REDESY records the uploader, reviewer, file hash, version, review actions and final approver.</span>
+                      <span>APP2 records the uploader, reviewer, file hash, version, review actions and final approver.</span>
                     </div>
                   </section>
                 )}
@@ -12910,7 +12910,7 @@ export default function App() {
 
               <div className="repository-protection-levels">
                 {[
-                  ["INHERITED","Normal REDESY scope","Use existing REDESY RBAC and Repository permissions."],
+                  ["INHERITED","Normal APP2 scope","Use existing APP2 RBAC and Repository permissions."],
                   ["TEAM","Team only","Owner, reviewer and authorised management team."],
                   ["NAMED_USERS","Named readers","Only explicitly selected readers plus authorised custodians."],
                   ["REVIEWER_ONLY","Reviewer only","Owner, reviewer/approver and authorised management."],
@@ -12942,9 +12942,9 @@ export default function App() {
 
               <div className="repository-protection-capabilities">
                 {[
-                  ["allowDownload","Download","Allow the original file to leave REDESY."],
+                  ["allowDownload","Download","Allow the original file to leave APP2."],
                   ["allowCopy","Copy","Allow normal text/content copying."],
-                  ["allowPrint","Print","Allow printing from supported REDESY viewers."],
+                  ["allowPrint","Print","Allow printing from supported APP2 viewers."],
                   ["allowLink","Link","Allow this record to be reused as evidence/reference."],
                   ["watermark","Watermark","Show identity/time watermark in protected previews."],
                 ].map(([field,label,hint]) => (
@@ -12974,7 +12974,7 @@ export default function App() {
 
               <div className="repository-protection-warning">
                 <strong>Screen capture limitation</strong>
-                <span>No application can prevent someone photographing a visible screen. REDESY can restrict view,
+                <span>No application can prevent someone photographing a visible screen. APP2 can restrict view,
                 download, copy, print and linking, add watermarks, and audit protected access.</span>
               </div>
 
@@ -13016,7 +13016,7 @@ export default function App() {
                     <option value="assignment">Assignment</option>
                     <option value="task">Task</option>
                     <option value="research">Research</option>
-                    <option value="report">REDESY Report</option>
+                    <option value="report">APP2 Report</option>
                   </select>
                 </label>
                 <label className="repository-relationship-target">
@@ -13460,7 +13460,7 @@ export default function App() {
                         })
                       }
                     >
-                      <option value="App2 Documents">REDESY Documents</option>
+                      <option value="App2 Documents">APP2 Documents</option>
                     </select>
                   </label>
                   <label>
@@ -13662,7 +13662,7 @@ export default function App() {
               <div className={`repository-review-read-gate ${reviewDocumentReadId === reviewDocument.id ? "complete" : "required"}`}>
                 <div>
                   <b>{reviewDocumentReadId === reviewDocument.id ? "Current document opened" : "Read before decision"}</b>
-                  <span>{reviewDocumentReadId === reviewDocument.id ? "The current version has been opened in the secure reader. REDESY also verifies the audited reader event on the server before accepting a decision." : "Open the current stored version in the secure reader before Approve or Reject becomes available."}</span>
+                  <span>{reviewDocumentReadId === reviewDocument.id ? "The current version has been opened in the secure reader. APP2 also verifies the audited reader event on the server before accepting a decision." : "Open the current stored version in the secure reader before Approve or Reject becomes available."}</span>
                 </div>
                 <button type="button" className="approve" onClick={() => void openRepositoryDocumentReader(reviewDocument, true)}>
                   {reviewDocumentReadId === reviewDocument.id ? "Read again" : "Open current document"}
@@ -13702,8 +13702,8 @@ export default function App() {
               <button type="button" className="app2-paste-button" onClick={() => {
                 const copied = sessionStorage.getItem("app2-internal-clipboard") || "";
                 if (copied) setRejectionReason((current) => current ? `${current}\n\n${copied}` : copied);
-                else setDocumentNotice("There is no text in the REDESY internal clipboard.");
-              }}>Paste REDESY copy into review notes</button>
+                else setDocumentNotice("There is no text in the APP2 internal clipboard.");
+              }}>Paste APP2 copy into review notes</button>
               <div className="review-actions">
                 <button
                   className="approve"
@@ -14114,7 +14114,7 @@ export default function App() {
                   setResearchRows(projects);
                   setSelectedResearch(projects.find((item) => item.id === selectedResearch.id) || selectedResearch);
                   setResearchActivity(await api.researchActivity(token, selectedResearch.id));
-                  setResearchWorkspaceNotice("Assignment link removed. The assignment remains in REDESY.");
+                  setResearchWorkspaceNotice("Assignment link removed. The assignment remains in APP2.");
                 } catch (error) {
                   setResearchWorkspaceNotice(error instanceof Error ? error.message : "Assignment link could not be removed.");
                 }
@@ -14597,7 +14597,7 @@ export default function App() {
                   const saved = await saveResearchSectionDraft(contentToPreview, false);
                   if (!saved) {
                     const reason = researchSectionSaveErrorRef.current || "The save request failed without a detailed error.";
-                    const warning = `PREVIEW ONLY — this section was not saved to REDESY. The preview uses the current editor content. Save error: ${reason}`;
+                    const warning = `PREVIEW ONLY — this section was not saved to APP2. The preview uses the current editor content. Save error: ${reason}`;
                     setResearchReportPreviewWarning(warning);
                     setResearchWorkspaceNotice(warning);
                     setResearchReportPreviewOpen(true);
@@ -15526,7 +15526,7 @@ export default function App() {
                                 })
                               }
                             >
-                              <option value="">Select an active REDESY team member</option>
+                              <option value="">Select an active APP2 team member</option>
                               {userRows
                                 .filter(
                                   (candidate) =>
@@ -15671,7 +15671,7 @@ export default function App() {
                       );
                     }
                     setAssignmentNotice(
-                      "Imported report discarded. You can continue editing inside REDESY or import a replacement.",
+                      "Imported report discarded. You can continue editing inside APP2 or import a replacement.",
                     );
                   },
                 }}
@@ -16217,7 +16217,7 @@ export default function App() {
           <button onClick={()=>{navigateTo("Notice Board");setContextMenu(null)}}><Icon name="announce"/>Expiring notices <b>{noticeRows.filter(item=>item.status==="Published"&&item.expires_at&&new Date(item.expires_at).getTime()>Date.now()&&new Date(item.expires_at).getTime()<=Date.now()+3*86400000).length}</b></button>
           <button onClick={()=>{refreshDashboard();setContextMenu(null)}}><Icon name="clock"/>Refresh data</button>
           <button onClick={()=>{setProfileMenuOpen(true);setContextMenu(null)}}><Icon name="team"/>Account menu</button>
-          <small>Right-click actions are limited to REDESY.</small>
+          <small>Right-click actions are limited to APP2.</small>
         </nav>}
 
         {externalResearchOpen && (

@@ -20,6 +20,7 @@ type Props = {
   onImportExternal: () => void;
   onUpdateMilestone: (milestoneId: string, status: string) => Promise<void>;
   onAddMilestone: () => Promise<void>;
+  onUpdateMilestoneDetails: (milestoneId: string, input: MilestoneForm) => Promise<void>;
   onRefreshActivity: () => Promise<void>;
 };
 
@@ -32,12 +33,15 @@ export default function ResearchWorkPlanPanel({
   onImportExternal,
   onUpdateMilestone,
   onAddMilestone,
+  onUpdateMilestoneDetails,
   onRefreshActivity,
 }: Props) {
   const [taskRows, setTaskRows] = useState<Record<string, { linked: ResearchMilestoneTask[]; available: ResearchMilestoneTask[] }>>({});
   const [taskSelections, setTaskSelections] = useState<Record<string, string>>({});
   const [taskBusy, setTaskBusy] = useState<Record<string, boolean>>({});
   const [taskNotice, setTaskNotice] = useState<Record<string, string>>({});
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+  const [milestoneNotice, setMilestoneNotice] = useState("");
 
   const refreshMilestoneTasks = async (milestoneId: string) => {
     const result = await api.researchMilestoneTasks(token, project.id, milestoneId);
@@ -74,6 +78,34 @@ export default function ResearchWorkPlanPanel({
       setTaskNotice((current) => ({ ...current, [milestoneId]: error instanceof Error ? error.message : "Task could not be linked." }));
     } finally {
       setTaskBusy((current) => ({ ...current, [milestoneId]: false }));
+    }
+  };
+
+  const startEditingMilestone = (milestone: ResearchProject["milestones"][number]) => {
+    setEditingMilestoneId(milestone.id);
+    setMilestoneNotice("");
+    setForm({
+      title: milestone.title,
+      description: milestone.description || "",
+      ownerId: milestone.owner_id,
+      dueDate: milestone.due_date,
+      priority: milestone.priority || "Normal",
+    });
+  };
+
+  const cancelMilestoneEdit = () => {
+    setEditingMilestoneId(null);
+    setMilestoneNotice("");
+    setForm({ title: "", description: "", ownerId: "", dueDate: "", priority: "Normal" });
+  };
+
+  const saveMilestoneDetails = async () => {
+    if (!editingMilestoneId) return;
+    try {
+      await onUpdateMilestoneDetails(editingMilestoneId, form);
+      cancelMilestoneEdit();
+    } catch (error) {
+      setMilestoneNotice(error instanceof Error ? error.message : "Milestone details could not be saved.");
     }
   };
 
@@ -133,6 +165,11 @@ export default function ResearchWorkPlanPanel({
                   <option>In Progress</option>
                   <option>Completed</option>
                 </select>
+                {canManageTasks && (
+                  <button type="button" className="research-milestone-edit" onClick={() => startEditingMilestone(milestone)}>
+                    Edit details
+                  </button>
+                )}
                 <div className="research-milestone-task-links">
                   <strong>Linked tasks</strong>
                   {(taskRows[milestone.id]?.linked || []).map((task) => (
@@ -166,8 +203,8 @@ export default function ResearchWorkPlanPanel({
           )}
         </div>
 
-        <details className="research-secondary-disclosure research-add-milestone" open={!project.milestones.length}>
-          <summary>{project.milestones.length ? "Add another milestone" : "Add first milestone"}</summary>
+        <details className="research-secondary-disclosure research-add-milestone" open={Boolean(editingMilestoneId) || !project.milestones.length}>
+          <summary>{editingMilestoneId ? "Edit milestone details" : project.milestones.length ? "Add another milestone" : "Add first milestone"}</summary>
           <div className="research-milestone-guidance">
             <strong>What makes a good milestone?</strong>
             <p>
@@ -238,13 +275,17 @@ export default function ResearchWorkPlanPanel({
               </select>
             </label>
 
-            <button
-              className="research-milestone-save"
-              disabled={!form.title.trim() || !form.ownerId || !form.dueDate}
-              onClick={() => void onAddMilestone()}
-            >
-              Add milestone
-            </button>
+            {milestoneNotice && <small role="alert">{milestoneNotice}</small>}
+            <div className="research-milestone-form-actions">
+              <button
+                className="research-milestone-save"
+                disabled={!form.title.trim() || !form.ownerId || !form.dueDate}
+                onClick={() => void (editingMilestoneId ? saveMilestoneDetails() : onAddMilestone())}
+              >
+                {editingMilestoneId ? "Save milestone changes" : "Add milestone"}
+              </button>
+              {editingMilestoneId && <button type="button" className="research-milestone-cancel" onClick={cancelMilestoneEdit}>Cancel</button>}
+            </div>
           </div>
         </details>
       </section>

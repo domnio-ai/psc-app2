@@ -38,7 +38,7 @@ test('password setup email stores only a hash and sends a single-use 30-minute f
   const rawToken = Buffer.alloc(32, 7).toString('hex')
   const hash = crypto.createHash('sha256').update(rawToken).digest('hex')
   assert.deepEqual(result, { accepted: true, expiresInMinutes: 30 })
-  assert.match(sent.subject, /Set up your PSC REDESY account/)
+  assert.match(sent.subject, /Set up your PSC APP2 account/)
   assert.match(sent.text, /#resetToken=/)
   assert.match(sent.text, new RegExp(rawToken))
   assert.match(sent.html, new RegExp(rawToken))
@@ -64,7 +64,7 @@ test('reset email escapes user-controlled HTML and identifies a password reset',
     name: '<img src=x onerror=alert(1)>',
     email: 'staff@example.test',
   })
-  assert.match(sent.subject, /Reset your PSC REDESY password/)
+  assert.match(sent.subject, /Reset your PSC APP2 password/)
   assert.match(sent.html, /&lt;img src=x onerror=alert\(1\)&gt;/)
   assert.doesNotMatch(sent.html, /<img src=x/)
 })

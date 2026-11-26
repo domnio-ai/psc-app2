@@ -64,8 +64,9 @@ test("linked research milestone tasks cannot be archived and link/archive operat
   assert.ok(archiveStart >= 0 && archiveEnd > archiveStart);
   const linkRoute = app.slice(linkStart, unlinkStart);
   const archiveRoute = app.slice(archiveStart, archiveEnd);
-  assert.match(linkRoute, /SELECT id,archived_at FROM assignment_tasks WHERE id=\$1 FOR UPDATE/);
-  assert.match(linkRoute, /lockedTask\.archived_at/);
+  assert.match(linkRoute, /SELECT id,archived_at,owner_id,assignment_id FROM assignment_tasks WHERE id=\\$1 FOR UPDATE/);
+  assert.match(linkRoute, /lockedTask\\.archived_at/);
+  assert.match(linkRoute, /lockedTask\\.owner_id!==milestone\\.owner_id/);
   assert.match(archiveRoute, /EXISTS\(SELECT 1 FROM research_milestones rm WHERE rm\.task_id=t\.id\) AS linked_research_milestone/);
   assert.match(archiveRoute, /FOR UPDATE OF t/);
   assert.match(archiveRoute, /if\(task\.linked_research_milestone\)throw Object\.assign/);

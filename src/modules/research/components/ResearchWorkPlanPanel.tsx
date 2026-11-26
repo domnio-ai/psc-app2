@@ -20,6 +20,7 @@ type Props = {
   onImportExternal: () => void;
   onUpdateMilestone: (milestoneId: string, status: string) => Promise<void>;
   onAddMilestone: () => Promise<void>;
+  onRefreshActivity: () => Promise<void>;
 };
 
 export default function ResearchWorkPlanPanel({
@@ -31,6 +32,7 @@ export default function ResearchWorkPlanPanel({
   onImportExternal,
   onUpdateMilestone,
   onAddMilestone,
+  onRefreshActivity,
 }: Props) {
   const [taskRows, setTaskRows] = useState<Record<string, { linked: ResearchMilestoneTask[]; available: ResearchMilestoneTask[] }>>({});
   const [taskSelections, setTaskSelections] = useState<Record<string, string>>({});
@@ -62,6 +64,7 @@ export default function ResearchWorkPlanPanel({
     try {
       await api.linkResearchMilestoneTask(token, project.id, milestoneId, taskId);
       await refreshMilestoneTasks(milestoneId);
+      await onRefreshActivity();
       setTaskSelections((current) => ({ ...current, [milestoneId]: "" }));
       setTaskNotice((current) => ({ ...current, [milestoneId]: "Task linked to milestone." }));
     } catch (error) {
@@ -76,6 +79,7 @@ export default function ResearchWorkPlanPanel({
     try {
       await api.unlinkResearchMilestoneTask(token, project.id, milestoneId, taskId);
       await refreshMilestoneTasks(milestoneId);
+      await onRefreshActivity();
       setTaskNotice((current) => ({ ...current, [milestoneId]: "Task unlinked from milestone." }));
     } catch (error) {
       setTaskNotice((current) => ({ ...current, [milestoneId]: error instanceof Error ? error.message : "Task could not be unlinked." }));

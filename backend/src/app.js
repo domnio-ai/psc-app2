@@ -3839,6 +3839,8 @@ app.delete('/api/research/:id/assignments/:assignmentId',authenticate,async(req,
   if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'You cannot unlink assignments from this research project.'})
   const link=(await query('SELECT * FROM research_assignment_links WHERE project_id=$1 AND assignment_id=$2',[req.params.id,req.params.assignmentId])).rows[0]
   if(!link)return res.status(404).json({error:'Research assignment link not found.'})
+  const linkedMilestoneTasks=(await query(`SELECT COUNT(*)::int total FROM research_milestone_tasks mt JOIN assignment_tasks t ON t.id=mt.task_id WHERE mt.project_id=$1 AND t.assignment_id=$2`,[req.params.id,req.params.assignmentId])).rows[0]?.total||0
+  if(linkedMilestoneTasks>0)return res.status(409).json({error:'Unlink the assignment tasks from their research milestones before unlinking this assignment.'})
   await transaction(async client=>{
     await client.query('DELETE FROM research_assignment_links WHERE id=$1',[link.id])
     await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[req.params.id,req.user.id,'RESEARCH_ASSIGNMENT_UNLINKED',JSON.stringify({assignmentId:req.params.assignmentId})])

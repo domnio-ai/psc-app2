@@ -3031,6 +3031,17 @@ export const api = {
       { method: "PATCH", body: JSON.stringify({ status }) },
       token,
     ),
+  updateResearchMilestoneDetails: (
+    token: string,
+    id: string,
+    milestoneId: string,
+    input: { title: string; description: string; ownerId: string; dueDate: string; priority: string },
+  ) =>
+    request(
+      `/research/${id}/milestones/${milestoneId}/details`,
+      { method: "PATCH", body: JSON.stringify(input) },
+      token,
+    ),
   researchMilestoneTasks: (token: string, id: string, milestoneId: string) =>
     request<{ linked: ResearchMilestoneTask[]; available: ResearchMilestoneTask[] }>(
       `/research/${id}/milestones/${milestoneId}/tasks`,

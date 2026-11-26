@@ -2,13 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-const app = fs.readFileSync("src/app.js", "utf8");
-const migration = fs.readFileSync("migrations/045_research_milestone_task_links.sql", "utf8");
-const plan = fs.readFileSync("src/production-migration-plan.js", "utf8");
-const setup = fs.readFileSync("src/setup-database.js", "utf8");
-const api = fs.readFileSync("../src/api.ts", "utf8");
-const panel = fs.readFileSync("../src/modules/research/components/ResearchWorkPlanPanel.tsx", "utf8");
-const appUi = fs.readFileSync("../src/App.tsx", "utf8");
+const app = fs.readFileSync(new URL("../src/app.js", import.meta.url), "utf8");
+const migration = fs.readFileSync(new URL("../migrations/045_research_milestone_task_links.sql", import.meta.url), "utf8");
+const plan = fs.readFileSync(new URL("../src/production-migration-plan.js", import.meta.url), "utf8");
+const setup = fs.readFileSync(new URL("../src/setup-database.js", import.meta.url), "utf8");
+const api = fs.readFileSync(new URL("../../src/api.ts", import.meta.url), "utf8");
+const panel = fs.readFileSync(new URL("../../src/modules/research/components/ResearchWorkPlanPanel.tsx", import.meta.url), "utf8");
+const appUi = fs.readFileSync(new URL("../../src/App.tsx", import.meta.url), "utf8");
 
 test("research milestone central task relation is nullable, unique and migration-managed", () => {
   assert.match(migration, /ADD COLUMN IF NOT EXISTS task_id UUID REFERENCES assignment_tasks\(id\) ON DELETE SET NULL/);

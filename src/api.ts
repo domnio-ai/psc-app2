@@ -1690,12 +1690,17 @@ export type CompletedWorkResponse = {
   }[];
 };
 
+export type NoticeAudienceRule = { type: "ORGANISATION" | "ROLE" | "DIRECTORATE" | "USER"; value: string };
 export type NoticeItem = {
   id: string;
   title: string;
   body: string;
   severity: "Information" | "Important" | "Urgent";
   audience_role: string | null;
+  acknowledgement_required?: boolean;
+  acknowledged_at?: string | null;
+  is_recipient?: boolean;
+  recipient_count?: number;
   status: "Pending Approval" | "Published" | "Rejected";
   event_start: string | null;
   event_end: string | null;
@@ -4340,6 +4345,8 @@ export const api = {
       body: string;
       severity: string;
       audienceRole: string | null;
+      audienceRules?: NoticeAudienceRule[];
+      acknowledgementRequired?: boolean;
       eventStart: string | null;
       eventEnd: string | null;
       expiresAt: string;
@@ -4361,6 +4368,8 @@ export const api = {
       { method: "PATCH", body: JSON.stringify({ approved, reason }) },
       token,
     ),
+  acknowledgeNotice: (token:string,id:string) =>
+    request<{acknowledged:boolean;acknowledged_at:string}>(`/alerts/${id}/acknowledge`,{method:"POST"},token),
   deleteNotice: (token: string, id: string) =>
     request<void>(`/alerts/${id}`, { method: "DELETE" }, token),
   pinNotice: (token:string,id:string,pinned:boolean) => request<NoticeItem>(`/alerts/${id}/pin`,{method:"PATCH",body:JSON.stringify({pinned})},token),

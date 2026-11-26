@@ -5,6 +5,7 @@ import {usePulse} from "./modules/dashboard/usePulse";
 import {useDashboardLiveSync} from "./modules/dashboard/useDashboardLiveSync";
 import "./modules/dashboard/dashboard-task-requests.css";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import type { NoticeFormState } from "./NoticeComposer";
 import {startMessageRealtime,stopMessageRealtime,type MessageRealtimeEvent} from "./modules/messages/messageRealtime";
 import AppLiveClock from "./components/runtime/AppLiveClock";
 import WorkflowNextActionDialog from "./components/WorkflowNextActionDialog";
@@ -1741,11 +1742,13 @@ export default function App() {
   const [noticeRows, setNoticeRows] = useState<NoticeItem[]>([]);
   const [calendarRows, setCalendarRows] = useState<CalendarItem[]>([]);
   useEffect(()=>{if(pulse.data)setCalendarRows(pulse.data.calendarAll)},[pulse.data]);
-  const [noticeForm, setNoticeForm] = useState({
+  const [noticeForm, setNoticeForm] = useState<NoticeFormState>({
     title: "",
     body: "",
     severity: "Information",
     audienceRole: "",
+    audienceRules: [{ type: "ORGANISATION", value: "*" }],
+    acknowledgementRequired: false,
     eventStart: "",
     eventEnd: "",
     expiresAt: "",
@@ -1755,7 +1758,29 @@ export default function App() {
     null,
   );
   const [noticeReason, setNoticeReason] = useState("");
+
   const [userRows, setUserRows] = useState<ApiUser[]>([]);
+  const noticeAudienceLookupStarted = useRef(false);
+  useEffect(() => {
+    if (
+      active !== "Notice Board" ||
+      !token ||
+      !user ||
+      !["System Admin", "Director"].includes(user.role) ||
+      userRows.length ||
+      noticeAudienceLookupStarted.current
+    ) return;
+    noticeAudienceLookupStarted.current = true;
+    void api.users(token).then(setUserRows).catch((error) => {
+      noticeAudienceLookupStarted.current = false;
+      setNoticeNotice(
+        error instanceof Error
+          ? `Recipient directory could not be loaded: ${error.message}`
+          : "Recipient directory could not be loaded.",
+      );
+    });
+  }, [active, token, user?.role, userRows.length]);
+
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("All");
   const [userStatusFilter, setUserStatusFilter] = useState("All");
@@ -2801,6 +2826,16 @@ export default function App() {
       );
     }
   };
+  const markNoticeNotificationsRead = async (noticeId: string) => {
+    if (!token || !noticeId) return;
+    const matches = notifications.filter(
+      (item) => item.entity_type === "notice" && item.entity_id === noticeId && !item.read_at,
+    );
+    if (matches.length) {
+      await Promise.all(matches.map((item) => api.readNotification(token, item.id)));
+      await refreshNotifications();
+    }
+  };
   const publishAlert = async () => {
     if (!alertText.trim() || !token) return;
     try {
@@ -3160,6 +3195,8 @@ export default function App() {
         body: noticeForm.body,
         severity: noticeForm.severity,
         audienceRole: noticeForm.audienceRole || null,
+        audienceRules: noticeForm.audienceRules,
+        acknowledgementRequired: noticeForm.acknowledgementRequired,
         eventStart: noticeForm.eventStart
           ? localDateTimeToIso(noticeForm.eventStart)
           : null,
@@ -3173,6 +3210,8 @@ export default function App() {
         body: "",
         severity: "Information",
         audienceRole: "",
+        audienceRules: [{ type: "ORGANISATION", value: "*" }],
+        acknowledgementRequired: false,
         eventStart: "",
         eventEnd: "",
         expiresAt: "",
@@ -7008,6 +7047,8 @@ export default function App() {
         body: action.payload.body || "",
         severity: "Information",
         audienceRole: "",
+        audienceRules: [{ type: "ORGANISATION", value: "*" }],
+        acknowledgementRequired: false,
         eventStart: "",
         eventEnd: "",
         expiresAt: "",
@@ -10721,6 +10762,9 @@ export default function App() {
                 isManager={isManager}
                 token={token}
                 onRowsChange={setNoticeRows}
+                onRead={markNoticeNotificationsRead}
+                users={userRows}
+                canTargetSpecificRecipients={Boolean(user && ["System Admin", "Director"].includes(user.role))}
                 onSubmit={submitNotice}
                 onReview={(item) => {
                   setReviewingNotice(item);
@@ -10747,7 +10791,7 @@ export default function App() {
                   items={[
                     ...calendarRows,
                     ...noticeRows
-                      .filter((item) => item.status === "Published" && item.expires_at && (!item.audience_role || item.audience_role === user.role))
+                      .filter((item) => item.status === "Published" && item.expires_at)
                       .map((item) => ({
                         id: `expiry-${item.id}`,
                         title: `${item.title} expires`,

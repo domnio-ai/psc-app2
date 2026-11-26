@@ -11,10 +11,10 @@ on:
       - "docs/**"
       - "**/*.md"
   pull_request:
+    # Run the same regression and security gates for PRs into every maintained branch,
+    # including features/* integration baselines and fix/* maintenance branches.
     branches:
-      - main
-      - "publication/app2-clean-2026-11-18"
-      - "features/**"
+      - "**"
     paths-ignore:
       - "docs/**"
       - "**/*.md"

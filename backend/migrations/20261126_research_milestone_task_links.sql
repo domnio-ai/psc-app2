@@ -23,15 +23,22 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
   milestone_project UUID;
+  milestone_status VARCHAR(20);
   linked_project UUID;
   task_assignment UUID;
 BEGIN
-  SELECT project_id INTO milestone_project
+  SELECT project_id,status INTO milestone_project,milestone_status
   FROM research_milestones
-  WHERE id = NEW.milestone_id;
+  WHERE id = NEW.milestone_id
+  FOR UPDATE;
 
   IF milestone_project IS NULL OR milestone_project <> NEW.project_id THEN
     RAISE EXCEPTION 'Milestone does not belong to the supplied research project'
+      USING ERRCODE = '23514';
+  END IF;
+
+  IF milestone_status = 'Completed' THEN
+    RAISE EXCEPTION 'Reopen the completed milestone before linking tasks'
       USING ERRCODE = '23514';
   END IF;
 
@@ -119,3 +126,37 @@ BEFORE UPDATE OF archived_at ON assignment_tasks
 FOR EACH ROW
 WHEN (OLD.archived_at IS DISTINCT FROM NEW.archived_at AND NEW.archived_at IS NOT NULL)
 EXECUTE FUNCTION prevent_research_milestone_orphaning();
+
+CREATE OR REPLACE FUNCTION enforce_research_milestone_completion()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  linked_tasks INTEGER;
+  open_tasks INTEGER;
+BEGIN
+  IF NEW.status = 'Completed' AND OLD.status IS DISTINCT FROM NEW.status THEN
+    SELECT COUNT(*)::int,
+      COUNT(*) FILTER(WHERE t.status <> 'Completed')::int
+    INTO linked_tasks,open_tasks
+    FROM research_milestone_tasks mt
+    JOIN assignment_tasks t ON t.id = mt.task_id
+    WHERE mt.milestone_id = NEW.id
+      AND t.archived_at IS NULL;
+
+    IF linked_tasks = 0 OR open_tasks > 0 THEN
+      RAISE EXCEPTION 'Milestone completion requires linked active tasks to complete their governed final-report workflow'
+        USING ERRCODE = '23514';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS research_milestone_completion_guard
+  ON research_milestones;
+CREATE TRIGGER research_milestone_completion_guard
+BEFORE UPDATE OF status ON research_milestones
+FOR EACH ROW
+EXECUTE FUNCTION enforce_research_milestone_completion();

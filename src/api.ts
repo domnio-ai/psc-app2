@@ -37,7 +37,8 @@ export type ApiUser = {
   leave_end_date?: string | null;
 };
 export type LeaveType = {code:string;name:string;default_entitlement_days:number|null;paid:boolean;requires_document:boolean};
-export type LeaveRequest = {id:string;user_id:string;user_name?:string;user_email?:string;user_role?:string;division?:string;leave_type_code:string;leave_type_name:string;start_date:string;end_date:string;working_days:number;reason:string;status:"Pending"|"Approved"|"Returned"|"Rejected"|"Cancelled";approver_name?:string|null;decision_note?:string|null;submitted_at:string;decided_at?:string|null;currently_on_leave?:boolean;has_attachment?:boolean};
+export type LeaveRequest = {id:string;user_id:string;user_name?:string;user_email?:string;user_role?:string;division?:string;leave_type_code:string;leave_type_name:string;start_date:string;end_date:string;working_days:number;calculated_working_days?:number;reason:string;status:"Pending"|"Approved"|"Returned"|"Rejected"|"Cancelled";approver_name?:string|null;decision_note?:string|null;submitted_at:string;decided_at?:string|null;currently_on_leave?:boolean;has_attachment?:boolean};
+export type PublicHoliday = {id:string;holiday_date:string;name:string;description:string;active:boolean;created_at:string;updated_at:string};
 export type LeaveBalance = {code:string;name:string;entitlement_days:number|null;adjustment_days:number;used_days:number;remaining_days:number|null};
 
 export type ApiAssignment = {
@@ -2118,6 +2119,11 @@ export const api = {
       token,
     ),
   leaveTypes: (token: string) => request<LeaveType[]>("/leave/types", {}, token),
+  publicHolidays: (token:string) => request<PublicHoliday[]>("/leave/holidays",{},token),
+  createPublicHoliday: (token:string,input:{holidayDate:string;name:string;description:string}) =>
+    request<PublicHoliday>("/leave/holidays",{method:"POST",body:JSON.stringify(input)},token),
+  updatePublicHoliday: (token:string,id:string,input:{holidayDate?:string;name?:string;description?:string;active?:boolean}) =>
+    request<PublicHoliday>(`/leave/holidays/${id}`,{method:"PATCH",body:JSON.stringify(input)},token),
   leaveRequests: (token: string) => request<LeaveRequest[]>("/leave/requests", {}, token),
   leaveBalances: (token: string, userId: string, year = new Date().getFullYear()) => request<LeaveBalance[]>(`/leave/balances/${userId}?year=${year}`, {}, token),
   submitLeaveRequest: async (token: string, input: {leaveTypeCode:string;startDate:string;endDate:string;reason:string}, file?: File) => {

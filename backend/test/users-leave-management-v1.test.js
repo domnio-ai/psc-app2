@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const app=readFileSync("backend/src/app.js","utf8"),scope=readFileSync("backend/src/scope.js","utf8"),calendar=readFileSync("backend/src/calendar-service.js","utf8"),migration=readFileSync("backend/migrations/044_users_leave_management.sql","utf8"),attachmentMigration=readFileSync("backend/migrations/20261125_01_leave_request_attachments.sql","utf8"),leave=readFileSync("backend/src/users/leave-management.js","utf8"),api=readFileSync("src/api.ts","utf8"),ui=readFileSync("src/App.tsx","utf8"),panel=readFileSync("src/modules/users/UserLeaveManagement.tsx","utf8");
+const app=readFileSync("backend/src/app.js","utf8"),scope=readFileSync("backend/src/scope.js","utf8"),calendar=readFileSync("backend/src/calendar-service.js","utf8"),migration=readFileSync("backend/migrations/044_users_leave_management.sql","utf8"),attachmentMigration=readFileSync("backend/migrations/20261125_01_leave_request_attachments.sql","utf8"),holidayMigration=readFileSync("backend/migrations/20261125_04_public_holiday_calendar.sql","utf8"),leave=readFileSync("backend/src/users/leave-management.js","utf8"),api=readFileSync("src/api.ts","utf8"),ui=readFileSync("src/App.tsx","utf8"),panel=readFileSync("src/modules/users/UserLeaveManagement.tsx","utf8");
 test("leave governance schema and policy foundation exist",()=>{assert.match(migration,/leave_types/);assert.match(migration,/leave_requests/);assert.match(migration,/Annual Leave',30/);assert.match(migration,/Pending','Approved','Returned','Rejected','Cancelled/)});
 test("manager team editing and password reset are scope protected",()=>{assert.match(app,/You may edit only users inside your authorised reporting scope/);assert.match(app,/You may reset passwords only for users inside your authorised reporting scope/);assert.match(app,/const admin=req\.user\.role==='System Admin'/);assert.match(app,/Use Change Password for your own account/)});
 test("leave approval forbids self approval and emits audits",()=>{assert.match(leave,/A manager cannot approve or reject their own leave request/);assert.match(leave,/LEAVE_REQUEST_SUBMITTED/);assert.match(leave,/LEAVE_REQUEST_DECIDED/);assert.match(leave,/canManageUser/)});
@@ -31,4 +31,37 @@ test("leave types requiring evidence enforce private attachment upload and scope
  assert.match(panel,/Supporting document/);
  assert.match(panel,/selectedType\?\.requires_document/);
  assert.match(api,/downloadLeaveAttachment/);
+});
+
+test("public holidays are maintained only by System Admin and audited",()=>{
+ assert.match(holidayMigration,/CREATE TABLE IF NOT EXISTS public_holidays/);
+ assert.match(holidayMigration,/holiday_date DATE NOT NULL UNIQUE/);
+ assert.match(leave,/Only a System Administrator can maintain the institutional public-holiday calendar/);
+ assert.match(leave,/req\.user\.role!=='System Admin'/);
+ assert.match(leave,/PUBLIC_HOLIDAY_CREATED/);
+ assert.match(leave,/PUBLIC_HOLIDAY_UPDATED/);
+ assert.match(leave,/PUBLIC_HOLIDAY_DEACTIVATED/);
+ assert.match(leave,/WHERE \(\$1::boolean OR active=TRUE\)/);
+});
+
+test("leave requests, approvals and year balances exclude configured public holidays",()=>{
+ assert.match(leave,/const workingDays=\(start,end,holidays=\[\]\)/);
+ assert.match(leave,/!holidaySet\.has\(date\)/);
+ assert.match(leave,/SELECT holiday_date::text holiday_date FROM public_holidays WHERE active=TRUE AND holiday_date BETWEEN/);
+ assert.match(leave,/approvedWorkingDays=workingDays\(row\.start_date,row\.end_date/);
+ assert.match(leave,/public_holidays ph WHERE ph\.active=TRUE AND ph\.holiday_date=leave_day\.day::date/);
+ assert.match(leave,/calculated_working_days/);
+ assert.match(leave,/at least one working day after weekends and configured public holidays are excluded/);
+});
+
+test("holiday calendar is available in the shared calendar and System Admin workspace",()=>{
+ assert.match(calendar,/'public_holiday' type/);
+ assert.match(calendar,/FROM public_holidays WHERE active=TRUE/);
+ assert.match(api,/publicHolidays:/);
+ assert.match(api,/createPublicHoliday:/);
+ assert.match(api,/updatePublicHoliday:/);
+ assert.match(api,/calculated_working_days\?:number/);
+ assert.match(panel,/Public holiday register/);
+ assert.match(panel,/No official holidays are preloaded/);
+ assert.match(ui,/canManagePublicHolidays=\{user\.role === "System Admin"\}/);
 });

@@ -10679,7 +10679,7 @@ export default function App() {
                   )}
                   {(userWorkspaceTab === "Leave" || userWorkspaceTab === "Approvals") && (
                     <Suspense fallback={<div className="report-loading">Loading leave and availability...</div>}>
-                      {user.id ? <UserLeaveManagement mode={userWorkspaceTab === "Approvals" ? "approvals" : "leave"} token={token} currentUser={{id:user.id}} users={userRows} isManager={isManager} onUsersRefresh={async()=>setUserRows(await api.users(token))} onOpenApprovalCentre={() => setActive("Reviews & Approvals")}/> : <div className="report-loading">Authenticated user identity is unavailable.</div>}
+                      {user.id ? <UserLeaveManagement mode={userWorkspaceTab === "Approvals" ? "approvals" : "leave"} token={token} currentUser={{id:user.id}} users={userRows} isManager={isManager} onUsersRefresh={async()=>setUserRows(await api.users(token))} onOpenApprovalCentre={() => setActive("Reviews & Approvals")} canManagePublicHolidays={user.role === "System Admin"}/> : <div className="report-loading">Authenticated user identity is unavailable.</div>}
                     </Suspense>
                   )}
                 </>
@@ -10697,6 +10697,7 @@ export default function App() {
                     users={userRows.filter((member) => member.id === user.id)}
                     isManager={false}
                     onUsersRefresh={async () => setUserRows(await api.users(token))}
+                    canManagePublicHolidays={user.role === "System Admin"}
                   />
                 ) : (
                   <div className="report-loading">Authenticated user identity is unavailable.</div>

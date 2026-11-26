@@ -20,6 +20,7 @@ test('production migration manifest matches its pinned PostgreSQL 17 audit sourc
   assert.ok(plan.migrations.some(({ id }) => id === 'migration:20261125_01_leave_request_attachments.sql'))
   assert.ok(plan.migrations.some(({ id }) => id === 'migration:20261125_02_notice_audience_acknowledgements.sql'))
   assert.ok(plan.migrations.some(({ id }) => id === 'migration:20261125_03_meeting_action_task_links.sql'))
+  assert.ok(plan.migrations.some(({ id }) => id === 'migration:045_research_milestone_task_links.sql'))
   assert.ok(plan.migrations.every(({ sql }) => sql.trim().length > 0))
 })
 

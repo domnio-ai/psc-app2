@@ -10,6 +10,9 @@ test('production migration manifest matches its pinned PostgreSQL 17 audit sourc
 
   assert.ok([actualBaselineLf, actualBaselineCrlf].includes(baseline.sha256), 'baseline pin must match an LF or CRLF representation')
   assert.equal(plan.migrations.length, migrationSources.length + 1)
+  const migrationIds = plan.migrations.map(({ id }) => id)
+  assert.equal(new Set(migrationIds).size, migrationIds.length, 'production migration IDs must be unique')
+  assert.equal(migrationIds.filter((id) => id === 'migration:20261125_03_meeting_action_task_links.sql').length, 1)
   assert.deepEqual(
     plan.migrations.map(({ id }) => id),
     [...migrationSources.map(({ id }) => id), 'migration:meetings-v2-live-conference'],

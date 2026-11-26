@@ -2,12 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
-const app=fs.readFileSync('src/app.js','utf8')
-const migration=fs.readFileSync('migrations/20261126_research_milestone_task_links.sql','utf8')
-const manifest=fs.readFileSync('src/production-migration-plan.js','utf8')
-const frontend=fs.readFileSync('../src/modules/research/components/ResearchWorkPlanPanel.tsx','utf8')
-const api=fs.readFileSync('../src/api.ts','utf8')
-const reports=fs.readFileSync('src/reports/report-service.js','utf8')
+const app=fs.readFileSync(new URL('../src/app.js',import.meta.url),'utf8')
+const migration=fs.readFileSync(new URL('../migrations/20261126_research_milestone_task_links.sql',import.meta.url),'utf8')
+const manifest=fs.readFileSync(new URL('../src/production-migration-plan.js',import.meta.url),'utf8')
+const frontend=fs.readFileSync(new URL('../../src/modules/research/components/ResearchWorkPlanPanel.tsx',import.meta.url),'utf8')
+const api=fs.readFileSync(new URL('../../src/api.ts',import.meta.url),'utf8')
+const reports=fs.readFileSync(new URL('../src/reports/report-service.js',import.meta.url),'utf8')
 
 test('milestone-task relationship migration is included in the pinned production plan',()=>{
   assert.match(manifest,/20261126_research_milestone_task_links\.sql/)

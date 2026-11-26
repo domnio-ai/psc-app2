@@ -107,3 +107,33 @@
 3. Add the approved "create task from milestone" flow by reusing central assignment task creation validation, reviewer selection, notifications, audit/history and report-publication controls.
 4. Add linked milestone/task status and delivery metrics to management reporting.
 5. Continue the research source, methods, evidence, dataset, review and repository publication audit.
+
+## Checkpoint 4 — research repository evidence audit
+
+### Verified existing implementation
+- Research evidence linking is restricted to published, non-archived Repository documents.
+- The API checks both research-project edit permission and Repository document read permission.
+- Research evidence links are recorded in `research_knowledge_links` and cross-module traceability is mirrored in `repository_entity_links` within one transaction.
+- Duplicate project/document links are prevented by the table primary key; repository entity relationships are unique by knowledge item, entity type and entity ID.
+- Link and unlink operations record research activity and audit events.
+- Research evidence UI selects only published, non-archived documents and explicitly tells users that linking does not copy, move or alter the source.
+- Repository document versions remain separately recorded in `knowledge_versions`; repository relationships support a pinned version reference.
+- Assignment evidence UI supports uploaded files plus links to Repository documents and previewing the linked source.
+
+### Added
+- Added `backend/test/research-repository-evidence-governance.test.js` to protect source publication/access checks, relationship uniqueness, version preservation, and research/assignment evidence UI contracts.
+
+### Remaining audit questions
+- Verify database-backed integration for research evidence link/unlink and access-control edge cases.
+- Verify whether assignment report approval/publication always produces the intended repository record and preserves a stable source relationship and version.
+- Verify repository sync outbox recovery for dead-letter/retry paths and source records updated during a pending sync.
+- Verify pinned-version selection in the Repository UI and reader for evidence links, where a document is later revised.
+
+### Checkpoint 4 commit
+- `5ab96db3ac2694a1d44a9260d56eb477fe791f67` — research repository evidence governance regression tests.
+
+### Next exact actions
+1. Verify the latest Actions run and correct any failures before treating the feature as validated.
+2. Inspect assignment report final publication and repository record creation end-to-end.
+3. Add database-backed integration tests for evidence and milestone links.
+4. Continue meetings/notices/notifications/leave/reporting audit after the research/repository integration is stable.

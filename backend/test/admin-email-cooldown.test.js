@@ -29,6 +29,9 @@ test("email settings identify Gmail without returning credentials and explain SM
   assert.match(app, /inbox delivery is not confirmed/);
   assert.match(mailer, /String\(host \|\| ""\)\.toLowerCase\(\) === "smtp\.gmail\.com"/);
   assert.doesNotMatch(mailer, /return\s*\{[^}]*password/i);
+  assert.match(mailer, /configured SMTP provider/);
+  assert.match(frontend, /Configure an approved SMTP provider/);
+  assert.doesNotMatch(frontend, /Configure Gmail or another approved/);
   assert.match(example, /^SMTP_FROM=.+$/m);
 });
 

@@ -4144,7 +4144,7 @@ app.post('/api/research/:id/milestones/:milestoneId/link-task',authenticate,vali
   const milestone=(await query('SELECT id,owner_id,task_id FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0]
   if(!milestone)return res.status(404).json({error:'Research milestone not found.'})
   if(milestone.task_id)return res.status(409).json({error:'This milestone is already linked to a central task.'})
-  const task=(await query('SELECT t.id,t.assignment_id,t.title,t.owner_id,t.status,t.progress,t.due_date,a.title assignment_title FROM assignment_tasks t JOIN assignments a ON a.id=t.assignment_id WHERE t.id=$1 AND t.archived_at IS NULL',[req.validated.taskId])).rows[0]
+  const task=(await query('SELECT t.id,t.assignment_id,t.title,t.owner_id,t.status,t.progress,t.due_date,a.title assignment_title,task_owner.name owner_name FROM assignment_tasks t JOIN assignments a ON a.id=t.assignment_id JOIN users task_owner ON task_owner.id=t.owner_id AND task_owner.active=TRUE WHERE t.id=$1 AND t.archived_at IS NULL',[req.validated.taskId])).rows[0]
   if(!task)return res.status(404).json({error:'Active assignment task not found.'})
   const linkedAssignment=(project.assignment_id===task.assignment_id)||(await query('SELECT 1 FROM research_assignment_links WHERE project_id=$1 AND assignment_id=$2',[project.id,task.assignment_id])).rowCount>0
   if(!linkedAssignment)return res.status(400).json({error:'The task must belong to an assignment formally linked to this research project.'})

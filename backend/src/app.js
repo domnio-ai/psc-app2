@@ -4190,8 +4190,9 @@ app.post('/api/research/:id/milestones/:milestoneId/link-task',authenticate,vali
   const otherLink=(await query('SELECT id FROM research_milestones WHERE task_id=$1 AND id<>$2',[task.id,milestone.id])).rows[0]
   if(otherLink)return res.status(409).json({error:'This central task is already linked to another research milestone.'})
   const updated=await transaction(async client=>{
-    const lockedTask=(await client.query('SELECT id,archived_at FROM assignment_tasks WHERE id=$1 FOR UPDATE',[task.id])).rows[0]
+    const lockedTask=(await client.query('SELECT id,archived_at,owner_id,assignment_id FROM assignment_tasks WHERE id=$1 FOR UPDATE',[task.id])).rows[0]
     if(!lockedTask||lockedTask.archived_at)throw Object.assign(new Error('The central task was archived before it could be linked. Refresh and choose an active task.'),{statusCode:409})
+    if(lockedTask.owner_id!==milestone.owner_id||lockedTask.assignment_id!==task.assignment_id)throw Object.assign(new Error('The central task owner or assignment changed before it could be linked. Refresh the research work plan and try again.'),{statusCode:409})
     const row=(await client.query(`UPDATE research_milestones SET task_id=$1,status=CASE WHEN $2='Completed' THEN 'Completed' WHEN $2='Not Started' THEN 'Pending' ELSE 'In Progress' END,updated_at=NOW() WHERE id=$3 AND project_id=$4 AND task_id IS NULL RETURNING *`,[task.id,task.status,milestone.id,project.id])).rows[0]
     if(!row)throw Object.assign(new Error('The milestone was linked by another request. Refresh and try again.'),{statusCode:409})
     await client.query('INSERT INTO research_activity(project_id,user_id,action,details)VALUES($1,$2,$3,$4)',[project.id,req.user.id,'MILESTONE_TASK_LINKED',JSON.stringify({milestoneId:row.id,taskId:task.id,assignmentId:task.assignment_id})])

@@ -938,3 +938,23 @@
     flex-direction: column;
   }
 }
+
+
+.research-milestone-edit,
+.research-milestone-cancel {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--rwe-border);
+  border-radius: 7px;
+  background: var(--rwe-surface);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 750;
+}
+.research-milestone-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1 / -1;
+}

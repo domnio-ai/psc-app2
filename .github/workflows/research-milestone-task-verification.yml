@@ -1,0 +1,65 @@
+name: Research milestone-task verification
+
+on:
+  push:
+    branches:
+      - audit/research-milestone-task-integration-2026-11-26
+    paths:
+      - "backend/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/research-milestone-task-verification.yml"
+  pull_request:
+    branches:
+      - "features/**"
+    paths:
+      - "backend/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/research-milestone-task-verification.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-milestone-task-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build and backend regression tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Check backend syntax
+        working-directory: backend
+        run: npm run check
+
+      - name: Run backend regression suite
+        working-directory: backend
+        run: npm test

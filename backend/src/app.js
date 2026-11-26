@@ -3970,8 +3970,9 @@ app.get('/api/research/:id/milestones/:milestoneId/tasks',authenticate,async(req
 app.post('/api/research/:id/milestones/:milestoneId/tasks/:taskId',authenticate,async(req,res,next)=>{try{
   if(!z.string().uuid().safeParse(req.params.milestoneId).success||!z.string().uuid().safeParse(req.params.taskId).success)return res.status(400).json({error:'Invalid milestone or task identifier.'})
   if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'Only the working research team or a manager can link tasks to this milestone.'})
-  const milestone=(await query('SELECT id,title,owner_id FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0]
+  const milestone=(await query('SELECT id,title,owner_id,status FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0]
   if(!milestone)return res.status(404).json({error:'Milestone not found.'})
+  if(milestone.status==='Completed')return res.status(409).json({error:'Reopen the completed milestone before linking additional tasks.'})
   const task=(await query(`SELECT t.id,t.assignment_id,t.title,t.owner_id,t.reviewer_id,t.archived_at
     FROM assignment_tasks t WHERE t.id=$1`,[req.params.taskId])).rows[0]
   if(!task||task.archived_at)return res.status(404).json({error:'Active task not found.'})
@@ -3994,6 +3995,7 @@ app.delete('/api/research/:id/milestones/:milestoneId/tasks/:taskId',authenticat
   if(!await canEditResearch(req.user,req.params.id))return res.status(403).json({error:'Only the working research team or a manager can unlink tasks from this milestone.'})
   const milestone=(await query('SELECT id,title,owner_id FROM research_milestones WHERE id=$1 AND project_id=$2',[req.params.milestoneId,req.params.id])).rows[0]
   if(!milestone)return res.status(404).json({error:'Milestone not found.'})
+  if(milestone.status==='Completed')return res.status(409).json({error:'Reopen the completed milestone before changing its linked tasks.'})
   const task=(await query('SELECT id,title,assignment_id,owner_id,reviewer_id FROM assignment_tasks WHERE id=$1',[req.params.taskId])).rows[0]
   if(!task)return res.status(404).json({error:'Task not found.'})
   const scope=await assignmentTaskScope(req.user,task.assignment_id)

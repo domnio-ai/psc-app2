@@ -3570,8 +3570,9 @@ app.get('/api/research',authenticate,async(req,res,next)=>{try{
     WHERE ${accessSql}
     ORDER BY p.updated_at DESC`,accessParams)
 
+  const scopedRows=await Promise.all(rows.rows.map(async row=>({...row,can_manage:await canEditResearch(req.user,row.id)})))
   res.set('Cache-Control','no-store')
-  res.json(rows.rows)
+  res.json(scopedRows)
 }catch(error){next(error)}})
 app.post('/api/research',authenticate,authorize('System Admin','Director','Deputy Director','Assistant Director'),validate(researchSchema),async(req,res,next)=>{
   try{

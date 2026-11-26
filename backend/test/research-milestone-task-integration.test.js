@@ -49,7 +49,7 @@ test('milestone sign-off requires governed task completion and does not bypass f
 test('milestone metadata can be edited through the governed API and interface',()=>{
   assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/details/)
   assert.match(app,/RESEARCH_MILESTONE_DETAILS_UPDATED/)
-  assert.match(frontend,/api\.updateResearchMilestoneDetails/)
+  assert.match(frontend,/onUpdateMilestoneDetails/)
   assert.match(frontend,/Edit details/)
   assert.match(frontend,/Save milestone changes/)
   assert.match(api,/updateResearchMilestoneDetails:/)

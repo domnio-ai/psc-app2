@@ -33,7 +33,7 @@ const moduleMeta:Record<string,ModuleMeta>={
  'Tasks':{eyebrow:'Execution',description:'Tasks assigned to you and work in progress',tone:'teal'},
  'Research Repository':{eyebrow:'Research',description:'Current governed research and review work',tone:'violet'},
  'Reviews & Approvals':{eyebrow:'Governance',description:'Items waiting for your review or decision',tone:'amber'},
- 'Notifications':{eyebrow:'Updates',description:'Unread changes across REDESY',tone:'indigo'},
+ 'Notifications':{eyebrow:'Updates',description:'Unread changes across APP2',tone:'indigo'},
  'Notice Board':{eyebrow:'Institution',description:'Important institutional notices',tone:'gold'},
  'Calendar':{eyebrow:'Schedule',description:'Upcoming deadlines, meetings and events',tone:'cyan'},
  'Meetings':{eyebrow:'Collaboration',description:'Schedule meetings, agendas, minutes and decisions',tone:'teal'},
@@ -149,7 +149,7 @@ export default function ProgressiveDashboard({
     <div className="pulse-landing pulse-card-first-landing dashboard-task-command-home">
       <section className="pulse-card-first-header module-command-centre-head dashboard-task-command-head" aria-label="Dashboard overview">
         <div>
-          <span className="pulse-hero-eyebrow">REDESY DASHBOARD</span>
+          <span className="pulse-hero-eyebrow">APP2 DASHBOARD</span>
           <h1>{managementView?'Management overview':'My work'}</h1>
           <p>{managementView?'Authorised priorities and operational status. Select a card for detail.':'Your work, decisions and updates. Select a card for detail.'}</p>
         </div>

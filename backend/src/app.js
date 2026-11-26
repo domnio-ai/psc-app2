@@ -4787,6 +4787,9 @@ app.post('/api/assignments/:id/reports/compile',authenticate,validate(z.object({
   if(req.validated.knowledgeIds.length){
     knowledge=(await query("SELECT id,title,category,status FROM knowledge_items WHERE id=ANY($1::uuid[]) AND status='Published' AND is_archived=FALSE",[req.validated.knowledgeIds])).rows
     if(knowledge.length!==new Set(req.validated.knowledgeIds).size)return res.status(409).json({error:'Use only current published Repository evidence.'})
+    for(const item of knowledge){
+      if(!await canReadKnowledge(req.user,item.id))return res.status(403).json({error:'One or more selected Repository evidence records are outside your authorised access scope.'})
+    }
   }
   const result=await transaction(async client=>{
     const reference=`ASG-RPT-${new Date().getFullYear()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`

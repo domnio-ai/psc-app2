@@ -16,10 +16,11 @@ test("administrator test-email cooldown limits each admin independently", () => 
 });
 
 test("email settings identify Gmail without returning credentials and explain SMTP acceptance", async () => {
-  const [app, mailer, example] = await Promise.all([
+  const [app, mailer, example, frontend] = await Promise.all([
     readFile(new URL("../src/app.js", import.meta.url), "utf8"),
     readFile(new URL("../src/mail-service.js", import.meta.url), "utf8"),
     readFile(new URL("../../.env.production.example", import.meta.url), "utf8"),
+    readFile(new URL("../../src/App.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(app, /app\.post\('\/api\/settings\/test-email',authenticate,authorize\('System Admin'\),validate\(testEmailSchema\)/);

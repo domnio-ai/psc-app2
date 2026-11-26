@@ -78,9 +78,9 @@ test('authentication limiter returns a configurable message when an identity is 
 
 test('login and password-reset endpoints use separate authentication rate limits', async () => {
   const app = await readFile(new URL('../src/app.js', import.meta.url), 'utf8')
-  assert.match(app, /app\\.post\\('\\/api\\/auth\\/login',loginRateLimit,validate\\(loginSchema\\)/)
-  assert.match(app, /app\\.post\\('\\/api\\/auth\\/forgot-password',passwordResetRateLimit,validate\\(/)
-  assert.match(app, /app\\.post\\('\\/api\\/auth\\/reset-password',passwordResetRateLimit,validate\\(/)
+  assert.match(app, /app\.post\('\/api\/auth\/login',loginRateLimit,validate\(loginSchema\)/)
+  assert.match(app, /app\.post\('\/api\/auth\/forgot-password',passwordResetRateLimit,validate\(/)
+  assert.match(app, /app\.post\('\/api\/auth\/reset-password',passwordResetRateLimit,validate\(/)
   assert.match(app, /maxIpAttempts:100,maxIdentityAttempts:10/)
   assert.match(app, /maxIpAttempts:60,maxIdentityAttempts:5/)
 })
@@ -92,9 +92,9 @@ test('Docker Nginx proxy hops are explicitly trusted for client IP rate limiting
     readFile(new URL('../../docker-compose.yml', import.meta.url), 'utf8'),
     readFile(new URL('../../docker-compose.production.yml', import.meta.url), 'utf8'),
   ])
-  assert.match(config, /TRUST_PROXY_HOPS\\|\\|0/)
+  assert.match(config, /TRUST_PROXY_HOPS\|\|0/)
   assert.match(config, /TRUST_PROXY_HOPS must be an integer/)
-  assert.match(app, /if\\(config\\.trustProxyHops>0\\)app\\.set\\('trust proxy',config\\.trustProxyHops\\)/)
+  assert.match(app, /if\(config\.trustProxyHops>0\)app\.set\('trust proxy',config\.trustProxyHops\)/)
   assert.match(trainingCompose, /TRUST_PROXY_HOPS: "1"/)
   assert.match(productionCompose, /TRUST_PROXY_HOPS: "1"/)
 })

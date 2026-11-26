@@ -18,7 +18,13 @@ test("current selection survives while it remains in the visible result set",()=
 
 test("changing folder search or priority can move preview to the first valid result",()=>{
   assert.match(inbox,/\}, \[items, folder, priority, query\]\);/);
-  assert.match(inbox,/\}, \[visible, selected, folder\]\);/);
+  assert.match(inbox,/\}, \[visible, selected, folder, selectionDismissed\]\);/);
+});
+
+test("back to inbox dismissal is not immediately overridden by automatic preview selection",()=>{
+  assert.match(inbox,/const \[selectionDismissed, setSelectionDismissed\] = useState\(false\)/);
+  assert.match(inbox,/folder === "Sent" \|\| selectionDismissed/);
+  assert.match(inbox,/setSelectionDismissed\(true\); setSelected\(null\)/);
 });
 
 test("selected message row exposes explicit selected state",()=>{

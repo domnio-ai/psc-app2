@@ -476,6 +476,21 @@ export type ResearchProject = {
     status: "Pending" | "In Progress" | "Completed";
   }[];
 };
+export type ResearchMilestoneTask = {
+  id: string;
+  assignment_id: string;
+  title: string;
+  status: string;
+  progress: number;
+  due_date: string | null;
+  owner_id: string | null;
+  owner_name: string | null;
+  reviewer_id: string | null;
+  reviewer_name: string | null;
+  assignment_title: string;
+  linked: boolean;
+};
+
 export type ResearchScopeView = "my" | "team" | "reviews";
 
 export type ResearchSource = {
@@ -3013,6 +3028,24 @@ export const api = {
     request(
       `/research/${id}/milestones/${milestoneId}`,
       { method: "PATCH", body: JSON.stringify({ status }) },
+      token,
+    ),
+  researchMilestoneTasks: (token: string, id: string, milestoneId: string) =>
+    request<{ linked: ResearchMilestoneTask[]; available: ResearchMilestoneTask[] }>(
+      `/research/${id}/milestones/${milestoneId}/tasks`,
+      {},
+      token,
+    ),
+  linkResearchMilestoneTask: (token: string, id: string, milestoneId: string, taskId: string) =>
+    request<{ milestoneId: string; taskId: string }>(
+      `/research/${id}/milestones/${milestoneId}/tasks/${taskId}`,
+      { method: "POST" },
+      token,
+    ),
+  unlinkResearchMilestoneTask: (token: string, id: string, milestoneId: string, taskId: string) =>
+    request<void>(
+      `/research/${id}/milestones/${milestoneId}/tasks/${taskId}`,
+      { method: "DELETE" },
       token,
     ),
   researchRepositoryDocuments: (token: string, id: string) =>

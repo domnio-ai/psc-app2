@@ -2134,6 +2134,14 @@ export const api = {
     if(!response.ok)throw new Error(data?.error||"Leave request could not be submitted.");
     return data as LeaveRequest;
   },
+  resubmitLeaveRequest: async (token: string, id: string, input: {leaveTypeCode:string;startDate:string;endDate:string;reason:string}, file?: File) => {
+    const response = await fetch(`${API_URL}/leave/requests/${id}`, file ? {
+      method:"PATCH", headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-File-Mime-Type":file.type||"application/octet-stream","X-Leave-Request":JSON.stringify(input)}, body:file
+    } : {method:"PATCH",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(input)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data?.error||"Returned leave request could not be resubmitted.");
+    return data as LeaveRequest;
+  },
   downloadLeaveAttachment: async (token:string,id:string) => {
     const response=await fetch(`${API_URL}/leave/requests/${id}/attachment`,{headers:{Authorization:`Bearer ${token}`}});
     if(!response.ok)throw new Error("Leave supporting document could not be downloaded.");

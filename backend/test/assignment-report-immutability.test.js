@@ -24,10 +24,13 @@ test('assignment finalisation consumes only the approved immutable snapshot',()=
   assert.match(app,/UPDATE generated_document_versions SET status='Final'/)
 })
 
-test('assignment finalisation serializes task creation and rechecks every active task under row locks',()=>{
+test('assignment finalisation coordinates task creation and rechecks every active task under row locks',()=>{
   const finalise=app.slice(app.indexOf("app.post('/api/assignment-reports/:id/finalize'"),app.indexOf("app.get('/api/research/:id/comments'"))
-  assert.match(finalise,/SELECT id FROM assignments WHERE id=\$1::uuid FOR UPDATE/)
+  const createTask=app.slice(app.indexOf("app.post('/api/assignments/:id/tasks'"),app.indexOf("app.patch('/api/assignments/:id/tasks/:taskId'"))
+  const advisoryLock=/pg_advisory_xact_lock\(hashtextextended\('assignment-task-set:' \|\| \$1::text,0\)\)/
+  assert.match(finalise,advisoryLock)
+  assert.match(createTask,advisoryLock)
   assert.match(finalise,/SELECT id,contribution_status FROM assignment_tasks WHERE assignment_id=\$1::uuid AND archived_at IS NULL ORDER BY id FOR UPDATE/)
   assert.match(finalise,/lockedTasks\.some\(task=>task\.contribution_status!=='Accepted'\)/)
-  assert.ok(finalise.indexOf('FOR UPDATE') < finalise.indexOf('lockedTasks.some'))
+  assert.ok(finalise.indexOf('pg_advisory_xact_lock') < finalise.indexOf('lockedTasks.some'))
 })

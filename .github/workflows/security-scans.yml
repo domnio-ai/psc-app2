@@ -365,7 +365,7 @@ jobs:
         run: |
           $legacy = Get-ChildItem -Path src -Recurse -File | Select-String -Pattern 'REDESY'
           if ($legacy) {
-            $legacy | ForEach-Object { Write-Error "$($_.Path):$($_.LineNumber): legacy product name found" }
+            $legacy | ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): legacy product name found" }
             exit 1
           }
           if (Select-String -Path index.html -Pattern 'REDESY') {

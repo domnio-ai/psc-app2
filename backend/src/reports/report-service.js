@@ -1134,6 +1134,111 @@ async function allDirectoratePerformance(filters, scope) {
     },
   };
 }
+async function leaveUtilisation(filters, scope) {
+  // Leave data follows the same organisation/team/self scope as operational reports.
+  const values = scope.type === "ORGANISATION" ? [] : [scope.userId];
+  const fromIndex = values.length + 1;
+  const toIndex = values.length + 2;
+  values.push(filters.from || null, filters.to || null);
+
+  let where = userScopeSql(scope, "u");
+  if (filters.from) where += " AND lr.end_date >= $" + fromIndex + "::date";
+  if (filters.to) where += " AND lr.start_date <= $" + toIndex + "::date";
+
+  const add = (clause, value) => {
+    values.push(value);
+    where += " AND " + clause.replaceAll("?", "$" + values.length);
+  };
+  if (filters.division) add("u.division=?", filters.division);
+  if (filters.status) add("lr.status=?", filters.status);
+  if (filters.category) {
+    add("(lt.code ILIKE '%'||?||'%' OR lt.name ILIKE '%'||?||'%')", filters.category);
+  }
+  if (filters.search) {
+    add("(u.name ILIKE '%'||?||'%' OR lt.name ILIKE '%'||?||'%' OR lt.code ILIKE '%'||?||'%')", filters.search);
+  }
+
+  // The selected period is intersected with each leave request. Cross-year
+  // requests are allocated only to weekdays inside the selected date range.
+  const periodWeekdays =
+    "(SELECT COUNT(*)::int FROM generate_series(" +
+    "GREATEST(lr.start_date,COALESCE($" + fromIndex + "::date,lr.start_date))," +
+    "LEAST(lr.end_date,COALESCE($" + toIndex + "::date,lr.end_date))," +
+    "INTERVAL '1 day') AS leave_day(day) " +
+    "WHERE EXTRACT(ISODOW FROM leave_day.day)<6)";
+  const baseSql = [
+    "SELECT lr.id,u.name AS employee_name,u.division,u.role AS employee_role,",
+    "lt.code AS leave_type_code,lt.name AS leave_type_name,lr.start_date,lr.end_date,",
+    "lr.status,lr.working_days AS request_working_days,",
+    periodWeekdays + " AS period_working_days,approver.name AS approver_name,",
+    "lr.submitted_at,lr.decided_at,",
+    "(lr.status='Approved' AND CURRENT_DATE BETWEEN lr.start_date AND lr.end_date) AS currently_on_leave",
+    "FROM leave_requests lr",
+    "JOIN users u ON u.id=lr.user_id",
+    "JOIN leave_types lt ON lt.code=lr.leave_type_code",
+    "LEFT JOIN users approver ON approver.id=lr.approver_id",
+    "WHERE " + where
+  ].join(" ");
+
+  const [summary, statuses, leaveTypes, list] = await Promise.all([
+    query(
+      "SELECT COUNT(*)::int total_requests," +
+      "COUNT(*) FILTER(WHERE status='Approved')::int approved_requests," +
+      "COUNT(*) FILTER(WHERE status='Pending')::int pending_requests," +
+      "COUNT(*) FILTER(WHERE status='Returned')::int returned_requests," +
+      "COUNT(*) FILTER(WHERE status='Rejected')::int rejected_requests," +
+      "COUNT(*) FILTER(WHERE status='Cancelled')::int cancelled_requests," +
+      "COALESCE(SUM(period_working_days) FILTER(WHERE status='Approved'),0)::int approved_weekdays," +
+      "COUNT(*) FILTER(WHERE currently_on_leave)::int currently_on_leave " +
+      "FROM (" + baseSql + ") leave_rows",
+      values
+    ),
+    query(
+      "SELECT status label,COUNT(*)::int value FROM (" + baseSql + ") leave_rows " +
+      "GROUP BY status ORDER BY status",
+      values
+    ),
+    query(
+      "SELECT leave_type_name label," +
+      "COALESCE(SUM(period_working_days) FILTER(WHERE status='Approved'),0)::int value " +
+      "FROM (" + baseSql + ") leave_rows GROUP BY leave_type_name " +
+      "ORDER BY value DESC,leave_type_name",
+      values
+    ),
+    paginate(
+      "SELECT * FROM (" + baseSql + ") leave_rows ORDER BY start_date DESC,employee_name ASC",
+      "SELECT COUNT(*) total FROM (" + baseSql + ") leave_rows",
+      values,
+      filters
+    )
+  ]);
+
+  const s = summary.rows[0] || {};
+  return {
+    kpis: [
+      kpi("requests", "Leave requests", Number(s.total_requests || 0)),
+      kpi("approved", "Approved", Number(s.approved_requests || 0), "good"),
+      kpi("pending", "Pending", Number(s.pending_requests || 0), Number(s.pending_requests || 0) ? "warning" : "good"),
+      kpi("returned", "Returned", Number(s.returned_requests || 0)),
+      kpi("approved-weekdays", "Approved weekdays in period", Number(s.approved_weekdays || 0)),
+      kpi("currently-away", "Currently on approved leave", Number(s.currently_on_leave || 0))
+    ],
+    charts: [
+      chart("leave-status", "Leave request status", "donut", statuses.rows, "status"),
+      chart("leave-type", "Approved weekdays by leave type", "bar", leaveTypes.rows, "leave_type_name")
+    ],
+    columns: [
+      "employee_name","division","leave_type_name","start_date","end_date","status",
+      "request_working_days","period_working_days","approver_name","submitted_at","decided_at","currently_on_leave"
+    ],
+    ...list,
+    notices: [
+      "Weekday utilisation counts exclude Saturdays and Sundays. Public holidays are not deducted because a governed public-holiday calendar is not yet available in the leave data model.",
+      "Leave reasons and supporting-document details are intentionally excluded from this management report."
+    ]
+  };
+}
+
 const providers = {
   assignmentStatus: allWorkStatus,
   overdueAgeing: allWorkOverdue,
@@ -1143,6 +1248,7 @@ const providers = {
   researchOutputs,
   documentActivity,
   felixUsage,
+  leaveUtilisation,
 };
 export async function reportCatalogue(user) {
   const permissions = reportPermissions(user);

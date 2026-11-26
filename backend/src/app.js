@@ -106,7 +106,7 @@ const syncResearchMilestonesFromTasks=async(client,assignmentId,userId)=>{
         WHERE mt.milestone_id=m.id
           AND t.assignment_id=$1
           AND t.archived_at IS NULL
-          AND t.status IN('In Progress','Completed')
+          AND t.status IN('In Progress','Blocked','Completed')
       )
     RETURNING m.id,m.project_id,m.title,m.owner_id`,[assignmentId])).rows
   for(const milestone of milestones){

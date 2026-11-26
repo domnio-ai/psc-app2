@@ -4,6 +4,7 @@ export const createAuthRateLimiter = ({
   windowMs = 15 * 60 * 1000,
   maxIpAttempts = 60,
   maxIdentityAttempts = 5,
+  errorMessage = 'Too many authentication requests. Wait before trying again.',
   now = Date.now,
 } = {}) => {
   const buckets = new Map()
@@ -37,7 +38,7 @@ export const createAuthRateLimiter = ({
       const retryAfterSeconds = Math.max(...blocked.map(check => check.retryAfterSeconds))
       res.setHeader('Retry-After', String(retryAfterSeconds))
       return res.status(429).json({
-        error: 'Too many password recovery requests. Wait before trying again.',
+        error: errorMessage,
       })
     }
 

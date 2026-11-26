@@ -27,7 +27,7 @@ test('production migration envelope is removed only when balanced at file bounda
 
 test('production migration runner explicitly loads and executes the verified baseline', async () => {
   const runner = await readFile(new URL('../src/migrate-production.js', import.meta.url), 'utf8')
-  assert.match(runner, /const \\{ baselineSql, migrations \\} = await loadProductionMigrationPlan\\(\\)/)
-  assert.match(runner, /await client\\.query\\(baselineSql\\)/)
-  assert.match(runner, /baseline\\.sha256/)
+  assert.match(runner, /const \{ baselineSql, migrations \} = await loadProductionMigrationPlan\(\)/)
+  assert.match(runner, /await client\.query\(baselineSql\)/)
+  assert.match(runner, /baseline\.sha256/)
 })

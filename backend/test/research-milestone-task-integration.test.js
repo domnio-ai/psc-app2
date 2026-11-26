@@ -46,6 +46,15 @@ test('milestone sign-off requires governed task completion and does not bypass f
   assert.match(app,/RESEARCH_MILESTONE_STATUS_SYNCHRONIZED/)
 })
 
+test('milestone metadata can be edited through the governed API and interface',()=>{
+  assert.match(app,/api\/research\/:id\/milestones\/:milestoneId\/details/)
+  assert.match(app,/RESEARCH_MILESTONE_DETAILS_UPDATED/)
+  assert.match(frontend,/api\.updateResearchMilestoneDetails/)
+  assert.match(frontend,/Edit details/)
+  assert.match(frontend,/Save milestone changes/)
+  assert.match(api,/updateResearchMilestoneDetails:/)
+})
+
 test('research reporting includes milestone and linked-task delivery totals',()=>{
   assert.match(reports,/milestone_count/)
   assert.match(reports,/completed_milestones/)

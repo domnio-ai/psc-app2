@@ -102,7 +102,7 @@ export default function TargetManagement({token,data,onOpen}:{token:string;data:
         purpose:'management-targets',
       },false)
       setEditing(false)
-      setMessage('Management targets saved to your governed REDESY report profile.')
+      setMessage('Management targets saved to your governed APP2 report profile.')
     }catch(value){setMessage(value instanceof Error?value.message:'Management targets could not be saved.')}
     finally{setSaving(false)}
   }
@@ -110,7 +110,7 @@ export default function TargetManagement({token,data,onOpen}:{token:string;data:
   if(!loaded)return <section className="target-management target-loading"><p>Loading management targets…</p></section>
   return <section className="target-management">
     <header className="target-management-header">
-      <div><small>EXECUTIVE BENCHMARKING & TARGET MANAGEMENT</small><h3>Actual performance against declared management targets</h3><p>Targets are user-specific management controls stored through REDESY’s governed saved-report mechanism. They are not staff scores.</p></div>
+      <div><small>EXECUTIVE BENCHMARKING & TARGET MANAGEMENT</small><h3>Actual performance against declared management targets</h3><p>Targets are user-specific management controls stored through APP2’s governed saved-report mechanism. They are not staff scores.</p></div>
       <button type="button" onClick={()=>setEditing(value=>!value)}>{editing?'Cancel editing':'Edit targets'}</button>
     </header>
     {editing&&<div className="target-editor">

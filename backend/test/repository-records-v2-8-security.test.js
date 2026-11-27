@@ -57,6 +57,6 @@ test('protection workspace stays concise and security CSS protects print output'
   assert.match(workspace,/Protection details/)
   assert.match(workspace,/Download blocked/)
   assert.match(css,/@media print/)
-  assert.match(css,/Printing is disabled for this protected REDESY record/)
+  assert.match(css,/Printing is disabled for this protected APP2 record/)
   assert.match(css,/repository-secure-reader-watermark/)
 })

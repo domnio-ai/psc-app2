@@ -45,7 +45,7 @@ test('assignment creation names one accountable lead and opens the created overv
 
 test('assignment creation honours the management hierarchy and validates active members',()=>{
   assert.match(backend,/authorize\('System Admin','Director','Deputy Director','Deputy Director','Assistant Director'\)/)
-  assert.match(backend,/Choose only active REDESY users for the assignment team\./)
+  assert.match(backend,/Choose only active APP2 users for the assignment team\./)
   assert.match(backend,/id===leadId\?'Lead':'Contributor'/)
   assert.match(backend,/directAssignment:memberIds\.length===0/)
 })

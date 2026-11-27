@@ -73,7 +73,7 @@ export default function ReportPdfStudio({
         <div>
           <small>REPORTS · PDF STUDIO</small>
           <h2 id="report-pdf-studio-title">Customize and print a report</h2>
-          <p>Choose the report, reporting filters and document style. REDESY applies your current authorised data scope when it generates the PDF.</p>
+          <p>Choose the report, reporting filters and document style. APP2 applies your current authorised data scope when it generates the PDF.</p>
         </div>
         <span className="report-pdf-studio-badge">PDF export</span>
       </header>
@@ -117,7 +117,7 @@ export default function ReportPdfStudio({
           <section className="report-pdf-studio-card report-pdf-content-list">
             <header><small>INCLUDED IN THIS PDF</small><h3>{details.title}</h3></header>
             <ul>{details.contents.map((item) => <li key={item}>{item}</li>)}</ul>
-            {profile === "institutional-detailed" && <p>Complete selected-report appendices are limited to 25,000 records per export. REDESY will ask you to narrow the filters if the report exceeds that limit.</p>}
+            {profile === "institutional-detailed" && <p>Complete selected-report appendices are limited to 25,000 records per export. APP2 will ask you to narrow the filters if the report exceeds that limit.</p>}
           </section>
         </div>
 
@@ -141,7 +141,7 @@ export default function ReportPdfStudio({
             <button type="button" disabled={!selected || exporting} onClick={() => onExport({ profile, title: documentTitle.trim(), paperSize })}>
               {exporting ? "Preparing PDF…" : "Generate and download PDF"}
             </button>
-            <p>Your PDF uses the same backend-authorised records as REDESY Reports. The document will be downloaded for printing or sharing under your normal document controls.</p>
+            <p>Your PDF uses the same backend-authorised records as APP2 Reports. The document will be downloaded for printing or sharing under your normal document controls.</p>
             {exportMessage && <div role="status">{exportMessage}</div>}
           </div>
         </aside>

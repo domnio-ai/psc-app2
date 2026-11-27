@@ -297,8 +297,8 @@ export default function ResearchWorkPlanPanel({
             <small>EXTERNAL REPORT</small>
             <h3>Import completed external research instead</h3>
             <p>
-              Use this only when the research work was completed outside REDESY and a report already exists.
-              REDESY will still require formal review before publication.
+              Use this only when the research work was completed outside APP2 and a report already exists.
+              APP2 will still require formal review before publication.
             </p>
           </div>
           <button type="button" className="research-import-action" onClick={onImportExternal}>

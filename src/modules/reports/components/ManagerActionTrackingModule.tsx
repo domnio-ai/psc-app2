@@ -86,7 +86,7 @@ export default function ManagerActionTrackingModule({token,data,onOpen}:{token:s
     const now=new Date().toISOString()
     const entry:ActionEntry={id:`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,recordKey:selectedKey,recordId:text(selected.id),recordType:text(selected.type)||'Assignment',title:text(selected.title)||'Untitled record',action,note:note.trim(),reviewDate:reviewDate||'',createdAt:now,resolved:action==='Management resolved'}
     const next=[entry,...actions].slice(0,250)
-    await persist(next,'Management action recorded in your governed REDESY report profile.')
+    await persist(next,'Management action recorded in your governed APP2 report profile.')
     setNote('');setReviewDate('')
   }
   const markResolved=async(id:string)=>{
@@ -96,7 +96,7 @@ export default function ManagerActionTrackingModule({token,data,onOpen}:{token:s
 
   if(!loaded)return <section className="manager-action-tracking"><p>Loading manager action history…</p></section>
   return <section className="manager-action-tracking">
-    <header><div><small>V19 MANAGER ACTION TRACKING</small><h3>Record and follow management interventions</h3><p>Actions are attached to authorised attention records and persisted through REDESY’s governed saved-report mechanism. They do not alter the underlying assignment or research workflow.</p></div><strong>{openActions}<small>open actions</small></strong></header>
+    <header><div><small>V19 MANAGER ACTION TRACKING</small><h3>Record and follow management interventions</h3><p>Actions are attached to authorised attention records and persisted through APP2’s governed saved-report mechanism. They do not alter the underlying assignment or research workflow.</p></div><strong>{openActions}<small>open actions</small></strong></header>
     <div className="manager-action-layout">
       <form className="manager-action-form" onSubmit={event=>{event.preventDefault();void addAction()}}>
         <label>Attention item<select value={selectedKey} onChange={event=>setSelectedKey(event.target.value)}>{records.map(row=><option key={recordKey(row)} value={recordKey(row)}>{text(row.title)||'Untitled'} · {text(row.status)||'No status'}</option>)}</select></label>
@@ -109,6 +109,6 @@ export default function ManagerActionTrackingModule({token,data,onOpen}:{token:s
       </form>
       <div className="manager-action-history"><header><div><small>ACTION HISTORY</small><h4>Recent interventions</h4></div><b>{actions.length} recorded</b></header>{recent.map(item=><article key={item.id} className={item.resolved?'resolved':''}><div><span><strong>{item.action}</strong>{item.resolved&&<em>Resolved</em>}</span><h5>{item.title}</h5><p>{item.note}</p><small>{item.recordType} · {new Date(item.createdAt).toLocaleString('en-KE')}{item.reviewDate?` · review ${new Date(`${item.reviewDate}T00:00:00`).toLocaleDateString('en-KE')}`:''}</small></div>{!item.resolved&&<button type="button" disabled={saving} onClick={()=>void markResolved(item.id)}>Mark resolved</button>}</article>)}{!recent.length&&<p>No management actions recorded yet.</p>}</div>
     </div>
-    <footer><strong>Governance:</strong> V19 records management follow-up context only. “Management resolved” closes the action-log item; it does not change the source record’s REDESY workflow status, reviewer authority, ownership or RBAC.</footer>
+    <footer><strong>Governance:</strong> V19 records management follow-up context only. “Management resolved” closes the action-log item; it does not change the source record’s APP2 workflow status, reviewer authority, ownership or RBAC.</footer>
   </section>
 }

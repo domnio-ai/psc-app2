@@ -147,7 +147,7 @@ export default function ResearchReviewHandoffPanel({
           <small>AFTER APPROVAL</small>
           <strong>Generate the controlled final report</strong>
           <span>
-            The authorised approver generates the final controlled copy. REDESY then publishes it to Documents and completes the research project.
+            The authorised approver generates the final controlled copy. APP2 then publishes it to Documents and completes the research project.
           </span>
         </article>
       </div>
@@ -239,7 +239,7 @@ export default function ResearchReviewHandoffPanel({
                 !eligibleReviewersLoading &&
                 eligibleReviewers.length > 0 && (
                   <small>
-                    No reviewer is assigned yet. Select an eligible reviewer here; REDESY will formally assign that reviewer when the report is submitted.
+                    No reviewer is assigned yet. Select an eligible reviewer here; APP2 will formally assign that reviewer when the report is submitted.
                   </small>
                 )}
 

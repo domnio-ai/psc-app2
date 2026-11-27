@@ -30,7 +30,7 @@ export default function InternalEmailComposer({token,open,onClose,onSent}:Props)
 
   const send=async(event:React.FormEvent)=>{
     event.preventDefault();
-    if(!selected.length)return setMessage("Choose at least one REDESY recipient.");
+    if(!selected.length)return setMessage("Choose at least one APP2 recipient.");
     if(!subject.trim())return setMessage("Enter an email subject.");
     if(!body.trim())return setMessage("Enter an email message.");
     setSending(true);setMessage("");
@@ -46,7 +46,7 @@ export default function InternalEmailComposer({token,open,onClose,onSent}:Props)
   if(!open)return null;
   return <div className="internal-email-backdrop" role="presentation" onMouseDown={onClose}>
     <form className="internal-email-composer" onSubmit={send} onMouseDown={event=>event.stopPropagation()}>
-      <header><div><p>REDESY EMAIL</p><h3>Compose email</h3><span>Send to active REDESY users through the institutional email service.</span></div>
+      <header><div><p>APP2 EMAIL</p><h3>Compose email</h3><span>Send to active APP2 users through the institutional email service.</span></div>
         <button type="button" onClick={onClose} aria-label="Close email composer">×</button></header>
       <div className="internal-email-scroll-area">
         <label><span>Recipients</span><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search name, role, division or email"/></label>
@@ -56,7 +56,7 @@ export default function InternalEmailComposer({token,open,onClose,onSent}:Props)
             <input type="checkbox" checked={selected.includes(recipient.id)} onChange={()=>toggle(recipient.id)}/>
             <span><strong>{recipient.name}</strong><small>{recipient.email} · {recipient.role} · {recipient.division}</small></span>
           </label>)}
-          {!loading&&!visible.length&&<p>No matching REDESY users.</p>}
+          {!loading&&!visible.length&&<p>No matching APP2 users.</p>}
         </div>
         <div className="internal-email-selected">{selected.length} selected</div>
         <label><span>Subject</span><input maxLength={240} value={subject} onChange={event=>setSubject(event.target.value)}/></label>

@@ -369,7 +369,7 @@ export const savePrivateDraftRepositoryVersion = async ({
         mimeType,
         bytes.length,
         sha256,
-        "Automatic private draft snapshot from REDESY Save.",
+        "Automatic private draft snapshot from APP2 Save.",
       ],
     );
 

@@ -21,6 +21,6 @@ export default function DataQualityReadiness({data}:{data:InstitutionalIntellige
     <header><div><small>DATA QUALITY & REPORT READINESS</small><h3>Check whether records are ready to inform decisions</h3><p>Checks use the full authorised assignment and research scope for the selected reporting period.</p></div><b>{data.scope.type.replaceAll('_',' ')}</b></header>
     <div className="management-analysis-checks">{items.map(item=><article key={item.label} className={item.value?'needs-attention':'clear'}><span>{item.label}</span><strong>{item.value}</strong><small>of {item.basis} records</small></article>)}</div>
     <aside><strong>How to read this:</strong> These checks identify missing or stale fields; they do not certify the validity, reliability, or completeness of the underlying evidence. Counts can overlap.</aside>
-    <footer>REDESY does not currently capture structured beneficiary/geographic disaggregation or budget/staff-time expenditure in this reporting dataset. Equity and resource-to-results analysis would need those governed data fields.</footer>
+    <footer>APP2 does not currently capture structured beneficiary/geographic disaggregation or budget/staff-time expenditure in this reporting dataset. Equity and resource-to-results analysis would need those governed data fields.</footer>
   </section>
 }

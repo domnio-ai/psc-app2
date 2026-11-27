@@ -102,7 +102,7 @@ export default function ReviewsApprovalsWorkspace({
     <section className="reviews-workspace">
       <header className="reviews-workspace-head compact">
         <div className="reviews-control-title">
-          <small>REDESY · DECISION WORKSPACE</small>
+          <small>APP2 · DECISION WORKSPACE</small>
           <h2>Reviews &amp; approvals</h2>
           <p>Move open decisions forward and keep a complete record of the work you have reviewed.</p>
         </div>

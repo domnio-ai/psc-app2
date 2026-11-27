@@ -9,7 +9,7 @@ export type FelixOperation =
 
 export const FELIX_STATUS_TEXT: Record<FelixVisualState, string> = {
   idle: 'Felix is available', thinking: 'Felix is preparing the response…',
-  searching: 'Felix is searching REDESY…', reading: 'Felix is reading the document…',
+  searching: 'Felix is searching APP2…', reading: 'Felix is reading the document…',
   auditing: 'Felix is auditing this document…', found_issue: 'Felix found a possible gap.',
   suggesting: 'Felix has a suggestion.', success: 'Felix completed the request.',
   insufficient_evidence: 'The available evidence is insufficient.',

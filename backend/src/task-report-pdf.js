@@ -536,7 +536,7 @@ export const buildPscTaskFinalPdf = async (title, metadata = {}, sections = [], 
     pdf.strokeColor(DIVIDER).lineWidth(0.6).moveTo(PAGE_MARGIN, footerY - 7)
       .lineTo(pdf.page.width - PAGE_MARGIN, footerY - 7).stroke();
     pdf.font("TNR").fontSize(8).fillColor(MUTED)
-      .text("Public Service Commission · REDESY controlled publication", PAGE_MARGIN, footerY, {
+      .text("Public Service Commission · APP2 controlled publication", PAGE_MARGIN, footerY, {
         width: 330,
         lineBreak: false,
       });

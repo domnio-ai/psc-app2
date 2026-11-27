@@ -90,9 +90,9 @@ export default function DashboardCommandPalette({
     </span>
   </span>
   {open&&<div className="pulse-command-backdrop" role="presentation" onMouseDown={event=>{if(event.currentTarget===event.target)close()}}>
-    <section className="pulse-command-palette" role="dialog" aria-modal="true" aria-label="REDESY universal navigation">
+    <section className="pulse-command-palette" role="dialog" aria-modal="true" aria-label="APP2 universal navigation">
       <header>
-        <div><strong>Jump anywhere in REDESY</strong><span>Search authorised workspaces and visible work.</span></div>
+        <div><strong>Jump anywhere in APP2</strong><span>Search authorised workspaces and visible work.</span></div>
         <button type="button" onClick={close} aria-label="Close command palette">×</button>
       </header>
       <label className="pulse-command-search">

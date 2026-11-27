@@ -47,7 +47,7 @@ export default function ContributionTimelineModule({token,people,contributions,o
       title:text(row.work_title)||'Untitled work',
       role:text(row.contribution_role)||'Contributor',
       status:text(row.status)||'Status unavailable',
-      summary:text(row.evidence)||'Recorded REDESY contribution evidence',
+      summary:text(row.evidence)||'Recorded APP2 contribution evidence',
       evidence:[row],
       context:false
     }))

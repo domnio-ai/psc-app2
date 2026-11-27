@@ -111,7 +111,7 @@ export async function processFelixIndexJob(){
       return true
     }
     const user=await indexingUser(job.requested_by)
-    if(!user)throw new Error('No active authorized REDESY account is available for Felix indexing.')
+    if(!user)throw new Error('No active authorized APP2 account is available for Felix indexing.')
     const controller=new AbortController()
     const timeout=setTimeout(()=>controller.abort(new Error('Felix indexing request timed out.')),config.felixIndexTimeoutMs)
     let response

@@ -75,7 +75,7 @@ export default function ResearchCreationWizard({
           Back
         </button>
         <div>
-          <p>REDESY RESEARCH WORKSPACE</p>
+          <p>APP2 RESEARCH WORKSPACE</p>
           <h1 id="research-wizard-title">Create a research project</h1>
           <span>
             Define the mandate, appoint the team and confirm the delivery

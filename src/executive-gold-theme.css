@@ -12,7 +12,7 @@ html[data-theme="executive-gold"]{
   --text-muted:#746B5D;
   --border-default:#C7AF79;
   --border-strong:#A98845;
-  --sidebar-background:#C5A24D;
+  --sidebar-background:#FBF8F1;
   --header-background:#FFF9EC;
   --input-background:#FFFDF7;
   --input-border:#B79A5C;
@@ -61,14 +61,14 @@ html[data-theme="executive-gold"]{
   --surface-2:var(--surface-secondary);
   --border-subtle:var(--border-default);
   --muted-text:var(--text-secondary);
-  --sidebar-control-bg:#F9EFD2;
-  --sidebar-control-border:#A77A27;
-  --sidebar-text:#35270E;
-  --sidebar-muted:#5E4A23;
-  --interaction-hover-bg:#E2CA84;
-  --interaction-hover-border:#A8741A;
+  --sidebar-control-bg:#FFFDF8;
+  --sidebar-control-border:#E6DCC7;
+  --sidebar-text:#2A2824;
+  --sidebar-muted:#746B5D;
+  --interaction-hover-bg:#F5EBD2;
+  --interaction-hover-border:#D9C18E;
   --interaction-hover-text:#35270E;
-  --interaction-active-bg:#D4B65D;
+  --interaction-active-bg:#EFE1BE;
   --interaction-focus:#9A6B16;
 }
 

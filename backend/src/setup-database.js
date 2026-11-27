@@ -22,4 +22,4 @@ await transaction(async client=>{
   }
   if(!(await client.query('SELECT 1 FROM alerts LIMIT 1')).rowCount)await client.query("INSERT INTO alerts(title,body,severity,created_by,expires_at) VALUES('Quarterly research review','Quarterly research review meeting is scheduled for 6 August 2026.','Important',$1,NOW()+INTERVAL '30 days')",[manager.id])
 })
-console.log('PSC REDESY database is ready.');await db.end()
+console.log('PSC APP2 database is ready.');await db.end()

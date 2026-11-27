@@ -9,7 +9,7 @@ const read=rel=>fs.readFileSync(path.join(root,rel),'utf8')
 test('Meetings V2.1 disables public Jitsi fallback',()=>{
   const source=read('backend/src/meetings/live-conference.js')
   assert.doesNotMatch(source,/APP2_CONFERENCE_URL\|\|'https:\/\/meet\.jit\.si'/)
-  assert.match(source,/Public meet\.jit\.si is disabled for REDESY/)
+  assert.match(source,/Public meet\.jit\.si is disabled for APP2/)
   assert.match(source,/requireConferenceConfig/)
   assert.match(source,/provider:'jitsi-self-hosted'/)
 })

@@ -19,7 +19,7 @@ export default function ResearchSourceChoiceModal({ onClose, onInternal, onExter
             <small>NEW RESEARCH</small>
             <h2 id="research-source-choice-title">How will this research be produced?</h2>
             <p>
-              Choose this before REDESY creates a workspace so external research is not given unnecessary assignments.
+              Choose this before APP2 creates a workspace so external research is not given unnecessary assignments.
             </p>
           </div>
           <button type="button" aria-label="Close" onClick={onClose}>×</button>
@@ -30,7 +30,7 @@ export default function ResearchSourceChoiceModal({ onClose, onInternal, onExter
             <span className="research-source-option-icon" aria-hidden="true">I</span>
             <span>
               <strong>Internal research</strong>
-              <small>Research will be planned and carried out inside REDESY.</small>
+              <small>Research will be planned and carried out inside APP2.</small>
               <em>Creates a research workspace with linked assignments, resources, report drafting and review.</em>
             </span>
             <b aria-hidden="true">→</b>
@@ -40,7 +40,7 @@ export default function ResearchSourceChoiceModal({ onClose, onInternal, onExter
             <span className="research-source-option-icon" aria-hidden="true">E</span>
             <span>
               <strong>External research</strong>
-              <small>A completed or substantially completed report already exists outside REDESY.</small>
+              <small>A completed or substantially completed report already exists outside APP2.</small>
               <em>Skips assignment creation. Import the report, select a reviewer and send it directly through controlled review.</em>
             </span>
             <b aria-hidden="true">→</b>

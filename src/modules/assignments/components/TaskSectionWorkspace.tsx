@@ -710,7 +710,7 @@ export default function TaskSectionWorkspace(props: Props) {
           .join("");
       } else if (extension === "docx") {
         throw new Error(
-          "Convert this DOCX to PDF or Word 97–2003 (.doc), then import it. REDESY preserves those formats as editable content.",
+          "Convert this DOCX to PDF or Word 97–2003 (.doc), then import it. APP2 preserves those formats as editable content.",
         );
       } else {
         throw new Error("Use PDF, Word .doc, HTML, text or Markdown.");

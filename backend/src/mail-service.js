@@ -36,7 +36,7 @@ export const createMailService = (smtp, createTransport) => {
         subject,
         text,
         attachments,
-        html: html || `<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC REDESY</h2><p>${String(text ?? "").replace(/[&<>]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character])}</p><hr><small>Public Service Commission Research Department</small></div>`,
+        html: html || `<div style="font-family:Arial,sans-serif;max-width:640px"><h2 style="color:#8a6a00">PSC APP2</h2><p>${String(text ?? "").replace(/[&<>]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[character])}</p><hr><small>Public Service Commission Research Department</small></div>`,
       });
       return { messageId: info.messageId, accepted: info.accepted };
     } catch {

@@ -166,9 +166,9 @@ const downloadOfflineWorkPack = (
   existingDraft: Array<[string, string | null | undefined]> = [],
 ) => {
   const lines: OfflineRtfLine[] = [
-    { text: "REDESY OFFLINE TASK WORK PACK", bold: true, size: 30 },
+    { text: "APP2 OFFLINE TASK WORK PACK", bold: true, size: 30 },
     { text: heading, bold: true, size: 26 },
-    { text: "Working copy generated from the task record in REDESY. This file does not submit a report, approve work, or mark a task complete." },
+    { text: "Working copy generated from the task record in APP2. This file does not submit a report, approve work, or mark a task complete." },
     { text: authorizationNote, bold: true },
     { text: "TASK DETAILS", bold: true, size: 24 },
     ...fields.map(([label, value]) => ({ text: `${label}: ${String(value || "Not specified")}` })),
@@ -189,10 +189,10 @@ const downloadOfflineWorkPack = (
     { text: "________________________________________________________________________________" },
     { text: "Prepared by / date", bold: true },
     { text: "________________________________________________________________________________" },
-    { text: "RETURN TO REDESY", bold: true, size: 24 },
-    { text: "When finished, return to REDESY and enter or paste the completed work into the Task Report, attach any required evidence, and submit it through the existing reviewer workflow. The offline file is not the official submitted version; review, approval, and Repository publication remain governed by REDESY." },
+    { text: "RETURN TO APP2", bold: true, size: 24 },
+    { text: "When finished, return to APP2 and enter or paste the completed work into the Task Report, attach any required evidence, and submit it through the existing reviewer workflow. The offline file is not the official submitted version; review, approval, and Repository publication remain governed by APP2." },
   ];
-  const rtf = String.raw`{\rtf1\ansi\deff0{\fonttbl{\f0 Aptos;}}\viewkind4\uc1\f0\fs22 ${lines.map((line) => `\pard\sa120\fs${line.size || 22}${line.bold ? "\b " : " "}${rtfEscape(line.text)}${line.bold ? "\b0" : ""}\par`).join(" ")}\pard\sa120\fs18\i Generated from REDESY\i0\par}`;
+  const rtf = String.raw`{\rtf1\ansi\deff0{\fonttbl{\f0 Aptos;}}\viewkind4\uc1\f0\fs22 ${lines.map((line) => `\pard\sa120\fs${line.size || 22}${line.bold ? "\b " : " "}${rtfEscape(line.text)}${line.bold ? "\b0" : ""}\par`).join(" ")}\pard\sa120\fs18\i Generated from APP2\i0\par}`;
   const blob = new Blob([rtf], { type: "application/rtf;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -206,9 +206,9 @@ const downloadOfflineWorkPack = (
 
 const downloadTaskRequestPack = (request: ApiAssignmentTaskRequest) => {
   const authorizationNote = request.status === "Pending"
-    ? "AUTHORIZATION: This request is still pending supervisor approval. Do not commence the task until it is approved and an active Task is available in REDESY."
+    ? "AUTHORIZATION: This request is still pending supervisor approval. Do not commence the task until it is approved and an active Task is available in APP2."
     : request.status === "Approved"
-      ? "AUTHORIZATION: This request has been approved. Use this file only as an external working copy and return the completed work to the active Task Report in REDESY."
+      ? "AUTHORIZATION: This request has been approved. Use this file only as an external working copy and return the completed work to the active Task Report in APP2."
       : `REFERENCE ONLY: The request status is ${request.status}. Do not treat this document as authorization to begin work.`;
   downloadOfflineWorkPack(`App2_Task_Request_${request.title}`, `TASK REQUEST: ${request.title}`, [
     ["Request ID", request.id],
@@ -250,7 +250,7 @@ const downloadTaskPack = (task: ApiAssignmentTask) => downloadOfflineWorkPack(
     ["Evidence required", task.evidence_required],
     ["Assignment section", task.assignment_section_title],
   ],
-  "AUTHORIZATION: This is an active Task record visible to your current REDESY account. Complete work externally only in line with the task instructions and deadline.",
+  "AUTHORIZATION: This is an active Task record visible to your current APP2 account. Complete work externally only in line with the task instructions and deadline.",
   [
     ["Full report body / blank-mode content", offlineDraftText(task.blank_content || task.contribution_report_html)],
     ["Contribution title", task.contribution_title],
@@ -1324,7 +1324,7 @@ export default function TasksWorkspaceEntry({
                   ))}
                 </select>
                 <small>
-                  Automatic uses the Assignment Lead unless the lead owns the task; then REDESY uses the immediate authorised supervisor.
+                  Automatic uses the Assignment Lead unless the lead owns the task; then APP2 uses the immediate authorised supervisor.
                 </small>
               </label>
 

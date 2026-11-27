@@ -8,7 +8,7 @@ export default function ForecastScenarioAnalytics({data}:{data:InstitutionalInte
       <div>
         <small>EXECUTIVE SCENARIO ANALYTICS</small>
         <h3>What changes under transparent management assumptions?</h3>
-        <p>Planning scenarios use deterministic arithmetic on the current authorised REDESY evidence base. They do not claim statistical prediction.</p>
+        <p>Planning scenarios use deterministic arithmetic on the current authorised APP2 evidence base. They do not claim statistical prediction.</p>
       </div>
       <span><small>Responsible team</small><strong>{forecast.responsibleTeam}</strong></span>
     </header>

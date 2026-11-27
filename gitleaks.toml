@@ -10,3 +10,16 @@ regexTarget = "line"
 regexes = [
   '''API routes, SQL/Pydantic models'''
 ]
+
+
+[[allowlists]]
+description = "APP2 guard snapshots store SHA-256 file fingerprints, not credentials"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "secret"
+regexes = [
+  '''(?i)^[a-f0-9]{64}$'''
+]
+paths = [
+  '''^\.app2-guard/(baseline\.json|checkpoints/.+/baseline\.json|patch-sessions/.+/before-hashes\.json)$'''
+]

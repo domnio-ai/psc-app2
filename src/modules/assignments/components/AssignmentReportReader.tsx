@@ -190,7 +190,7 @@ export default function AssignmentReportReader({ token, document, assignmentTitl
                   <div><dt>Last updated</dt><dd>{new Date(document.updated_at).toLocaleString("en-KE", { dateStyle: "medium", timeStyle: "short" })}</dd></div>
                 </dl>
               </section>
-              <footer>Public Service Commission · REDESY controlled publication</footer>
+              <footer>Public Service Commission · APP2 controlled publication</footer>
             </section>
             {document.sections.map((section) => (
               <section key={section.id}>

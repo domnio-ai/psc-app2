@@ -77,7 +77,7 @@ export default function AssignmentEditorModal({
         {isExternalNew && (
           <div className="session-message" role="note">
             <strong>External completed work:</strong> Add the completed report and choose its reviewer
-            here. REDESY will create no members or tasks, submit the exact uploaded file for review,
+            here. APP2 will create no members or tasks, submit the exact uploaded file for review,
             and open it in the read-only report reader.
           </div>
         )}

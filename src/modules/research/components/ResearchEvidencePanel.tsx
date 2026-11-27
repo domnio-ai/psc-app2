@@ -89,7 +89,7 @@ export default function ResearchEvidencePanel({
           <div className="research-evidence-guide-cards" aria-label="What counts as research evidence">
             <article>
               <strong>Repository document</strong>
-              <span>Use when the supporting document is already published in REDESY.</span>
+              <span>Use when the supporting document is already published in APP2.</span>
             </article>
             <article>
               <strong>Published source</strong>
@@ -101,16 +101,16 @@ export default function ResearchEvidencePanel({
             </article>
           </div>
           <p className="research-evidence-start-hint">
-            <b>Start here:</b> If the source already exists in the REDESY Repository, link it below.
+            <b>Start here:</b> If the source already exists in the APP2 Repository, link it below.
             Otherwise record it under <b>Other research sources</b>.
           </p>
         </div>
 
         <header className="research-sources-head">
           <div>
-            <small>OPTION 1 · REDESY REPOSITORY</small>
+            <small>OPTION 1 · APP2 REPOSITORY</small>
             <h3>Link an existing Repository document</h3>
-            <p>Choose this when the evidence already exists in REDESY. Linking does not copy, move or change the original Repository document.</p>
+            <p>Choose this when the evidence already exists in APP2. Linking does not copy, move or change the original Repository document.</p>
           </div>
           <strong>{researchRepositoryDocuments.length} linked</strong>
         </header>
@@ -170,7 +170,7 @@ export default function ResearchEvidencePanel({
               </div>
             </article>;
           })}
-          {!researchRepositoryDocuments.length && <p>No Repository evidence is linked yet. If a relevant published document already exists in REDESY, select it above and link it to this research.</p>}
+          {!researchRepositoryDocuments.length && <p>No Repository evidence is linked yet. If a relevant published document already exists in APP2, select it above and link it to this research.</p>}
         </div>
       </section>
 
@@ -180,7 +180,7 @@ export default function ResearchEvidencePanel({
             <small>OPTION 2 · OTHER SOURCES</small>
             <h3>Record another research source</h3>
             <p>
-              Use this for evidence that is not already a published REDESY Repository document, such as journal articles, datasets, interviews, websites or field evidence.
+              Use this for evidence that is not already a published APP2 Repository document, such as journal articles, datasets, interviews, websites or field evidence.
             </p>
           </div>
           <strong>{researchSources.length} sources</strong>
@@ -637,7 +637,7 @@ export default function ResearchEvidencePanel({
             <div className="research-evidence-empty">
               <strong>No other research sources recorded yet</strong>
               <p>
-                Add the first source when the evidence is not already available as a published REDESY Repository document.
+                Add the first source when the evidence is not already available as a published APP2 Repository document.
               </p>
             </div>
           )}

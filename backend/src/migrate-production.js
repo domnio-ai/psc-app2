@@ -42,7 +42,7 @@ async function applyProductionMigrations() {
         WHERE n.nspname = 'public' AND c.relkind IN ('r','p','v','m','S','f')
       `)
       if (objects.rows[0].count !== 0) {
-        throw new Error('Database is not empty and has no REDESY migration ledger; refusing to modify it.')
+        throw new Error('Database is not empty and has no APP2 migration ledger; refusing to modify it.')
       }
 
       await client.query('BEGIN')

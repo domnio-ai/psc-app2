@@ -347,7 +347,7 @@ export default function AIResearchChat({
       role: 'assistant',
       text:
         'Hello, I am Felix, your PSC AI Research Assistant. ' +
-        'Ask me about REDESY, approved documents, assignments, research or institutional knowledge.',
+        'Ask me about APP2, approved documents, assignments, research or institutional knowledge.',
     },
   ])
 
@@ -419,7 +419,7 @@ export default function AIResearchChat({
       `Review the approved document "${reviewRequest.title}". ` +
         'Summarize its key points, identify risks or gaps, ' +
         'and recommend follow-up actions. ' +
-        'Use only approved REDESY evidence and cite the document.'
+        'Use only approved APP2 evidence and cite the document.'
     )
 
     window.requestAnimationFrame(
@@ -530,7 +530,7 @@ export default function AIResearchChat({
 
         mode:
           response.mode === 'APP2_OPERATION'
-            ? 'REDESY Data'
+            ? 'APP2 Data'
             : response.mode === 'KNOWLEDGE_SEARCH'
               ? 'Knowledge Repository'
               : response.mode === 'REASONING'
@@ -880,8 +880,8 @@ export default function AIResearchChat({
                 Research
               </option>
 
-              <option>
-                REDESY Expert
+              <option value="App2 Expert">
+                APP2 Expert
               </option>
 
               <option>
@@ -900,13 +900,13 @@ export default function AIResearchChat({
 
                 : mode ===
                   'App2 Expert'
-                  ? 'Live REDESY technical and repository evidence'
+                  ? 'Live APP2 technical and repository evidence'
 
                   : mode ===
                     'Research'
-                    ? 'Offline retrieval from approved REDESY documents with citations'
+                    ? 'Offline retrieval from approved APP2 documents with citations'
 
-                    : 'Felix selects a local REDESY workflow without internet access'
+                    : 'Felix selects a local APP2 workflow without internet access'
             }
           </small>
 
@@ -1251,15 +1251,15 @@ export default function AIResearchChat({
             placeholder={
               mode ===
               'Code Review'
-                ? 'Describe the controlled REDESY review...'
+                ? 'Describe the controlled APP2 review...'
 
                 : mode ===
                   'App2 Expert'
-                  ? 'Ask about REDESY modules, APIs, permissions, tests or code...'
+                  ? 'Ask about APP2 modules, APIs, permissions, tests or code...'
 
                   : mode ===
                     'Research'
-                    ? 'Ask Felix to research approved REDESY evidence...'
+                    ? 'Ask Felix to research approved APP2 evidence...'
 
                     : 'Message Felix...'
             }
@@ -1280,7 +1280,7 @@ export default function AIResearchChat({
         </div>
 
         <small className="ai-chat-scope">
-          Felix uses your REDESY permissions.
+          Felix uses your APP2 permissions.
           Expert and Code Review modes are read-only.
         </small>
 

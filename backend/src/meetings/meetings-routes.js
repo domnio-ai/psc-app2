@@ -56,10 +56,10 @@ const meetingMailText=(meeting,recipientName,kind='Invitation')=>{
     ...(Array.isArray(meeting.agenda)&&meeting.agenda.length?[`Agenda:`,...meeting.agenda.map(item=>`${item.item_no}. ${item.title}${item.background?` — ${item.background}`:''}`)]:[]),
     purpose?`Purpose: ${purpose}`:null,
     '',
-    'This meeting is recorded in REDESY. Open Meetings in REDESY for the governed meeting record, agenda, attendance, minutes and actions.',
+    'This meeting is recorded in APP2. Open Meetings in APP2 for the governed meeting record, agenda, attendance, minutes and actions.',
     '',
     'Regards,',
-    'PSC REDESY'
+    'PSC APP2'
   ].filter(Boolean).join('\n')
 }
 
@@ -102,7 +102,7 @@ const deliverScheduleApprovalEmail=async(meetingId,recipientId,actorId,kind,comm
   const subject=kind==='Submitted'?`Meeting schedule approval requested: ${meeting.title}`:`Meeting schedule ${kind.toLowerCase()}: ${meeting.title}`
   const attachments=await meetingEmailAttachments(meetingId)
   const attachmentNotice=attachments.length?['Supporting documents attached:',...attachments.map(item=>`- ${item.filename}`)]:[]
-  const body=[`Dear ${recipient.name||'Colleague'},`,'',kind==='Submitted'?'A meeting schedule request requires your decision in REDESY Reviews & Approvals.':`The meeting schedule decision is: ${kind}.`,`Meeting: ${meeting.title}`,`Date/time (Africa/Nairobi): ${start} to ${end}`,`Venue: ${meeting.venue||'Not supplied'}`,meeting.meeting_link?`Join link: ${meeting.meeting_link}`:null,...(Array.isArray(meeting.resource_links)?meeting.resource_links.map((link,index)=>`Supporting link ${index+1}: ${link}`):[]),...attachmentNotice,meeting.description?`Purpose: ${meeting.description}`:null,comments?`Approver comments: ${comments}`:null,'','Open App2 Meetings for the governed meeting record.','Regards,','PSC REDESY'].filter(Boolean).join('\n')
+  const body=[`Dear ${recipient.name||'Colleague'},`,'',kind==='Submitted'?'A meeting schedule request requires your decision in APP2 Reviews & Approvals.':`The meeting schedule decision is: ${kind}.`,`Meeting: ${meeting.title}`,`Date/time (Africa/Nairobi): ${start} to ${end}`,`Venue: ${meeting.venue||'Not supplied'}`,meeting.meeting_link?`Join link: ${meeting.meeting_link}`:null,...(Array.isArray(meeting.resource_links)?meeting.resource_links.map((link,index)=>`Supporting link ${index+1}: ${link}`):[]),...attachmentNotice,meeting.description?`Purpose: ${meeting.description}`:null,comments?`Approver comments: ${comments}`:null,'','Open App2 Meetings for the governed meeting record.','Regards,','PSC APP2'].filter(Boolean).join('\n')
   try{const sent=await sendMail({to:recipient.email,subject,text:body,attachments});await auditEmail('MEETING_SCHEDULE_APPROVAL_EMAIL_SENT',{kind,recipientId,email:recipient.email,messageId:sent?.messageId||null,attachmentCount:attachments.length});return {emailSent:1,emailSkipped:0,status:'Sent'}}catch(error){await auditEmail('MEETING_SCHEDULE_APPROVAL_EMAIL_FAILED',{kind,recipientId,email:recipient.email,error:String(error?.message||error)}).catch(()=>{});return {emailSent:0,emailSkipped:0,emailFailed:1,status:'Email failed'}}
 }
 
@@ -416,7 +416,7 @@ export function registerMeetingsRoutes(app){
         }
         if(fallback){
           await client.query(`UPDATE meetings SET schedule_approver_id=$2,updated_at=NOW() WHERE id=$1`,[pending.id,fallback])
-          await notifyScheduleApproval(client,fallback,'Meeting schedule approval reassigned','A pending meeting request was reassigned after an approver appointment was revoked. Open Reviews & Approvals in REDESY.',pending.id)
+          await notifyScheduleApproval(client,fallback,'Meeting schedule approval reassigned','A pending meeting request was reassigned after an approver appointment was revoked. Open Reviews & Approvals in APP2.',pending.id)
           await audit(client,req.user.id,'MEETING_SCHEDULE_APPROVER_REASSIGNED',pending.id,{previousApproverId:appointment.approver_user_id,newApproverId:fallback,reason:'Appointment revoked'})
         }else{
           const reason='The appointed approver is no longer authorized. Please revise the approver selection and resubmit.'
@@ -462,7 +462,7 @@ export function registerMeetingsRoutes(app){
       await notify(client,existing.created_by,notifyTitle,notifyBody,existing.id)
       if(decision==='Approved'){
         const attendees=(await client.query(`SELECT user_id FROM meeting_participants WHERE meeting_id=$1 AND user_id IS NOT NULL AND user_id<>$2`,[existing.id,existing.created_by])).rows
-        for(const attendee of attendees)await notify(client,attendee.user_id,'Meeting invitation',`The meeting “${existing.title}” has been approved for ${new Date(existing.start_at).toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Meetings in REDESY for the approved link, venue and agenda.`,existing.id)
+        for(const attendee of attendees)await notify(client,attendee.user_id,'Meeting invitation',`The meeting “${existing.title}” has been approved for ${new Date(existing.start_at).toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Meetings in APP2 for the approved link, venue and agenda.`,existing.id)
       }
       await audit(client,req.user.id,decision==='Approved'?'MEETING_SCHEDULE_APPROVED':decision==='Returned'?'MEETING_SCHEDULE_RETURNED':'MEETING_SCHEDULE_REJECTED',existing.id,{title:existing.title,decision,comments,calendarEventId:decision==='Approved'?calendarEventId:null})
       return updated
@@ -548,7 +548,7 @@ export function registerMeetingsRoutes(app){
         }
         if(fallback){
           await client.query(`UPDATE meetings SET schedule_approver_id=$2,updated_at=NOW() WHERE id=$1`,[pending.id,fallback])
-          await notifyScheduleApproval(client,fallback,'Meeting schedule approval reassigned','A pending meeting request was reassigned after an approver appointment was revoked. Open Reviews & Approvals in REDESY.',pending.id)
+          await notifyScheduleApproval(client,fallback,'Meeting schedule approval reassigned','A pending meeting request was reassigned after an approver appointment was revoked. Open Reviews & Approvals in APP2.',pending.id)
           await audit(client,req.user.id,'MEETING_SCHEDULE_APPROVER_REASSIGNED',pending.id,{previousApproverId:appointment.approver_user_id,newApproverId:fallback,reason:'Appointment revoked'})
         }else{
           const reason='The appointed approver is no longer authorized. Please revise the approver selection and resubmit.'
@@ -594,7 +594,7 @@ export function registerMeetingsRoutes(app){
       await notify(client,existing.created_by,notifyTitle,notifyBody,existing.id)
       if(decision==='Approved'){
         const attendees=(await client.query(`SELECT user_id FROM meeting_participants WHERE meeting_id=$1 AND user_id IS NOT NULL AND user_id<>$2`,[existing.id,existing.created_by])).rows
-        for(const attendee of attendees)await notify(client,attendee.user_id,'Meeting invitation',`The meeting “${existing.title}” has been approved for ${new Date(existing.start_at).toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Meetings in REDESY for the approved link, venue and agenda.`,existing.id)
+        for(const attendee of attendees)await notify(client,attendee.user_id,'Meeting invitation',`The meeting “${existing.title}” has been approved for ${new Date(existing.start_at).toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Meetings in APP2 for the approved link, venue and agenda.`,existing.id)
       }
       await audit(client,req.user.id,decision==='Approved'?'MEETING_SCHEDULE_APPROVED':decision==='Returned'?'MEETING_SCHEDULE_RETURNED':'MEETING_SCHEDULE_REJECTED',existing.id,{decision,comments,calendarEventId:decision==='Approved'?calendarEventId:null})
       return updated
@@ -655,7 +655,7 @@ export function registerMeetingsRoutes(app){
           [meeting.id,userId,role,isCore?'Accepted':'Invited'])
       }
       await notifyScheduleApproval(client,scheduleApproverId,'Meeting schedule approval requested',
-        `A meeting request from ${req.user.name||'a staff member'} requires your decision: “${title}” on ${start.toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Reviews & Approvals in REDESY.`,meeting.id)
+        `A meeting request from ${req.user.name||'a staff member'} requires your decision: “${title}” on ${start.toLocaleString('en-KE',{timeZone:'Africa/Nairobi'})}. Open Reviews & Approvals in APP2.`,meeting.id)
       await audit(client,req.user.id,'MEETING_SCHEDULE_SUBMITTED',meeting.id,{
         title,startAt:start.toISOString(),endAt:end.toISOString(),scheduleApproverId,meetingMode,participantCount:allIds.length,resourceLinkCount:resourceLinks.length
       })
@@ -722,7 +722,7 @@ export function registerMeetingsRoutes(app){
           await client.query(`INSERT INTO meeting_participants(meeting_id,user_id,participant_role,response_status) VALUES($1,$2,$3,$4) ON CONFLICT(meeting_id,user_id) DO UPDATE SET participant_role=EXCLUDED.participant_role`,[existing.id,userId,role,coreIds.includes(userId)?'Accepted':'Invited'])
         }
       }
-      if(needsApproval||pendingAtStart)await notifyScheduleApproval(client,scheduleApproverId,'Meeting schedule approval requested',`Meeting request “${title}” has been updated and is awaiting your decision. Open Reviews & Approvals in REDESY.`,existing.id)
+      if(needsApproval||pendingAtStart)await notifyScheduleApproval(client,scheduleApproverId,'Meeting schedule approval requested',`Meeting request “${title}” has been updated and is awaiting your decision. Open Reviews & Approvals in APP2.`,existing.id)
       await audit(client,req.user.id,needsApproval?'MEETING_SCHEDULE_RESUBMITTED':pendingAtStart?'MEETING_UPDATED_PENDING_APPROVAL':'MEETING_UPDATED',existing.id,{title,scheduleChanged,needsApproval,scheduleApproverId:needsApproval?scheduleApproverId:existing.schedule_approver_id})
       return row
     })
@@ -732,7 +732,7 @@ export function registerMeetingsRoutes(app){
       return
     }
     const participants=(await query(`SELECT user_id FROM meeting_participants WHERE meeting_id=$1 AND user_id IS NOT NULL AND user_id<>$2`,[existing.id,req.user.id])).rows.map(row=>row.user_id)
-    for(const userId of participants)await query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id,priority,action,target_workspace,notification_category) VALUES($1,'Meeting updated',$2,'meeting',$3,'Normal','Open meeting','Meetings','Information')`,[userId,`“${title}” has been updated. Check the latest schedule and meeting details in REDESY.`,existing.id])
+    for(const userId of participants)await query(`INSERT INTO notifications(user_id,title,body,entity_type,entity_id,priority,action,target_workspace,notification_category) VALUES($1,'Meeting updated',$2,'meeting',$3,'Normal','Open meeting','Meetings','Information')`,[userId,`“${title}” has been updated. Check the latest schedule and meeting details in APP2.`,existing.id])
     const delivery=await deliverMeetingEmails(existing.id,participants,req.user.id,'Update')
     res.json({...await getMeetingDetail(req.user,existing.id),invitation_delivery:delivery})
   }catch(error){next(error)}})
@@ -741,7 +741,7 @@ export function registerMeetingsRoutes(app){
     await requireManage(req,req.params.id)
     const userId=req.body?.userId||null
     const guestName=String(req.body?.guestName||'').trim()||null
-    if(!userId&&!guestName)throw httpError(400,'Select a REDESY user or provide a guest name.')
+    if(!userId&&!guestName)throw httpError(400,'Select a APP2 user or provide a guest name.')
     await transaction(async client=>{
       await client.query(`INSERT INTO meeting_participants(
         meeting_id,user_id,guest_name,guest_email,participant_role,response_status
@@ -770,7 +770,7 @@ export function registerMeetingsRoutes(app){
       .filter(item=>item&&item.userId)
       .map(item=>({userId:String(item.userId),participantRole:String(item.participantRole||'Attendee').slice(0,80)}))
     const unique=[...new Map(rows.map(item=>[item.userId,item])).values()]
-    if(!unique.length)throw httpError(400,'Select at least one valid REDESY user.')
+    if(!unique.length)throw httpError(400,'Select at least one valid APP2 user.')
     await transaction(async client=>{
       const meeting=(await client.query('SELECT title FROM meetings WHERE id=$1',[req.params.id])).rows[0]
       for(const item of unique){
@@ -839,7 +839,7 @@ export function registerMeetingsRoutes(app){
     const title=participantRows[0]?.title||'Meeting'
     await transaction(async client=>{
       for(const userId of ids){
-        await notify(client,userId,'Meeting invitation',`You are invited to “${title}”. Open Meetings in REDESY for the latest details.`,req.params.id)
+        await notify(client,userId,'Meeting invitation',`You are invited to “${title}”. Open Meetings in APP2 for the latest details.`,req.params.id)
       }
       await audit(client,req.user.id,'MEETING_INVITATIONS_SENT',req.params.id,{recipientIds:ids})
     })
@@ -935,7 +935,7 @@ export function registerMeetingsRoutes(app){
     const chair = meetingMinutesEscapeHtml(meeting.chair_name || meeting.created_by_name || 'Not recorded');
     const secretary = meetingMinutesEscapeHtml(meeting.secretary_name || 'Not assigned');
     const workflowStatus = meetingMinutesEscapeHtml(minute.status || 'Draft');
-    const preparedBy = meetingMinutesEscapeHtml(actor?.name || actor?.email || 'REDESY user');
+    const preparedBy = meetingMinutesEscapeHtml(actor?.name || actor?.email || 'APP2 user');
     const content = meetingMinutesSafeHtml(minute.content || 'Minutes content has not yet been entered.');
     return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>[DRAFT] ${title} — Meeting Minutes</title><style>*{box-sizing:border-box}body{margin:0;padding:24px;background:#eceff3;color:#252a32;font:12pt/1.55 "Times New Roman",Georgia,serif}.paper{width:210mm;min-height:297mm;margin:0 auto;padding:17mm 17mm 20mm;background:#fff;border-top:5px solid #b08a28;box-shadow:0 4px 24px rgba(20,26,36,.12)}.identity{display:grid;grid-template-columns:78px 1fr 78px;gap:15px;align-items:center;padding:0 0 13px;border-bottom:2px solid #b08a28;text-align:center;font-family:Arial,Helvetica,sans-serif}.identity img{display:block;max-width:74px;max-height:74px;object-fit:contain;margin:auto}.identity strong{display:block;font-size:12pt;letter-spacing:.08em;color:#775a14}.identity span{display:block;margin-top:5px;font-size:8pt;letter-spacing:.12em;color:#555}.draft-banner{margin:17px 0;padding:10px 12px;border:1px solid #b48e28;background:#fff8e4;color:#714b05;text-align:center;font:bold 10pt Arial,Helvetica,sans-serif;letter-spacing:.05em}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px 16px;padding:12px 14px;background:#f8f6ef;border:1px solid #ded5bd;font:10pt Arial,Helvetica,sans-serif}.meta p{margin:0}.meta strong{color:#6d5418}.content{margin-top:22px}.content h1{font-size:20pt;border-bottom:2px solid #b08a28;padding-bottom:8px}.content h2{margin:22px 0 8px;padding-bottom:5px;border-bottom:1px solid #ddd0a9;color:#785b12;font-size:14pt}.content p{margin:0 0 9px}.content ul,.content ol{padding-left:23px}.content table{width:100%;border-collapse:collapse;font-size:10pt}.content th,.content td{border:1px solid #cbd0d7;padding:7px;vertical-align:top}.content th{background:#f1ead7}.foot{border-top:1px solid #d5d8de;margin-top:24px;padding-top:8px;color:#626874;text-align:center;font:8pt Arial,Helvetica,sans-serif}@media(max-width:840px){body{padding:0}.paper{width:100%;min-height:100vh;padding:24px 20px;box-shadow:none}.identity{grid-template-columns:52px 1fr 52px;gap:8px}.identity img{max-width:50px;max-height:58px}.meta{grid-template-columns:1fr}}@page{size:A4 portrait;margin:0}@media print{body{padding:0;background:#fff}.paper{width:210mm;min-height:297mm;margin:0;padding:17mm 17mm 20mm;box-shadow:none}.draft-banner{break-inside:avoid}}</style></head><body><main class="paper"><header class="identity"><img src="${coatSrc}" alt="Coat of Arms of Kenya"><div><strong>PUBLIC SERVICE COMMISSION</strong><span>MEETING MINUTES · CONTROLLED WORKING COPY</span></div><img src="${pscSrc}" alt="Public Service Commission logo"></header><div class="draft-banner">WORKING DRAFT — ${workflowStatus.toUpperCase()} — NOT APPROVED — NOT AN OFFICIAL RECORD</div><section class="meta"><p><strong>Meeting:</strong> ${title}</p><p><strong>Date:</strong> ${date}</p><p><strong>Venue:</strong> ${venue}</p><p><strong>Chair:</strong> ${chair}</p><p><strong>Secretary:</strong> ${secretary}</p><p><strong>Minutes version:</strong> v${Number(minute.version_no || 1)}</p><p><strong>Workflow status:</strong> ${workflowStatus}</p><p><strong>Draft snapshot prepared by:</strong> ${preparedBy}</p></section><article class="content">${content}</article><footer class="foot">App2 meeting draft · ${title} · NOT APPROVED / NOT FOR OFFICIAL CITATION</footer></main></body></html>`;
   }
@@ -944,7 +944,7 @@ export function registerMeetingsRoutes(app){
     if (!meeting || !minute || !['Draft', 'Returned', 'Submitted'].includes(minute.status)) return null;
     const ownerId = actor?.id || minute.created_by;
     if (!ownerId) throw httpError(409, 'A meeting draft Repository owner could not be identified.');
-    const actorForSnapshot = { ...actor, name: actor?.name || actor?.email || 'REDESY user' };
+    const actorForSnapshot = { ...actor, name: actor?.name || actor?.email || 'APP2 user' };
     const html = await buildMeetingMinutesDraftRepositoryHtml(meeting, minute, actorForSnapshot);
     const sourceUrl = `app2://meetings/${meeting.id}/minutes`;
     const saved = await savePrivateDraftRepositoryVersion({
@@ -988,7 +988,7 @@ export function registerMeetingsRoutes(app){
     const validateDocumentUpload = storageModule.validateDocumentUpload || storageModule.default?.validateDocumentUpload;
     const buildPscTaskFinalPdf = pdfModule.buildPscTaskFinalPdf || pdfModule.default?.buildPscTaskFinalPdf;
     if (typeof storeDocument !== 'function' || typeof validateDocumentUpload !== 'function' || typeof buildPscTaskFinalPdf !== 'function') {
-      throw new Error('Meeting minutes publication helpers are unavailable from the configured REDESY backend modules.');
+      throw new Error('Meeting minutes publication helpers are unavailable from the configured APP2 backend modules.');
     }
     const downloadOnly = options.downloadOnly === true;
     const approvedRecord = !downloadOnly || (minute.status === 'Approved' && Boolean(minute.approved_by && minute.approved_at));
@@ -1338,7 +1338,7 @@ export function registerMeetingsRoutes(app){
           repository_version:receipt.version, repository_minutes_version:Number(latest.version_no), reused:true });
       }
       const approver = (await query('SELECT id,name FROM users WHERE id=$1', [latest.approved_by])).rows[0];
-      if (!approver) throw httpError(409, 'The recorded approver no longer resolves to a REDESY user. Repository publication cannot be reconciled safely.');
+      if (!approver) throw httpError(409, 'The recorded approver no longer resolves to a APP2 user. Repository publication cannot be reconciled safely.');
       prepared = await prepareApprovedMeetingMinutesFile(meeting, latest, approver);
       const publication = await transaction(async client => {
         const locked = (await client.query('SELECT * FROM meeting_minutes WHERE id=$1 AND meeting_id=$2 FOR UPDATE', [latest.id, req.params.id])).rows[0];

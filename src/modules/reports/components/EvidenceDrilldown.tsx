@@ -35,7 +35,7 @@ export default function EvidenceDrilldown({detail,onClose,onOpenAssignment}:{det
         {(query||status!=='All'||team!=='All')&&<button type="button" onClick={()=>{setQuery('');setStatus('All');setTeam('All')}}>Clear filters</button>}
       </div>}
       {visible.length?<div className="evidence-drilldown-list">{visible.map((row,index)=><article key={`${text(row.id)||'record'}-${index}`}>
-        <div className="evidence-record-heading"><div><small>{text(row.type)||'REDESY record'}</small><h4>{text(row.title)||text(row.name)||`Record ${index+1}`}</h4></div>{text(row.status)&&<b>{text(row.status)}</b>}</div>
+        <div className="evidence-record-heading"><div><small>{text(row.type)||'APP2 record'}</small><h4>{text(row.title)||text(row.name)||`Record ${index+1}`}</h4></div>{text(row.status)&&<b>{text(row.status)}</b>}</div>
         <div className="evidence-record-summary">
           <p><span>Responsible team</span><strong>{attentionTeam(row)}</strong></p>
           {Boolean(row.due_date)&&<p><span>Deadline position</span><strong>{attentionTiming(row.due_date)}</strong></p>}

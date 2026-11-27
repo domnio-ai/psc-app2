@@ -263,7 +263,7 @@ export default function MessagesWorkspace({token,currentUserId,onUnreadCountChan
 
     <section className="team-chat-command-centre" aria-label="Team Chat command centre">
       <div className="team-chat-command-head">
-        <div><small>COLLABORATION & REAL-TIME COMMUNICATION</small><h2>Team Chat</h2><p>Coordinate direct and group conversations in the same governed REDESY workspace.</p></div>
+        <div><small>COLLABORATION & REAL-TIME COMMUNICATION</small><h2>Team Chat</h2><p>Coordinate direct and group conversations in the same governed APP2 workspace.</p></div>
         <div className="collaboration-header-actions">
           <button type="button" className="collaboration-nav-button collaboration-nav-back" onClick={onBack} title="Back" aria-label="Back">Back</button>
           <button type="button" className="collaboration-nav-button collaboration-nav-dashboard" onClick={onDashboard} title="Dashboard" aria-label="Dashboard">Dashboard</button>

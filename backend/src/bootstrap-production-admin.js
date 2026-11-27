@@ -58,7 +58,7 @@ async function askIdentity() {
 
 async function verifyMigrationLedger(client, expectedEntries) {
   const ledger = await client.query("SELECT to_regclass('public.redesy_schema_migrations') AS name")
-  if (!ledger.rows[0]?.name) throw new Error('REDESY migrations have not been applied.')
+  if (!ledger.rows[0]?.name) throw new Error('APP2 migrations have not been applied.')
   const result = await client.query('SELECT migration_id, sha256 FROM public.redesy_schema_migrations ORDER BY migration_id')
   const applied = new Map(result.rows.map(row => [row.migration_id, row.sha256.trim().toUpperCase()]))
   if (applied.size !== expectedEntries.length) throw new Error('Migration ledger does not match the pinned production plan.')

@@ -161,7 +161,7 @@ export default function TasksCommandCentre({
     <section className="tasks-command-centre" aria-label="Tasks command centre">
       <header className="module-command-centre-head">
         <div>
-          <small>REDESY TASKS COMMAND CENTRE</small>
+          <small>APP2 TASKS COMMAND CENTRE</small>
           <h3>Task delivery command centre</h3>
           <p>Execution · deadlines · reviews · approvals</p>
         </div>

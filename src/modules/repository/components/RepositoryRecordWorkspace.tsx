@@ -182,7 +182,7 @@ export default function RepositoryRecordWorkspace({token,document,isManager,docu
       {tab==="Versions"&&<div className="repository-workspace-list">{detail.versions.map(v=><article key={v.id}><div><strong>Version {v.version_number}</strong><span>{v.original_name}</span><small>{new Date(v.created_at).toLocaleString("en-KE")} · {Math.max(1,Math.round(v.size_bytes/1024))} KB</small></div>{v.version_number===detail.record.current_version&&<b>Current</b>}</article>)}</div>}
 
       {tab==="Relationships"&&<div className="repository-workspace-list">
-        {detail.relationships.length===0?<div className="repository-empty-state"><strong>No relationships recorded</strong><span>Use More → Relationships / evidence to connect this record to an Assignment, Task, Research project or REDESY Report.</span></div>:detail.relationships.map(r=><article key={r.id}><div><strong>{r.relationship_type}</strong><span>{r.entity_title||r.entity_id}</span><small>{r.entity_type}{r.pinned_version_number?` · evidence pinned to v${r.pinned_version_number}`:" · follows current version"}</small></div></article>)}
+        {detail.relationships.length===0?<div className="repository-empty-state"><strong>No relationships recorded</strong><span>Use More → Relationships / evidence to connect this record to an Assignment, Task, Research project or APP2 Report.</span></div>:detail.relationships.map(r=><article key={r.id}><div><strong>{r.relationship_type}</strong><span>{r.entity_title||r.entity_id}</span><small>{r.entity_type}{r.pinned_version_number?` · evidence pinned to v${r.pinned_version_number}`:" · follows current version"}</small></div></article>)}
       </div>}
 
       {tab==="Protection"&&<div className="repository-protection-summary">
@@ -231,7 +231,7 @@ export default function RepositoryRecordWorkspace({token,document,isManager,docu
           </section>
 
           <section className="repository-governance-action-panel">
-            <header><small>DISPOSITION DECISION</small><strong>{detail.record.disposition_action||"Review"}</strong><span>Destroy always enters REDESY's existing independent deletion approval workflow.</span></header>
+            <header><small>DISPOSITION DECISION</small><strong>{detail.record.disposition_action||"Review"}</strong><span>Destroy always enters APP2's existing independent deletion approval workflow.</span></header>
             <label>Decision reason<textarea rows={2} value={dispositionReason} onChange={e=>setDispositionReason(e.target.value)} placeholder="Why this retention/disposition decision is appropriate…"/></label>
             <div className="repository-disposition-actions">
               <button type="button" disabled={saving} onClick={()=>void setDisposition("Review")}>Keep under review</button>

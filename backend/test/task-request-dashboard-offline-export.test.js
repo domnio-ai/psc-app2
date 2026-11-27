@@ -50,8 +50,8 @@ test('Permitted Task rows can download an editable offline work pack', () => {
 
 test('Offline work pack preserves the Task Report governance path', () => {
   assert.match(tasks, /does not submit a report, approve work, or mark a task complete/);
-  assert.match(tasks, /return to REDESY and enter or paste the completed work into the Task Report/);
-  assert.match(tasks, /review, approval, and Repository publication remain governed by REDESY/);
+  assert.match(tasks, /return to APP2 and enter or paste the completed work into the Task Report/);
+  assert.match(tasks, /review, approval, and Repository publication remain governed by APP2/);
 });
 
 test('Dashboard and task action styling is isolated in dedicated/canonical stylesheets', () => {

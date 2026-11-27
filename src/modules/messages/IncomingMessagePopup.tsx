@@ -16,7 +16,7 @@ const conversationName=(message:IncomingMessagePreview,currentUserId?:string)=>{
 export default function IncomingMessagePopup({message,currentUserId,onOpen,onDismiss}:Props){
   if(!message)return null;
   const threadName=conversationName(message,currentUserId);
-  return <aside className="message-popup" role="status" aria-live="polite" aria-label="New REDESY message">
+  return <aside className="message-popup" role="status" aria-live="polite" aria-label="New APP2 message">
     <button className="message-popup-close" type="button" onClick={onDismiss} aria-label="Dismiss message">×</button>
     <div className="message-popup-heading">
       <span className="message-popup-avatar">{message.sender_name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]?.toUpperCase()).join("")}</span>

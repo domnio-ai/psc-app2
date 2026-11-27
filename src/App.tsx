@@ -474,7 +474,6 @@ const navItems: [IconName, string][] = [
   ["research", "Research Repository"],
   ["research", "AI Researcher"],
   ["settings", "Felix Administration"],
-  ["documents", "Documents"],
   ["team", "Team & Users"],
   ["reports", "Reports & Analytics"],
   ["notifications", "Notifications"],
